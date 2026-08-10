@@ -204,8 +204,8 @@ html:not(.light) .tab.on{color:var(--amber)}
   border-top:1px solid var(--line2);border-radius:28px 28px 0 0;
   padding:8px 20px calc(26px + env(safe-area-inset-bottom,0px));
   transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,.24,1);
-  z-index:64;max-height:92%;overflow-y:auto;box-shadow:var(--shadowUp)}
-.sheet.open{transform:translateY(0)}
+  z-index:64;max-height:92%;overflow-y:auto;box-shadow:var(--shadowUp);pointer-events:none}
+.sheet.open{transform:translateY(0);pointer-events:auto}
 .grab{width:40px;height:4px;border-radius:2px;background:var(--line2);margin:6px auto 18px}
 .sheet h2{font-family:var(--fDisp);font-size:18px;font-weight:700;letter-spacing:0;margin-bottom:16px}
 .lbl{font-size:10.5px;font-weight:800;letter-spacing:1.8px;text-transform:uppercase;color:var(--mut);margin:20px 0 10px}
