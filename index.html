@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>Habits</title>
+<title>Personal Tracker</title>
 <style>
 @font-face{
   font-family:'Unbounded';
@@ -1533,7 +1533,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 </div>
 
 <div class="dock" id="tabbar">
-  <div class="navBrand"><span class="navLogo">✦</span>HabitTracker</div>
+  <div class="navBrand"><span class="navLogo">✦</span>Personal Tracker</div>
   <button class="tab on" data-tab="pgToday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5.5"/></svg>Today</button>
   <button class="tab" data-tab="pgMood"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.6 14.4c.9 1.1 2.1 1.7 3.4 1.7s2.5-.6 3.4-1.7M9 9.7h.01M15 9.7h.01"/></svg>Mood</button>
   <button class="tab" data-tab="pgExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3z"/><path d="M3 10h18M7 15h4"/></svg>Money</button>
@@ -4877,7 +4877,7 @@ function updDots(){
 function showLock(mode){
   lockMode = mode; pinBuf = ''; updDots();
   var T = {unlock:'Enter PIN', new1:'Choose a PIN', new2:'Repeat PIN', ver:'Enter current PIN', off:'Enter current PIN'};
-  var S = {unlock:'Habits is locked', new1:'4 digits', new2:'Type it once more', ver:'To change it', off:'To remove the lock'};
+  var S = {unlock:'Personal Tracker is locked', new1:'4 digits', new2:'Type it once more', ver:'To change it', off:'To remove the lock'};
   $('lockT').textContent = T[mode]; $('lockS').textContent = S[mode];
   $('kBio').style.display = (mode==='unlock' && state.set.bio && bioAvailSafe()) ? '' : 'none';
   $('lock').classList.add('on');
@@ -5004,8 +5004,8 @@ function renderSet(){
     'Saved daily \u00B7 last: ' + state.set.lastAutoBk
     : 'A local backup is saved once a day';
   $('verLine').textContent = nat
-    ? ('Habits v' + (function(){try{return nat.appVer();}catch(e){return '2';}})() + ' \u00b7 private')
-    : 'Habits \u00b7 web \u00b7 private';
+    ? ('Personal Tracker v' + (function(){try{return nat.appVer();}catch(e){return '2';}})() + ' \u00b7 private')
+    : 'Personal Tracker \u00b7 web \u00b7 private';
 }
 
 /* ================= cloud sync (firebase) ================= */
