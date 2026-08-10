@@ -128,8 +128,10 @@ h1{font-family:var(--fDisp);font-size:28px;font-weight:700;letter-spacing:-.3px;
 
 /* ============ HABIT CARD ============ */
 .card{background:var(--card);border:1px solid var(--line);border-radius:22px;
-  padding:15px 16px 10px 20px;margin-bottom:13px;box-shadow:var(--shadow);
-  position:relative;overflow:hidden;transition:transform .15s ease}
+  padding:15px 18px 12px;margin-bottom:13px;box-shadow:var(--shadow);
+  position:relative;overflow:hidden;transition:transform .15s ease;
+  display:flex;align-items:center;gap:14px}
+.cwrap{flex:1;min-width:0}
 .card:active{transform:scale(.985)}
 .crow{display:flex;align-items:center;gap:12px;margin-bottom:2px}
 .emo{width:45px;height:45px;border-radius:14px;display:flex;align-items:center;justify-content:center;
@@ -142,7 +144,7 @@ h1{font-family:var(--fDisp);font-size:28px;font-weight:700;letter-spacing:-.3px;
   border-radius:20px;padding:4px 10px;display:flex;align-items:center;gap:4px}
 .crem .pill .pi{color:var(--amber)}
 
-.chk{width:50px;height:50px;border-radius:50%;flex-shrink:0;
+.chk{width:48px;height:48px;border-radius:50%;flex-shrink:0;align-self:flex-start;margin-top:1px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   border:2.5px solid var(--cs);color:transparent;font-size:11px;font-weight:800;
   transition:all .2s cubic-bezier(.34,1.56,.64,1)}
@@ -285,8 +287,8 @@ textarea.inp{resize:none;min-height:68px}
 .dname{font-family:var(--fDisp);font-size:17px;font-weight:700;letter-spacing:0}
 .dsub{font-size:12px;color:var(--mut);margin-top:3px}
 .dquote{font-style:italic;font-size:13px;font-weight:600;color:var(--mut);margin:8px 0 4px;line-height:1.45}
-.stats{display:flex;gap:8px;margin:16px 0 12px}
-.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:14px 4px;text-align:center}
+.stats{display:flex;gap:8px;margin:10px 0 8px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:15px;padding:11px 4px;text-align:center}
 .sv{font-size:18px;font-weight:800}
 .sl{font-size:8.5px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--mut);margin-top:4px}
 .fzRow{display:flex;align-items:center;gap:10px;background:var(--iceSoft);border:1px solid var(--ice);
@@ -460,6 +462,13 @@ html:not(.light) .sbtn.acc{color:var(--amber)}
 .achvSheet{background:var(--bg2);border-top:1px solid var(--line2);border-radius:28px 28px 0 0;width:100%;
   max-height:80%;overflow-y:auto;padding:8px 20px calc(26px + env(safe-area-inset-bottom,0px));box-shadow:var(--shadowUp)}
 .achvFullGrid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:9px}
+
+.chipAdd{border:1.5px dashed var(--sBlue)!important;color:var(--sBlue)!important;background:transparent!important;font-weight:800}
+.newCatRow{display:flex;gap:8px;margin:0 0 6px}
+.newCatRow .inp{flex:1;margin:0}
+.newCatRow .ncOk,.newCatRow .ncX{width:46px;flex-shrink:0;border-radius:13px;font-size:16px;font-weight:800}
+.newCatRow .ncOk{background:var(--grad-amber);color:var(--onAccent)}
+.newCatRow .ncX{background:var(--card2);color:var(--mut)}
 
 /* ============ SLEEP ============ */
 .sleepCard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:6px;box-shadow:var(--shadow)}
@@ -1370,8 +1379,18 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <input id="expAmt" class="inp numPad" type="number" inputmode="decimal" step="any" min="0" placeholder="0">
   <div class="lbl" id="expCatLbl">Category</div>
   <div class="pickGrid" id="expCatGrid"></div>
+  <div class="newCatRow" id="expNewCatRow" style="display:none">
+    <input id="expNewCat" class="inp" maxlength="24" placeholder="New category name">
+    <button class="ncOk" id="expNewCatOk">&#10003;</button>
+    <button class="ncX" id="expNewCatX">&#10005;</button>
+  </div>
   <div class="lbl" id="expSubLbl" style="display:none">Subcategory</div>
   <div class="pickGrid" id="expSubGrid" style="display:none"></div>
+  <div class="newCatRow" id="expNewSubRow" style="display:none">
+    <input id="expNewSub" class="inp" maxlength="24" placeholder="New subcategory name">
+    <button class="ncOk" id="expNewSubOk">&#10003;</button>
+    <button class="ncX" id="expNewSubX">&#10005;</button>
+  </div>
   <div class="lbl" id="expAcctLbl">Account</div>
   <div class="pickGrid" id="expAcctGrid"></div>
   <div class="lbl" id="expToLbl" style="display:none">To account</div>
@@ -1630,7 +1649,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="stat"><div class="sv" id="sTotal"></div><div class="sl">Total</div></div>
     <div class="stat"><div class="sv" id="sRate"></div><div class="sl">30 days</div></div>
   </div>
-  <div class="hm" id="hmHab" style="grid-template-rows:repeat(7,1fr);grid-auto-flow:column;grid-template-columns:repeat(20,1fr);margin-bottom:14px"></div>
+  <div class="hm" id="hmHab" style="grid-auto-flow:column;grid-template-rows:repeat(7,10px);grid-template-columns:repeat(20,1fr);gap:3px;max-width:360px;margin:0 0 10px"></div>
   <div class="tmr" id="tmrBox" style="display:none">
     <div class="tmrVal" id="tmrVal">00:00</div>
     <button class="tmrB" id="tmrGo">Start</button>
@@ -1872,6 +1891,7 @@ function normState(s){
   }
   if(!s.cats || typeof s.cats !== 'object' || s.cats instanceof Array) s.cats = null;
   if(!s.cats) s.cats = defaultCats();
+  if(!(s.incCats instanceof Array) || !s.incCats.length) s.incCats = ['Salary','Bonus','Freelance','Interest','Refund','Other'];
   if(!(s.recur instanceof Array)) s.recur = [];
   for(var ri=0; ri<s.recur.length; ri++){
     var rc = s.recur[ri] || {};
@@ -2353,10 +2373,11 @@ function ribbon(h){
     } else if(val(h, ds) > 0){
       cells += '<circle cx="'+cx+'" cy="52" r="14" fill="'+hexRgba(h.color,.28)+'" stroke="'+h.color+'" stroke-width="2.5"/>'
         + '<circle cx="'+cx+'" cy="52" r="4.5" fill="'+h.color+'"/>';
+    } else if(due){
+      cells += '<circle cx="'+cx+'" cy="52" r="14" fill="none" stroke="'+hexRgba(h.color,.5)+'" stroke-width="2.2"/>';
     } else {
-      cells += '<circle cx="'+cx+'" cy="52" r="14" fill="none" style="stroke:var(--'+(due?'ringOff':'ringOffDim')+')" stroke-width="2"'+(due?'':' stroke-dasharray="4 3"')+'/>';
+      cells += '<circle cx="'+cx+'" cy="52" r="14" fill="none" stroke="'+hexRgba(h.color,.22)+'" stroke-width="2" stroke-dasharray="4 3"/>';
     }
-    if(i===0 && !mark) cells += '<circle cx="'+cx+'" cy="52" r="20" fill="none" style="stroke:var(--ringOff)" stroke-width="1.5"/>';
     hits += '<rect x="'+(idx*100)+'" y="0" width="100" height="76" fill="transparent" data-act="day" data-date="'+ds+'"/>';
     prevMark = mark;
   }
@@ -2411,13 +2432,16 @@ function cardHTML(h){
     remHtml += '</div>';
   }
   return '<div class="card" data-id="'+h.id+'" style="--spine:'+h.color+'">'
-    + '<div class="crow">'
-    +   '<div class="emo" style="background:'+hexRgba(h.color,.14)+'">'+h.emoji+'</div>'
-    +   '<div class="cinfo"><div class="cname">'+esc(h.name)+'</div>'
-    +   '<div class="cstreak" style="color:'+sColor+'">'+sLabel+'</div>'
-    +   remHtml + '</div>'
-    +   '<button class="'+chkCls+'" data-act="chk" aria-label="toggle" style="--c:'+h.color+';--cs:'+hexRgba(h.color,.35)+';--cg:'+hexRgba(h.color,.35)+'">'+inner+'</button>'
-    + '</div>' + ribbon(h) + '</div>';
+    + '<div class="cwrap">'
+    +   '<div class="crow">'
+    +     '<div class="emo" style="background:'+hexRgba(h.color,.14)+'">'+h.emoji+'</div>'
+    +     '<div class="cinfo"><div class="cname">'+esc(h.name)+'</div>'
+    +     '<div class="cstreak" style="color:'+sColor+'">'+sLabel+'</div>'
+    +     remHtml + '</div>'
+    +   '</div>' + ribbon(h)
+    + '</div>'
+    + '<button class="'+chkCls+'" data-act="chk" aria-label="toggle" style="--c:'+h.color+';--cs:'+hexRgba(h.color,.35)+';--cg:'+hexRgba(h.color,.35)+'">'+inner+'</button>'
+    + '</div>';
 }
 function nextReminderStr(){
   var now = new Date(), best = null, bh = null, ts = today();
@@ -2795,7 +2819,11 @@ function refreshDateBtns(){
 /* ================= add / edit sheet ================= */
 var ed = null;
 function blankHabit(){
-  return normHabit({name:'', emoji:EMOJIS[0], color:COLORS[0], type:'check', target:8,
+  var used={}; for(var i=0;i<state.habits.length;i++) used[state.habits[i].color]=1;
+  var col=null;
+  for(var c=0;c<COLORS.length;c++){ if(!used[COLORS[c]]){ col=COLORS[c]; break; } }
+  if(!col) col=COLORS[state.habits.length % COLORS.length];
+  return normHabit({name:'', emoji:EMOJIS[0], color:col, type:'check', target:8,
     sched:{kind:'daily', dows:[1,2,3,4,5], x:2, quota:3}, rem:{times:[], repeat:false, missed:false},
     section:'any', cat:'Health', start: today()});
 }
@@ -2933,6 +2961,7 @@ function renderDetail(){
       : '<span style="color:var(--sGreen)">\u2713 Target achieved \u00B7 +' + fmtV(vNow - vTgt) + ' extra</span>';
   }
   renderHeatHabit(h);
+  $('hmHab').style.display = totalDone(h) >= 7 ? '' : 'none';
   $('tmrBox').style.display = h.type==='time' ? '' : 'none';
   if(h.type==='time') tmrRender();
   $('archBtn').textContent = h.arch ? 'Unarchive habit' : 'Archive habit';
@@ -3038,7 +3067,7 @@ function renderHeatHabit(h){
     var w0 = addDays(ws, -7*w);
     for(var d=0; d<7; d++){
       var day = addDays(w0, d), ds = fmt(day), st;
-      if(ds > today() || ds < h.created) st = 'background:transparent';
+      if(ds > today() || ds < h.created) st = 'background:var(--card2);opacity:.12';
       else if(isFroz(h, ds)) st = 'background:var(--ice)';
       else if(isDone(h, ds)) st = 'background:'+h.color;
       else if(val(h, ds) > 0) st = 'background:'+hexRgba(h.color,.38);
@@ -3769,12 +3798,26 @@ function scheduleWebNotifs(){
     }
   }
 }
-window.extOpen = function(kind, val){
+window.extOpen = function(kind, val, acct){
   try{
     if(kind === 'tab'){ showTab(val); }
     else if(kind === 'habit' && findHabit(val)){ showTab('pgToday'); openDetail(val); }
+    else if(kind === 'add'){ openExpFromWidget(val, acct); }
   }catch(e){}
 };
+function openExpFromWidget(kind, acctId){
+  showTab('pgExp');
+  if(sheetOpen) closeSheet();
+  setTimeout(function(){
+    openExp(null);
+    if(kind==='inc' || kind==='exp'){ expKindSel = kind; }
+    if(acctId){ for(var i=0;i<state.accts.length;i++){ if(state.accts[i].id===acctId && state.accts[i].active){ expAcctSel=acctId; break; } } }
+    expCatSel=''; expSubSel='';
+    if(typeof paintKind==='function') paintKind();
+    if(typeof paintExpPickers==='function') paintExpPickers();
+    setTimeout(function(){ var el=$('expAmt'); if(el){ try{ el.focus(); }catch(e){} } }, 90);
+  }, sheetOpen ? 80 : 0);
+}
 window.photoResult = function(name){
   if(jrEd && /^[A-Za-z0-9_.-]+$/.test(name)){
     jrEd.ph.push(name);
@@ -4701,21 +4744,41 @@ function paintKind(){
 }
 function chip(txt,sel,attr,val){ return '<button class="'+(sel?'sel':'')+'" '+attr+'="'+esc(val)+'">'+esc(txt)+'</button>'; }
 function paintExpPickers(){
-  var cats = expKindSel==='inc' ? ['Salary','Bonus','Freelance','Interest','Refund','Other'] : Object.keys(state.cats);
+  var cats = expKindSel==='inc' ? state.incCats : Object.keys(state.cats);
   var cg=''; for(var i=0;i<cats.length;i++) cg += chip(cats[i], cats[i]===expCatSel, 'data-ec', cats[i]);
+  cg += '<button class="chipAdd" data-newcat="1">+ New</button>';
   $('expCatGrid').innerHTML = cg;
-  // subcats
-  if(expKindSel==='exp' && state.cats[expCatSel] && state.cats[expCatSel].length){
-    var sg=''; var subs=state.cats[expCatSel];
+  // subcats (expenses only, whenever a category is selected — so a first subcategory can be added inline)
+  if(expKindSel==='exp' && expCatSel && state.cats[expCatSel]){
+    var sg=''; var subs=state.cats[expCatSel]||[];
     for(var j=0;j<subs.length;j++) sg += chip(subs[j], subs[j]===expSubSel, 'data-es', subs[j]);
+    sg += '<button class="chipAdd" data-newsub="1">+ New</button>';
     $('expSubGrid').innerHTML=sg; $('expSubLbl').style.display=''; $('expSubGrid').style.display='';
   } else { $('expSubLbl').style.display='none'; $('expSubGrid').style.display='none'; }
+  if($('expNewCatRow')){ $('expNewCatRow').style.display='none'; }
+  if($('expNewSubRow')){ $('expNewSubRow').style.display='none'; }
   var ag=''; var acs=activeAccts();
   for(var k=0;k<acs.length;k++) ag += chip(acs[k].name, acs[k].id===expAcctSel, 'data-ea', acs[k].id);
   $('expAcctGrid').innerHTML=ag;
   if(expKindSel==='xfer'){ var tg='';
     for(var m=0;m<acs.length;m++) tg += chip(acs[m].name, acs[m].id===expToSel, 'data-et', acs[m].id);
     $('expToGrid').innerHTML=tg; }
+}
+function addNewCat(){
+  var n=$('expNewCat').value.trim().slice(0,24); if(!n) return;
+  if(expKindSel==='inc'){ if(state.incCats.indexOf(n)<0) state.incCats.push(n); }
+  else { if(!state.cats[n]) state.cats[n]=[]; }
+  persist(); expCatSel=n; expSubSel='';
+  $('expNewCatRow').style.display='none'; $('expNewCat').value='';
+  paintExpPickers(); toastN('Category added');
+}
+function addNewSub(){
+  var n=$('expNewSub').value.trim().slice(0,24);
+  if(!n || expKindSel!=='exp' || !expCatSel || !state.cats[expCatSel]) return;
+  if(state.cats[expCatSel].indexOf(n)<0) state.cats[expCatSel].push(n);
+  persist(); expSubSel=n;
+  $('expNewSubRow').style.display='none'; $('expNewSub').value='';
+  paintExpPickers(); toastN('Subcategory added');
 }
 function saveExp(){
   var amt = parseFloat(($('expAmt').value||'').replace(',','.'));
@@ -4980,27 +5043,26 @@ var fbLoading=null;
 function loadFirebaseSDK(){
   if(window.firebase && firebase.database) return Promise.resolve();
   if(fbLoading) return fbLoading;
-  var V='10.12.2', base='https://www.gstatic.com/firebasejs/'+V+'/';
+  // load the SDK from files bundled with the app (works from file:// in the Android WebView, and offline on web)
   var files=['firebase-app-compat.js','firebase-auth-compat.js','firebase-database-compat.js'];
-  fbLoading = files.reduce(function(chain, f){
+  var chain = files.reduce(function(chain, f){
     return chain.then(function(){ return new Promise(function(res, rej){
-      var sc=document.createElement('script'); sc.src=base+f; sc.async=false;
-      sc.onload=res; sc.onerror=function(){ rej(new Error('load '+f)); };
+      var sc=document.createElement('script'); sc.src=f; sc.async=false;
+      sc.onload=res; sc.onerror=function(){ rej(new Error('sdk-load-failed')); };
       document.head.appendChild(sc);
     }); });
   }, Promise.resolve());
-  return fbLoading;
+  var timed = Promise.race([ chain, new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('sdk-timeout')); }, 12000); }) ]);
+  fbLoading = timed;
+  timed.catch(function(){ fbLoading = null; }); // reset so a later attempt can retry
+  return timed;
 }
-
-function syncEnabled(){ return !!syncCfg; }
-function isOnline(){ return (typeof navigator==='undefined') || navigator.onLine !== false; }
-
-// initialize firebase app + auth listener (idempotent)
-function initSync(){
-  syncCfg = loadSyncCfg();
-  if(!syncCfg){ renderSyncUI(); return; }
-  if(!isOnline()){ renderSyncUI(); return; }
-  loadFirebaseSDK().then(function(){
+// bring up firebase app/auth/db (idempotent); rejects with a clear reason on failure
+function ensureFirebaseReady(){
+  if(fbAuth) return Promise.resolve();
+  if(!syncCfg) return Promise.reject(new Error('no-config'));
+  return loadFirebaseSDK().then(function(){
+    if(!window.firebase || !firebase.auth) throw new Error('sdk-load-failed');
     if(!fbApp){
       fbApp = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(syncCfg);
       fbAuth = firebase.auth();
@@ -5012,8 +5074,19 @@ function initSync(){
         renderSyncUI();
       });
     }
-    renderSyncUI();
-  }).catch(function(){ setSyncDot('err'); renderSyncUI(); });
+  });
+}
+
+function syncEnabled(){ return !!syncCfg; }
+function isOnline(){ return (typeof navigator==='undefined') || navigator.onLine !== false; }
+
+// initialize firebase app + auth listener (idempotent)
+function initSync(){
+  syncCfg = loadSyncCfg();
+  renderSyncUI();
+  if(!syncCfg) return;
+  // try to bring firebase up in the background; sign-in will surface any error clearly
+  ensureFirebaseReady().then(function(){ renderSyncUI(); }).catch(function(){ setSyncDot('err'); renderSyncUI(); });
 }
 
 function attachSync(u){
@@ -5118,11 +5191,16 @@ function syncMsg(t, err){ var m=$('syncAuthMsg'); if(!m) return; m.style.display
 function doSyncSignin(create){
   var email=$('syncEmail').value.trim(), pw=$('syncPw').value;
   if(!email || pw.length<6){ syncMsg('Enter an email and a 6+ character password.', true); return; }
-  if(!fbAuth){ syncMsg('Still connecting… try again in a moment.', true); return; }
   syncMsg(create?'Creating account…':'Signing in…', false);
-  var fn = create ? fbAuth.createUserWithEmailAndPassword(email,pw) : fbAuth.signInWithEmailAndPassword(email,pw);
-  fn.then(function(){ syncMsg('', false); $('syncPw').value=''; })
-    .catch(function(e){ syncMsg(prettyAuthErr(e), true); });
+  ensureFirebaseReady().then(function(){
+    return create ? fbAuth.createUserWithEmailAndPassword(email,pw) : fbAuth.signInWithEmailAndPassword(email,pw);
+  }).then(function(){ syncMsg('', false); $('syncPw').value=''; })
+    .catch(function(e){
+      var m = e && e.message;
+      if(m==='sdk-timeout' || m==='sdk-load-failed') syncMsg('Couldn\u2019t reach Firebase. If you\u2019re online, update to the latest app build \u2014 older builds block sync in the phone app.', true);
+      else if(m==='no-config') syncMsg('Add your Firebase config first.', true);
+      else syncMsg(prettyAuthErr(e), true);
+    });
 }
 function prettyAuthErr(e){
   var c = e && e.code || '';
@@ -5922,8 +6000,20 @@ function init(){
 
   // expense sheet
   $('expKind').addEventListener('click', function(e){ var b=climb(e.target,this,'data-k'); if(!b) return; expKindSel=b.getAttribute('data-k'); expSubSel=''; paintKind(); paintExpPickers(); });
-  $('expCatGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-ec'); if(!b) return; expCatSel=b.getAttribute('data-ec'); expSubSel=''; paintExpPickers(); });
-  $('expSubGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-es'); if(!b) return; expSubSel = (expSubSel===b.getAttribute('data-es'))?'':b.getAttribute('data-es'); paintExpPickers(); });
+  $('expCatGrid').addEventListener('click', function(e){
+    if(climb(e.target,this,'data-newcat')){ $('expNewSubRow').style.display='none'; $('expNewCatRow').style.display='flex'; $('expNewCat').value=''; $('expNewCat').focus(); return; }
+    var b=climb(e.target,this,'data-ec'); if(!b) return; expCatSel=b.getAttribute('data-ec'); expSubSel=''; paintExpPickers();
+  });
+  $('expSubGrid').addEventListener('click', function(e){
+    if(climb(e.target,this,'data-newsub')){ $('expNewSubRow').style.display='flex'; $('expNewSub').value=''; $('expNewSub').focus(); return; }
+    var b=climb(e.target,this,'data-es'); if(!b) return; expSubSel = (expSubSel===b.getAttribute('data-es'))?'':b.getAttribute('data-es'); paintExpPickers();
+  });
+  $('expNewCatOk').addEventListener('click', addNewCat);
+  $('expNewCat').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); addNewCat(); } });
+  $('expNewCatX').addEventListener('click', function(){ $('expNewCatRow').style.display='none'; });
+  $('expNewSubOk').addEventListener('click', addNewSub);
+  $('expNewSub').addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); addNewSub(); } });
+  $('expNewSubX').addEventListener('click', function(){ $('expNewSubRow').style.display='none'; });
   $('expAcctGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-ea'); if(!b) return; expAcctSel=b.getAttribute('data-ea'); paintExpPickers(); });
   $('expToGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-et'); if(!b) return; expToSel=b.getAttribute('data-et'); paintExpPickers(); });
   $('expMore').addEventListener('click', function(){ var x=$('expMoreBox'); var on=x.style.display==='none'; x.style.display=on?'':'none'; this.style.display=on?'none':''; });
@@ -5987,6 +6077,7 @@ if(nat && nat.getLaunchAction){
     var _la = JSON.parse(nat.getLaunchAction() || '{}');
     if(_la.tab) showTab(_la.tab);
     else if(_la.habit && findHabit(_la.habit)){ showTab('pgToday'); openDetail(_la.habit); }
+    else if(_la.add){ openExpFromWidget(_la.add, _la.acct); }
   }catch(e){}
 }
 </script>
