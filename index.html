@@ -1058,11 +1058,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
     <div style="height:12px"></div>
 
-    <div class="nlBar" id="nlExpBar" style="display:none">
-      <input class="inp" id="nlExpInput" placeholder='Try "swiggy 340" or "uber 180"'>
-      <button class="nlSend" id="nlExpSend">✨</button>
-    </div>
-
     <div class="expSum" id="expSum"></div>
 
     <div class="expMon" id="expMonNav">
@@ -1273,6 +1268,57 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   </div>
 
   <!-- ============ SETTINGS ============ -->
+  <!-- ============ AI PAGE ============ -->
+  <div class="page" id="pgAI">
+    <h1>AI</h1>
+    <div style="height:12px"></div>
+
+    <div class="secH">Ask your data</div>
+    <div class="setCard" style="padding:14px 16px">
+      <div id="aiChatLog" style="max-height:320px;overflow-y:auto;margin-bottom:10px"></div>
+      <div style="display:flex;gap:8px">
+        <input class="inp" id="aiChatInput" placeholder='e.g. "How much did I spend on food?"' style="flex:1">
+        <button class="sbtn acc" id="aiChatSend" style="flex-shrink:0;padding:0 16px">Ask</button>
+      </div>
+    </div>
+
+    <div class="secH">Quick add expense</div>
+    <div class="setCard" style="padding:14px 16px">
+      <div class="setS" style="margin-bottom:8px">Type naturally — AI extracts amount, category, and account</div>
+      <div style="display:flex;gap:8px">
+        <input class="inp" id="nlExpInput2" placeholder='e.g. "swiggy 340" or "salary 45000"' style="flex:1">
+        <button class="nlSend" id="nlExpSend2" style="flex-shrink:0;padding:0 14px;background:var(--amber);color:var(--onAccent);border-radius:14px;font-weight:700;font-size:14px">✨</button>
+      </div>
+    </div>
+
+    <div class="secH">AI weekly summary</div>
+    <div id="aiNarrBox" class="setCard" style="padding:14px 16px">
+      <div class="setS" style="text-align:center;padding:8px 0">Summary generates automatically once you have data and a key set up.</div>
+    </div>
+
+    <div class="secH">Setup</div>
+    <div class="setCard">
+      <div class="setRow"><div class="setInfo"><div class="setT">Gemini API key</div><div class="setS">Free at <b>aistudio.google.com</b> → API keys</div></div></div>
+      <input class="inp" id="geminiKey" type="password" placeholder="Paste your Gemini API key" style="margin:8px 0 8px">
+      <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS">Flash = free · Pro = may need billing</div></div></div>
+      <select class="inp" id="gemModel" style="margin:6px 0 8px;padding:12px 14px">
+        <option value="gemini-3.6-flash">Gemini 3.6 Flash · newest · free</option>
+        <option value="gemini-3.5-flash">Gemini 3.5 Flash · fast · free</option>
+        <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite · light · free</option>
+        <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite · budget · free</option>
+        <option value="gemini-2.5-flash">Gemini 2.5 Flash · stable · free</option>
+        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite · cheapest · free</option>
+        <option value="gemini-2.5-pro">Gemini 2.5 Pro · smartest free · limited</option>
+        <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro · best · paid</option>
+      </select>
+      <div class="half">
+        <button class="sbtn acc" id="btnGemSave">Save key</button>
+        <button class="sbtn" id="btnGemClear">Remove</button>
+      </div>
+      <div id="gemStatus" style="font-size:12px;margin-top:8px;color:var(--mut)"></div>
+    </div>
+  </div>
+
   <div class="page" id="pgSet">
     <div class="eyebrow">Make it yours</div>
     <h1>Settings</h1>
@@ -1353,29 +1399,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="setCard">
       <div class="setRow"><div class="setInfo"><div class="setT">Vacation mode</div><div class="setS" id="stVac">Pause every habit &mdash; chains stay safe</div></div><button class="sbtn acc" id="btnVac">Start</button></div>
       <div class="setRow"><div class="setInfo"><div class="setT">Archived habits</div><div class="setS" id="stArch">Nothing archived</div></div><button class="sbtn" id="btnArch">View</button></div>
-    </div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>AI features</div>
-    <div class="setCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">Gemini API key</div><div class="setS">Free tier · enables AI insights, natural language expense entry, and Ask Your Data</div></div></div>
-      <input class="inp" id="geminiKey" type="password" placeholder="Paste your Gemini API key" style="margin:8px 0 4px">
-      <div class="setS" style="font-size:11px;margin-bottom:10px">Get a free key at <b>aistudio.google.com</b> → API keys</div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS">Flash models are free · Pro models may require billing</div></div></div>
-      <select class="inp" id="gemModel" style="margin:6px 0 8px;padding:12px 14px">
-        <option value="gemini-3.6-flash">Gemini 3.6 Flash · newest · free</option>
-        <option value="gemini-3.5-flash">Gemini 3.5 Flash · fast · free</option>
-        <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite · lightweight · free</option>
-        <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite · budget · free</option>
-        <option value="gemini-2.5-flash">Gemini 2.5 Flash · stable · free</option>
-        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite · cheapest · free</option>
-        <option value="gemini-2.5-pro">Gemini 2.5 Pro · smartest free · limited</option>
-        <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro · best quality · paid</option>
-      </select>
-      <div class="half">
-        <button class="sbtn acc" id="btnGemSave">Save key</button>
-        <button class="sbtn" id="btnGemClear">Remove</button>
-      </div>
-      <div id="gemStatus" style="font-size:12px;margin-top:8px;color:var(--mut)"></div>
     </div>
 
     <div class="lbl"><i class="lic" style="--lc:var(--sBlue)"></i>Cloud sync</div>
@@ -1596,6 +1619,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <button class="tab" data-tab="pgMood"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.6 14.4c.9 1.1 2.1 1.7 3.4 1.7s2.5-.6 3.4-1.7M9 9.7h.01M15 9.7h.01"/></svg>Mood</button>
   <button class="tab" data-tab="pgExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3z"/><path d="M3 10h18M7 15h4"/></svg>Money</button>
   <button class="tab" data-tab="pgStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+  <button class="tab" data-tab="pgAI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>AI</button>
   <button class="tab" data-tab="pgSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 00-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 002 1.2l.4 2.7h4l.4-2.7a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
 </div>
 
@@ -1775,17 +1799,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <button class="danger" id="jrDelBtn" style="display:none">Delete entry</button>
 </div>
 
-<!-- AI Chat Sheet -->
-<div class="sheet" id="aiChatSheet">
-  <div class="grab"></div>
-  <h2>Ask your data</h2>
-  <div id="aiChatLog" style="max-height:340px;overflow-y:auto;margin-bottom:12px"></div>
-  <div style="display:flex;gap:8px">
-    <input class="inp" id="aiChatInput" placeholder="e.g. How much did I spend on food?" style="flex:1">
-    <button class="sbtn acc" id="aiChatSend" style="flex-shrink:0;padding:0 16px">Ask</button>
-  </div>
-  <div class="setS" style="font-size:11px;margin-top:6px;text-align:center">Powered by Gemini · requires API key in Settings</div>
-</div>
+
 
 <!-- Natural language expense bar (in Money tab, injected by JS) -->
 
@@ -2807,7 +2821,7 @@ function generateInsights(){
 
 function renderInsights(){
   var ins=generateInsights();
-  if(!ins.length && !getGemKey()){$('aiInsights').innerHTML='';return;}
+  if(!ins.length){$('aiInsights').innerHTML='';return;}
   var html='<div class="secH">Insights</div>';
   for(var i=0;i<ins.length;i++){
     var c=ins[i];
@@ -2817,15 +2831,30 @@ function renderInsights(){
       +(c.tag?'<span class="aiTag '+c.tag+'">'+c.tagText+'</span>':'')
       +'</div></div>';
   }
-  // AI weekly narrative (cached, shown if available)
+  $('aiInsights').innerHTML=html;
+}
+
+/* ---- renderAI: populate the AI page ---- */
+function renderAI(){
+  // load saved model
+  var saved=getGemModel(), sel=$('gemModel');
+  if(sel){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===saved){sel.selectedIndex=i;break;} } }
+  // show key status
+  if(getGemKey()) $('gemStatus').innerHTML='<span style="color:var(--sGreen)">✓ Key active · '+saved+'</span>';
+  else $('gemStatus').innerHTML='No key set — add one below.';
+  // weekly narrative
   var narr=localStorage.getItem('ai_weekly_narr')||'';
   var narrDay=localStorage.getItem('ai_weekly_narr_day')||'';
-  if(narr&&narrDay===today()) html+='<div class="aiCard"><div class="aiIco">✨</div><div class="aiBody"><div class="aiTitle">AI weekly summary</div><div class="aiText">'+narr+'</div></div></div>';
-  // Ask button
-  if(getGemKey()) html+='<button class="askBtn" onclick="openSheet(\'aiChatSheet\')"><span class="askIco">✨</span>Ask your data anything</button>';
-  $('aiInsights').innerHTML=html;
-  // trigger weekly narrative in background if stale
-  if(getGemKey()&&narrDay!==today()) genWeeklyNarrative();
+  if(narr&&narrDay===today()) $('aiNarrBox').innerHTML='<div style="font-size:14px;line-height:1.6;color:var(--ink)">'+narr+'</div><div class="setS" style="margin-top:6px">Generated today · '+getGemModel()+'</div>';
+  else if(getGemKey()) {
+    $('aiNarrBox').innerHTML='<button class="sbtn acc" id="btnGenNarr" style="width:100%">Generate weekly summary</button>';
+    var nb=$('btnGenNarr');
+    if(nb) nb.addEventListener('click',function(){
+      nb.textContent='Generating…'; nb.disabled=true;
+      genWeeklyNarrative();
+      setTimeout(function(){renderAI();},4000);
+    });
+  }
 }
 
 /* ============ TIER 2: GEMINI AI ENGINE ============ */
@@ -2898,16 +2927,23 @@ function periodRate(h,days){
 
 // ---- Natural language expense entry ----
 function parseExpenseNL(text){
-  var ctx=buildDataContext();
   var cats=[];
   if(state.cats){for(var k in state.cats) cats.push(k);}
-  var prompt='You are a personal finance assistant. The user typed a quick expense entry. Extract: amount, category, subcategory (if any), and a short note.\n\n'
+  var prompt='You are a personal finance assistant. The user typed a quick expense/income entry. Extract ALL details:\n\n'
     +'Available categories: '+cats.join(', ')+'\n'
     +'Available accounts: '+(state.accts||[]).filter(function(a){return a.active!==false;}).map(function(a){return a.name;}).join(', ')+'\n\n'
     +'User input: "'+text+'"\n\n'
-    +'Respond ONLY with JSON: {"amt":number,"cat":"Category","sub":"Subcategory or empty","note":"short note","kind":"exp or inc","acct":"account name or empty"}\n'
+    +'Extract:\n'
+    +'- amt: the number/amount\n'
+    +'- kind: "exp" for expense, "inc" for income\n'
+    +'- cat: best matching category from the list (or a sensible new one)\n'
+    +'- sub: subcategory if obvious (e.g. "lunch" under Food)\n'
+    +'- merchant: where the spend happened (e.g. "Swiggy", "Uber", "Amazon", shop name). Extract this from the input.\n'
+    +'- note: a short description combining merchant and what was bought (e.g. "Swiggy - dinner order", "Uber - ride to office", "Amazon - headphones"). Always include the merchant/place if mentioned.\n'
+    +'- acct: matching account name from the list, or empty\n\n'
+    +'Respond ONLY with JSON: {"amt":number,"kind":"exp or inc","cat":"Category","sub":"","merchant":"where","note":"short description with merchant","acct":"account or empty"}\n'
     +'Do not include any other text.';
-  return gemCall(prompt,150).then(function(r){
+  return gemCall(prompt,200).then(function(r){
     var clean=r.replace(/```json|```/g,'').trim();
     return JSON.parse(clean);
   });
@@ -4841,7 +4877,6 @@ function catTotals(y,m){
 }
 
 function renderExp(){
-  $('nlExpBar').style.display=getGemKey()?'flex':'none';
   runRecur();
   var now=new Date();
   $('expMonTitle').textContent = new Date(expY,expM,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});
@@ -5723,16 +5758,17 @@ function buildPickers(){
 }
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
-  var pgs = ['pgToday','pgMood','pgExp','pgStats','pgSet'];
+  var pgs = ['pgToday','pgMood','pgExp','pgStats','pgAI','pgSet'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
-  $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add habit';
   if(id==='pgStats') renderStats();
   if(id==='pgMood') renderMood();
   if(id==='pgExp') renderExp();
   if(id==='pgSet') renderSet();
+  if(id==='pgAI') renderAI();
+  $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
   $('app').scrollTop = 0;
 }
 function climb(el, root, attr){
@@ -6207,18 +6243,6 @@ function init(){
     setGemModel(this.value);
     if(getGemKey()) $('gemStatus').innerHTML='<span style="color:var(--sGreen)">✓ Switched to '+this.value+'</span>';
   });
-  // Load saved model selection on Settings render
-  var _origRenderSet = typeof renderSet === 'function' ? renderSet : null;
-  if(_origRenderSet){
-    var _wrappedRenderSet = function(){
-      _origRenderSet.apply(this, arguments);
-      var saved = getGemModel();
-      var sel = $('gemModel');
-      if(sel){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===saved){sel.selectedIndex=i;break;} } }
-      if(getGemKey()) $('gemStatus').innerHTML='<span style="color:var(--sGreen)">✓ Key active · '+saved+'</span>';
-    };
-    renderSet = _wrappedRenderSet;
-  }
 
   // ---- Ask Your Data chat ----
   function sendAiChat(){
@@ -6242,34 +6266,34 @@ function init(){
   $('aiChatInput').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();sendAiChat();} });
 
   // ---- Natural language expense entry ----
-  function sendNlExp(){
-    var t=$('nlExpInput').value.trim(); if(!t) return;
-    if(!getGemKey()){toastN('Add a Gemini API key in Settings first');return;}
-    $('nlExpInput').disabled=true; $('nlExpSend').textContent='⏳';
+  // Wire the AI page NL expense (nlExpInput2/nlExpSend2)
+  function sendNlExp2(){
+    var inp=$('nlExpInput2'), btn=$('nlExpSend2');
+    var t=inp.value.trim(); if(!t) return;
+    if(!getGemKey()){toastN('Add a Gemini API key below');return;}
+    inp.disabled=true; btn.textContent='⏳';
     parseExpenseNL(t).then(function(r){
-      $('nlExpInput').disabled=false; $('nlExpSend').textContent='✨'; $('nlExpInput').value='';
+      inp.disabled=false; btn.textContent='✨'; inp.value='';
       if(!r||!r.amt){toastN('Couldn\'t parse that');return;}
-      // open the expense sheet pre-filled
-      openExp(null);
-      $('expAmt').value=r.amt;
-      expKindSel=r.kind||'exp';
-      if(r.cat){expCatSel=r.cat; expSubSel=r.sub||'';}
-      if(r.acct){
-        for(var i=0;i<state.accts.length;i++){
-          if(state.accts[i].name.toLowerCase()===r.acct.toLowerCase()&&state.accts[i].active!==false){expAcctSel=state.accts[i].id;break;}
-        }
-      }
-      if(r.note) $('expNote').value=r.note;
-      if(typeof paintKind==='function') paintKind();
-      if(typeof paintExpPickers==='function') paintExpPickers();
-      toastN('Parsed: '+(r.kind==='inc'?'+':'−')+inr(r.amt)+' · '+r.cat);
+      showTab('pgExp');
+      setTimeout(function(){
+        openExp(null);
+        $('expAmt').value=r.amt;
+        expKindSel=r.kind||'exp';
+        if(r.cat){expCatSel=r.cat;expSubSel=r.sub||'';}
+        if(r.acct){for(var i=0;i<state.accts.length;i++){if(state.accts[i].name.toLowerCase()===r.acct.toLowerCase()&&state.accts[i].active!==false){expAcctSel=state.accts[i].id;break;}}}
+        if(r.note)$('expNote').value=r.note;
+        if(typeof paintKind==='function')paintKind();
+        if(typeof paintExpPickers==='function')paintExpPickers();
+        toastN('Parsed: '+(r.kind==='inc'?'+':'−')+inr(r.amt)+' · '+(r.cat||''));
+      },100);
     }).catch(function(e){
-      $('nlExpInput').disabled=false; $('nlExpSend').textContent='✨';
+      inp.disabled=false; btn.textContent='✨';
       toastN(e.message||'AI parse failed');
     });
   }
-  $('nlExpSend').addEventListener('click', sendNlExp);
-  $('nlExpInput').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();sendNlExp();} });
+  $('nlExpSend2').addEventListener('click', sendNlExp2);
+  $('nlExpInput2').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();sendNlExp2();} });
 
   /* simplified stats + mood toggles */
   $('moToggle').addEventListener('click', function(){
