@@ -111,6 +111,36 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .nextRem .remIcon{color:var(--amber);flex-shrink:0}
 .nextRem:empty{display:none;padding:0;border:none;margin:0;box-shadow:none}
 
+/* ============ AI INSIGHTS ============ */
+.aiCard{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:13px 15px;margin-bottom:10px;display:flex;align-items:flex-start;gap:11px}
+.aiCard .aiIco{font-size:18px;flex-shrink:0;margin-top:1px}
+.aiCard .aiBody{flex:1;min-width:0}
+.aiCard .aiTitle{font-size:12px;font-weight:700;color:var(--ink);margin-bottom:2px}
+.aiCard .aiText{font-size:13px;color:var(--mut);line-height:1.5}
+.aiCard .aiText b{color:var(--ink);font-weight:700}
+.aiCard .aiTag{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.6px;
+  text-transform:uppercase;padding:3px 8px;border-radius:6px;margin-top:6px}
+.aiTag.pos{background:rgba(62,207,142,.12);color:var(--sGreen)}
+.aiTag.neg{background:var(--coralSoft);color:var(--coral)}
+.aiTag.info{background:var(--amberSoft);color:var(--amber)}
+.aiTag.neutral{background:var(--card2);color:var(--mut)}
+#aiInsights .secH{margin-top:16px;margin-bottom:8px}
+#aiInsights .askBtn{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:11px 15px;margin-top:6px;display:flex;align-items:center;gap:10px;
+  font-size:13px;font-weight:600;color:var(--mut);width:100%}
+#aiInsights .askBtn:active{background:var(--card2)}
+#aiInsights .askBtn .askIco{color:var(--sPurple);font-size:16px}
+.aiMsg{padding:10px 14px;border-radius:14px;margin-bottom:8px;font-size:13.5px;line-height:1.55;max-width:90%}
+.aiMsg.user{background:var(--amberSoft);color:var(--ink);margin-left:auto;text-align:right}
+.aiMsg.bot{background:var(--card);border:1px solid var(--line);color:var(--ink)}
+.aiMsg.bot b{color:var(--amber)}
+.aiMsg.err{background:var(--coralSoft);color:var(--coral);font-size:12px}
+.nlBar{display:flex;gap:8px;margin-bottom:12px}
+.nlBar .inp{flex:1}
+.nlBar .nlSend{flex-shrink:0;padding:0 14px;background:var(--amber);color:var(--onAccent);
+  border-radius:14px;font-weight:700;font-size:13px}
+
 /* ============ BANNERS ============ */
 .banner{background:var(--coralSoft);border:1px solid var(--coral);border-radius:14px;
   padding:14px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px}
@@ -1007,6 +1037,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="wkCard" id="wkCard" style="display:none"></div>
     <div class="qod" id="qod"></div>
     <div class="nextRem" id="nextRem"></div>
+    <div id="aiInsights"></div>
     <div id="recoverBox"></div>
     <div id="stackBox"></div>
     <div id="list"></div>
@@ -1026,6 +1057,11 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
     <div style="height:12px"></div>
+
+    <div class="nlBar" id="nlExpBar" style="display:none">
+      <input class="inp" id="nlExpInput" placeholder='Try "swiggy 340" or "uber 180"'>
+      <button class="nlSend" id="nlExpSend">✨</button>
+    </div>
 
     <div class="expSum" id="expSum"></div>
 
@@ -1317,6 +1353,18 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="setCard">
       <div class="setRow"><div class="setInfo"><div class="setT">Vacation mode</div><div class="setS" id="stVac">Pause every habit &mdash; chains stay safe</div></div><button class="sbtn acc" id="btnVac">Start</button></div>
       <div class="setRow"><div class="setInfo"><div class="setT">Archived habits</div><div class="setS" id="stArch">Nothing archived</div></div><button class="sbtn" id="btnArch">View</button></div>
+    </div>
+
+    <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>AI features</div>
+    <div class="setCard">
+      <div class="setRow"><div class="setInfo"><div class="setT">Gemini API key</div><div class="setS">Free tier · enables AI insights, natural language expense entry, and Ask Your Data</div></div></div>
+      <input class="inp" id="geminiKey" type="password" placeholder="Paste your Gemini API key" style="margin:8px 0 4px">
+      <div class="setS" style="font-size:11px;margin-bottom:8px">Get a free key at <b>aistudio.google.com</b> → API keys</div>
+      <div class="half">
+        <button class="sbtn acc" id="btnGemSave">Save key</button>
+        <button class="sbtn" id="btnGemClear">Remove</button>
+      </div>
+      <div id="gemStatus" style="font-size:12px;margin-top:8px;color:var(--mut)"></div>
     </div>
 
     <div class="lbl"><i class="lic" style="--lc:var(--sBlue)"></i>Cloud sync</div>
@@ -1715,6 +1763,20 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <button class="primary" id="jrSaveBtn">Save entry</button>
   <button class="danger" id="jrDelBtn" style="display:none">Delete entry</button>
 </div>
+
+<!-- AI Chat Sheet -->
+<div class="sheet" id="aiChatSheet">
+  <div class="grab"></div>
+  <h2>Ask your data</h2>
+  <div id="aiChatLog" style="max-height:340px;overflow-y:auto;margin-bottom:12px"></div>
+  <div style="display:flex;gap:8px">
+    <input class="inp" id="aiChatInput" placeholder="e.g. How much did I spend on food?" style="flex:1">
+    <button class="sbtn acc" id="aiChatSend" style="flex-shrink:0;padding:0 16px">Ask</button>
+  </div>
+  <div class="setS" style="font-size:11px;margin-top:6px;text-align:center">Powered by Gemini · requires API key in Settings</div>
+</div>
+
+<!-- Natural language expense bar (in Money tab, injected by JS) -->
 
 <script src="xlsx.min.js"></script>
 <script>
@@ -2591,6 +2653,277 @@ function greetTxt(){
   var g = h < 12 ? 'Good morning' : (h < 17 ? 'Good afternoon' : 'Good evening');
   return g + (state.set.uname ? ', ' + state.set.uname : '');
 }
+/* ============ AI INSIGHTS ENGINE (Tier 1: offline heuristics) ============ */
+function generateInsights(){
+  var ins = [], now = new Date(), ts = today(), h, i, d;
+  var active = state.habits.filter(function(h){ return !h.arch; });
+  if(!active.length && !state.tx.length && !state.sleep.length) return ins;
+
+  // ---- 1. WEEKLY SUMMARY ----
+  var ws = weekStart(now), wDue=0, wDone=0, wMoodSum=0, wMoodN=0, wExp=0, wInc=0;
+  for(d=0;d<7;d++){
+    var wd = fmt(addDays(ws,d)); if(wd>ts) break;
+    for(i=0;i<active.length;i++){ h=active[i]; if(dueOn(h,addDays(ws,d))){wDue++;if(isDone(h,wd))wDone++;} }
+    var mi=moodOf(wd); if(mi>=0){wMoodSum+=MOODS[mi].s;wMoodN++;}
+  }
+  for(i=0;i<state.tx.length;i++){
+    var tx=state.tx[i]; if(tx.d>=fmt(ws)&&tx.d<=ts){
+      if(tx.kind==='exp')wExp+=tx.amt||0; else if(tx.kind==='inc')wInc+=tx.amt||0;
+    }
+  }
+  if(wDue>=3){
+    var wr=Math.round(wDone/wDue*100);
+    var parts=[wr+'% habits'];
+    if(wMoodN>=2){var avg=wMoodSum/wMoodN;parts.push('mood '+(avg>=5.5?'trending up':avg>=3.5?'steady':'dipping'));}
+    if(wExp>0) parts.push(inr(wExp)+' spent');
+    ins.push({ico:'📊',title:'This week',text:parts.join(' · '),tag:wr>=70?'pos':wr>=40?'info':'neg',
+      tagText:wr>=70?'on track':wr>=40?'building':'needs focus'});
+  }
+
+  // ---- 2. HABIT RISK DETECTION ----
+  for(i=0;i<active.length;i++){
+    h=active[i]; var st=streak(h);
+    // streak at risk: had a good streak, missed yesterday
+    var yds=fmt(addDays(now,-1));
+    if(st===0 && dueOn(h,addDays(now,-1)) && !isDone(h,yds)){
+      var prevStr=streakAsOf(h,addDays(now,-2));
+      if(prevStr>=5) ins.push({ico:'⚠️',title:h.name,text:'Your <b>'+prevStr+'-day streak</b> broke yesterday. One check-in brings it back.',tag:'neg',tagText:'streak lost'});
+    }
+    // repeated miss on same weekday
+    var dayName=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][now.getDay()];
+    var missCount=0;
+    for(d=0;d<21;d+=7){
+      var cd=addDays(now,-d),cds=fmt(cd);
+      if(dueOn(h,cd)&&!isDone(h,cds)&&cds>=h.created) missCount++;
+    }
+    if(missCount>=3) ins.push({ico:'📅',title:h.name,text:'Missed <b>3 '+dayName+'s in a row</b>. Reschedule or plan ahead?',tag:'info',tagText:'pattern'});
+  }
+
+  // ---- 3. MOOD-HABIT CORRELATION ----
+  if(active.length>=1){
+    var moodDoneScores=[],moodMissScores=[];
+    for(d=0;d<30;d++){
+      var dd=fmt(addDays(now,-d)),mi2=moodOf(dd);
+      if(mi2<0) continue;
+      var anyDone=false;
+      for(i=0;i<active.length;i++){if(isDone(active[i],dd)){anyDone=true;break;}}
+      if(anyDone) moodDoneScores.push(MOODS[mi2].s); else moodMissScores.push(MOODS[mi2].s);
+    }
+    if(moodDoneScores.length>=5&&moodMissScores.length>=3){
+      var avgD=moodDoneScores.reduce(function(a,b){return a+b;},0)/moodDoneScores.length;
+      var avgM=moodMissScores.reduce(function(a,b){return a+b;},0)/moodMissScores.length;
+      if(avgD-avgM>=1.2){
+        var bestMood=MOODS[Math.min(6,Math.round(7-avgD))];
+        ins.push({ico:'😊',title:'Mood + habits',text:'You feel <b>better on days you do habits</b> (avg '+bestMood.l+' vs days off).',tag:'pos',tagText:'correlation'});
+      }
+    }
+  }
+
+  // ---- 4. SLEEP-MOOD INSIGHT ----
+  var goodSleepMood=[],badSleepMood=[];
+  for(d=0;d<30;d++){
+    var sd=fmt(addDays(now,-d)),sl=sleepOn(sd),smi=moodOf(sd);
+    if(!sl||sl.mins<=0||smi<0) continue;
+    if(sl.mins>=420) goodSleepMood.push(MOODS[smi].s); else if(sl.mins<360) badSleepMood.push(MOODS[smi].s);
+  }
+  if(goodSleepMood.length>=3&&badSleepMood.length>=3){
+    var avgGood=goodSleepMood.reduce(function(a,b){return a+b;},0)/goodSleepMood.length;
+    var avgBad=badSleepMood.reduce(function(a,b){return a+b;},0)/badSleepMood.length;
+    if(avgGood-avgBad>=1){
+      ins.push({ico:'😴',title:'Sleep & mood',text:'When you sleep <b>7+ hours</b>, mood averages '+MOODS[Math.min(6,Math.round(7-avgGood))].l+'. Under 6h, it drops to '+MOODS[Math.min(6,Math.round(7-avgBad))].l+'.',tag:'info',tagText:'insight'});
+    }
+  }
+
+  // ---- 5. SPENDING PATTERN ALERTS ----
+  if(state.tx.length>=3){
+    var monthStart=ts.slice(0,8)+'01',mExp=0,catSpend={};
+    var daysLeft=new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate();
+    for(i=0;i<state.tx.length;i++){
+      var t2=state.tx[i]; if(t2.kind==='exp'&&t2.d>=monthStart&&t2.d<=ts){
+        mExp+=t2.amt||0; var ck=t2.cat||'Other'; catSpend[ck]=(catSpend[ck]||0)+(t2.amt||0);
+      }
+    }
+    // top category as % of total
+    if(mExp>500){
+      var topCat='',topAmt=0;
+      for(var k in catSpend) if(catSpend[k]>topAmt){topAmt=catSpend[k];topCat=k;}
+      var pct=Math.round(topAmt/mExp*100);
+      if(pct>=35) ins.push({ico:'💰',title:'Top spending',text:'<b>'+topCat+'</b> is '+pct+'% of spending ('+inr(topAmt)+') with '+daysLeft+' days left.',tag:pct>=50?'neg':'info',tagText:pct>=50?'high':'watch'});
+    }
+    // weekend vs weekday pattern
+    var wkdayExp=0,wkdayDays=0,wkendExp=0,wkendDays=0;
+    for(d=0;d<30;d++){
+      var pd=addDays(now,-d),pds=fmt(pd),dow=pd.getDay();
+      var dayExp=0;
+      for(i=0;i<state.tx.length;i++){var tx3=state.tx[i];if(tx3.kind==='exp'&&tx3.d===pds)dayExp+=tx3.amt||0;}
+      if(dow===0||dow===6){wkendExp+=dayExp;wkendDays++;}else{wkdayExp+=dayExp;wkdayDays++;}
+    }
+    if(wkdayDays>=5&&wkendDays>=3){
+      var avgWkday=Math.round(wkdayExp/wkdayDays),avgWkend=Math.round(wkendExp/wkendDays);
+      if(avgWkend>avgWkday*1.5&&avgWkend>200) ins.push({ico:'📈',title:'Weekend spending',text:'Weekends average <b>'+inr(avgWkend)+'/day</b> vs weekdays '+inr(avgWkday)+'/day.',tag:'info',tagText:'pattern'});
+    }
+
+    // budget alert
+    if(state.budgets&&state.budgets.length){
+      for(i=0;i<state.budgets.length;i++){
+        var b=state.budgets[i]; if(!b.lim||b.lim<=0) continue;
+        var bSpent=0;
+        for(var j=0;j<state.tx.length;j++){
+          var bt=state.tx[j];
+          if(bt.kind==='exp'&&bt.d>=monthStart&&bt.d<=ts&&(b.cat==='all'||bt.cat===b.cat)) bSpent+=bt.amt||0;
+        }
+        var bPct=Math.round(bSpent/b.lim*100);
+        if(bPct>=80) ins.push({ico:'🔔',title:(b.cat==='all'?'Total':b.cat)+' budget',text:'<b>'+bPct+'%</b> used ('+inr(bSpent)+' of '+inr(b.lim)+') with '+daysLeft+' days left.',tag:bPct>=100?'neg':'info',tagText:bPct>=100?'over budget':'almost there'});
+      }
+    }
+  }
+
+  // ---- 6. MILESTONE APPROACHING ----
+  var MILES=[7,14,21,30,50,66,100];
+  for(i=0;i<active.length;i++){
+    h=active[i]; var cs=streak(h);
+    for(var mi3=0;mi3<MILES.length;mi3++){
+      if(cs>=MILES[mi3]-2&&cs<MILES[mi3]){
+        ins.push({ico:'🏆',title:h.name,text:'<b>'+(MILES[mi3]-cs)+' day'+(MILES[mi3]-cs>1?'s':'')+' away</b> from a '+MILES[mi3]+'-day milestone!',tag:'pos',tagText:MILES[mi3]+' days'});
+        break;
+      }
+    }
+  }
+
+  // Limit to top 4 most relevant
+  return ins.slice(0,4);
+}
+
+function renderInsights(){
+  var ins=generateInsights();
+  if(!ins.length && !getGemKey()){$('aiInsights').innerHTML='';return;}
+  var html='<div class="secH">Insights</div>';
+  for(var i=0;i<ins.length;i++){
+    var c=ins[i];
+    html+='<div class="aiCard"><div class="aiIco">'+c.ico+'</div><div class="aiBody">'
+      +'<div class="aiTitle">'+c.title+'</div>'
+      +'<div class="aiText">'+c.text+'</div>'
+      +(c.tag?'<span class="aiTag '+c.tag+'">'+c.tagText+'</span>':'')
+      +'</div></div>';
+  }
+  // AI weekly narrative (cached, shown if available)
+  var narr=localStorage.getItem('ai_weekly_narr')||'';
+  var narrDay=localStorage.getItem('ai_weekly_narr_day')||'';
+  if(narr&&narrDay===today()) html+='<div class="aiCard"><div class="aiIco">✨</div><div class="aiBody"><div class="aiTitle">AI weekly summary</div><div class="aiText">'+narr+'</div></div></div>';
+  // Ask button
+  if(getGemKey()) html+='<button class="askBtn" onclick="openSheet(\'aiChatSheet\')"><span class="askIco">✨</span>Ask your data anything</button>';
+  $('aiInsights').innerHTML=html;
+  // trigger weekly narrative in background if stale
+  if(getGemKey()&&narrDay!==today()) genWeeklyNarrative();
+}
+
+/* ============ TIER 2: GEMINI AI ENGINE ============ */
+function getGemKey(){ return localStorage.getItem('gem_api_key')||''; }
+function setGemKey(k){ localStorage.setItem('gem_api_key',k); }
+function clearGemKey(){ localStorage.removeItem('gem_api_key'); }
+
+function gemCall(prompt, maxTokens){
+  var key=getGemKey(); if(!key) return Promise.reject(new Error('No API key'));
+  var url='https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key='+key;
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:maxTokens||300}})
+  }).then(function(r){ if(!r.ok) throw new Error('API '+r.status); return r.json(); })
+    .then(function(d){
+      try{ return d.candidates[0].content.parts[0].text; }
+      catch(e){ throw new Error('Empty response'); }
+    });
+}
+
+function buildDataContext(){
+  var now=new Date(), ts=today(), lines=[];
+  // habits summary
+  var active=state.habits.filter(function(h){return !h.arch;});
+  lines.push('HABITS ('+active.length+' active):');
+  active.forEach(function(h){
+    lines.push('- '+h.name+': streak='+streak(h)+', 30d='+Math.round(periodRate(h,30)*100)+'%');
+  });
+  // mood last 14 days
+  lines.push('MOOD (last 14 days):');
+  for(var d=0;d<14;d++){
+    var ds=fmt(addDays(now,-d)),mi=moodOf(ds);
+    if(mi>=0) lines.push(ds+': '+MOODS[mi].l);
+  }
+  // sleep last 7
+  lines.push('SLEEP (last 7):');
+  for(var d2=0;d2<7;d2++){
+    var ds2=fmt(addDays(now,-d2)),sl=sleepOn(ds2);
+    if(sl&&sl.mins>0) lines.push(ds2+': '+Math.floor(sl.mins/60)+'h'+sl.mins%60+'m');
+  }
+  // expenses this month
+  var ms=ts.slice(0,8)+'01',mExp=0,mInc=0,catSpend={};
+  state.tx.forEach(function(t){
+    if(t.d>=ms&&t.d<=ts){
+      if(t.kind==='exp'){mExp+=t.amt||0;var c=t.cat||'Other';catSpend[c]=(catSpend[c]||0)+(t.amt||0);}
+      else if(t.kind==='inc') mInc+=t.amt||0;
+    }
+  });
+  lines.push('MONEY this month: income='+mInc+', expenses='+mExp);
+  for(var k in catSpend) lines.push('  '+k+': '+catSpend[k]);
+  // accounts
+  if(state.accts&&state.accts.length){
+    lines.push('ACCOUNTS:');
+    state.accts.forEach(function(a){ if(a.active!==false) lines.push('- '+a.name+' ('+a.type+'): balance='+acctBalance(a.id)); });
+  }
+  return lines.join('\n');
+}
+
+function periodRate(h,days){
+  var now=new Date(),due=0,done=0;
+  for(var i=0;i<days;i++){
+    var d=addDays(now,-i),ds=fmt(d);
+    if(ds<h.created) continue;
+    if(dueOn(h,d)){due++;if(isDone(h,ds))done++;}
+  }
+  return due?done/due:0;
+}
+
+// ---- Natural language expense entry ----
+function parseExpenseNL(text){
+  var ctx=buildDataContext();
+  var cats=[];
+  if(state.cats){for(var k in state.cats) cats.push(k);}
+  var prompt='You are a personal finance assistant. The user typed a quick expense entry. Extract: amount, category, subcategory (if any), and a short note.\n\n'
+    +'Available categories: '+cats.join(', ')+'\n'
+    +'Available accounts: '+(state.accts||[]).filter(function(a){return a.active!==false;}).map(function(a){return a.name;}).join(', ')+'\n\n'
+    +'User input: "'+text+'"\n\n'
+    +'Respond ONLY with JSON: {"amt":number,"cat":"Category","sub":"Subcategory or empty","note":"short note","kind":"exp or inc","acct":"account name or empty"}\n'
+    +'Do not include any other text.';
+  return gemCall(prompt,150).then(function(r){
+    var clean=r.replace(/```json|```/g,'').trim();
+    return JSON.parse(clean);
+  });
+}
+
+// ---- Ask your data ----
+function askData(question){
+  var ctx=buildDataContext();
+  var prompt='You are a personal tracker AI assistant. Answer the user\'s question using ONLY the data below. Be concise (2-3 sentences max). Use specific numbers. If the data doesn\'t contain the answer, say so.\n\nDATA:\n'+ctx+'\n\nQuestion: '+question;
+  return gemCall(prompt,250);
+}
+
+// ---- AI weekly narrative ----
+function genWeeklyNarrative(){
+  var ctx=buildDataContext();
+  var prompt='You are a supportive personal tracker AI. Write a 2-3 sentence weekly summary for the user based on this data. Be specific, mention actual habit names and numbers. Be encouraging but honest. No generic advice.\n\nDATA:\n'+ctx;
+  gemCall(prompt,200).then(function(r){
+    localStorage.setItem('ai_weekly_narr',r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+    localStorage.setItem('ai_weekly_narr_day',today());
+    renderInsights();
+  }).catch(function(){});
+}
+
+// ---- Habit coaching (on streak break) ----
+function getHabitCoaching(h){
+  var ctx='Habit: '+h.name+'\nPrevious streak before break: '+streakAsOf(h,addDays(new Date(),-2))+' days\n30-day rate: '+Math.round(periodRate(h,30)*100)+'%\nSchedule: '+(h.days?h.days.join(','):'daily');
+  var prompt='You are a habit coach. The user just broke their streak on "'+h.name+'". Give ONE specific, actionable recovery tip in 1-2 sentences. Be warm but practical. Reference the actual data.\n\n'+ctx;
+  return gemCall(prompt,120);
+}
+
 function renderToday(){
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
@@ -2718,6 +3051,7 @@ function renderToday(){
     }
   }
   $('list').innerHTML = html;
+  renderInsights();
 }
 
 /* ================= sheets infra ================= */
@@ -4493,6 +4827,7 @@ function catTotals(y,m){
 }
 
 function renderExp(){
+  $('nlExpBar').style.display=getGemKey()?'flex':'none';
   runRecur();
   var now=new Date();
   $('expMonTitle').textContent = new Date(expY,expM,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});
@@ -5839,6 +6174,71 @@ function init(){
     var v = prompt('Vacation until (YYYY-MM-DD)', today());
     if(v) window.dateResult(v); else pendingDateField = '';
   });
+
+  // ---- Gemini AI key management ----
+  $('btnGemSave').addEventListener('click', function(){
+    var k=$('geminiKey').value.trim();
+    if(!k){$('gemStatus').textContent='Enter a key first.';return;}
+    setGemKey(k); $('geminiKey').value='';
+    $('gemStatus').innerHTML='<span style="color:var(--sGreen)">✓ Key saved</span>';
+    renderInsights();
+  });
+  $('btnGemClear').addEventListener('click', function(){
+    clearGemKey(); localStorage.removeItem('ai_weekly_narr'); localStorage.removeItem('ai_weekly_narr_day');
+    $('gemStatus').innerHTML='Key removed.';
+    renderInsights();
+  });
+
+  // ---- Ask Your Data chat ----
+  function sendAiChat(){
+    var q=$('aiChatInput').value.trim(); if(!q) return;
+    if(!getGemKey()){toastN('Add a Gemini API key in Settings first');return;}
+    var log=$('aiChatLog');
+    log.innerHTML+='<div class="aiMsg user">'+q.replace(/</g,'&lt;')+'</div>';
+    $('aiChatInput').value='';
+    log.innerHTML+='<div class="aiMsg bot" id="aiTyping" style="opacity:.5">Thinking\u2026</div>';
+    log.scrollTop=log.scrollHeight;
+    askData(q).then(function(r){
+      var el=$('aiTyping'); if(el) el.remove();
+      log.innerHTML+='<div class="aiMsg bot">'+r.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')+'</div>';
+      log.scrollTop=log.scrollHeight;
+    }).catch(function(e){
+      var el=$('aiTyping'); if(el) el.remove();
+      log.innerHTML+='<div class="aiMsg err">'+e.message+'</div>';
+    });
+  }
+  $('aiChatSend').addEventListener('click', sendAiChat);
+  $('aiChatInput').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();sendAiChat();} });
+
+  // ---- Natural language expense entry ----
+  function sendNlExp(){
+    var t=$('nlExpInput').value.trim(); if(!t) return;
+    if(!getGemKey()){toastN('Add a Gemini API key in Settings first');return;}
+    $('nlExpInput').disabled=true; $('nlExpSend').textContent='⏳';
+    parseExpenseNL(t).then(function(r){
+      $('nlExpInput').disabled=false; $('nlExpSend').textContent='✨'; $('nlExpInput').value='';
+      if(!r||!r.amt){toastN('Couldn\'t parse that');return;}
+      // open the expense sheet pre-filled
+      openExp(null);
+      $('expAmt').value=r.amt;
+      expKindSel=r.kind||'exp';
+      if(r.cat){expCatSel=r.cat; expSubSel=r.sub||'';}
+      if(r.acct){
+        for(var i=0;i<state.accts.length;i++){
+          if(state.accts[i].name.toLowerCase()===r.acct.toLowerCase()&&state.accts[i].active!==false){expAcctSel=state.accts[i].id;break;}
+        }
+      }
+      if(r.note) $('expNote').value=r.note;
+      if(typeof paintKind==='function') paintKind();
+      if(typeof paintExpPickers==='function') paintExpPickers();
+      toastN('Parsed: '+(r.kind==='inc'?'+':'−')+inr(r.amt)+' · '+r.cat);
+    }).catch(function(e){
+      $('nlExpInput').disabled=false; $('nlExpSend').textContent='✨';
+      toastN(e.message||'AI parse failed');
+    });
+  }
+  $('nlExpSend').addEventListener('click', sendNlExp);
+  $('nlExpInput').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();sendNlExp();} });
 
   /* simplified stats + mood toggles */
   $('moToggle').addEventListener('click', function(){
