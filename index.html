@@ -6448,6 +6448,12 @@ function init(){
   function startVoice(targetInput, onDone){
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if(!SR){ toastN('Voice input not supported in this browser'); return; }
+    // on the APK, request mic permission first if not granted
+    if(nat && nat.micGranted && !nat.micGranted()){
+      nat.reqMic();
+      toastN('Microphone permission needed — tap the mic again after allowing');
+      return;
+    }
     var rec = new SR();
     rec.lang = 'en-IN';
     rec.interimResults = false;
@@ -6459,7 +6465,7 @@ function init(){
       if(onDone) onDone(text);
     };
     rec.onerror = function(e){
-      if(e.error === 'not-allowed') toastN('Microphone permission denied');
+      if(e.error === 'not-allowed') toastN('Microphone permission denied — enable in Settings → App permissions');
       else if(e.error === 'no-speech') toastN('No speech detected — try again');
       else toastN('Voice error: ' + e.error);
     };
