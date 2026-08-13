@@ -1304,26 +1304,29 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="setS" style="text-align:center;padding:8px 0">Summary generates automatically once you have data and a key set up.</div>
     </div>
 
-    <div class="secH">Setup</div>
+    <div class="secH">AI Provider</div>
     <div class="setCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">Gemini API key</div><div class="setS">Free at <b>aistudio.google.com</b> → API keys</div></div></div>
-      <input class="inp" id="geminiKey" type="password" placeholder="Paste your Gemini API key" style="margin:8px 0 8px">
-      <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS">Flash = free · Pro = may need billing</div></div></div>
-      <select class="inp" id="gemModel" style="margin:6px 0 8px;padding:12px 14px">
-        <option value="gemini-3.6-flash">Gemini 3.6 Flash · newest · free</option>
-        <option value="gemini-3.5-flash">Gemini 3.5 Flash · fast · free</option>
-        <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash-Lite · light · free</option>
-        <option value="gemini-3.1-flash-lite">Gemini 3.1 Flash-Lite · budget · free</option>
-        <option value="gemini-2.5-flash">Gemini 2.5 Flash · stable · free</option>
-        <option value="gemini-2.5-flash-lite">Gemini 2.5 Flash-Lite · cheapest · free</option>
-        <option value="gemini-2.5-pro">Gemini 2.5 Pro · smartest free · limited</option>
-        <option value="gemini-3.1-pro-preview">Gemini 3.1 Pro · best · paid</option>
+      <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Select your AI provider — all have free tiers</div></div></div>
+      <select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px">
+        <option value="gemini">Google Gemini · free · aistudio.google.com</option>
+        <option value="groq">Groq · free · console.groq.com</option>
+        <option value="openrouter">OpenRouter · free models · openrouter.ai</option>
+        <option value="mistral">Mistral · free · console.mistral.ai</option>
+        <option value="cerebras">Cerebras · free · cerebras.ai</option>
+        <option value="grok">xAI Grok · $25 free · console.x.ai</option>
       </select>
+      <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS" id="aiModelHint">Select a provider first</div></div></div>
+      <select class="inp" id="aiModel" style="margin:6px 0 10px;padding:12px 14px">
+        <option value="">Loading models…</option>
+      </select>
+      <div class="setRow"><div class="setInfo"><div class="setT">API key</div><div class="setS" id="aiKeyHint">Paste your key</div></div></div>
+      <input class="inp" id="aiApiKey" type="password" placeholder="Paste your API key" style="margin:6px 0 8px">
       <div class="half">
-        <button class="sbtn acc" id="btnGemSave">Save key</button>
-        <button class="sbtn" id="btnGemClear">Remove</button>
+        <button class="sbtn acc" id="btnAiSave">Save</button>
+        <button class="sbtn" id="btnAiClear">Remove</button>
+        <button class="sbtn" id="btnAiFetch" title="Fetch live models from API">↻ Refresh</button>
       </div>
-      <div id="gemStatus" style="font-size:12px;margin-top:8px;color:var(--mut)"></div>
+      <div id="aiStatus" style="font-size:12px;margin-top:8px;color:var(--mut)"></div>
     </div>
   </div>
 
@@ -2847,45 +2850,158 @@ function renderInsights(){
 
 /* ---- renderAI: populate the AI page ---- */
 function renderAI(){
-  // load saved model
-  var saved=getGemModel(), sel=$('gemModel');
-  if(sel){ for(var i=0;i<sel.options.length;i++){ if(sel.options[i].value===saved){sel.selectedIndex=i;break;} } }
+  // populate provider selector
+  var provSel=$('aiProvider'), curProv=getAiProvider();
+  for(var i=0;i<provSel.options.length;i++){if(provSel.options[i].value===curProv){provSel.selectedIndex=i;break;}}
+  // populate model list for current provider
+  populateModels(curProv);
   // show key status
-  if(getGemKey()) $('gemStatus').innerHTML='<span style="color:var(--sGreen)">✓ Key active · '+saved+'</span>';
-  else $('gemStatus').innerHTML='No key set — add one below.';
+  var key=getAiKey();
+  if(key) $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Connected · '+AI_PROVIDERS[curProv].name+' · '+getAiModel()+'</span>';
+  else $('aiStatus').innerHTML='No key set — select a provider and add your key.';
+  // key hint
+  $('aiKeyHint').textContent='Get key at '+AI_PROVIDERS[curProv].url;
   // weekly narrative
   var narr=localStorage.getItem('ai_weekly_narr')||'';
   var narrDay=localStorage.getItem('ai_weekly_narr_day')||'';
-  if(narr&&narrDay===today()) $('aiNarrBox').innerHTML='<div style="font-size:14px;line-height:1.6;color:var(--ink)">'+narr+'</div><div class="setS" style="margin-top:6px">Generated today · '+getGemModel()+'</div>';
-  else if(getGemKey()) {
+  if(narr&&narrDay===today()) $('aiNarrBox').innerHTML='<div style="font-size:14px;line-height:1.6;color:var(--ink)">'+narr+'</div><div class="setS" style="margin-top:6px">Generated today · '+AI_PROVIDERS[curProv].name+'</div>';
+  else if(key) {
     $('aiNarrBox').innerHTML='<button class="sbtn acc" id="btnGenNarr" style="width:100%">Generate weekly summary</button>';
     var nb=$('btnGenNarr');
     if(nb) nb.addEventListener('click',function(){
       nb.textContent='Generating…'; nb.disabled=true;
       genWeeklyNarrative();
-      setTimeout(function(){renderAI();},4000);
+      setTimeout(function(){renderAI();},5000);
     });
   }
 }
 
-/* ============ TIER 2: GEMINI AI ENGINE ============ */
-function getGemKey(){ return localStorage.getItem('gem_api_key')||''; }
-function setGemKey(k){ localStorage.setItem('gem_api_key',k); }
-function clearGemKey(){ localStorage.removeItem('gem_api_key'); }
-function getGemModel(){ return localStorage.getItem('gem_model')||'gemini-3.5-flash'; }
-function setGemModel(m){ localStorage.setItem('gem_model',m); }
+function populateModels(provId){
+  var prov=AI_PROVIDERS[provId]; if(!prov) return;
+  var sel=$('aiModel'), saved=getAiModel();
+  sel.innerHTML='';
+  prov.models.forEach(function(m){
+    var opt=document.createElement('option'); opt.value=m.id; opt.textContent=m.label;
+    if(m.id===saved) opt.selected=true;
+    sel.appendChild(opt);
+  });
+  $('aiModelHint').textContent=prov.models.length+' models · '+prov.name;
+}
+
+/* ============ TIER 2: MULTI-PROVIDER AI ENGINE ============ */
+var AI_PROVIDERS = {
+  gemini: {
+    name: 'Google Gemini', url: 'https://aistudio.google.com/apikey',
+    models: [
+      {id:'gemini-2.5-flash',label:'Gemini 2.5 Flash · free'},
+      {id:'gemini-2.5-flash-lite',label:'Gemini 2.5 Flash-Lite · free'},
+      {id:'gemini-2.5-pro',label:'Gemini 2.5 Pro · limited free'}
+    ],
+    call: function(key, model, prompt, max){
+      var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent';
+      return fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:max||300}})
+      }).then(function(r){if(!r.ok) throw new Error('API '+r.status);return r.json();})
+        .then(function(d){try{return d.candidates[0].content.parts[0].text;}catch(e){throw new Error('Empty response');}});
+    },
+    listModels: function(key){
+      return fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+key)
+        .then(function(r){return r.json();})
+        .then(function(d){return (d.models||[]).filter(function(m){return m.name && m.name.indexOf('generateContent')!==-1 || m.supportedGenerationMethods && m.supportedGenerationMethods.indexOf('generateContent')>=0;}).map(function(m){var id=m.name.replace('models/','');return{id:id,label:id+(m.displayName?' · '+m.displayName:'')};});});
+    }
+  },
+  groq: {
+    name: 'Groq', url: 'https://console.groq.com/keys',
+    models: [
+      {id:'openai/gpt-oss-120b',label:'GPT-OSS 120B · flagship'},
+      {id:'openai/gpt-oss-20b',label:'GPT-OSS 20B · fast'},
+      {id:'meta-llama/llama-4-scout-17b-16e-instruct',label:'Llama 4 Scout 17B'},
+      {id:'qwen/qwen3-32b',label:'Qwen3 32B'}
+    ],
+    call: function(key,model,prompt,max){return openAICall('https://api.groq.com/openai/v1/chat/completions',key,model,prompt,max);},
+    listModels: function(key){return openAIListModels('https://api.groq.com/openai/v1/models',key);}
+  },
+  openrouter: {
+    name: 'OpenRouter', url: 'https://openrouter.ai/keys',
+    models: [
+      {id:'deepseek/deepseek-r1:free',label:'DeepSeek R1 · free'},
+      {id:'google/gemma-3-27b-it:free',label:'Gemma 3 27B · free'},
+      {id:'meta-llama/llama-4-maverick:free',label:'Llama 4 Maverick · free'},
+      {id:'qwen/qwen3-235b-a22b:free',label:'Qwen3 235B · free'}
+    ],
+    call: function(key,model,prompt,max){return openAICall('https://openrouter.ai/api/v1/chat/completions',key,model,prompt,max);},
+    listModels: function(key){
+      return fetch('https://openrouter.ai/api/v1/models',{headers:{'Authorization':'Bearer '+key}})
+        .then(function(r){return r.json();})
+        .then(function(d){return (d.data||[]).filter(function(m){return m.id && m.id.indexOf(':free')>=0;}).slice(0,20).map(function(m){return{id:m.id,label:m.id.replace(':free','')+' · free'};});});
+    }
+  },
+  mistral: {
+    name: 'Mistral', url: 'https://console.mistral.ai/api-keys',
+    models: [
+      {id:'mistral-small-latest',label:'Mistral Small · fast'},
+      {id:'mistral-medium-latest',label:'Mistral Medium'},
+      {id:'mistral-large-latest',label:'Mistral Large · best'},
+      {id:'open-mistral-nemo',label:'Mistral Nemo · open'},
+      {id:'codestral-latest',label:'Codestral · code'}
+    ],
+    call: function(key,model,prompt,max){return openAICall('https://api.mistral.ai/v1/chat/completions',key,model,prompt,max);},
+    listModels: function(key){return openAIListModels('https://api.mistral.ai/v1/models',key);}
+  },
+  cerebras: {
+    name: 'Cerebras', url: 'https://cloud.cerebras.ai',
+    models: [
+      {id:'llama-4-scout-17b-16e-instruct',label:'Llama 4 Scout 17B'},
+      {id:'llama3.1-8b',label:'Llama 3.1 8B · fast'},
+      {id:'qwen-3-32b',label:'Qwen3 32B'}
+    ],
+    call: function(key,model,prompt,max){return openAICall('https://api.cerebras.ai/v1/chat/completions',key,model,prompt,max);},
+    listModels: function(key){return openAIListModels('https://api.cerebras.ai/v1/models',key);}
+  },
+  grok: {
+    name: 'xAI Grok', url: 'https://console.x.ai',
+    models: [
+      {id:'grok-3-mini-fast',label:'Grok 3 Mini Fast · free'},
+      {id:'grok-3-mini',label:'Grok 3 Mini'},
+      {id:'grok-3-fast',label:'Grok 3 Fast'},
+      {id:'grok-3',label:'Grok 3 · best'}
+    ],
+    call: function(key,model,prompt,max){return openAICall('https://api.x.ai/v1/chat/completions',key,model,prompt,max);},
+    listModels: function(key){return openAIListModels('https://api.x.ai/v1/models',key);}
+  }
+};
+
+// OpenAI-compatible call (used by Groq, OpenRouter, Mistral, Cerebras, Grok)
+function openAICall(url, key, model, prompt, max){
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
+    body:JSON.stringify({model:model,messages:[{role:'user',content:prompt}],max_tokens:max||300})
+  }).then(function(r){if(!r.ok) throw new Error('API '+r.status);return r.json();})
+    .then(function(d){try{return d.choices[0].message.content;}catch(e){throw new Error('Empty response');}});
+}
+function openAIListModels(url, key){
+  return fetch(url,{headers:{'Authorization':'Bearer '+key,'Content-Type':'application/json'}})
+    .then(function(r){return r.json();})
+    .then(function(d){return (d.data||[]).map(function(m){return{id:m.id,label:m.id};}).slice(0,30);});
+}
+
+function getAiProvider(){ return localStorage.getItem('ai_provider')||'gemini'; }
+function getAiModel(){ return localStorage.getItem('ai_model')||AI_PROVIDERS[getAiProvider()].models[0].id; }
+function getAiKey(){ return localStorage.getItem('ai_key')||''; }
+// backward compat: migrate old gem_api_key
+if(!localStorage.getItem('ai_key')&&localStorage.getItem('gem_api_key')){
+  localStorage.setItem('ai_key',localStorage.getItem('gem_api_key'));
+  localStorage.setItem('ai_provider','gemini');
+  localStorage.setItem('ai_model',localStorage.getItem('gem_model')||'gemini-2.5-flash');
+}
+
+function getGemKey(){ return getAiKey(); }
 
 function gemCall(prompt, maxTokens){
-  var key=getGemKey(); if(!key) return Promise.reject(new Error('No API key'));
-  var model=getGemModel();
-  var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent';
-  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
-    body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:maxTokens||300}})
-  }).then(function(r){ if(!r.ok) throw new Error('API '+r.status+' ('+model+')'); return r.json(); })
-    .then(function(d){
-      try{ return d.candidates[0].content.parts[0].text; }
-      catch(e){ throw new Error('Empty response from '+model); }
-    });
+  var key=getAiKey(); if(!key) return Promise.reject(new Error('No API key'));
+  var prov=AI_PROVIDERS[getAiProvider()];
+  if(!prov) return Promise.reject(new Error('Unknown provider'));
+  var model=getAiModel();
+  return prov.call(key, model, prompt, maxTokens);
 }
 
 function buildDataContext(){
@@ -6375,22 +6491,51 @@ function init(){
   });
 
   // ---- Gemini AI key management ----
-  $('btnGemSave').addEventListener('click', function(){
-    var k=$('geminiKey').value.trim();
-    if(!k){$('gemStatus').textContent='Enter a key first.';return;}
-    setGemKey(k); $('geminiKey').value='';
-    setGemModel($('gemModel').value);
-    $('gemStatus').innerHTML='<span style="color:var(--sGreen)">✓ Key saved · using '+$('gemModel').value+'</span>';
+  // ---- AI provider management ----
+  $('aiProvider').addEventListener('change', function(){
+    var prov=this.value;
+    localStorage.setItem('ai_provider',prov);
+    populateModels(prov);
+    $('aiKeyHint').textContent='Get key at '+AI_PROVIDERS[prov].url;
+    $('aiStatus').innerHTML='Provider switched to '+AI_PROVIDERS[prov].name;
+  });
+  $('aiModel').addEventListener('change', function(){
+    localStorage.setItem('ai_model',this.value);
+    if(getAiKey()) $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Model: '+this.value+'</span>';
+  });
+  $('btnAiSave').addEventListener('click', function(){
+    var k=$('aiApiKey').value.trim();
+    if(!k){$('aiStatus').textContent='Enter a key first.';return;}
+    localStorage.setItem('ai_key',k);
+    localStorage.setItem('ai_provider',$('aiProvider').value);
+    localStorage.setItem('ai_model',$('aiModel').value);
+    $('aiApiKey').value='';
+    $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Saved · '+AI_PROVIDERS[$('aiProvider').value].name+' · '+$('aiModel').value+'</span>';
     renderInsights();
   });
-  $('btnGemClear').addEventListener('click', function(){
-    clearGemKey(); localStorage.removeItem('ai_weekly_narr'); localStorage.removeItem('ai_weekly_narr_day');
-    $('gemStatus').innerHTML='Key removed.';
+  $('btnAiClear').addEventListener('click', function(){
+    localStorage.removeItem('ai_key'); localStorage.removeItem('ai_weekly_narr'); localStorage.removeItem('ai_weekly_narr_day');
+    $('aiStatus').innerHTML='Key removed.';
     renderInsights();
   });
-  $('gemModel').addEventListener('change', function(){
-    setGemModel(this.value);
-    if(getGemKey()) $('gemStatus').innerHTML='<span style="color:var(--sGreen)">✓ Switched to '+this.value+'</span>';
+  $('btnAiFetch').addEventListener('click', function(){
+    var key=getAiKey()||$('aiApiKey').value.trim();
+    var provId=$('aiProvider').value;
+    var prov=AI_PROVIDERS[provId];
+    if(!key){$('aiStatus').textContent='Enter a key first to fetch models.';return;}
+    if(!prov.listModels){$('aiStatus').textContent='This provider doesn\'t support live model listing.';return;}
+    $('aiStatus').textContent='Fetching models from '+prov.name+'…';
+    prov.listModels(key).then(function(models){
+      if(models&&models.length){
+        prov.models=models;
+        populateModels(provId);
+        $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Loaded '+models.length+' models from '+prov.name+'</span>';
+      } else {
+        $('aiStatus').textContent='No models returned — check your key.';
+      }
+    }).catch(function(e){
+      $('aiStatus').textContent='Failed: '+e.message;
+    });
   });
 
   // ---- Ask Your Data chat ----
@@ -6445,15 +6590,30 @@ function init(){
   $('nlExpInput2').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();sendNlExp2();} });
 
   // ---- Voice input (SpeechRecognition API) ----
+  // ---- Voice input: native Android speech on APK, Web Speech API on browser ----
+  var _speechCbId = 0, _speechCallbacks = {};
+  window._speechResult = function(id, text, err){
+    var cb = _speechCallbacks[id]; if(!cb) return; delete _speechCallbacks[id];
+    if(err){ if(err!=='cancelled') toastN(err); return; }
+    cb(text);
+  };
+
   function startVoice(targetInput, onDone){
-    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SR){ toastN('Voice input not supported in this browser'); return; }
-    // on the APK, request mic permission first if not granted
-    if(nat && nat.micGranted && !nat.micGranted()){
-      nat.reqMic();
-      toastN('Microphone permission needed — tap the mic again after allowing');
+    // APK: use native Android speech recognizer (WebView doesn't support Web Speech API)
+    if(nat && nat.startSpeech){
+      var id = 'sp_' + (++_speechCbId);
+      _speechCallbacks[id] = function(text){
+        targetInput.value = text;
+        targetInput.focus();
+        toastN('Got: "' + text + '"');
+        if(onDone) onDone(text);
+      };
+      nat.startSpeech(id);
       return;
     }
+    // Browser: use Web Speech API
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){ toastN('Voice input not supported in this browser'); return; }
     var rec = new SR();
     rec.lang = 'en-IN';
     rec.interimResults = false;
