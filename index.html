@@ -95,6 +95,7 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .hero::before{content:'';position:absolute;top:50%;left:50%;width:200px;height:200px;
   transform:translate(-50%,-52%);background:var(--emberGlow);pointer-events:none;opacity:.5}
 .ringSvg{width:170px;height:170px;position:relative}
+.ringSvg circle{transition:stroke-dasharray .4s ease-out}
 .ringN{font-family:var(--fDisp);font-size:38px;font-weight:700}
 .ringT{font-family:var(--fDisp);font-size:14px;font-weight:700}
 .ringL{font-size:9.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase}
@@ -112,7 +113,7 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .nextRem:empty{display:none;padding:0;border:none;margin:0;box-shadow:none}
 
 /* ============ AI INSIGHTS ============ */
-.aiCard{background:var(--card);border:1px solid var(--line);border-radius:14px;
+.aiCard{background:var(--card);border:1px solid var(--line);border-radius:14px;animation:cardSlideIn .2s ease-out;
   padding:13px 15px;margin-bottom:10px;display:flex;align-items:flex-start;gap:11px}
 .aiCard .aiIco{font-size:18px;flex-shrink:0;margin-top:1px}
 .aiCard .aiBody{flex:1;min-width:0}
@@ -176,9 +177,10 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .chk{width:38px;height:38px;border-radius:10px;flex-shrink:0;align-self:flex-start;margin-top:2px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   border:2.5px solid var(--cs);color:transparent;font-size:11px;font-weight:800;
-  transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+  transition:all .15s cubic-bezier(.22,.68,.36,1)}
 .chk:active{transform:scale(.8)}
-.chk.on{background:var(--c);border-color:var(--c);color:var(--onAccent);box-shadow:0 2px 8px var(--cg)}
+.chk.on{background:var(--c);border-color:var(--c);color:var(--onAccent);box-shadow:0 2px 8px var(--cg);animation:chkPop .25s cubic-bezier(.22,.68,.36,1)}
+@keyframes chkPop{0%{transform:scale(.8)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
 .chk.part{color:var(--ink)}
 .chk svg{width:22px;height:22px}
 .chk .cv{line-height:1.1}
@@ -224,7 +226,7 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .navBrand{display:none}
 .tab.on{color:var(--amberDeep);background:var(--amberSoft)}
 .tab.on svg{fill:currentColor;fill-opacity:.08}
-.tab:active{transform:scale(.95)}
+.tab:active{transform:scale(.96);transition:transform .1s}
 html:not(.light) .tab.on{color:var(--amber)}
 
 /* ============ SHEETS ============ */
@@ -236,7 +238,7 @@ html:not(.light) .tab.on{color:var(--amber)}
   padding:8px 20px calc(26px + env(safe-area-inset-bottom,0px));
   transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,.24,1);
   z-index:64;max-height:92%;overflow-y:auto;box-shadow:var(--shadowUp);pointer-events:none}
-.sheet.open{transform:translateY(0);pointer-events:auto}
+.sheet.open{transform:translateY(0);pointer-events:auto;transition:transform .26s cubic-bezier(.22,.68,.36,1)}
 .grab{width:36px;height:3px;border-radius:2px;background:var(--line2);margin:6px auto 16px}
 .sheet h2{font-family:var(--fDisp);font-size:20px;font-weight:700;letter-spacing:0;margin-bottom:16px}
 .lbl{font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mut);margin:18px 0 10px}
@@ -251,7 +253,7 @@ textarea.inp{resize:none;min-height:68px}
 /* ============ CHIPS / PICKERS ============ */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{background:var(--card);border:1.5px solid var(--line2);border-radius:22px;padding:8px 14px;
-  font-size:14px;font-weight:600;color:var(--mut);transition:all .18s}
+  font-size:14px;font-weight:600;color:var(--mut);transition:all .12s ease-out}
 .chip.sel{background:var(--amberSoft);border-color:var(--amber);color:var(--ink)}
 .dows{display:flex;gap:8px;margin-top:10px}
 .dw{width:38px;height:38px;border-radius:10px;background:var(--card);border:1.5px solid var(--line2);
@@ -1023,7 +1025,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         <button class="chip" data-cf="Other">Other</button>
       </div>
     </div>
-    <div class="dailyIns" id="todayDIWrap"><div class="diLead">✨</div><div class="diText" id="todayDI"></div></div>
+    <div class="dailyIns" id="todayDIWrap" style="display:none"><div class="diLead">✨</div><div class="diText" id="todayDI"></div></div>
     <div class="heroTop">
       <div class="momCol">
         <div class="momBig" id="momPct">&ndash;</div>
@@ -1046,6 +1048,10 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="t">No habits yet</div>
       <div class="s">Forge your first habit and start<br>a chain worth keeping.</div>
       <button class="emptyCtaBtn" id="emptyCta">Create your first habit</button>
+    </div>
+    <div style="text-align:center;padding:20px 0 8px">
+      <div style="font-size:11px;color:var(--mut2)">Developed by Vishal</div>
+      <div style="font-size:10px;color:var(--mut2);margin-top:2px">For personal use only</div>
     </div>
   </div>
 
@@ -1278,6 +1284,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div id="aiChatLog" style="max-height:320px;overflow-y:auto;margin-bottom:10px"></div>
       <div style="display:flex;gap:8px">
         <input class="inp" id="aiChatInput" placeholder='e.g. "How much did I spend on food?"' style="flex:1">
+        <button class="nlSend" id="aiChatMic" style="flex-shrink:0;padding:0 12px;background:var(--card);border:1.5px solid var(--line2);border-radius:14px;font-size:18px" title="Voice input">🎙</button>
         <button class="sbtn acc" id="aiChatSend" style="flex-shrink:0;padding:0 16px">Ask</button>
       </div>
     </div>
@@ -1287,6 +1294,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="setS" style="margin-bottom:8px">Type naturally — AI extracts amount, category, and account</div>
       <div style="display:flex;gap:8px">
         <input class="inp" id="nlExpInput2" placeholder='e.g. "swiggy 340" or "salary 45000"' style="flex:1">
+        <button class="nlSend" id="nlMicBtn" style="flex-shrink:0;padding:0 12px;background:var(--card);border:1.5px solid var(--line2);border-radius:14px;font-size:18px" title="Voice input">🎙</button>
         <button class="nlSend" id="nlExpSend2" style="flex-shrink:0;padding:0 14px;background:var(--amber);color:var(--onAccent);border-radius:14px;font-weight:700;font-size:14px">✨</button>
       </div>
     </div>
@@ -1433,13 +1441,16 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Data</div>
     <div class="setCard">
       <div class="setRow"><div class="setInfo"><div class="setT">Export to Excel</div><div class="setS">Full log + stats as .xlsx</div></div><button class="sbtn" id="btnXlsxShare">Share</button><button class="sbtn acc" id="btnXlsx">Save</button></div>
+      <div class="setRow"><div class="setInfo"><div class="setT">Monthly PDF report</div><div class="setS">Habits, mood, sleep, spending summary</div></div><button class="sbtn acc" id="btnPdfReport">Generate</button></div>
       <div class="setRow"><div class="setInfo"><div class="setT">Backup (JSON)</div><div class="setS">Complete backup you can re-import</div></div><button class="sbtn acc" id="btnBk">Save</button></div>
       <div class="setRow"><div class="setInfo"><div class="setT">Back up to Google Drive</div><div class="setS">Opens the share sheet &mdash; pick Drive</div></div><button class="sbtn acc" id="btnDrive">Share</button></div>
       <div class="setRow"><div class="setInfo"><div class="setT">Import backup</div><div class="setS">Restore from a JSON backup file</div></div><button class="sbtn" id="btnImport">Choose</button></div>
       <div class="setRow"><div class="setInfo"><div class="setT">Automatic backup</div><div class="setS" id="stBk">A local backup is saved once a day</div></div></div>
     </div>
 
-    <div class="setS" style="text-align:center;padding:8px 0 10px" id="verLine">Habits</div>
+    <div class="setS" style="text-align:center;padding:8px 0 4px" id="verLine">Habits</div>
+    <div class="setS" style="text-align:center;padding:0 0 4px;font-size:11px;color:var(--mut2)">Developed by Vishal</div>
+    <div class="setS" style="text-align:center;padding:0 0 10px;font-size:10px;color:var(--mut2)">For personal use only · Not for commercial distribution</div>
   </div>
 </div>
 
@@ -5980,6 +5991,144 @@ function init(){
     if(!nat) return;
     try{ nat.shareFile('habits-' + today() + '.xlsx', XMIME, buildXlsx()); }catch(e){ toastN('Export failed'); }
   });
+
+  // ---- PDF Monthly Report ----
+  $('btnPdfReport').addEventListener('click', function(){
+    toastN('Generating report…');
+    setTimeout(function(){ generatePdfReport(); }, 100);
+  });
+
+  function generatePdfReport(){
+    var now = new Date(), y = now.getFullYear(), m = now.getMonth();
+    var monthName = now.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+    var daysInMonth = new Date(y,m+1,0).getDate();
+    var ms = fmt(new Date(y,m,1)), me = fmt(new Date(y,m,daysInMonth));
+    var active = state.habits.filter(function(h){return !h.arch;});
+    var curr = state.set.curr || '\u20B9';
+
+    // Habit stats
+    var habitRows = active.map(function(h){
+      var due=0, done=0;
+      for(var d=1;d<=daysInMonth;d++){
+        var ds=fmt(new Date(y,m,d)); if(ds>today()) break;
+        if(dueOn(h,new Date(y,m,d))){due++;if(isDone(h,ds))done++;}
+      }
+      return {name:h.name, done:done, due:due, pct:due?Math.round(done/due*100):0, streak:streak(h)};
+    });
+
+    // Mood stats
+    var moodCounts={}, moodTotal=0;
+    for(var d2=1;d2<=daysInMonth;d2++){
+      var ds2=fmt(new Date(y,m,d2)); if(ds2>today()) break;
+      var mi=moodOf(ds2); if(mi>=0){moodTotal++;var ml=MOODS[mi].l;moodCounts[ml]=(moodCounts[ml]||0)+1;}
+    }
+    var topMood='—'; var topMoodN=0;
+    for(var mk in moodCounts) if(moodCounts[mk]>topMoodN){topMoodN=moodCounts[mk];topMood=mk;}
+
+    // Sleep stats
+    var sleepMins=[], sleepDays=0;
+    for(var d3=1;d3<=daysInMonth;d3++){
+      var ds3=fmt(new Date(y,m,d3)); if(ds3>today()) break;
+      var sl=sleepOn(ds3); if(sl&&sl.mins>0){sleepMins.push(sl.mins);sleepDays++;}
+    }
+    var avgSleep=sleepDays?Math.round(sleepMins.reduce(function(a,b){return a+b;},0)/sleepDays):0;
+
+    // Expense stats
+    var mExp=0, mInc=0, catSpend={};
+    state.tx.forEach(function(t){
+      if(t.d>=ms&&t.d<=me){
+        if(t.kind==='exp'){mExp+=t.amt||0;var c=t.cat||'Other';catSpend[c]=(catSpend[c]||0)+(t.amt||0);}
+        else if(t.kind==='inc') mInc+=t.amt||0;
+      }
+    });
+    var topCats=Object.keys(catSpend).sort(function(a,b){return catSpend[b]-catSpend[a];}).slice(0,5);
+
+    // Build HTML report
+    var css='body{font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,sans-serif;max-width:700px;margin:0 auto;padding:32px 24px;color:#222;background:#fff}'
+      +'h1{font-size:28px;font-weight:800;margin:0 0 4px;color:#111}'
+      +'.sub{font-size:14px;color:#888;margin-bottom:28px}'
+      +'.sec{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:#999;margin:28px 0 12px;border-bottom:1px solid #eee;padding-bottom:6px}'
+      +'table{width:100%;border-collapse:collapse;margin-bottom:8px}'
+      +'th{text-align:left;font-size:12px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:.5px;padding:6px 8px;border-bottom:2px solid #eee}'
+      +'td{padding:8px;border-bottom:1px solid #f0f0f0;font-size:14px}'
+      +'.pct{font-weight:700}'
+      +'.good{color:#2D8A5E}.avg{color:#C79400}.bad{color:#E85D4A}'
+      +'.bar{display:inline-block;height:8px;border-radius:4px;background:#E85D4A;vertical-align:middle;margin-left:8px}'
+      +'.stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:16px}'
+      +'.stat-box{background:#f8f8f6;border-radius:12px;padding:16px;text-align:center}'
+      +'.stat-val{font-size:24px;font-weight:800;color:#111}'
+      +'.stat-lbl{font-size:11px;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-top:2px}'
+      +'.footer{text-align:center;margin-top:40px;font-size:11px;color:#ccc}'
+      +'@media print{body{padding:16px}}';
+
+    var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Monthly Report — '+monthName+'</title><style>'+css+'</style></head><body>';
+    h+='<h1>Monthly Report</h1><div class="sub">'+monthName+' · Personal Tracker</div>';
+
+    // Overview stats
+    var totalDue=0,totalDone=0;
+    habitRows.forEach(function(r){totalDue+=r.due;totalDone+=r.done;});
+    var overallPct=totalDue?Math.round(totalDone/totalDue*100):0;
+    h+='<div class="stat-grid">';
+    h+='<div class="stat-box"><div class="stat-val">'+overallPct+'%</div><div class="stat-lbl">Habits</div></div>';
+    h+='<div class="stat-box"><div class="stat-val">'+topMood+'</div><div class="stat-lbl">Top mood</div></div>';
+    h+='<div class="stat-box"><div class="stat-val">'+(avgSleep?Math.floor(avgSleep/60)+'h'+avgSleep%60+'m':'—')+'</div><div class="stat-lbl">Avg sleep</div></div>';
+    h+='</div>';
+    h+='<div class="stat-grid">';
+    h+='<div class="stat-box"><div class="stat-val">'+inr(mInc)+'</div><div class="stat-lbl">Income</div></div>';
+    h+='<div class="stat-box"><div class="stat-val">'+inr(mExp)+'</div><div class="stat-lbl">Spent</div></div>';
+    h+='<div class="stat-box"><div class="stat-val '+(mInc-mExp>=0?'good':'bad')+'">'+inr(mInc-mExp)+'</div><div class="stat-lbl">Net</div></div>';
+    h+='</div>';
+
+    // Habits table
+    if(habitRows.length){
+      h+='<div class="sec">Habits</div><table><tr><th>Habit</th><th>Done</th><th>Rate</th><th>Streak</th></tr>';
+      habitRows.forEach(function(r){
+        var cls=r.pct>=80?'good':r.pct>=50?'avg':'bad';
+        h+='<tr><td><b>'+r.name+'</b></td><td>'+r.done+'/'+r.due+'</td><td class="pct '+cls+'">'+r.pct+'%<span class="bar" style="width:'+Math.max(2,r.pct*.6)+'px;background:'+(r.pct>=80?'#2D8A5E':r.pct>=50?'#C79400':'#E85D4A')+'"></span></td><td>'+r.streak+'d</td></tr>';
+      });
+      h+='</table>';
+    }
+
+    // Mood breakdown
+    if(moodTotal>0){
+      h+='<div class="sec">Mood</div><table><tr><th>Mood</th><th>Days</th><th>%</th></tr>';
+      for(var mk2 in moodCounts){
+        h+='<tr><td>'+mk2+'</td><td>'+moodCounts[mk2]+'</td><td>'+Math.round(moodCounts[mk2]/moodTotal*100)+'%</td></tr>';
+      }
+      h+='</table>';
+    }
+
+    // Sleep
+    if(sleepDays>0){
+      h+='<div class="sec">Sleep</div>';
+      h+='<p>Average: <b>'+Math.floor(avgSleep/60)+'h '+avgSleep%60+'m</b> across '+sleepDays+' nights logged.</p>';
+      var under6=sleepMins.filter(function(m){return m<360;}).length;
+      var over7=sleepMins.filter(function(m){return m>=420;}).length;
+      h+='<p>Nights 7h+: <b class="good">'+over7+'</b> · Under 6h: <b class="bad">'+under6+'</b></p>';
+    }
+
+    // Spending by category
+    if(topCats.length){
+      h+='<div class="sec">Top Spending</div><table><tr><th>Category</th><th>Amount</th><th>% of total</th></tr>';
+      topCats.forEach(function(c){
+        h+='<tr><td>'+c+'</td><td>'+inr(catSpend[c])+'</td><td>'+Math.round(catSpend[c]/mExp*100)+'%</td></tr>';
+      });
+      h+='</table>';
+    }
+
+    h+='<div class="footer">Generated by Personal Tracker · Developed by Vishal · For personal use only<br>'+new Date().toLocaleDateString()+'</div>';
+    h+='</body></html>';
+
+    var w2=window.open('','_blank');
+    if(w2){
+      w2.document.write(h); w2.document.close();
+      setTimeout(function(){ try{w2.print();}catch(e){} }, 400);
+      toastN('Report opened — save as PDF from the print dialog');
+    } else {
+      toastN('Pop-up blocked — allow pop-ups for this site');
+    }
+  }
+
   $('btnBk').addEventListener('click', function(){
     if(!nat){
       toastN(webSave('habits-backup-' + today() + '.json', 'application/json', jsonB64()) ? 'Downloading backup\u2026' : 'Backup failed');
@@ -6294,6 +6443,38 @@ function init(){
   }
   $('nlExpSend2').addEventListener('click', sendNlExp2);
   $('nlExpInput2').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();sendNlExp2();} });
+
+  // ---- Voice input (SpeechRecognition API) ----
+  function startVoice(targetInput, onDone){
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){ toastN('Voice input not supported in this browser'); return; }
+    var rec = new SR();
+    rec.lang = 'en-IN';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = function(e){
+      var text = e.results[0][0].transcript;
+      targetInput.value = text;
+      targetInput.focus();
+      if(onDone) onDone(text);
+    };
+    rec.onerror = function(e){
+      if(e.error === 'not-allowed') toastN('Microphone permission denied');
+      else if(e.error === 'no-speech') toastN('No speech detected — try again');
+      else toastN('Voice error: ' + e.error);
+    };
+    rec.onstart = function(){ toastN('🎙 Listening…'); };
+    rec.start();
+  }
+
+  $('nlMicBtn').addEventListener('click', function(){
+    startVoice($('nlExpInput2'), function(text){
+      toastN('Got: "' + text + '" — tap ✨ to parse');
+    });
+  });
+  $('aiChatMic').addEventListener('click', function(){
+    startVoice($('aiChatInput'), function(){ sendAiChat(); });
+  });
 
   /* simplified stats + mood toggles */
   $('moToggle').addEventListener('click', function(){
