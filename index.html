@@ -4313,6 +4313,7 @@ window.extOpen = function(kind, val, acct){
     if(kind === 'tab'){ showTab(val); }
     else if(kind === 'habit' && findHabit(val)){ showTab('pgToday'); openDetail(val); }
     else if(kind === 'add'){ openExpFromWidget(val, acct); }
+    else if(kind === 'voice'){ showTab('pgAI'); setTimeout(function(){ startVoice($('nlExpInput2'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 300); }
   }catch(e){}
 };
 function openExpFromWidget(kind, acctId){
@@ -6897,6 +6898,7 @@ if(nat && nat.getLaunchAction){
     if(_la.tab) showTab(_la.tab);
     else if(_la.habit && findHabit(_la.habit)){ showTab('pgToday'); openDetail(_la.habit); }
     else if(_la.add){ openExpFromWidget(_la.add, _la.acct); }
+    else if(_la.voice){ showTab('pgAI'); setTimeout(function(){ startVoice($('nlExpInput2'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 500); }
   }catch(e){}
 }
 </script>
