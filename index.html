@@ -132,6 +132,41 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
   font-size:13px;font-weight:600;color:var(--mut);width:100%}
 #aiInsights .askBtn:active{background:var(--card2)}
 #aiInsights .askBtn .askIco{color:var(--sPurple);font-size:16px}
+
+/* ============ UNIVERSAL AI ASSISTANT ============ */
+.uaiBox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:0;overflow:hidden;margin-bottom:14px}
+.uaiLog{max-height:400px;overflow-y:auto;padding:4px 14px 0}
+.uaiLog:empty{padding:0}
+.uaiInputRow{display:flex;gap:6px;padding:12px;border-top:1px solid var(--line)}
+.uaiInp{flex:1;border:none;background:var(--card2);border-radius:12px;padding:12px 14px;font-size:15px;color:var(--ink)}
+.uaiInp:focus{outline:none;box-shadow:0 0 0 2px var(--amberSoft)}
+.uaiMic{width:42px;height:42px;border-radius:12px;background:var(--card2);border:1px solid var(--line);
+  font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.uaiMic:active{background:var(--card3)}
+.uaiSend{width:42px;height:42px;border-radius:12px;background:var(--amber);color:var(--onAccent);
+  font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.uaiSend:active{transform:scale(.94)}
+.uaiHints{display:flex;gap:6px;padding:0 12px 12px;flex-wrap:wrap}
+.uaiHint{font-size:11.5px;font-weight:600;color:var(--mut);background:var(--card2);
+  padding:5px 10px;border-radius:20px;white-space:nowrap}
+.uaiHint:active{background:var(--card3)}
+.uaiMsg{padding:10px 0;border-bottom:1px solid var(--line);animation:cardSlideIn .2s ease-out}
+.uaiMsg:last-child{border-bottom:none}
+.uaiMsg.user{color:var(--ink);font-size:14px;font-weight:600}
+.uaiMsg.bot{color:var(--ink);font-size:13.5px;line-height:1.55}
+.uaiMsg.bot b{color:var(--amber)}
+.uaiMsg .uaiAction{margin-top:8px;padding:10px 14px;background:var(--card2);border-radius:12px;font-size:13px}
+.uaiMsg .uaiAction .uaiCheck{color:var(--sGreen);font-weight:700;font-size:14px}
+.uaiMsg .uaiAction .uaiDetail{color:var(--mut);font-size:12px;margin-top:2px}
+.uaiMsg .uaiBtns{display:flex;gap:8px;margin-top:6px}
+.uaiMsg .uaiBtns button{font-size:12px;font-weight:600;padding:4px 12px;border-radius:8px;
+  background:var(--card);border:1px solid var(--line);color:var(--mut)}
+.uaiMsg .uaiBtns button:active{background:var(--card2)}
+.uaiMsg.err{color:var(--coral);font-size:12px;padding:6px 0}
+.uaiMsg .uaiConfirm{margin-top:6px}
+.uaiMsg .uaiOpt{display:block;padding:8px 12px;margin:4px 0;background:var(--card2);border-radius:10px;
+  font-size:13px;color:var(--ink);border:1px solid var(--line)}
+.uaiMsg .uaiOpt:active{background:var(--card3);border-color:var(--amber)}
 .aiMsg{padding:10px 14px;border-radius:14px;margin-bottom:8px;font-size:13.5px;line-height:1.55;max-width:90%}
 .aiMsg.user{background:var(--amberSoft);color:var(--ink);margin-left:auto;text-align:right}
 .aiMsg.bot{background:var(--card);border:1px solid var(--line);color:var(--ink)}
@@ -1275,56 +1310,47 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
   <!-- ============ SETTINGS ============ -->
   <!-- ============ AI PAGE ============ -->
+  <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
-    <h1>AI</h1>
-    <div style="height:12px"></div>
+    <h1>AI Assistant</h1>
+    <div style="height:8px"></div>
 
-    <div class="secH">Ask your data</div>
-    <div class="setCard" style="padding:14px 16px">
-      <div id="aiChatLog" style="max-height:320px;overflow-y:auto;margin-bottom:10px"></div>
-      <div style="display:flex;gap:8px">
-        <input class="inp" id="aiChatInput" placeholder='e.g. "How much did I spend on food?"' style="flex:1">
-        <button class="nlSend" id="aiChatMic" style="flex-shrink:0;padding:0 12px;background:var(--card);border:1.5px solid var(--line2);border-radius:14px;font-size:18px" title="Voice input">🎙</button>
-        <button class="sbtn acc" id="aiChatSend" style="flex-shrink:0;padding:0 16px">Ask</button>
+    <!-- Main universal input -->
+    <div class="uaiBox">
+      <div id="uaiLog" class="uaiLog"></div>
+      <div class="uaiInputRow">
+        <input class="inp uaiInp" id="uaiInput" placeholder="Tell me what you want to do…" autocomplete="off">
+        <button class="uaiMic" id="uaiMic" title="Voice input">🎙</button>
+        <button class="uaiSend" id="uaiSend">→</button>
+      </div>
+      <div class="uaiHints">
+        <span class="uaiHint" data-cmd="Add ₹500 expense for groceries">+ Expense</span>
+        <span class="uaiHint" data-cmd="I’m feeling happy today">+ Mood</span>
+        <span class="uaiHint" data-cmd="Slept at 11, woke at 6">+ Sleep</span>
+        <span class="uaiHint" data-cmd="Mark Reading as done">✓ Habit</span>
+        <span class="uaiHint" data-cmd="How much did I spend this week?">? Query</span>
       </div>
     </div>
 
-    <div class="secH">Quick add expense</div>
-    <div class="setCard" style="padding:14px 16px">
-      <div class="setS" style="margin-bottom:8px">Type naturally — AI extracts amount, category, and account</div>
-      <div style="display:flex;gap:8px">
-        <input class="inp" id="nlExpInput2" placeholder='e.g. "swiggy 340" or "salary 45000"' style="flex:1">
-        <button class="nlSend" id="nlMicBtn" style="flex-shrink:0;padding:0 12px;background:var(--card);border:1.5px solid var(--line2);border-radius:14px;font-size:18px" title="Voice input">🎙</button>
-        <button class="nlSend" id="nlExpSend2" style="flex-shrink:0;padding:0 14px;background:var(--amber);color:var(--onAccent);border-radius:14px;font-weight:700;font-size:14px">✨</button>
-      </div>
-    </div>
-
-    <div class="secH">AI weekly summary</div>
-    <div id="aiNarrBox" class="setCard" style="padding:14px 16px">
-      <div class="setS" style="text-align:center;padding:8px 0">Summary generates automatically once you have data and a key set up.</div>
-    </div>
-
-    <div class="secH">AI Provider</div>
+    <div class="secH">Setup</div>
     <div class="setCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Select your AI provider — all have free tiers</div></div></div>
+      <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">All have free tiers</div></div></div>
       <select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px">
-        <option value="gemini">Google Gemini · free · aistudio.google.com</option>
-        <option value="groq">Groq · free · console.groq.com</option>
-        <option value="openrouter">OpenRouter · free models · openrouter.ai</option>
-        <option value="mistral">Mistral · free · console.mistral.ai</option>
-        <option value="cerebras">Cerebras · free · cerebras.ai</option>
-        <option value="grok">xAI Grok · $25 free · console.x.ai</option>
+        <option value="gemini">Google Gemini · aistudio.google.com</option>
+        <option value="groq">Groq · console.groq.com</option>
+        <option value="openrouter">OpenRouter · openrouter.ai</option>
+        <option value="mistral">Mistral · console.mistral.ai</option>
+        <option value="cerebras">Cerebras · cerebras.ai</option>
+        <option value="grok">xAI Grok · console.x.ai</option>
       </select>
       <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS" id="aiModelHint">Select a provider first</div></div></div>
-      <select class="inp" id="aiModel" style="margin:6px 0 10px;padding:12px 14px">
-        <option value="">Loading models…</option>
-      </select>
+      <select class="inp" id="aiModel" style="margin:6px 0 10px;padding:12px 14px"></select>
       <div class="setRow"><div class="setInfo"><div class="setT">API key</div><div class="setS" id="aiKeyHint">Paste your key</div></div></div>
       <input class="inp" id="aiApiKey" type="password" placeholder="Paste your API key" style="margin:6px 0 8px">
       <div class="half">
         <button class="sbtn acc" id="btnAiSave">Save</button>
         <button class="sbtn" id="btnAiClear">Remove</button>
-        <button class="sbtn" id="btnAiFetch" title="Fetch live models from API">↻ Refresh</button>
+        <button class="sbtn" id="btnAiFetch">↻ Models</button>
       </div>
       <div id="aiStatus" style="font-size:12px;margin-top:8px;color:var(--mut)"></div>
     </div>
@@ -2850,32 +2876,14 @@ function renderInsights(){
 
 /* ---- renderAI: populate the AI page ---- */
 function renderAI(){
-  // populate provider selector
-  var provSel=$('aiProvider'), curProv=getAiProvider();
+  var provSel=$('aiProvider'),curProv=getAiProvider();
   for(var i=0;i<provSel.options.length;i++){if(provSel.options[i].value===curProv){provSel.selectedIndex=i;break;}}
-  // populate model list for current provider
   populateModels(curProv);
-  // show key status
   var key=getAiKey();
-  if(key) $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Connected · '+AI_PROVIDERS[curProv].name+' · '+getAiModel()+'</span>';
-  else $('aiStatus').innerHTML='No key set — select a provider and add your key.';
-  // key hint
+  if(key)$('aiStatus').innerHTML='<span style="color:var(--sGreen)">\u2713 '+AI_PROVIDERS[curProv].name+' \u00b7 '+getAiModel()+'</span>';
+  else $('aiStatus').innerHTML='Add your API key to start.';
   $('aiKeyHint').textContent='Get key at '+AI_PROVIDERS[curProv].url;
-  // weekly narrative
-  var narr=localStorage.getItem('ai_weekly_narr')||'';
-  var narrDay=localStorage.getItem('ai_weekly_narr_day')||'';
-  if(narr&&narrDay===today()) $('aiNarrBox').innerHTML='<div style="font-size:14px;line-height:1.6;color:var(--ink)">'+narr+'</div><div class="setS" style="margin-top:6px">Generated today · '+AI_PROVIDERS[curProv].name+'</div>';
-  else if(key) {
-    $('aiNarrBox').innerHTML='<button class="sbtn acc" id="btnGenNarr" style="width:100%">Generate weekly summary</button>';
-    var nb=$('btnGenNarr');
-    if(nb) nb.addEventListener('click',function(){
-      nb.textContent='Generating…'; nb.disabled=true;
-      genWeeklyNarrative();
-      setTimeout(function(){renderAI();},5000);
-    });
-  }
 }
-
 function populateModels(provId){
   var prov=AI_PROVIDERS[provId]; if(!prov) return;
   var sel=$('aiModel'), saved=getAiModel();
@@ -3004,84 +3012,152 @@ function gemCall(prompt, maxTokens){
   return prov.call(key, model, prompt, maxTokens);
 }
 
+/* ============ UNIVERSAL AI ACTION ENGINE ============ */
 function buildDataContext(){
   var now=new Date(), ts=today(), lines=[];
-  // habits summary
   var active=state.habits.filter(function(h){return !h.arch;});
-  lines.push('HABITS ('+active.length+' active):');
+  lines.push('TODAY: '+ts+' ('+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][now.getDay()]+')');
+
+  // Habits with 7-day history
+  lines.push('HABITS ('+active.length+'):');
   active.forEach(function(h){
-    lines.push('- '+h.name+': streak='+streak(h)+', 30d='+Math.round(periodRate(h,30)*100)+'%');
+    var done7=0,due7=0,hist=[];
+    for(var d=0;d<7;d++){var ds=fmt(addDays(now,-d));if(dueOn(h,addDays(now,-d))){due7++;if(isDone(h,ds)){done7++;hist.push(ds+':done');}else hist.push(ds+':miss');}};
+    var rate=due7?Math.round(done7/due7*100):0;
+    lines.push('- "'+h.name+'" id='+h.id+' streak='+streak(h)+' done_today='+isDone(h,ts)+' 7d_rate='+rate+'% last7=['+hist.join(',')+']');
   });
-  // mood last 14 days
-  lines.push('MOOD (last 14 days):');
-  for(var d=0;d<14;d++){
-    var ds=fmt(addDays(now,-d)),mi=moodOf(ds);
-    if(mi>=0) lines.push(ds+': '+MOODS[mi].l);
-  }
-  // sleep last 7
+
+  // Mood last 7 days
+  lines.push('MOOD (last 7):');
+  for(var dm=0;dm<7;dm++){var dsm=fmt(addDays(now,-dm)),mi=moodOf(dsm);if(mi>=0)lines.push('  '+dsm+': '+MOODS[mi].l+' ('+mi+')');}
+
+  // Sleep last 7
   lines.push('SLEEP (last 7):');
-  for(var d2=0;d2<7;d2++){
-    var ds2=fmt(addDays(now,-d2)),sl=sleepOn(ds2);
-    if(sl&&sl.mins>0) lines.push(ds2+': '+Math.floor(sl.mins/60)+'h'+sl.mins%60+'m');
+  for(var ds2=0;ds2<7;ds2++){var dss=fmt(addDays(now,-ds2)),sl=sleepOn(dss);if(sl&&sl.mins>0)lines.push('  '+dss+': '+Math.floor(sl.mins/60)+'h'+sl.mins%60+'m bed='+sl.bed+' wake='+sl.wake);}
+
+  // Workout exercises + recent logs + personal bests
+  if(state.exs&&state.exs.length){
+    var activeEx=state.exs.filter(function(e){return e.active;});
+    lines.push('EXERCISES ('+activeEx.length+'):');
+    activeEx.forEach(function(ex){
+      var mt=MTYPES[ex.mtype]||MTYPES.reps;
+      var logs=state.wlog.filter(function(w){return w.exId===ex.id;}).sort(function(a,b){return a.d>b.d?-1:1;});
+      var pb=0,pbDate='',last7=[];
+      for(var i=0;i<logs.length;i++){
+        var v=setsTotal(ex,logs[i].sets);
+        if(v>pb){pb=v;pbDate=logs[i].d;}
+        if(i<7&&v>0) last7.push(logs[i].d+':'+v+mt.unit);
+      }
+      var totalSessions=logs.filter(function(w){return setsTotal(ex,w.sets)>0;}).length;
+      lines.push('- "'+ex.name+'" type='+ex.mtype+' unit='+mt.unit+' personal_best='+pb+mt.unit+(pbDate?' ('+pbDate+')':'')+' sessions='+totalSessions);
+      if(last7.length) lines.push('  recent: '+last7.join(', '));
+    });
   }
-  // expenses this month
-  var ms=ts.slice(0,8)+'01',mExp=0,mInc=0,catSpend={};
-  state.tx.forEach(function(t){
-    if(t.d>=ms&&t.d<=ts){
-      if(t.kind==='exp'){mExp+=t.amt||0;var c=t.cat||'Other';catSpend[c]=(catSpend[c]||0)+(t.amt||0);}
-      else if(t.kind==='inc') mInc+=t.amt||0;
-    }
-  });
-  lines.push('MONEY this month: income='+mInc+', expenses='+mExp);
-  for(var k in catSpend) lines.push('  '+k+': '+catSpend[k]);
-  // accounts
-  if(state.accts&&state.accts.length){
-    lines.push('ACCOUNTS:');
-    state.accts.forEach(function(a){ if(a.active!==false) lines.push('- '+a.name+' ('+a.type+'): balance='+acctBalance(a.id)); });
-  }
+
+  // Expenses this month
+  var ms=ts.slice(0,8)+'01',mExp=0,mInc=0,cats=[];
+  state.tx.forEach(function(t){if(t.d>=ms&&t.d<=ts){if(t.kind==='exp')mExp+=t.amt||0;else if(t.kind==='inc')mInc+=t.amt||0;}});
+  lines.push('MONEY this month: income='+mInc+' expenses='+mExp+' net='+(mInc-mExp));
+  if(state.cats)for(var ck in state.cats)cats.push(ck);
+  if(cats.length)lines.push('CATEGORIES: '+cats.join(', '));
+  if(state.accts)state.accts.forEach(function(a){if(a.active!==false)lines.push('ACCOUNT: "'+a.name+'" id='+a.id+' bal='+acctBalance(a.id));});
   return lines.join('\n');
 }
-
-function periodRate(h,days){
-  var now=new Date(),due=0,done=0;
-  for(var i=0;i<days;i++){
-    var d=addDays(now,-i),ds=fmt(d);
-    if(ds<h.created) continue;
-    if(dueOn(h,d)){due++;if(isDone(h,ds))done++;}
-  }
-  return due?done/due:0;
+function uaiPrompt(text){
+  return 'You are the universal AI assistant for Personal Tracker. You can READ/CREATE/UPDATE/DELETE across: Habits, Expenses, Mood, Sleep, Settings.\n\n'
+  +'APP DATA:\n'+buildDataContext()+'\n\n'
+  +'RESPOND WITH ONLY ONE JSON OBJECT (no markdown, no backticks, no extra text):\n'
+  +'{"action":"TYPE","params":{...},"message":"short confirmation"}\n\n'
+  +'ACTIONS:\n'
+  +'add_expense: {amt,cat,sub,note,kind("exp"/"inc"),date("YYYY-MM-DD"),acct}\n'
+  +'delete_expense: {date,cat,amt} if ambiguous set confirm:true\n'
+  +'add_habit: {name,goal(default 1)}\n'
+  +'complete_habit: {name,date}\n'
+  +'uncomplete_habit: {name,date}\n'
+  +'delete_habit: {name} always confirm:true\n'
+  +'set_mood: {mood(0=Excellent,1=Happy,2=Calm,3=Neutral,4=Tired,5=Sad,6=Stressed),date,note}\n'
+  +'delete_mood: {date}\n'
+  +'set_sleep: {date,bed("HH:MM" 24h),wake("HH:MM" 24h),mins(total)}\n'
+  +'delete_sleep: {date}\n'
+  +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
+  +'query: {} message=answer the question from app data\n'
+  +'clarify: {} message=ask for missing info\n\n'
+  +'RULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
+  +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n\n'
+  +'User: '+text;
 }
-
-// ---- Natural language expense entry ----
-function parseExpenseNL(text){
-  var cats=[];
-  if(state.cats){for(var k in state.cats) cats.push(k);}
-  var prompt='You are a personal finance assistant. The user typed a quick expense/income entry. Extract ALL details:\n\n'
-    +'Available categories: '+cats.join(', ')+'\n'
-    +'Available accounts: '+(state.accts||[]).filter(function(a){return a.active!==false;}).map(function(a){return a.name;}).join(', ')+'\n\n'
-    +'User input: "'+text+'"\n\n'
-    +'Extract:\n'
-    +'- amt: the number/amount\n'
-    +'- kind: "exp" for expense, "inc" for income\n'
-    +'- cat: best matching category from the list (or a sensible new one)\n'
-    +'- sub: subcategory if obvious (e.g. "lunch" under Food)\n'
-    +'- merchant: where the spend happened (e.g. "Swiggy", "Uber", "Amazon", shop name). Extract this from the input.\n'
-    +'- note: a short description combining merchant and what was bought (e.g. "Swiggy - dinner order", "Uber - ride to office", "Amazon - headphones"). Always include the merchant/place if mentioned.\n'
-    +'- acct: matching account name from the list, or empty\n\n'
-    +'Respond ONLY with JSON: {"amt":number,"kind":"exp or inc","cat":"Category","sub":"","merchant":"where","note":"short description with merchant","acct":"account or empty"}\n'
-    +'Do not include any other text.';
-  return gemCall(prompt,200).then(function(r){
-    var clean=r.replace(/```json|```/g,'').trim();
-    return JSON.parse(clean);
-  });
+function executeAction(r){
+  try{
+    var a=r.action,p=r.params||{},msg=r.message||'Done',d=p.date||today();
+    if(a==='add_expense'){
+      var tx={id:'tx_'+Date.now(),d:d,kind:p.kind||'exp',amt:p.amt||0,acct:p.acct||'',cat:p.cat||'',sub:p.sub||'',note:p.note||''};
+      state.tx.push(tx);persist();
+      return{ok:1,msg:msg,detail:(p.kind==='inc'?'+':'\u2212')+inr(p.amt)+' \u00b7 '+(p.cat||'')+' \u00b7 '+d,undo:function(){state.tx=state.tx.filter(function(t){return t.id!==tx.id;});persist();}};
+    }
+    if(a==='delete_expense'){
+      if(r.confirm)return{ok:0,msg:msg,needConfirm:1};
+      var f=state.tx.filter(function(t){return t.kind==='exp'&&t.d===d&&(!p.cat||t.cat===p.cat);});
+      if(!f.length)return{ok:0,msg:'No matching expense for '+d};
+      var del=f[0];state.tx=state.tx.filter(function(t){return t.id!==del.id;});persist();
+      return{ok:1,msg:msg,detail:'Removed '+inr(del.amt)+' \u00b7 '+del.cat,undo:function(){state.tx.push(del);persist();}};
+    }
+    if(a==='add_habit'){
+      openEdit(null);$('fName').value=p.name||'Habit';if(p.goal>1)$('fGoal').value=p.goal;saveHabit();if(sheetOpen)closeSheet();persist();
+      return{ok:1,msg:msg,detail:'"'+p.name+'" created'};
+    }
+    if(a==='complete_habit'||a==='uncomplete_habit'){
+      var h=state.habits.find(function(hh){return !hh.arch&&hh.name.toLowerCase().indexOf((p.name||'').toLowerCase())>=0;});
+      if(!h)return{ok:0,msg:'Habit "'+p.name+'" not found'};
+      setVal(h.id,d,a==='complete_habit'?(h.goal||1):0);persist();
+      return{ok:1,msg:msg,detail:h.name+' \u00b7 '+d};
+    }
+    if(a==='delete_habit'){
+      if(r.confirm)return{ok:0,msg:msg,needConfirm:1};
+      var hd=state.habits.find(function(hh){return !hh.arch&&hh.name.toLowerCase().indexOf((p.name||'').toLowerCase())>=0;});
+      if(!hd)return{ok:0,msg:'Habit not found'};
+      hd.arch=true;persist();return{ok:1,msg:msg,detail:'"'+hd.name+'" archived',undo:function(){hd.arch=false;persist();}};
+    }
+    if(a==='set_mood'){
+      var mi=typeof p.mood==='number'?p.mood:3;state.mood[d]=mi;
+      if(p.note){if(!state.moodNotes)state.moodNotes={};state.moodNotes[d]=p.note;}
+      persist();return{ok:1,msg:msg,detail:MOODS[mi].e+' '+MOODS[mi].l+' \u00b7 '+d};
+    }
+    if(a==='delete_mood'){var prev=state.mood[d];delete state.mood[d];persist();return{ok:1,msg:msg,undo:function(){if(prev!==undefined)state.mood[d]=prev;persist();}};}
+    if(a==='set_sleep'){
+      var si=state.sleep.findIndex(function(s){return s.d===d;}),entry={d:d,bed:p.bed||'23:00',wake:p.wake||'06:00',mins:p.mins||420,note:''};
+      if(si>=0)state.sleep[si]=entry;else state.sleep.push(entry);persist();
+      return{ok:1,msg:msg,detail:'Bed '+entry.bed+' \u00b7 Wake '+entry.wake+' \u00b7 '+Math.floor(entry.mins/60)+'h'+entry.mins%60+'m'};
+    }
+    if(a==='delete_sleep'){state.sleep=state.sleep.filter(function(s){return s.d!==d;});persist();return{ok:1,msg:msg};}
+    if(a==='change_setting'){if(p.key==='theme'){state.set.theme=p.value;applyTheme();}else if(p.key==='curr')state.set.curr=p.value;persist();return{ok:1,msg:msg};}
+    if(a==='query')return{ok:1,msg:msg,isQuery:1};
+    if(a==='clarify')return{ok:0,msg:msg,isClarify:1};
+    return{ok:0,msg:msg};
+  }catch(e){return{ok:0,msg:'Error: '+e.message};}
 }
-
-// ---- Ask your data ----
-function askData(question){
-  var ctx=buildDataContext();
-  var prompt='You are a personal tracker AI assistant. Answer the user\'s question using ONLY the data below. Be concise (2-3 sentences max). Use specific numbers. If the data doesn\'t contain the answer, say so.\n\nDATA:\n'+ctx+'\n\nQuestion: '+question;
-  return gemCall(prompt,250);
+function uaiSend(text){
+  if(!text||!text.trim())return;
+  var log=$('uaiLog');
+  log.innerHTML+='<div class="uaiMsg user">'+text.replace(/</g,'&lt;')+'</div>';
+  log.innerHTML+='<div class="uaiMsg bot" id="uaiTyping" style="opacity:.5">Thinking\u2026</div>';
+  log.scrollTop=log.scrollHeight;
+  gemCall(uaiPrompt(text),500).then(function(raw){
+    var el=$('uaiTyping');if(el)el.remove();
+    var clean=raw.replace(/```json|```/g,'').trim(),result;
+    try{result=JSON.parse(clean);}catch(e){log.innerHTML+='<div class="uaiMsg bot">'+raw.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')+'</div>';log.scrollTop=log.scrollHeight;return;}
+    var res=executeAction(result),html='<div class="uaiMsg bot">';
+    if(res.ok){
+      html+='<div class="uaiAction"><div class="uaiCheck">\u2713 '+res.msg+'</div>';
+      if(res.detail)html+='<div class="uaiDetail">'+res.detail+'</div>';
+      html+='</div>';
+      if(res.undo){var uid='_u'+Date.now();window[uid]=res.undo;html+='<div class="uaiBtns"><button onclick="'+uid+'();this.closest(\'.uaiMsg\').remove();reRenderCurrent();toastN(\'Undone\')">Undo</button></div>';}
+    }else if(res.isQuery){html+=res.msg.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');}
+    else{html+=res.msg.replace(/</g,'&lt;');}
+    html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;reRenderCurrent();
+  }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();log.innerHTML+='<div class="uaiMsg err">'+e.message+'</div>';log.scrollTop=log.scrollHeight;});
 }
+function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();}catch(e){}}
+function periodRate(h,days){var now=new Date(),due=0,done=0;for(var i=0;i<days;i++){var d=addDays(now,-i),ds=fmt(d);if(ds<h.created)continue;if(dueOn(h,d)){due++;if(isDone(h,ds))done++;}}return due?done/due:0;}
 
 // ---- AI weekly narrative ----
 function genWeeklyNarrative(){
@@ -4313,7 +4389,7 @@ window.extOpen = function(kind, val, acct){
     if(kind === 'tab'){ showTab(val); }
     else if(kind === 'habit' && findHabit(val)){ showTab('pgToday'); openDetail(val); }
     else if(kind === 'add'){ openExpFromWidget(val, acct); }
-    else if(kind === 'voice'){ showTab('pgAI'); setTimeout(function(){ startVoice($('nlExpInput2'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 300); }
+    else if(kind === 'voice'){ showTab('pgAI'); setTimeout(function(){ startVoice($('uaiInput'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 300); }
   }catch(e){}
 };
 function openExpFromWidget(kind, acctId){
@@ -6540,55 +6616,17 @@ function init(){
   });
 
   // ---- Ask Your Data chat ----
-  function sendAiChat(){
-    var q=$('aiChatInput').value.trim(); if(!q) return;
-    if(!getGemKey()){toastN('Add a Gemini API key in Settings first');return;}
-    var log=$('aiChatLog');
-    log.innerHTML+='<div class="aiMsg user">'+q.replace(/</g,'&lt;')+'</div>';
-    $('aiChatInput').value='';
-    log.innerHTML+='<div class="aiMsg bot" id="aiTyping" style="opacity:.5">Thinking\u2026</div>';
-    log.scrollTop=log.scrollHeight;
-    askData(q).then(function(r){
-      var el=$('aiTyping'); if(el) el.remove();
-      log.innerHTML+='<div class="aiMsg bot">'+r.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')+'</div>';
-      log.scrollTop=log.scrollHeight;
-    }).catch(function(e){
-      var el=$('aiTyping'); if(el) el.remove();
-      log.innerHTML+='<div class="aiMsg err">'+e.message+'</div>';
-    });
-  }
-  $('aiChatSend').addEventListener('click', sendAiChat);
-  $('aiChatInput').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();sendAiChat();} });
+  // ---- Universal AI Assistant wiring ----
+  function doUaiSend(){ var v=$('uaiInput').value.trim();if(!v)return;$('uaiInput').value='';uaiSend(v); }
+  $('uaiSend').addEventListener('click', doUaiSend);
+  $('uaiInput').addEventListener('keydown', function(e){if(e.key==='Enter'){e.preventDefault();doUaiSend();}});
+  // Quick hint chips
+  document.querySelectorAll('.uaiHint').forEach(function(el){
+    el.addEventListener('click', function(){ $('uaiInput').value=this.getAttribute('data-cmd');$('uaiInput').focus(); });
+  });
 
   // ---- Natural language expense entry ----
   // Wire the AI page NL expense (nlExpInput2/nlExpSend2)
-  function sendNlExp2(){
-    var inp=$('nlExpInput2'), btn=$('nlExpSend2');
-    var t=inp.value.trim(); if(!t) return;
-    if(!getGemKey()){toastN('Add a Gemini API key below');return;}
-    inp.disabled=true; btn.textContent='⏳';
-    parseExpenseNL(t).then(function(r){
-      inp.disabled=false; btn.textContent='✨'; inp.value='';
-      if(!r||!r.amt){toastN('Couldn\'t parse that');return;}
-      showTab('pgExp');
-      setTimeout(function(){
-        openExp(null);
-        $('expAmt').value=r.amt;
-        expKindSel=r.kind||'exp';
-        if(r.cat){expCatSel=r.cat;expSubSel=r.sub||'';}
-        if(r.acct){for(var i=0;i<state.accts.length;i++){if(state.accts[i].name.toLowerCase()===r.acct.toLowerCase()&&state.accts[i].active!==false){expAcctSel=state.accts[i].id;break;}}}
-        if(r.note)$('expNote').value=r.note;
-        if(typeof paintKind==='function')paintKind();
-        if(typeof paintExpPickers==='function')paintExpPickers();
-        toastN('Parsed: '+(r.kind==='inc'?'+':'−')+inr(r.amt)+' · '+(r.cat||''));
-      },100);
-    }).catch(function(e){
-      inp.disabled=false; btn.textContent='✨';
-      toastN(e.message||'AI parse failed');
-    });
-  }
-  $('nlExpSend2').addEventListener('click', sendNlExp2);
-  $('nlExpInput2').addEventListener('keydown', function(e){ if(e.key==='Enter'){e.preventDefault();sendNlExp2();} });
 
   // ---- Voice input (SpeechRecognition API) ----
   // ---- Voice input: native Android speech on APK, Web Speech API on browser ----
@@ -6633,15 +6671,6 @@ function init(){
     rec.onstart = function(){ toastN('🎙 Listening…'); };
     rec.start();
   }
-
-  $('nlMicBtn').addEventListener('click', function(){
-    startVoice($('nlExpInput2'), function(text){
-      toastN('Got: "' + text + '" — tap ✨ to parse');
-    });
-  });
-  $('aiChatMic').addEventListener('click', function(){
-    startVoice($('aiChatInput'), function(){ sendAiChat(); });
-  });
 
   /* simplified stats + mood toggles */
   $('moToggle').addEventListener('click', function(){
@@ -6898,7 +6927,7 @@ if(nat && nat.getLaunchAction){
     if(_la.tab) showTab(_la.tab);
     else if(_la.habit && findHabit(_la.habit)){ showTab('pgToday'); openDetail(_la.habit); }
     else if(_la.add){ openExpFromWidget(_la.add, _la.acct); }
-    else if(_la.voice){ showTab('pgAI'); setTimeout(function(){ startVoice($('nlExpInput2'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 500); }
+    else if(_la.voice){ showTab('pgAI'); setTimeout(function(){ startVoice($('uaiInput'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 500); }
   }catch(e){}
 }
 </script>
