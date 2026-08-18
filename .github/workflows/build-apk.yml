@@ -49,6 +49,15 @@ jobs:
           else
             echo "value=personaltracker" >> "$GITHUB_OUTPUT"
           fi
+      - name: Compute version
+        id: ver
+        run: |
+          # versionCode must strictly increase; use the workflow run number.
+          CODE="${{ github.run_number }}"
+          echo "code=$CODE" >> "$GITHUB_OUTPUT"
+          echo "name=1.0.$CODE" >> "$GITHUB_OUTPUT"
+          echo "Using versionCode=$CODE versionName=1.0.$CODE"
+
       - name: Build APK
         working-directory: android-wrapper
         env:
@@ -60,6 +69,8 @@ jobs:
           KS_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ steps.alias.outputs.value }}
           KEY_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
+          VERSION_CODE: ${{ steps.ver.outputs.code }}
+          VERSION_NAME: ${{ steps.ver.outputs.name }}
           OUT_APK: ${{ github.workspace }}/PersonalTracker.apk
         run: |
           chmod +x build-apk.sh

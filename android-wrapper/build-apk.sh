@@ -29,6 +29,19 @@ rsync -a \
   "$WEB_DIR"/ build/stage/assets/
 test -f build/stage/assets/index.html || { echo "ERROR: index.html not found in $WEB_DIR"; exit 1; }
 
+MANIFEST="AndroidManifest.xml"
+if [ -n "${VERSION_CODE:-}" ] || [ -n "${VERSION_NAME:-}" ]; then
+  echo ">> applying version overrides (code=${VERSION_CODE:-unchanged} name=${VERSION_NAME:-unchanged})"
+  cp AndroidManifest.xml build/AndroidManifest.xml
+  if [ -n "${VERSION_CODE:-}" ]; then
+    sed -i "s/android:versionCode=\"[^\"]*\"/android:versionCode=\"${VERSION_CODE}\"/" build/AndroidManifest.xml
+  fi
+  if [ -n "${VERSION_NAME:-}" ]; then
+    sed -i "s/android:versionName=\"[^\"]*\"/android:versionName=\"${VERSION_NAME}\"/" build/AndroidManifest.xml
+  fi
+  MANIFEST="build/AndroidManifest.xml"
+fi
+
 echo ">> aapt2 compile resources"
 "$BT/aapt2" compile --dir res -o build/compiled/res.zip
 
@@ -36,7 +49,7 @@ echo ">> aapt2 link"
 "$BT/aapt2" link \
   -o build/apk/base.apk \
   -I "$PLAT" \
-  --manifest AndroidManifest.xml \
+  --manifest "$MANIFEST" \
   --min-sdk-version 24 --target-sdk-version 34 \
   --java build/gen \
   --auto-add-overlay \
