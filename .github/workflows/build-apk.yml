@@ -12,7 +12,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      ANDROID_HOME: ${{ env.ANDROID_HOME }}
       VERSION_CODE: 1
       VERSION_NAME: "1.0"
     steps:
@@ -28,10 +27,13 @@ jobs:
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
 
+      - name: Accept Android SDK licenses
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+
       - name: Install Android platform and build tools
         run: |
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
-          yes | sdkmanager --licenses >/dev/null || true
 
       - name: Read version
         id: version
