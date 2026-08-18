@@ -74,8 +74,18 @@ done
 # Compile native Java and DEX it.
 mapfile -t JAVA_FILES < <(find "$WRAP/src" -name '*.java')
 [[ "${#JAVA_FILES[@]}" -gt 0 ]] || { echo "ERROR: No Java sources found." >&2; exit 1; }
+# AAPT2 determines the generated R.java package from AndroidManifest.xml.
+# Do not hard-code the generated R.java path; this keeps the build aligned
+# with the actual manifest package and avoids path failures.
+mapfile -t GENERATED_JAVA < <(find "$BUILD/gen" -type f -name '*.java')
+[[ "${#GENERATED_JAVA[@]}" -gt 0 ]] || {
+  echo "ERROR: AAPT2 did not generate Java sources (R.java). Check AndroidManifest.xml and resources." >&2
+  find "$BUILD/gen" -maxdepth 6 -type f -print >&2 || true
+  exit 1
+}
+
 javac -source 8 -target 8 -encoding UTF-8 -classpath "$ANDROID_JAR" -d "$BUILD/classes" \
-  "${JAVA_FILES[@]}" "$BUILD"/gen/com/actionables/personaltracker/app/R.java
+  "${JAVA_FILES[@]}" "${GENERATED_JAVA[@]}"
 "$D8" --min-api 29 --output "$BUILD/dex" $(find "$BUILD/classes" -name '*.class')
 
 # Turn AAPT2 output into an APK and add DEX.
