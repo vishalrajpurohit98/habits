@@ -148,7 +148,9 @@ public class MainActivity extends Activity {
 
     ValueCallback<Uri[]> fileChooserCallback;
 
-    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); }\n\n    @Override public void onResume() {
+    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); }
+
+    @Override public void onResume() {
         super.onResume();
         if (web != null) {
             web.postDelayed(() -> web.evaluateJavascript("window.onNativeResume&&window.onNativeResume()", null), 200);

@@ -41,6 +41,14 @@ ANDROID_JAR="$PLATFORM/android.jar"
 
 [[ -f "$ROOT/index.html" ]] || { echo "ERROR: index.html not found." >&2; exit 1; }
 
+PACKAGE_NAME="$(sed -n 's/.*package="\([^"]*\)".*/\1/p' "$WRAP/AndroidManifest.xml" | head -1)"
+[[ -n "$PACKAGE_NAME" ]] || { echo "ERROR: AndroidManifest.xml has no package attribute." >&2; exit 1; }
+PACKAGE_PATH="${PACKAGE_NAME//./\/}"
+if ! grep -Rqs "^package ${PACKAGE_NAME};" "$WRAP/src" --include='*.java'; then
+  echo "ERROR: Java package declarations do not match manifest package: $PACKAGE_NAME" >&2
+  exit 1
+fi
+
 # Bundle the existing web app exactly as supplied, excluding repository/development metadata.
 rsync -a --delete \
   --exclude='.git' \
@@ -84,7 +92,7 @@ mapfile -t GENERATED_JAVA < <(find "$BUILD/gen" -type f -name '*.java')
   exit 1
 }
 
-javac -source 8 -target 8 -encoding UTF-8 -classpath "$ANDROID_JAR" -d "$BUILD/classes" \
+javac -Xlint:-options -source 8 -target 8 -encoding UTF-8 -classpath "$ANDROID_JAR" -d "$BUILD/classes" \
   "${JAVA_FILES[@]}" "${GENERATED_JAVA[@]}"
 "$D8" --min-api 29 --output "$BUILD/dex" $(find "$BUILD/classes" -name '*.class')
 
