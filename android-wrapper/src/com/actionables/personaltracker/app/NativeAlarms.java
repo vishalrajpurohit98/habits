@@ -1,4 +1,4 @@
-package com.personaltracker.app;
+package com.actionables.personaltracker.app;
 
 import android.app.*;
 import android.content.*;
@@ -9,7 +9,7 @@ import java.util.*;
 public class NativeAlarms {
  public static final String CHANNEL_ID="habit_reminders_v1";
  static final String PREF="scheduled_alarms_json";
- static final String ACTION="com.personaltracker.ACTION_REMINDER";
+ static final String ACTION="com.actionables.personaltracker.ACTION_REMINDER";
  static final int TEST_CODE=0x7F00AA11;
 
  static AlarmManager am(Context c){return (AlarmManager)c.getSystemService(Context.ALARM_SERVICE);}

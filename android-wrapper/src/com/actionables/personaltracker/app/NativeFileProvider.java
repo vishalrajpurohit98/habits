@@ -1,4 +1,4 @@
-package com.personaltracker.app;
+package com.actionables.personaltracker.app;
 
 import android.content.*;
 import android.database.Cursor;

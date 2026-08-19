@@ -1,4 +1,4 @@
-package com.personaltracker.app;
+package com.actionables.personaltracker.app;
 
 import android.app.*;
 import android.content.*;
@@ -19,7 +19,7 @@ public class NotifReceiver extends BroadcastReceiver {
         Notification.Builder b=Build.VERSION.SDK_INT>=26
                 ?new Notification.Builder(c,NativeAlarms.CHANNEL_ID)
                 :new Notification.Builder(c);
-        b.setSmallIcon(com.personaltracker.app.R.drawable.app_icon)
+        b.setSmallIcon(com.actionables.personaltracker.app.R.drawable.app_icon)
          .setContentTitle((emoji==null?"🔔":emoji)+" "+(name==null?"Reminder":name))
          .setContentText("Time for your habit — keep the chain alive.")
          .setAutoCancel(true).setContentIntent(pi).setCategory(Notification.CATEGORY_REMINDER)
