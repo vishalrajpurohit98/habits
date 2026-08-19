@@ -43,7 +43,6 @@ HabitTracker-Android/
 ├── sw.js
 ├── firebase-app-compat.js
 ├── firebase-auth-compat.js
-├── firebase-database-compat.js
 ├── xlsx.min.js
 ├── *.ttf
 ├── icon-192.png
@@ -316,7 +315,7 @@ The web application is bundled inside the APK.
 
 The service worker is intentionally not used for the `file://` Android load because the supplied service worker only registers for HTTP(S) pages. This does not remove the application's offline data functionality: the HTML, JavaScript, fonts, Firebase compatibility scripts, XLSX library, manifest, and icons are packaged directly into the APK.
 
-Firebase cloud sync still requires network connectivity when the user enables it.
+Firebase cloud sync uses Cloud Firestore + Firebase Authentication. The app remains usable offline; Firestore sync resumes when connectivity returns.
 
 ## Security notes
 
@@ -347,3 +346,15 @@ The application contains:
 - Android-specific export, import, photo, speech and picker hooks
 
 The supplied application files were copied into the final project without redesigning the UI or replacing the application logic.
+
+## Cloud sync
+
+The current app uses **Firebase Authentication + Cloud Firestore**. Data is stored in `users/{uid}` and protected by `firestore.rules` so a signed-in user can only access their own document.
+
+The web app remains local-first: `localStorage` is written immediately, while Firestore synchronizes the complete application state. Firestore persistence uses multi-tab synchronization where supported.
+
+## Cloud sync configuration
+
+This build uses **Firebase Authentication + Cloud Firestore only**. Realtime Database is not used by the application. The Firebase Web App configuration is preconfigured in `index.html`. The Firestore security rules are provided in `firestore.rules`.
+
+No Firestore collections or documents need to be created manually. After a user signs in and the first sync occurs, the app creates `users/{uid}` automatically.

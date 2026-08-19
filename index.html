@@ -1430,10 +1430,15 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="setCard" id="syncCard">
       <!-- state 1: not configured -->
       <div id="syncSetup">
-        <div class="setRow"><div class="setInfo"><div class="setT">Sync across devices</div><div class="setS">Keep your data in sync on web &amp; phone with a free Firebase project</div></div><button class="sbtn acc" id="syncConfigBtn">Set up</button></div>
+        <div class="setRow"><div class="setInfo"><div class="setT">Sync across devices</div><div class="setS">Sign in to sync your data across devices with Cloud Firestore</div></div><button class="sbtn acc" id="syncConfigBtn">Set up</button></div>
         <div id="syncCfgForm" style="display:none;margin-top:6px">
-          <div class="setS" style="margin-bottom:8px">Paste the Firebase config object from your project (Project settings → your web app). It looks like <code>{ apiKey: "…", databaseURL: "…", … }</code>.</div>
-          <textarea id="syncCfgIn" class="inp" style="min-height:120px;font-family:ui-monospace,monospace;font-size:12px;resize:vertical" placeholder='{&#10;  "apiKey": "…",&#10;  "authDomain": "…",&#10;  "databaseURL": "https://….firebaseio.com",&#10;  "projectId": "…",&#10;  "appId": "…"&#10;}'></textarea>
+          <div class="setS" style="margin-bottom:8px">This build is preconfigured for <strong>Cloud Firestore + Firebase Authentication</strong>. Reconfigure only if you want to use another Firebase project.</div>
+          <textarea id="syncCfgIn" class="inp" style="min-height:120px;font-family:ui-monospace,monospace;font-size:12px;resize:vertical" placeholder='{
+  "apiKey": "…",
+  "authDomain": "…",
+  "projectId": "…",
+  "appId": "…"
+}'></textarea>
           <div style="display:flex;gap:8px;margin-top:10px"><button class="sbtn" id="syncCfgCancel">Cancel</button><button class="sbtn acc" id="syncCfgSave">Save config</button></div>
         </div>
       </div>
@@ -5592,209 +5597,198 @@ function renderSet(){
     : 'Personal Tracker \u00b7 web \u00b7 private';
 }
 
-/* ================= cloud sync (firebase) ================= */
+/* ================= cloud sync (Firebase Cloud Firestore) ================= */
+// Firestore-only sync. Realtime Database is intentionally not used by this build.
 var SYNC_CFG_KEY = 'hb_sync_cfg';
-var fbApp=null, fbAuth=null, fbDB=null, fbRef=null, fbUser=null;
-var syncBusy=false, syncApplying=false, syncPushT=null, syncLastAt=0, syncCfg=null;
+var SYNC_HISTORY_KEY = 'hb_sync_history_v1';
+var DEFAULT_SYNC_CFG = {
+  apiKey: 'AIzaSyBGl_VR0LAv6sqmi08v6Sigf5Mt41-UyuA',
+  authDomain: 'habits-644e7.firebaseapp.com',
+  projectId: 'habits-644e7',
+  storageBucket: 'habits-644e7.firebasestorage.app',
+  messagingSenderId: '34132591511',
+  appId: '1:34132591511:web:6646118b60e4710cb13ad2'
+};
+var FIRESTORE_SDK_URL = 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore-compat.js';
+var fbApp=null, fbAuth=null, fbFS=null, fbDoc=null, fbUser=null, fbUnsub=null;
+var syncBusy=false, syncApplying=false, syncPushT=null, syncLastAt=0, syncCfg=null, syncState='';
+var deviceId = (function(){ try{ var k='hb_device_id'; var v=localStorage.getItem(k); if(v) return v; v='d_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); localStorage.setItem(k,v); return v; }catch(e){ return 'd_'+Date.now(); } })();
 
 function loadSyncCfg(){
   try{ var r=localStorage.getItem(SYNC_CFG_KEY); return r?JSON.parse(r):null; }catch(e){ return null; }
 }
 function saveSyncCfg(cfg){ try{ localStorage.setItem(SYNC_CFG_KEY, JSON.stringify(cfg)); }catch(e){} }
 function clearSyncCfg(){ try{ localStorage.removeItem(SYNC_CFG_KEY); }catch(e){} }
-
-// parse a pasted firebase config (JSON, or a loose JS object) into an object
-function parseFbConfig(txt){
-  txt = String(txt||'').trim();
-  if(!txt) return null;
-  // pull just the {...} if they pasted the whole snippet
-  var b = txt.indexOf('{'), e = txt.lastIndexOf('}');
-  if(b>=0 && e>b) txt = txt.slice(b, e+1);
-  try{ return JSON.parse(txt); }catch(_){}
-  // loose JS object: quote keys, allow single quotes, strip trailing commas
+function loadSyncHistory(){ try{ return JSON.parse(localStorage.getItem(SYNC_HISTORY_KEY)||'[]'); }catch(e){ return []; } }
+function saveSyncHistory(a){ try{ localStorage.setItem(SYNC_HISTORY_KEY, JSON.stringify(a.slice(0,10))); }catch(e){} }
+function snapshotLocal(reason){
   try{
-    var t = txt.replace(/([,{]\s*)([A-Za-z0-9_]+)\s*:/g, '$1"$2":')
-               .replace(/'/g, '"')
-               .replace(/,\s*}/g, '}');
-    var o = JSON.parse(t);
-    return o;
-  }catch(_){ return null; }
+    var a=loadSyncHistory();
+    a.unshift({at:Date.now(),reason:reason||'sync',mtime:state.mtime||0,data:JSON.stringify(state)});
+    saveSyncHistory(a);
+  }catch(e){}
 }
-function cfgLooksValid(c){ return c && c.apiKey && c.projectId && (c.databaseURL || c.projectId); }
+function cfgLooksValid(c){ return c && c.apiKey && c.authDomain && c.projectId && c.appId; }
+function isOnline(){ return (typeof navigator==='undefined') || navigator.onLine !== false; }
+function syncEnabled(){ return !!syncCfg; }
+function setSyncState(v){ syncState=v||''; var d=$('syncDot'); if(d) d.className='syncDot'+(v==='syncing'?' busy':v==='error'?' err':v==='synced'?' on':''); renderSyncUI(); }
 
-// inject the firebase compat SDK from CDN on demand
-var fbLoading=null;
-function loadFirebaseSDK(){
-  if(window.firebase && firebase.database) return Promise.resolve();
-  if(fbLoading) return fbLoading;
-  // load the SDK from files bundled with the app (works from file:// in the Android WebView, and offline on web)
-  var files=['firebase-app-compat.js','firebase-auth-compat.js','firebase-database-compat.js'];
-  var chain = files.reduce(function(chain, f){
-    return chain.then(function(){ return new Promise(function(res, rej){
-      var sc=document.createElement('script'); sc.src=f; sc.async=false;
-      sc.onload=res; sc.onerror=function(){ rej(new Error('sdk-load-failed')); };
-      document.head.appendChild(sc);
-    }); });
-  }, Promise.resolve());
-  var timed = Promise.race([ chain, new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('sdk-timeout')); }, 12000); }) ]);
-  fbLoading = timed;
-  timed.catch(function(){ fbLoading = null; }); // reset so a later attempt can retry
-  return timed;
+// parse JSON or a loose JS config object
+function parseFbConfig(txt){
+  txt=String(txt||'').trim(); if(!txt) return null;
+  var b=txt.indexOf('{'), e=txt.lastIndexOf('}'); if(b>=0&&e>b) txt=txt.slice(b,e+1);
+  try{return JSON.parse(txt);}catch(_){ }
+  try{ return JSON.parse(txt.replace(/([,{]\s*)([A-Za-z0-9_]+)\s*:/g,'$1"$2":').replace(/'/g,'"').replace(/,\s*}/g,'}')); }catch(_){return null;}
 }
-// bring up firebase app/auth/db (idempotent); rejects with a clear reason on failure
+
+var fbLoading=null;
+function loadFirestoreSDK(){
+  if(window.firebase && firebase.firestore) return Promise.resolve();
+  if(fbLoading) return fbLoading;
+  var files=['firebase-app-compat.js','firebase-auth-compat.js'];
+  var chain=files.reduce(function(c,f){return c.then(function(){return new Promise(function(res,rej){var sc=document.createElement('script');sc.src=f;sc.async=false;sc.onload=res;sc.onerror=function(){rej(new Error('sdk-load-failed'));};document.head.appendChild(sc);});});},Promise.resolve());
+  chain=chain.then(function(){return new Promise(function(res,rej){
+    var sc=document.createElement('script'); sc.src=FIRESTORE_SDK_URL; sc.async=false; sc.onload=res; sc.onerror=function(){rej(new Error('firestore-sdk-load-failed'));}; document.head.appendChild(sc);
+  });});
+  fbLoading=Promise.race([chain,new Promise(function(_,rej){setTimeout(function(){rej(new Error('sdk-timeout'));},15000);})]);
+  fbLoading.catch(function(){fbLoading=null;}); return fbLoading;
+}
+
 function ensureFirebaseReady(){
-  if(fbAuth) return Promise.resolve();
+  if(fbAuth && fbFS) return Promise.resolve();
   if(!syncCfg) return Promise.reject(new Error('no-config'));
-  return loadFirebaseSDK().then(function(){
-    if(!window.firebase || !firebase.auth) throw new Error('sdk-load-failed');
+  return loadFirestoreSDK().then(function(){
+    if(!window.firebase || !firebase.auth || !firebase.firestore) throw new Error('sdk-load-failed');
     if(!fbApp){
-      fbApp = firebase.apps && firebase.apps.length ? firebase.app() : firebase.initializeApp(syncCfg);
-      fbAuth = firebase.auth();
-      fbDB = firebase.database();
+      fbApp=firebase.apps&&firebase.apps.length?firebase.app():firebase.initializeApp(syncCfg);
+      fbAuth=firebase.auth();
+      fbFS=firebase.firestore();
       try{ fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
-      fbAuth.onAuthStateChanged(function(u){
-        fbUser = u;
-        if(u){ attachSync(u); } else { detachSync(); }
-        renderSyncUI();
+      // Firestore local cache with multi-tab synchronization.
+      return fbFS.enablePersistence({synchronizeTabs:true}).catch(function(e){
+        // Another tab may already own persistence. Firestore will still work online.
+        if(e && (e.code==='failed-precondition'||e.code==='unimplemented')) return;
+        throw e;
+      }).then(function(){
+        fbAuth.onAuthStateChanged(function(u){
+          fbUser=u;
+          if(u) attachFirestoreSync(u); else detachFirestoreSync();
+          renderSyncUI();
+        });
       });
     }
   });
 }
 
-function syncEnabled(){ return !!syncCfg; }
-function isOnline(){ return (typeof navigator==='undefined') || navigator.onLine !== false; }
-
-// initialize firebase app + auth listener (idempotent)
 function initSync(){
-  syncCfg = loadSyncCfg();
+  var savedCfg=loadSyncCfg();
+  syncCfg=cfgLooksValid(savedCfg)?savedCfg:DEFAULT_SYNC_CFG;
+  saveSyncCfg(syncCfg);
   renderSyncUI();
-  if(!syncCfg) return;
-  // try to bring firebase up in the background; sign-in will surface any error clearly
-  ensureFirebaseReady().then(function(){ renderSyncUI(); }).catch(function(){ setSyncDot('err'); renderSyncUI(); });
+  ensureFirebaseReady().then(function(){renderSyncUI();}).catch(function(){setSyncState('error');});
 }
 
-function attachSync(u){
-  if(!fbDB) return;
-  if(fbRef) fbRef.off();
-  fbRef = fbDB.ref('users/'+u.uid+'/state');
-  setSyncDot('busy');
-  // initial reconcile: read remote once, compare mtime, then start live listener
-  fbRef.child('mtime').once('value').then(function(snap){
-    var remoteMt = snap.val()||0, localMt = state.mtime||0;
-    if(remoteMt > localMt){
-      // remote is newer -> pull
-      return fbRef.child('data').once('value').then(function(ds){ applyRemote(ds.val(), remoteMt); });
-    } else if(localMt > remoteMt){
-      // local is newer (or remote empty) -> push
-      return pushNow();
+function attachFirestoreSync(u){
+  detachFirestoreSync();
+  if(!fbFS) return;
+  fbDoc=fbFS.collection('users').doc(u.uid);
+  setSyncState('syncing');
+  // Firestore listener receives cached data first, then server data when available.
+  fbUnsub=fbDoc.onSnapshot({includeMetadataChanges:true}, function(snap){
+    if(!snap.exists){
+      if(!syncApplying) pushNow(true);
+      return;
     }
-  }).then(function(){
-    // live listener for subsequent remote changes
-    fbRef.child('mtime').on('value', function(snap){
-      var remoteMt = snap.val()||0;
-      if(syncApplying) return;
-      if(remoteMt > (state.mtime||0)){
-        fbRef.child('data').once('value').then(function(ds){ applyRemote(ds.val(), remoteMt); });
-      }
-    });
-    setSyncDot('on'); syncLastAt=Date.now(); renderSyncUI();
-  }).catch(function(){ setSyncDot('err'); });
+    var d=snap.data()||{}, remoteMt=Number(d.version||0), localMt=Number(state.mtime||0);
+    if(syncApplying) return;
+    if(remoteMt>localMt){
+      applyRemoteFirestore(d,'realtime');
+    }else if(localMt>remoteMt && !snap.metadata.fromCache){
+      scheduleSyncPush();
+    }else{
+      syncLastAt=Date.now(); setSyncState(snap.metadata.fromCache?'cached':'synced');
+    }
+  }, function(){ setSyncState('error'); });
+  // Explicit initial reconciliation.
+  syncReconcile();
 }
-function detachSync(){ if(fbRef){ try{ fbRef.off(); }catch(e){} fbRef=null; } }
+function detachFirestoreSync(){ if(fbUnsub){try{fbUnsub();}catch(e){} fbUnsub=null;} fbDoc=null; }
 
-// apply a remote snapshot to local state without echoing back a push
-function applyRemote(data, remoteMt){
-  if(!data) return;
+function syncReconcile(){
+  if(!fbDoc||!fbUser) return Promise.resolve();
+  setSyncState('syncing');
+  return fbDoc.get({source:'default'}).then(function(snap){
+    if(!snap.exists){ return pushNow(true); }
+    var d=snap.data()||{}, rm=Number(d.version||0), lm=Number(state.mtime||0);
+    if(rm>lm) return applyRemoteFirestore(d,'initial');
+    if(lm>rm) return pushNow(true);
+    setSyncState('synced'); syncLastAt=Date.now();
+  }).catch(function(e){
+    // Cached/offline Firestore is a valid local state; do not discard it.
+    if(!isOnline()) setSyncState('cached'); else setSyncState('error');
+    throw e;
+  });
+}
+
+function applyRemoteFirestore(d, reason){
+  if(!d || !d.data) return Promise.resolve();
   try{
-    var o = (typeof data==='string') ? JSON.parse(data) : data;
-    if(!o || !o.habits) return;
-    syncApplying = true;
-    state = normState(o);
-    state.mtime = remoteMt || Date.now();
-    try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){}
-    if(nat){ try{ nat.saveState(JSON.stringify(state)); }catch(e){} }
-    // re-render whatever's visible
-    applyTheme(); applyGrey();
-    reRenderCurrent();
-    syncLastAt = Date.now(); setSyncDot('on'); renderSyncUI();
-  }catch(e){}
-  finally{ setTimeout(function(){ syncApplying=false; }, 50); }
+    var o=(typeof d.data==='string')?JSON.parse(d.data):d.data;
+    if(!o||!o.habits) return Promise.reject(new Error('invalid-cloud-state'));
+    snapshotLocal('before remote '+(reason||'sync'));
+    syncApplying=true;
+    state=normState(o);
+    state.mtime=Number(d.version||Date.now());
+    try{localStorage.setItem(KEY,JSON.stringify(state));}catch(e){}
+    if(nat){try{nat.saveState(JSON.stringify(state));}catch(e){}}
+    applyTheme(); applyGrey(); reRenderCurrent();
+    syncLastAt=Date.now(); setSyncState('synced');
+  }catch(e){ setSyncState('error'); }
+  finally{ setTimeout(function(){syncApplying=false;},80); }
+  return Promise.resolve();
 }
 
-function reRenderCurrent(){
-  try{
-    if($('pgToday').classList.contains('on')) renderToday();
-    else if($('pgMood').classList.contains('on')) renderMood();
-    else if($('pgExp').classList.contains('on')) renderExp();
-    else if($('pgStats').classList.contains('on')) renderStats();
-    else if($('pgSet').classList.contains('on')) renderSet();
-  }catch(e){}
+function cloudPayload(){
+  var json=JSON.stringify(state), bytes=unescape(encodeURIComponent(json)).length;
+  if(bytes>950000) throw new Error('state-too-large');
+  return {data:json,version:Number(state.mtime||Date.now()),deviceId:deviceId,schemaVersion:1,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
 }
-
-// push local state to firebase (whole blob + mtime)
-function pushNow(){
-  if(!fbRef || !fbUser) return Promise.resolve();
-  setSyncDot('busy');
-  var payload = { mtime: state.mtime||Date.now(), data: JSON.stringify(state) };
-  return fbRef.set(payload).then(function(){
-    syncLastAt=Date.now(); setSyncDot('on'); renderSyncUI();
-  }).catch(function(){ setSyncDot('err'); });
+function pushNow(force){
+  if(!fbDoc||!fbUser) return Promise.resolve();
+  if(!isOnline() && !force){ setSyncState('cached'); return Promise.resolve(); }
+  var payload; try{payload=cloudPayload();}catch(e){setSyncState('error');return Promise.reject(e);}
+  setSyncState('syncing');
+  return fbDoc.set(payload,{merge:false}).then(function(){syncLastAt=Date.now();setSyncState('synced');}).catch(function(e){setSyncState(isOnline()?'error':'cached');throw e;});
 }
-// debounced push, called from persist()
 function scheduleSyncPush(){
-  if(!fbRef || !fbUser || syncApplying) return;
+  if(!fbDoc||!fbUser||syncApplying) return;
   if(syncPushT) clearTimeout(syncPushT);
-  syncPushT = setTimeout(function(){ pushNow(); }, 600);
+  syncPushT=setTimeout(function(){pushNow(false).catch(function(){});},700);
 }
+function CloudPush(){return pushNow(false);}
+window.Cloud=window.Cloud||{}; window.Cloud.push=CloudPush;
 
-function setSyncDot(cls){
-  var d=$('syncDot'); if(!d) return;
-  d.className='syncDot'+(cls?(' '+cls):'');
-}
-
-/* ---- sync UI (settings) ---- */
 function renderSyncUI(){
   if(!$('syncCard')) return;
-  var offline = !isOnline();
-  $('syncOffline').style.display = (syncEnabled() && offline) ? '' : 'none';
-  if(!syncEnabled()){
-    show('syncSetup', true); show('syncAuth', false); show('syncOn', false);
-    return;
-  }
+  var offline=!isOnline();
+  $('syncOffline').style.display=(syncEnabled()&&offline)?'':'none';
+  if(!syncEnabled()){show('syncSetup',true);show('syncAuth',false);show('syncOn',false);return;}
   if(fbUser){
-    show('syncSetup', false); show('syncAuth', false); show('syncOn', true);
-    $('syncWho').textContent = fbUser.email || 'signed in';
-    $('syncLast').textContent = syncLastAt ? ('at '+new Date(syncLastAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})) : 'waiting…';
-  } else {
-    show('syncSetup', false); show('syncAuth', true); show('syncOn', false);
-  }
+    show('syncSetup',false);show('syncAuth',false);show('syncOn',true);
+    $('syncWho').textContent=fbUser.email||'signed in';
+    var label=syncState==='syncing'?'Syncing…':syncState==='cached'||offline?'Offline (cached)':syncState==='error'?'Sync error':'Synced';
+    $('syncOn').querySelector('.setT').textContent=label;
+    $('syncLast').textContent=syncLastAt?('at '+new Date(syncLastAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})):'waiting…';
+  }else{show('syncSetup',false);show('syncAuth',true);show('syncOn',false);}
 }
-function show(id, on){ var el=$(id); if(el) el.style.display = on?'':'none'; }
-function syncMsg(t, err){ var m=$('syncAuthMsg'); if(!m) return; m.style.display=t?'':'none'; m.textContent=t||''; m.style.color=err?'var(--coral)':'var(--mut)'; }
-
+function show(id,on){var el=$(id);if(el)el.style.display=on?'':'none';}
+function syncMsg(t,err){var m=$('syncAuthMsg');if(!m)return;m.style.display=t?'':'none';m.textContent=t||'';m.style.color=err?'var(--coral)':'var(--mut)';}
+function prettyAuthErr(e){var c=e&&e.code||'';if(c.indexOf('email-already-in-use')>=0)return'That email already has an account — use Sign in.';if(c.indexOf('user-not-found')>=0)return'No account yet — use Create account.';if(c.indexOf('wrong-password')>=0||c.indexOf('invalid-credential')>=0)return'Wrong email or password.';if(c.indexOf('weak-password')>=0)return'Password should be at least 6 characters.';if(c.indexOf('invalid-email')>=0)return'That doesn’t look like a valid email.';if(c.indexOf('network')>=0)return'Network error — check your connection.';return(e&&e.message)?e.message:'Something went wrong.';}
 function doSyncSignin(create){
-  var email=$('syncEmail').value.trim(), pw=$('syncPw').value;
-  if(!email || pw.length<6){ syncMsg('Enter an email and a 6+ character password.', true); return; }
-  syncMsg(create?'Creating account…':'Signing in…', false);
-  ensureFirebaseReady().then(function(){
-    return create ? fbAuth.createUserWithEmailAndPassword(email,pw) : fbAuth.signInWithEmailAndPassword(email,pw);
-  }).then(function(){ syncMsg('', false); $('syncPw').value=''; })
-    .catch(function(e){
-      var m = e && e.message;
-      if(m==='sdk-timeout' || m==='sdk-load-failed') syncMsg('Couldn\u2019t reach Firebase. If you\u2019re online, update to the latest app build \u2014 older builds block sync in the phone app.', true);
-      else if(m==='no-config') syncMsg('Add your Firebase config first.', true);
-      else syncMsg(prettyAuthErr(e), true);
-    });
-}
-function prettyAuthErr(e){
-  var c = e && e.code || '';
-  if(c.indexOf('email-already-in-use')>=0) return 'That email already has an account — use Sign in.';
-  if(c.indexOf('user-not-found')>=0) return 'No account yet — use Create account.';
-  if(c.indexOf('wrong-password')>=0 || c.indexOf('invalid-credential')>=0) return 'Wrong email or password.';
-  if(c.indexOf('weak-password')>=0) return 'Password should be at least 6 characters.';
-  if(c.indexOf('invalid-email')>=0) return 'That doesn\u2019t look like a valid email.';
-  if(c.indexOf('network')>=0) return 'Network error — check your connection.';
-  return (e && e.message) ? e.message : 'Something went wrong.';
+  var email=$('syncEmail').value.trim(),pw=$('syncPw').value;
+  if(!email||pw.length<6){syncMsg('Enter an email and a 6+ character password.',true);return;}
+  syncMsg(create?'Creating account…':'Signing in…',false);
+  ensureFirebaseReady().then(function(){return create?fbAuth.createUserWithEmailAndPassword(email,pw):fbAuth.signInWithEmailAndPassword(email,pw);}).then(function(){syncMsg('',false);$('syncPw').value='';}).catch(function(e){syncMsg(prettyAuthErr(e),true);});
 }
 
 /* ================= export / import ================= */
@@ -6737,13 +6731,12 @@ function init(){
   $('calDayClose').addEventListener('click', function(){ calSel=''; $('calDay').style.display='none'; renderCalendar(); });
 
   // ---- cloud sync wiring ----
-  $('syncConfigBtn').addEventListener('click', function(){ $('syncCfgForm').style.display=''; $('syncCfgIn').focus(); });
+  $('syncConfigBtn').addEventListener('click', function(){ $('syncCfgForm').style.display=''; if(!$('syncCfgIn').value) $('syncCfgIn').value=JSON.stringify(syncCfg||DEFAULT_SYNC_CFG,null,2); $('syncCfgIn').focus(); });
   $('syncCfgCancel').addEventListener('click', function(){ $('syncCfgForm').style.display='none'; $('syncCfgIn').value=''; });
-  $('syncReconfig').addEventListener('click', function(){ if(fbAuth&&fbUser){ try{fbAuth.signOut();}catch(e){} } clearSyncCfg(); syncCfg=null; fbApp=null; fbAuth=null; fbDB=null; renderSyncUI(); $('syncCfgForm').style.display=''; });
+  $('syncReconfig').addEventListener('click', function(){ if(fbAuth&&fbUser){ try{fbAuth.signOut();}catch(e){} } clearSyncCfg(); syncCfg=null; fbApp=null; fbAuth=null; fbFS=null; fbDoc=null; renderSyncUI(); $('syncCfgForm').style.display=''; });
   $('syncCfgSave').addEventListener('click', function(){
     var cfg=parseFbConfig($('syncCfgIn').value);
-    if(!cfgLooksValid(cfg)){ toastN('Config missing apiKey/databaseURL — paste the whole object'); return; }
-    if(!cfg.databaseURL){ toastN('Add the databaseURL from Realtime Database'); return; }
+    if(!cfgLooksValid(cfg)){ toastN('Config missing apiKey/authDomain/projectId/appId'); return; }
     saveSyncCfg(cfg); syncCfg=cfg; $('syncCfgForm').style.display='none'; $('syncCfgIn').value='';
     toastN('Config saved — sign in to sync'); initSync();
   });
@@ -6752,16 +6745,11 @@ function init(){
   $('syncSignout').addEventListener('click', function(){ if(fbAuth){ try{ fbAuth.signOut(); toastN('Signed out'); }catch(e){} } });
   $('syncNow').addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
-    if(!isOnline()){ toastN('You are offline'); return; }
-    setSyncDot('busy');
-    fbRef.child('mtime').once('value').then(function(snap){
-      var rm=snap.val()||0;
-      if(rm>(state.mtime||0)) return fbRef.child('data').once('value').then(function(d){ applyRemote(d.val(), rm); });
-      return pushNow();
-    }).then(function(){ toastN('Synced'); }).catch(function(){ setSyncDot('err'); toastN('Sync failed'); });
+    if(!isOnline()){ setSyncState('cached'); toastN('Offline — local changes are safe'); return; }
+    syncReconcile().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); toastN(e&&e.message==='state-too-large'?'Sync failed — data is too large for one Firestore document':'Sync failed'); });
   });
-  window.addEventListener('online', function(){ renderSyncUI(); if(syncEnabled() && !fbApp) initSync(); else if(fbUser) scheduleSyncPush(); });
-  window.addEventListener('offline', function(){ setSyncDot(''); renderSyncUI(); });
+  window.addEventListener('online', function(){ renderSyncUI(); if(syncEnabled() && !fbAuth) initSync(); else if(fbUser) syncReconcile().catch(function(){}); });
+  window.addEventListener('offline', function(){ if(fbUser) setSyncState('cached'); renderSyncUI(); });
 
   $('fitTrendSeg').addEventListener('click', function(e){ var b=climb(e.target,this,'data-ft'); if(!b) return;
     fitTrend=+b.getAttribute('data-ft'); var bs=this.children; for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i]===b);
@@ -6913,24 +6901,16 @@ function init(){
   document.addEventListener('visibilitychange', function(){
     if(document.hidden){
       wasHidden = true;
-      // push any pending sync NOW before the browser throttles this tab
-      if(fbRef && fbUser && !syncApplying){ if(syncPushT){ clearTimeout(syncPushT); syncPushT=null; } pushNow(); }
+      if(fbDoc && fbUser && !syncApplying){ if(syncPushT){ clearTimeout(syncPushT); syncPushT=null; } pushNow(false).catch(function(){}); }
     }
     else {
       renderToday(); if($('pgMood').classList.contains('on')) renderMood();
       if(wasHidden && !nat){ wasHidden=false; lockNow(); }
-      // pull any remote changes that arrived while we were away
-      if(fbRef && fbUser && !syncApplying){
-        fbRef.child('mtime').once('value').then(function(snap){
-          var rm=snap.val()||0;
-          if(rm>(state.mtime||0)) fbRef.child('data').once('value').then(function(d){ applyRemote(d.val(),rm); });
-        }).catch(function(){});
-      }
+      if(fbDoc && fbUser && !syncApplying){ syncReconcile().catch(function(){}); }
     }
   });
-  // also push on page close / navigate away (belt + suspenders)
   window.addEventListener('pagehide', function(){
-    if(fbRef && fbUser && !syncApplying){ if(syncPushT){ clearTimeout(syncPushT); syncPushT=null; } pushNow(); }
+    if(fbDoc && fbUser && !syncApplying){ if(syncPushT){ clearTimeout(syncPushT); syncPushT=null; } pushNow(false).catch(function(){}); }
   });
 
   syncFromNative();
