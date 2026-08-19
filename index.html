@@ -466,6 +466,24 @@ html:not(.light) .sbtn.acc{color:var(--amber)}
 .syncDot.on{background:var(--sGreen);box-shadow:0 0 8px var(--sGreen)}
 .syncDot.busy{background:var(--amber);box-shadow:0 0 8px var(--amber)}
 .syncDot.err{background:var(--coral)}
+
+/* ============ TODAY SYNC ACTION ============ */
+.todaySyncBar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 10px 9px 12px;margin:10px 0 14px;transition:border-color .2s,background .2s}
+.todaySyncState{display:flex;align-items:center;gap:9px;min-width:0}
+.todaySyncDot{width:8px;height:8px;border-radius:50%;background:var(--mut2);flex:0 0 auto;transition:background .25s,box-shadow .25s}
+.todaySyncDot.synced{background:var(--sGreen);box-shadow:0 0 7px var(--sGreen)}
+.todaySyncDot.syncing{background:var(--amber);box-shadow:0 0 7px var(--amber);animation:todaySyncPulse 1s ease-in-out infinite}
+.todaySyncDot.cached{background:var(--mut2)}
+.todaySyncDot.error{background:var(--coral);box-shadow:0 0 7px var(--coral)}
+.todaySyncText{font-size:12px;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.todaySyncSub{font-size:10.5px;color:var(--mut);font-weight:500;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.todaySyncBtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-width:74px;height:34px;padding:0 11px;border-radius:10px;background:var(--card2);border:1px solid var(--line2);color:var(--sBlue);font-size:12px;font-weight:800;transition:transform .12s,background .15s,border-color .15s;flex:0 0 auto}
+.todaySyncBtn:active{transform:scale(.96);background:var(--card3)}
+.todaySyncBtn svg{width:14px;height:14px}
+.todaySyncBtn.busy svg{animation:todaySyncSpin .9s linear infinite}
+.todaySyncBar.disabled{opacity:.82}
+@keyframes todaySyncPulse{50%{opacity:.45}}
+@keyframes todaySyncSpin{to{transform:rotate(360deg)}}
 #syncCfgIn{width:100%}
 
 /* ============ DAILY INSIGHT + CALENDAR ============ */
@@ -1071,6 +1089,19 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="h1row">
       <h1 id="greet">Today</h1>
       <button class="srchBtn" id="srchBtn" aria-label="Search habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+    </div>
+    <div class="todaySyncBar" id="todaySyncBar" aria-live="polite">
+      <div class="todaySyncState">
+        <span class="todaySyncDot" id="todaySyncDot"></span>
+        <div style="min-width:0">
+          <div class="todaySyncText" id="todaySyncText">Cloud sync</div>
+          <div class="todaySyncSub" id="todaySyncSub">Checking connection…</div>
+        </div>
+      </div>
+      <button class="todaySyncBtn" id="todaySyncBtn" type="button" aria-label="Sync now">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0-14.8-4L3 10"/><path d="M3 4v6h6"/><path d="M4 13a8.1 8.1 0 0 0 14.8 4L21 14"/><path d="M21 20v-6h-6"/></svg>
+        <span>Sync</span>
+      </button>
     </div>
     <div class="srchWrap" id="srchWrap">
       <input id="srch" class="inp materialSearch" maxlength="30" placeholder="Search habits&#8230;" autocomplete="off">
@@ -5631,7 +5662,7 @@ function snapshotLocal(reason){
 function cfgLooksValid(c){ return c && c.apiKey && c.authDomain && c.projectId && c.appId; }
 function isOnline(){ return (typeof navigator==='undefined') || navigator.onLine !== false; }
 function syncEnabled(){ return !!syncCfg; }
-function setSyncState(v){ syncState=v||''; var d=$('syncDot'); if(d) d.className='syncDot'+(v==='syncing'?' busy':v==='error'?' err':v==='synced'?' on':''); renderSyncUI(); }
+function setSyncState(v){ syncState=v||''; var d=$('syncDot'); if(d) d.className='syncDot'+(v==='syncing'?' busy':v==='error'?' err':v==='synced'?' on':''); renderSyncUI(); renderTodaySyncUI(); }
 
 // parse JSON or a loose JS config object
 function parseFbConfig(txt){
@@ -5769,7 +5800,40 @@ function scheduleSyncPush(){
 function CloudPush(){return pushNow(false);}
 window.Cloud=window.Cloud||{}; window.Cloud.push=CloudPush;
 
+function renderTodaySyncUI(){
+  var bar=$('todaySyncBar'), dot=$('todaySyncDot'), text=$('todaySyncText'), sub=$('todaySyncSub'), btn=$('todaySyncBtn');
+  if(!bar||!dot||!text||!sub||!btn) return;
+  var offline=!isOnline(), configured=syncEnabled(), signedIn=!!fbUser;
+  bar.classList.toggle('disabled', !configured || !signedIn);
+  dot.className='todaySyncDot';
+  btn.classList.remove('busy');
+  btn.disabled=false;
+  if(!configured){
+    text.textContent='Cloud sync not configured';
+    sub.textContent='Set up Firestore in Settings';
+    btn.querySelector('span').textContent='Set up';
+    return;
+  }
+  if(!signedIn){
+    text.textContent='Cloud sync';
+    sub.textContent='Sign in from Settings to sync';
+    btn.querySelector('span').textContent='Sign in';
+    return;
+  }
+  var stateLabel=syncState==='syncing'?'Syncing…':(syncState==='cached'||offline?'Offline (cached)':syncState==='error'?'Sync error':'Synced');
+  var stateClass=syncState==='syncing'?'syncing':(syncState==='cached'||offline?'cached':syncState==='error'?'error':'synced');
+  dot.classList.add(stateClass);
+  text.textContent=stateLabel;
+  if(syncState==='error') sub.textContent='Check Settings for details';
+  else if(syncState==='syncing') sub.textContent='Updating your cloud data';
+  else if(offline) sub.textContent='Changes stay safe on this device';
+  else sub.textContent=syncLastAt?('Last synced '+new Date(syncLastAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})):'Ready to sync';
+  btn.querySelector('span').textContent=syncState==='syncing'?'Syncing…':'Sync';
+  if(syncState==='syncing') btn.classList.add('busy');
+}
+
 function renderSyncUI(){
+  renderTodaySyncUI();
   if(!$('syncCard')) return;
   var offline=!isOnline();
   $('syncOffline').style.display=(syncEnabled()&&offline)?'':'none';
@@ -6758,6 +6822,12 @@ function init(){
   $('syncSignout').addEventListener('click', function(){ if(fbAuth){ try{ fbAuth.signOut(); toastN('Signed out'); }catch(e){} } });
   $('syncNow').addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
+    if(!isOnline()){ setSyncState('cached'); toastN('Offline — local changes are safe'); return; }
+    syncReconcile().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
+  });
+  $('todaySyncBtn').addEventListener('click', function(){
+    if(!syncEnabled()){ showTab('pgSet'); toastN('Set up Cloud Firestore in Settings'); return; }
+    if(!fbUser){ showTab('pgSet'); toastN('Sign in to enable cloud sync'); return; }
     if(!isOnline()){ setSyncState('cached'); toastN('Offline — local changes are safe'); return; }
     syncReconcile().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
   });
