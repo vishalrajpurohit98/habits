@@ -5708,7 +5708,7 @@ function attachFirestoreSync(u){
     }else{
       syncLastAt=Date.now(); setSyncState(snap.metadata.fromCache?'cached':'synced');
     }
-  }, function(){ setSyncState('error'); });
+  }, function(e){ setSyncState('error'); syncMsg(prettySyncErr(e),true); });
   // Explicit initial reconciliation.
   syncReconcile();
 }
@@ -5726,6 +5726,7 @@ function syncReconcile(){
   }).catch(function(e){
     // Cached/offline Firestore is a valid local state; do not discard it.
     if(!isOnline()) setSyncState('cached'); else setSyncState('error');
+    syncMsg(prettySyncErr(e),true);
     throw e;
   });
 }
@@ -5758,7 +5759,7 @@ function pushNow(force){
   if(!isOnline() && !force){ setSyncState('cached'); return Promise.resolve(); }
   var payload; try{payload=cloudPayload();}catch(e){setSyncState('error');return Promise.reject(e);}
   setSyncState('syncing');
-  return fbDoc.set(payload,{merge:false}).then(function(){syncLastAt=Date.now();setSyncState('synced');}).catch(function(e){setSyncState(isOnline()?'error':'cached');throw e;});
+  return fbDoc.set(payload,{merge:false}).then(function(){syncLastAt=Date.now();setSyncState('synced');syncMsg('',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});
 }
 function scheduleSyncPush(){
   if(!fbDoc||!fbUser||syncApplying) return;
@@ -5784,6 +5785,18 @@ function renderSyncUI(){
 function show(id,on){var el=$(id);if(el)el.style.display=on?'':'none';}
 function syncMsg(t,err){var m=$('syncAuthMsg');if(!m)return;m.style.display=t?'':'none';m.textContent=t||'';m.style.color=err?'var(--coral)':'var(--mut)';}
 function prettyAuthErr(e){var c=e&&e.code||'';if(c.indexOf('email-already-in-use')>=0)return'That email already has an account — use Sign in.';if(c.indexOf('user-not-found')>=0)return'No account yet — use Create account.';if(c.indexOf('wrong-password')>=0||c.indexOf('invalid-credential')>=0)return'Wrong email or password.';if(c.indexOf('weak-password')>=0)return'Password should be at least 6 characters.';if(c.indexOf('invalid-email')>=0)return'That doesn’t look like a valid email.';if(c.indexOf('network')>=0)return'Network error — check your connection.';return(e&&e.message)?e.message:'Something went wrong.';}
+function prettySyncErr(e){
+  var c=(e&&e.code)||'', m=(e&&e.message)||'';
+  if(c==='permission-denied') return 'Firestore permission denied — publish the included Firestore Rules and make sure you are signed in.';
+  if(c==='unauthenticated') return 'Firebase authentication expired — sign in again.';
+  if(c==='failed-precondition') return 'Firestore local cache could not start — close other tabs/apps and try again.';
+  if(c==='unavailable') return 'Firestore is temporarily unavailable — check your internet connection.';
+  if(c==='resource-exhausted') return 'Firestore quota/rate limit reached — try again later.';
+  if(c==='invalid-argument') return 'Firestore rejected the sync payload.';
+  if(c==='state-too-large') return 'Sync failed — local data is too large for one Firestore document.';
+  if(c==='sdk-load-failed'||c==='firestore-sdk-load-failed'||c==='sdk-timeout') return 'Could not load the Firestore SDK. Check internet access and try again.';
+  return m ? ('Sync error: '+m) : 'Sync failed — check Firestore Rules and connection.';
+}
 function doSyncSignin(create){
   var email=$('syncEmail').value.trim(),pw=$('syncPw').value;
   if(!email||pw.length<6){syncMsg('Enter an email and a 6+ character password.',true);return;}
@@ -6746,7 +6759,7 @@ function init(){
   $('syncNow').addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
     if(!isOnline()){ setSyncState('cached'); toastN('Offline — local changes are safe'); return; }
-    syncReconcile().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); toastN(e&&e.message==='state-too-large'?'Sync failed — data is too large for one Firestore document':'Sync failed'); });
+    syncReconcile().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
   });
   window.addEventListener('online', function(){ renderSyncUI(); if(syncEnabled() && !fbAuth) initSync(); else if(fbUser) syncReconcile().catch(function(){}); });
   window.addEventListener('offline', function(){ if(fbUser) setSyncState('cached'); renderSyncUI(); });
