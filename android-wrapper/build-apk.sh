@@ -55,10 +55,33 @@ echo ">> aapt2 link"
   --auto-add-overlay \
   build/compiled/res.zip
 
+echo ">> generating update metadata"
+COMMIT="${GITHUB_SHA:-${BUILD_COMMIT:-local}}"
+VERSION="${VERSION_NAME:-6.24}"
+WEB_URL="${WEB_UPDATE_URL:-}"
+REPO_API="${GITHUB_REPO_API:-}"
+if [ -z "$REPO_API" ] && [ -n "${GITHUB_REPOSITORY:-}" ]; then
+  REPO_API="https://api.github.com/repos/${GITHUB_REPOSITORY}/commits/main"
+fi
+mkdir -p build/gen/com/personaltracker/app
+python3 - "$COMMIT" "$VERSION" "$WEB_URL" "$REPO_API" > build/gen/com/personaltracker/app/UpdateConfig.java <<'PY'
+import sys
+vals = [x.replace('\\','\\\\').replace('"','\\"').replace('\n','') for x in sys.argv[1:5]]
+print('package com.personaltracker.app;')
+print('')
+print('public final class UpdateConfig {')
+print('    public static final String BUILD_COMMIT = "' + vals[0] + '";')
+print('    public static final String BUILD_VERSION = "' + vals[1] + '";')
+print('    public static final String WEB_URL = "' + vals[2] + '";')
+print('    public static final String REPO_API = "' + vals[3] + '";')
+print('    private UpdateConfig() {}')
+print('}')
+PY
+
 echo ">> javac"
 javac -g:none -source 17 -target 17 -classpath "$PLAT" \
   -d build/obj \
-  src/com/personaltracker/app/*.java build/gen/com/personaltracker/app/R.java
+  src/com/personaltracker/app/*.java build/gen/com/personaltracker/app/R.java build/gen/com/personaltracker/app/UpdateConfig.java
 
 echo ">> d8 (dex)"
 "$BT/d8" $(find build/obj -name '*.class') --lib "$PLAT" --min-api 24 --output build/apk/

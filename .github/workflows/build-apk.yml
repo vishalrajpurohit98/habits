@@ -16,9 +16,41 @@ on:
 
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
+  deploy-web:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Prepare web site
+        run: |
+          rm -rf web-dist
+          mkdir -p web-dist
+          rsync -a ./ web-dist/ \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'android-wrapper' \
+            --exclude 'web-dist'
+      - name: Upload web artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: web-dist
+      - name: Deploy web site
+        id: deployment
+        uses: actions/deploy-pages@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
   build:
+    needs: deploy-web
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -55,8 +87,8 @@ jobs:
           # versionCode must strictly increase; use the workflow run number.
           CODE="${{ github.run_number }}"
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
-          echo "name=1.0.$CODE" >> "$GITHUB_OUTPUT"
-          echo "Using versionCode=$CODE versionName=1.0.$CODE"
+          echo "name=6.24" >> "$GITHUB_OUTPUT"
+          echo "Using versionCode=$CODE versionName=6.24"
 
       - name: Build APK
         working-directory: android-wrapper
@@ -71,6 +103,10 @@ jobs:
           KEY_PASS: ${{ secrets.KEYSTORE_PASSWORD }}
           VERSION_CODE: ${{ steps.ver.outputs.code }}
           VERSION_NAME: ${{ steps.ver.outputs.name }}
+          GITHUB_SHA: ${{ github.sha }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          WEB_UPDATE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+          GITHUB_REPO_API: https://api.github.com/repos/${{ github.repository }}/commits/main
           OUT_APK: ${{ github.workspace }}/PersonalTracker.apk
         run: |
           chmod +x build-apk.sh
