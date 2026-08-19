@@ -264,6 +264,20 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .tab:active{transform:scale(.96);transition:transform .1s}
 html:not(.light) .tab.on{color:var(--amber)}
 
+/* ============ MATERIAL ACTIONS ============ */
+.materialActionSheet{padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+.actionIntro{font-size:12px;color:var(--mut);margin:-8px 0 14px}
+.actionGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.actionItem{display:flex;align-items:center;gap:12px;text-align:left;padding:13px 12px;border-radius:16px;background:var(--card);border:1px solid var(--line);color:var(--ink);transition:transform .14s,background .18s,border-color .18s}
+.actionItem:active{transform:scale(.97);background:var(--card2);border-color:var(--primary)}
+.actionIcon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--primarySoft);font-size:20px}
+.actionText{min-width:0}.actionTitle{font-size:13px;font-weight:800}.actionSub{font-size:10.5px;color:var(--mut);margin-top:3px}
+.materialSearch{border-radius:18px!important;background:var(--card)!important;border-color:var(--line2)!important;padding-left:16px!important}
+.materialSearch:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px var(--primarySoft)}
+.snack{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:90;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line2);box-shadow:var(--shadowUp);transform:translateY(130%);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.22,.68,.36,1),opacity .2s}
+.snack.on{transform:translateY(0);opacity:1}.snackMsg{font-size:13px;font-weight:700;flex:1}.snackAction{font-size:12px;font-weight:800;color:var(--primary);padding:6px 4px}
+@media(min-width:700px){.snack{left:calc(50% - 344px);right:calc(50% - 344px)}}
+
 /* ============ SHEETS ============ */
 #scrim{position:fixed;inset:0;background:var(--scrimBg);opacity:0;pointer-events:none;
   transition:opacity .25s;z-index:62;backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
@@ -766,12 +780,16 @@ html:not(.light) .otdRow .oy{color:var(--amber)}
 .promptCard .pq{font-size:13.5px;font-style:italic;color:var(--ink2);line-height:1.5;margin:5px 0 12px}
 
 /* AMOLED true-black surfaces */
-html.amoled{--bg:#000000;--bg2:#000000;--card:#050505;--card2:#0E0D0B;--card3:#151310;
+html.amoled{--bg:#000000;--bg2:#000000;--card:#000000;--card2:#090909;--card3:#111111;
   --line:rgba(255,255,255,.11);--line2:rgba(255,255,255,.18);--shadow:none;
   --dockBg:rgba(0,0,0,.88);--amberSoft:rgba(255,174,31,.10)}
 html.amoled .card,html.amoled .setCard,html.amoled .jrCard,html.amoled .focusCard,
 html.amoled .chartBox,html.amoled .hmWrap,html.amoled .stackCard{box-shadow:none}
 html.amoled .hero::before{display:none}
+html.amoled body,html.amoled #app,html.amoled .page{background:#000000!important}
+html.amoled .card,html.amoled .setCard,html.amoled .jrCard,html.amoled .focusCard,html.amoled .chartBox,html.amoled .hmWrap,html.amoled .stackCard,html.amoled .promptCard,html.amoled .empty,html.amoled .aiCfg,html.amoled .uaiBox{background:#000000!important;box-shadow:none!important}
+html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#090909!important}
+
 
 /* focus-first home */
 .heroTop{display:flex;align-items:center;gap:10px;margin:2px 0 4px}
@@ -1055,7 +1073,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <button class="srchBtn" id="srchBtn" aria-label="Search habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
     <div class="srchWrap" id="srchWrap">
-      <input class="inp" id="srch" maxlength="30" placeholder="Search habits&#8230;" autocomplete="off">
+      <input id="srch" class="inp materialSearch" maxlength="30" placeholder="Search habits&#8230;" autocomplete="off">
       <div class="chips" id="catFil" style="margin-top:10px">
         <button class="chip sel" data-cf="all">All</button>
         <button class="chip" data-cf="Health">Health</button>
@@ -1121,7 +1139,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
 
     <div class="srchWrap" id="expSrchWrap">
-      <input class="inp" id="expSrch" placeholder="Search notes, payee, category&#8230;" autocomplete="off">
+      <input id="expSrch" class="inp materialSearch" placeholder="Search notes, payee, category&#8230;" autocomplete="off">
       <div class="chips" id="expFilterRow" style="margin-top:10px">
         <button class="chip sel" data-xf="all">All</button>
         <button class="chip" data-xf="exp">Expenses</button>
@@ -1292,7 +1310,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <button class="srchBtn" id="jrSrchBtn" aria-label="Search journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
     <div class="srchWrap" id="jrSrchWrap">
-      <input class="inp" id="jrSrch" maxlength="40" placeholder="Search entries&#8230;" autocomplete="off">
+      <input id="jrSrch" class="inp materialSearch" maxlength="40" placeholder="Search entries&#8230;" autocomplete="off">
       <div class="chips" id="jrTagRow" style="margin-top:10px"></div>
     </div>
     <div style="height:14px"></div>
@@ -1455,8 +1473,24 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
 <button id="fab" aria-label="Add">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-  <span id="fabLbl">New habit</span>
+  <span id="fabLbl">Add anything</span>
 </button>
+
+<!-- ============ MATERIAL ADD ACTION SHEET ============ -->
+<div class="sheet materialActionSheet" id="actionSheet">
+  <div class="grab"></div>
+  <h2>Add anything</h2>
+  <div class="actionIntro">Choose what you want to add. You can continue without leaving the current screen.</div>
+  <div class="actionGrid">
+    <button class="actionItem" data-add-action="habit"><span class="actionIcon">💪</span><span class="actionText"><span class="actionTitle">Habit</span><span class="actionSub">Create a daily habit</span></span></button>
+    <button class="actionItem" data-add-action="expense"><span class="actionIcon">💰</span><span class="actionText"><span class="actionTitle">Expense</span><span class="actionSub">Track money spent</span></span></button>
+    <button class="actionItem" data-add-action="mood"><span class="actionIcon">😊</span><span class="actionText"><span class="actionTitle">Mood</span><span class="actionSub">Check in today</span></span></button>
+    <button class="actionItem" data-add-action="journal"><span class="actionIcon">📖</span><span class="actionText"><span class="actionTitle">Journal</span><span class="actionSub">Write a quick entry</span></span></button>
+    <button class="actionItem" data-add-action="sleep"><span class="actionIcon">😴</span><span class="actionText"><span class="actionTitle">Sleep</span><span class="actionSub">Log last night's sleep</span></span></button>
+  </div>
+</div>
+
+<div class="snack" id="materialSnack"><div class="snackMsg" id="materialSnackMsg"></div><button class="snackAction" id="materialSnackAction" style="display:none">UNDO</button></div>
 
 <!-- ============ EXPENSE SHEET ============ -->
 <div class="sheet" id="expSheet">
@@ -2639,11 +2673,11 @@ function focusTap(){
     renderToday();
     var fv = $('fVal');
     if(fv){ fv.classList.add('pop'); }
-    if(nv >= t) toastN('Nice. One small win done.');
+    if(nv >= t){ toastN('Nice. One small win done.'); materialSnack('Habit completed', null); }
   } else {
     tapMain(focusId);
     renderToday();
-    toastN('Nice. One small win done.');
+    toastN('Nice. One small win done.'); materialSnack('Habit completed', null);
   }
   buzz(14);
 }
@@ -5492,6 +5526,9 @@ function applyTheme(){
   for(var i=0;i<PAL_ALL.length;i++) root.classList.remove('p-' + PAL_ALL[i]);
   if(pal !== 'ember') root.classList.add('p-' + pal);
   var bg = L ? (PAL_LIGHT_BG[pal] || '#F6F1E7') : '#000000';
+  var meta = document.querySelector('meta[name=theme-color]');
+  if(meta) meta.setAttribute('content', bg);
+  document.documentElement.setAttribute('data-theme', state.set.theme || 'dark');
   if(nat && nat.setBars){ try{ nat.setBars(bg, L); }catch(e){} }
 }
 try{
@@ -5920,13 +5957,34 @@ function buildPickers(){
     th += '<button class="tpl" data-tp="'+k+'">'+TEMPLATES[k].e+' '+TEMPLATES[k].n+'</button>';
   $('tplRow').innerHTML = th;
 }
+function materialSnack(msg, action, cb){
+  var box=$('materialSnack'), txt=$('materialSnackMsg'), act=$('materialSnackAction');
+  if(!box) return;
+  clearTimeout(window._matSnackT);
+  txt.textContent=msg||'';
+  act.style.display=action?'':'none'; act.textContent=action||''; act.onclick=function(){ if(cb) cb(); box.classList.remove('on'); };
+  box.classList.add('on');
+  window._matSnackT=setTimeout(function(){box.classList.remove('on');},3200);
+}
+function openAddActionSheet(){ openSheet('actionSheet'); }
+function handleAddAction(kind){
+  closeSheet();
+  setTimeout(function(){
+    if(kind==='habit') openEdit(null);
+    else if(kind==='expense'){ showTab('pgExp'); setTimeout(function(){openExp(null);},60); }
+    else if(kind==='mood'){ showTab('pgMood'); setTimeout(function(){var g=$('moGrid'); if(g) g.scrollIntoView({behavior:'smooth',block:'center'});},80); }
+    else if(kind==='journal'){ setTimeout(function(){openJr(null);},60); }
+    else if(kind==='sleep'){ showTab('pgMood'); setTimeout(function(){openSleep(today());},60); }
+  },80);
+}
+
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
   var pgs = ['pgToday','pgMood','pgExp','pgStats','pgAI','pgSet'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
-  $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add habit';
+  $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
   if(id==='pgStats') renderStats();
   if(id==='pgMood') renderMood();
   if(id==='pgExp') renderExp();
@@ -5952,7 +6010,11 @@ function init(){
     if(b) showTab(b.getAttribute('data-tab'));
   });
   $('fab').addEventListener('click', function(){
-    if($('pgExp').classList.contains('on')) openExp(null); else openEdit(null);
+    if($('pgExp').classList.contains('on')) openExp(null); else openAddActionSheet();
+  });
+  $('actionSheet').addEventListener('click', function(e){
+    var b=climb(e.target,this,'data-add-action');
+    if(b) handleAddAction(b.getAttribute('data-add-action'));
   });
   $('scrim').addEventListener('click', function(){ closeSheet(); });
 
