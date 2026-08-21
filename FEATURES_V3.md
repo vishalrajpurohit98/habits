@@ -1,27 +1,24 @@
-# Personal Tracker Feature Pack
+# Current feature placement
 
-This build adds a connected product layer on top of the existing trackers.
-
-## Added
-- Goals and goal progress
-- Weekly planning and daily habit allocation
+Retained:
 - Today Command Center
-- Global search (including Ctrl/Cmd+K)
-- AI memory/preferences
-- Financial goals
-- Habit templates
-- Minimum Day mode
-- Milestone progress
-- Smart reminders based on recent completion hours
-- Pattern insights for sleep/mood vs habit consistency
-- Receipt image capture with Gemini vision extraction when Gemini is configured
-- Privacy mode for Money
-- Browser notification actions: Complete / Snooze
-- Android home-screen Today widget support
+- Firestore sync and Today sync action
+- AI memory
+- Pattern insights in Stats
+- Financial goals in Money
+- Receipt scanning in Money
+- Smart reminders in Settings
+- Money privacy mode in Settings
+- Android notification actions
+- Android home-screen widget
 
-## Notes
-- Existing Firestore sync remains unchanged.
-- Existing local-first storage remains unchanged.
-- The web-update mechanism is not included.
-- Receipt extraction requires a Gemini API key; manual expense entry remains available.
-- Android widget is included in the native wrapper and refreshes from the web app through a dedicated WidgetBridge.
+Removed from this build:
+- Goal system
+- Weekly planning
+- Habit templates from the Plan feature
+- Minimum day
+- Milestone tracking
+- Global search
+- Today habit search UI
+
+Web-update mechanism is not included.
