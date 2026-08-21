@@ -1,2 +1,4 @@
-build/
-*.apk
+android-wrapper/build/
+dist/
+*.jks
+*.keystore

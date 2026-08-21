@@ -1048,11 +1048,56 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 .h1row{align-items:center}.h1row h1{letter-spacing:-.7px}.heroTop{background:linear-gradient(135deg,var(--card),rgba(78,168,255,.045));border:1px solid var(--line);border-radius:20px;padding:18px 16px;margin:12px 0 10px;min-height:146px;box-shadow:var(--shadow)}.heroTop .hero{justify-content:center}.heroTop .hero::before{width:150px;height:150px}.momBig{font-size:48px;letter-spacing:-2px}.momBig small{font-size:22px}.momLbl{font-size:9px;letter-spacing:2.2px;margin-top:5px;margin-bottom:7px}.chainLine{font-size:12px;color:var(--ink2)}.dayMsg{font-style:normal;background:var(--primarySoft);border:1px solid rgba(78,168,255,.16);border-radius:12px;padding:10px 12px;margin:8px 0 12px;color:var(--ink2)}.wkRow{padding:2px 4px;margin-bottom:12px}.secH{font-size:11px;letter-spacing:1.8px;margin:20px 2px 9px;color:var(--mut2)}.card{border-radius:20px;padding:15px 15px 12px;margin-bottom:10px}.card .emo{width:46px;height:46px;border-radius:14px}.cname{font-size:16px}.cstreak{font-size:12px}.habitMeta{display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap}.habitTarget{font-size:12px;color:var(--mut);font-weight:600}.habitStreak{font-size:11px;color:var(--mut);font-weight:700;background:var(--card2);border-radius:10px;padding:3px 8px}.chk{width:40px;height:40px;border-radius:12px}#fab{height:50px!important;min-height:50px!important;border-radius:14px!important;background:var(--primary)!important;color:#06101A!important;box-shadow:0 8px 24px rgba(78,168,255,.22)!important}#fabLbl{font-weight:800}.segX{border-radius:14px;padding:3px;background:var(--card2);border:1px solid var(--line);gap:2px}.segX button{border-radius:11px;min-height:40px;font-weight:700;color:var(--mut)}.segX button.sel{background:var(--primary);color:#06101A;box-shadow:0 2px 8px rgba(78,168,255,.18)}.expSum .es{border-radius:18px;padding:13px 8px}.expSum .es b{font-size:17px}.expSum .es span{font-size:8px}.txDay{font-size:10px!important;font-weight:800!important;letter-spacing:1.5px!important;text-transform:uppercase;color:var(--mut2)!important;margin-top:17px!important;margin-bottom:7px!important}.txRow{border-radius:16px!important;padding:12px 10px!important;margin-bottom:6px!important}.txIco{border-radius:12px!important}.aiCommandIntro{font-size:12px;color:var(--mut);margin:0 2px 8px}.uaiBox{border-radius:20px;background:linear-gradient(160deg,var(--card),rgba(78,168,255,.035))}.uaiInputRow{border-top:none;padding:10px}.uaiInp{background:var(--bg2);border:1px solid var(--line);border-radius:14px}.uaiMic{border-radius:14px}.uaiSend{background:var(--primary);color:#06101A;border-radius:14px}.uaiHints{padding:0 10px 10px}.uaiHint{border-radius:10px}.aiRecentTitle{font-size:11px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase;color:var(--mut2);margin:20px 2px 8px}.aiRecentEmpty{padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;color:var(--mut);font-size:12px}.aiCfg{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:12px}.aiCfgHead{display:flex;align-items:center;gap:10px;padding:14px 15px;cursor:pointer}.aiCfgIcon{width:36px;height:36px;border-radius:11px;background:var(--primarySoft);display:flex;align-items:center;justify-content:center;font-size:16px}.aiCfgMain{flex:1;min-width:0}.aiCfgTitle{font-weight:800;font-size:14px}.aiCfgSub{font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.aiCfgChevron{color:var(--mut);transition:transform .2s}.aiCfg.open .aiCfgChevron{transform:rotate(180deg)}.aiCfgBody{display:none;border-top:1px solid var(--line);padding:12px 15px 15px}.aiCfg.open .aiCfgBody{display:block}.aiStatusLine{display:flex;align-items:center;gap:6px;font-size:11px;margin-top:7px;color:var(--mut)}.aiStatusDot{width:7px;height:7px;border-radius:50%;background:var(--sGreen);display:inline-block}.aiStatusDot.off{background:var(--mut2)}.empty{border-radius:20px!important;background:var(--card)!important;border:1px solid var(--line)!important;padding:30px 18px!important}@media(min-width:700px){#app{max-width:720px;margin:0 auto}.heroTop{min-height:160px}.card{padding-left:18px;padding-right:18px}}
 
+/* FINAL AMOLED ENFORCEMENT: data-theme is the source of truth and wins over palette/light overrides */
+html[data-theme="amoled"]{
+  color-scheme:dark!important;
+  --bg:#000000!important;--bg2:#000000!important;
+  --card:#000000!important;--card2:#090909!important;--card3:#111111!important;
+  --line:rgba(255,255,255,.11)!important;--line2:rgba(255,255,255,.18)!important;
+  --ink:#FFFFFF!important;--ink2:#E0E0E0!important;--mut:#A8A8A8!important;--mut2:#777777!important;
+  --dockBg:rgba(0,0,0,.96)!important;--scrimBg:rgba(0,0,0,.88)!important;
+  --shadow:none!important;--shadowUp:none!important;
+  --surface0:#000000!important;--surface1:#050505!important;--surface2:#0E0E0E!important;
+}
+html[data-theme="amoled"] body,
+html[data-theme="amoled"] #app,
+html[data-theme="amoled"] .page,
+html[data-theme="amoled"] main,
+html[data-theme="amoled"] header,
+html[data-theme="amoled"] section,
+html[data-theme="amoled"] .content,
+html[data-theme="amoled"] .settingsPage{
+  background:#000000!important;color:#FFFFFF!important;
+}
+html[data-theme="amoled"] .card,
+html[data-theme="amoled"] .setCard,
+html[data-theme="amoled"] .jrCard,
+html[data-theme="amoled"] .focusCard,
+html[data-theme="amoled"] .chartBox,
+html[data-theme="amoled"] .hmWrap,
+html[data-theme="amoled"] .stackCard,
+html[data-theme="amoled"] .promptCard,
+html[data-theme="amoled"] .empty,
+html[data-theme="amoled"] .aiCfg,
+html[data-theme="amoled"] .uaiBox,
+html[data-theme="amoled"] .sheet,
+html[data-theme="amoled"] .modal,
+html[data-theme="amoled"] .bottomSheet{
+  background:#000000!important;box-shadow:none!important;
+}
+html[data-theme="amoled"] .sheet,
+html[data-theme="amoled"] .modal,
+html[data-theme="amoled"] .bottomSheet{background:#090909!important}
+html[data-theme="amoled"] input,
+html[data-theme="amoled"] textarea,
+html[data-theme="amoled"] select{
+  background:#090909!important;color:#FFFFFF!important;border-color:rgba(255,255,255,.18)!important;
+}
+html[data-theme="amoled"] .dock,
+html[data-theme="amoled"] nav,
+html[data-theme="amoled"] .bottomNav{background:#000000!important}
+html[data-theme="amoled"] .heroTop{background:#000000!important}
 
-/* ===== Product feature layer ===== */
-.featureHero{background:linear-gradient(135deg,var(--card),var(--card2));border:1px solid var(--line);border-radius:20px;padding:18px;margin:10px 0 18px}.featureHero .bigStat{font-size:34px;font-weight:900;font-family:var(--fDisp)}.featureGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:12px}.featureStat{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px}.featureStat b{display:block;font-size:17px}.featureStat span{font-size:10px;color:var(--mut)}.featureForm{display:grid;grid-template-columns:2fr 1fr 1fr 1.2fr auto;gap:8px;align-items:center}.featureCard{padding:14px 16px}.goalItem,.finGoalItem,.milestoneItem,.templateItem{border-top:1px solid var(--line);padding:12px 0}.goalItem:first-child,.finGoalItem:first-child,.milestoneItem:first-child,.templateItem:first-child{border-top:0}.featureRow{display:flex;align-items:center;justify-content:space-between;gap:10px}.featureProgress{height:7px;border-radius:999px;background:var(--card2);overflow:hidden;margin:8px 0}.featureProgress i{display:block;height:100%;background:var(--sBlue);border-radius:999px}.weekPlanNav{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:10px}.weekPlanDay{border:1px solid var(--line);background:var(--card2);border-radius:12px;padding:8px 2px;text-align:center;color:var(--mut);cursor:pointer}.weekPlanDay.on{border-color:var(--sBlue);color:var(--sBlue);background:var(--sBlueSoft)}.weekPlanDay b{display:block;font-size:11px}.weekPlanDay span{font-size:9px}.planHabit{display:flex;align-items:center;gap:8px;padding:8px;border-bottom:1px solid var(--line)}.planHabit input{accent-color:var(--sBlue)}.featurePill{display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:5px 9px;font-size:10px;color:var(--mut)}.featureActions{display:flex;gap:7px;flex-wrap:wrap}.featureActions .sbtn{min-height:36px}.aiMemoryCard .featureForm{grid-template-columns:1fr auto}.memoryItem{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:9px 0;font-size:12px}.commandCard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px;margin:12px 0}.commandTop{display:flex;justify-content:space-between;gap:10px;align-items:center}.commandTop .pct{font:900 28px var(--fDisp)}.commandInsight{font-size:12px;color:var(--mut);margin-top:8px}.privacyCover{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px 18px;text-align:center;margin:12px 0}.featureOverlay{position:fixed;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(8px);z-index:90;display:none;align-items:flex-start;justify-content:center;padding:8vh 18px}.featureOverlay.on{display:flex}.featureOverlayCard{width:min(720px,100%);max-height:80vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:22px;padding:16px;box-shadow:0 24px 70px rgba(0,0,0,.35)}.searchResult{padding:11px 4px;border-bottom:1px solid var(--line);cursor:pointer}.searchResult b{display:block}.searchResult span{font-size:11px;color:var(--mut)}.receiptImg{max-width:100%;max-height:220px;border-radius:14px;border:1px solid var(--line)}.moneyMasked{filter:blur(8px);user-select:none}.miniNote{font-size:10px;color:var(--mut2)}
-@media(max-width:720px){.featureForm{grid-template-columns:1fr 1fr}.featureForm .sbtn{grid-column:1/-1}.featureGrid{grid-template-columns:repeat(2,1fr)}.featureOverlay{padding:5vh 10px}.weekPlanNav{gap:4px}}
-html.privacy-on #pgExp .expSum,html.privacy-on #pgExp .expTx,html.privacy-on #pgExp .expAcct,html.privacy-on #pgExp .expBudg,html.privacy-on #pgExp .expIns{filter:blur(7px);pointer-events:none}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -1096,6 +1141,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="eyebrow" id="dateLine"></div>
     <div class="h1row">
       <h1 id="greet">Today</h1>
+      <button class="srchBtn" id="srchBtn" aria-label="Search habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
     <div class="todaySyncBar" id="todaySyncBar" aria-live="polite">
       <div class="todaySyncState">
@@ -1110,7 +1156,18 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         <span>Sync</span>
       </button>
     </div>
-    <div id="todayCommandCenter"></div>
+    <div class="srchWrap" id="srchWrap">
+      <input id="srch" class="inp materialSearch" maxlength="30" placeholder="Search habits&#8230;" autocomplete="off">
+      <div class="chips" id="catFil" style="margin-top:10px">
+        <button class="chip sel" data-cf="all">All</button>
+        <button class="chip" data-cf="Health">Health</button>
+        <button class="chip" data-cf="Fitness">Fitness</button>
+        <button class="chip" data-cf="Study">Study</button>
+        <button class="chip" data-cf="Finance">Finance</button>
+        <button class="chip" data-cf="Mind">Mind</button>
+        <button class="chip" data-cf="Other">Other</button>
+      </div>
+    </div>
     <div class="dailyIns" id="todayDIWrap" style="display:none"><div class="diLead">✨</div><div class="diText" id="todayDI"></div></div>
     <div class="heroTop">
       <div class="momCol">
@@ -1152,18 +1209,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
     <div class="expSum" id="expSum"></div>
 
-    <div id="moneyGoalSummary"></div>
-    <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Financial goals</div>
-    <div class="setCard featureCard">
-      <div class="featureForm"><input id="finGoalName" class="inp" placeholder="e.g. Emergency fund"><input id="finGoalTarget" class="inp" type="number" min="0" placeholder="Target amount"><input id="finGoalCurrent" class="inp" type="number" min="0" placeholder="Current amount"><input id="finGoalDeadline" class="inp" type="date"><button class="sbtn acc" id="finGoalAdd">Add goal</button></div>
-      <div id="finGoalList"></div>
-    </div>
-    <div class="lbl"><i class="lic" style="--lc:var(--sBlue)"></i>Receipt capture</div>
-    <div class="setCard featureCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">Scan a receipt</div><div class="setS">Use AI to read the amount and category, then review before saving.</div></div><button class="sbtn acc" id="receiptBtn">Scan</button></div>
-      <input id="receiptInput" type="file" accept="image/*" capture="environment" style="display:none">
-      <div id="receiptPreview" style="display:none;margin-top:10px"></div>
-    </div>
     <div class="expMon" id="expMonNav">
       <button id="expPrev">&#8249;</button>
       <div id="expMonTitle"></div>
@@ -1214,8 +1259,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div id="stMain">
       <div class="lbl"><i class="lic" style="--lc:var(--amber)"></i>Insight</div>
       <div class="insCard" id="stInsight" style="margin-bottom:6px"></div>
-      <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Patterns</div>
-      <div class="setCard featureCard" id="patternInsights"></div>
       <div class="lbl"><i class="lic" style="--lc:var(--sOrange)"></i>Your progress</div>
       <div class="statGrid" id="stProg"></div>
 
@@ -1380,8 +1423,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
     <div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
     <div class="aiRecentTitle">Recent</div><div id="aiRecent"></div>
-    <div class="lbl" style="margin-top:14px"><i class="lic" style="--lc:var(--sPurple)"></i>AI memory</div>
-    <div class="setCard featureCard aiMemoryCard"><div class="featureForm"><input id="aiMemoryIn" class="inp" maxlength="160" placeholder="e.g. I prefer evening workouts"><button class="sbtn acc" id="aiMemoryAdd">Remember</button></div><div id="aiMemoryList"></div></div>
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
       <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS" id="aiModelHint">Select a provider first</div></div></div><select class="inp" id="aiModel" style="margin:6px 0 10px;padding:12px 14px"></select><div class="setRow"><div class="setInfo"><div class="setT">API key</div><div class="setS" id="aiKeyHint">Paste your key</div></div></div><input class="inp" id="aiApiKey" type="password" placeholder="Paste your API key" style="margin:6px 0 8px"><div class="half"><button class="sbtn acc" id="btnAiSave">Save</button><button class="sbtn" id="btnAiClear">Remove</button><button class="sbtn" id="btnAiFetch">↻ Models</button></div><div id="aiStatus" class="aiStatusLine"></div>
@@ -1449,14 +1490,12 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="setRow" id="rowFs" style="display:none"><div class="setInfo"><div class="setT">Full-screen reminders</div><div class="setS">Show reminders as an alarm-style screen</div></div><button class="sbtn acc" id="btnFs">Allow</button></div>
       <div class="setRow" id="rowWebNotif" style="display:none"><div class="setInfo"><div class="setT">Browser notifications</div><div class="setS" id="stWebNotif">Get habit reminders in this browser</div></div><button class="sbtn acc" id="btnWebNotif">Enable</button></div>
       <div class="setRow"><div class="setInfo"><div class="setT">Notification sound</div><div class="setS">Pick a custom sound in system settings</div></div><button class="sbtn" id="btnSound">Open</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Smart reminders</div><div class="setS">Suggest reminder times from your completion history.</div></div><div class="tog" id="smartRemTog"></div></div>
     </div>
 
     <div class="lbl"><i class="lic" style="--lc:var(--coral)"></i>Privacy &amp; security</div>
     <div class="setCard">
       <div class="setRow"><div class="setInfo"><div class="setT">PIN lock</div><div class="setS" id="stPin"></div></div><button class="sbtn acc" id="btnPin">Set</button><button class="sbtn warn" id="btnPinOff" style="display:none">Remove</button></div>
       <div class="setRow" id="rowBio"><div class="setInfo"><div class="setT">Fingerprint unlock</div><div class="setS">Use biometrics to unlock</div></div><div class="tog" id="bioTog"></div></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Money privacy mode</div><div class="setS">Hide sensitive money details until you reveal them.</div></div><div class="tog" id="privacyTog"></div></div>
       <div class="setRow"><div class="setInfo"><div class="setT">Offline &amp; private</div><div class="setS">Everything stays on this device. No account, no internet needed.</div></div></div>
     </div>
 
@@ -2148,21 +2187,6 @@ function normState(s){
   d.curr = d.curr || '\u20B9';
   d.lastAutoBk = d.lastAutoBk || ''; d.lastGrant = d.lastGrant || ''; d.lastBkPath = d.lastBkPath || '';
   s.mtime = s.mtime || 0;
-  // ===== product feature layer =====
-  if(!(s.goals instanceof Array)) s.goals=[];
-  s.goals.forEach(function(g){ g.id=g.id||('g'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)); g.name=String(g.name||'Goal').slice(0,60); g.target=Math.max(0,+g.target||0); g.current=Math.max(0,+g.current||0); g.unit=String(g.unit||'').slice(0,16); g.deadline=/^\d{4}-\d{2}-\d{2}$/.test(g.deadline||'')?g.deadline:''; g.habitIds=g.habitIds instanceof Array?g.habitIds:[]; });
-  if(!(s.finGoals instanceof Array)) s.finGoals=[];
-  s.finGoals.forEach(function(g){ g.id=g.id||('fg'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)); g.name=String(g.name||'Financial goal').slice(0,60); g.target=Math.max(0,+g.target||0); g.current=Math.max(0,+g.current||0); g.deadline=/^\d{4}-\d{2}-\d{2}$/.test(g.deadline||'')?g.deadline:''; });
-  if(!s.weekPlan || typeof s.weekPlan!=='object') s.weekPlan={};
-  if(!(s.aiMemory instanceof Array)) s.aiMemory=[];
-  if(!(s.receipts instanceof Array)) s.receipts=[];
-  if(!s.feature || typeof s.feature!=='object') s.feature={};
-  s.feature.privacy=!!s.feature.privacy; s.feature.smartReminders=s.feature.smartReminders!==false; s.feature.minimumDay=s.feature.minimumDay!==false;
-  if(!(s.templates instanceof Array)||!s.templates.length) s.templates=[
-    {id:'tmorning',name:'Morning Reset',emoji:'🌅',habits:[{name:'Drink water',target:1,type:'count',unit:''},{name:'Stretch',target:5,type:'time',unit:'min'},{name:'Read',target:10,type:'count',unit:'pages'}]},
-    {id:'tfitness',name:'Fitness Starter',emoji:'💪',habits:[{name:'Pushups',target:20,type:'count',unit:'reps'},{name:'Walk',target:20,type:'time',unit:'min'},{name:'Stretch',target:5,type:'time',unit:'min'}]},
-    {id:'tfocus',name:'Focus Block',emoji:'🎯',habits:[{name:'Deep work',target:45,type:'time',unit:'min'},{name:'Read',target:10,type:'count',unit:'pages'}]}
-  ];
   return s;
 }
 function load(){
@@ -3119,14 +3143,11 @@ function buildDataContext(){
   if(state.cats)for(var ck in state.cats)cats.push(ck);
   if(cats.length)lines.push('CATEGORIES: '+cats.join(', '));
   if(state.accts)state.accts.forEach(function(a){if(a.active!==false)lines.push('ACCOUNT: "'+a.name+'" id='+a.id+' bal='+acctBalance(a.id));});
-  if(state.goals&&state.goals.length){lines.push('GOALS:');state.goals.forEach(function(g){lines.push('- '+g.name+' '+g.current+'/'+g.target+' '+(g.unit||'')+(g.deadline?' due '+g.deadline:''));});}
-  if(state.finGoals&&state.finGoals.length){lines.push('FINANCIAL GOALS:');state.finGoals.forEach(function(g){lines.push('- '+g.name+' '+g.current+'/'+g.target+(g.deadline?' due '+g.deadline:''));});}
-  if(state.aiMemory&&state.aiMemory.length)lines.push('AI MEMORY: '+state.aiMemory.map(function(x){return x.text;}).join(' | '));
   return lines.join('\n');
 }
 function uaiPrompt(text){
   return 'You are the universal AI assistant for Personal Tracker. You can READ/CREATE/UPDATE/DELETE across: Habits, Expenses, Mood, Sleep, Settings.\n\n'
-  +'APP DATA:\n'+buildDataContext()+'\nAI MEMORY:\n'+(state.aiMemory||[]).map(function(x){return '- '+x.text;}).join('\n')+'\n\n'
+  +'APP DATA:\n'+buildDataContext()+'\n\n'
   +'RESPOND WITH ONLY ONE JSON OBJECT (no markdown, no backticks, no extra text):\n'
   +'{"action":"TYPE","params":{...},"message":"short confirmation"}\n\n'
   +'ACTIONS:\n'
@@ -3220,7 +3241,7 @@ function uaiSend(text){
     html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;reRenderCurrent();
   }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();log.innerHTML+='<div class="uaiMsg err">'+e.message+'</div>';log.scrollTop=log.scrollHeight;});
 }
-function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();renderFeatureToday();}catch(e){}}
+function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();}catch(e){}}
 function periodRate(h,days){var now=new Date(),due=0,done=0;for(var i=0;i<days;i++){var d=addDays(now,-i),ds=fmt(d);if(ds<h.created)continue;if(dueOn(h,d)){due++;if(isDone(h,ds))done++;}}return due?done/due:0;}
 
 // ---- AI weekly narrative ----
@@ -3312,7 +3333,7 @@ function renderToday(){
   }
   $('recoverBox').innerHTML = rb;
 
-  var filterOn = false;
+  var filterOn = srchQ.length > 0 || srchCat !== 'all';
 
   var sb = '';
   var stIds = filterOn ? [] : state.stack.filter(function(id){ var h=findHabit(id); return h && dueOn(h, now); });
@@ -4427,11 +4448,7 @@ function scheduleWebNotifs(){
   for(var i=0;i<state.habits.length;i++){
     var h = state.habits[i];
     if(h.arch || !dueOn(h, now) || isDone(h, td)) continue;
-    var times = (h.rem && h.rem.times) ? h.rem.times.slice() : [];
-    if(state.feature && state.feature.smartReminders && !times.length){
-      var hrs=(state.hlog&&state.hlog[h.id])?state.hlog[h.id].slice(-21):[];
-      if(hrs.length){var avg=Math.round(hrs.reduce(function(a,b){return a+b;},0)/hrs.length);times=[String(avg).padStart(2,'0')+':00'];}
-    }
+    var times = (h.rem && h.rem.times) ? h.rem.times : [];
     for(var j=0;j<times.length;j++){
       var hm = times[j].split(':');
       var at = new Date(); at.setHours(+hm[0], +hm[1], 0, 0);
@@ -4440,9 +4457,11 @@ function scheduleWebNotifs(){
       (function(hab, tstr){
         var id = setTimeout(function(){
           try{
-            if(navigator.serviceWorker && navigator.serviceWorker.ready){
-              navigator.serviceWorker.ready.then(function(reg){return reg.showNotification(hab.emoji+' '+hab.name,{body:'Time for your habit — keep the chain alive.',tag:'habit-'+hab.id,icon:'icon-192.png',data:{habitId:hab.id},actions:[{action:'complete',title:'✓ Complete'},{action:'snooze',title:'Snooze 30m'}]});});
-            }
+            var n = new Notification(hab.emoji + ' ' + hab.name, {
+              body: 'Time for your habit \u2014 keep the chain alive.',
+              tag: 'habit-' + hab.id, icon: 'icon-192.png'
+            });
+            n.onclick = function(){ window.focus(); if(findHabit(hab.id)) openDetail(hab.id); n.close(); };
           }catch(e){}
         }, delay);
         webTimers.push(id);
@@ -6106,78 +6125,6 @@ function climb(el, root, attr){
   return null;
 }
 
-/* ================= PRODUCT FEATURE LAYER ================= */
-function featureId(p){return p+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
-function featureDate(d){return fmt(d||new Date());}
-function featurePct(a,b){return b>0?Math.max(0,Math.min(100,Math.round(a/b*100))):0;}
-function weekPlanKey(ds){return ds;}
-function currentWeekDays(){var a=[],d=weekStart(new Date());for(var i=0;i<7;i++)a.push(addDays(d,i));return a;}
-function featureHabitCompletionRate(){var hs=state.habits.filter(function(h){return !h.arch;}),due=0,done=0,now=new Date();for(var i=0;i<7;i++){var d=addDays(now,-i),ds=fmt(d);hs.forEach(function(h){if(dueOn(h,d)){due++;if(isDone(h,ds)||isFroz(h,ds))done++;}});}return featurePct(done,due);}
-function renderFeatureToday(){
-  var box=$('todayCommandCenter');if(!box)return;
-  var rate=featureHabitCompletionRate(),todayDone=0,todayDue=0,now=new Date(),ts=today();
-  state.habits.filter(function(h){return !h.arch;}).forEach(function(h){if(dueOn(h,now)){todayDue++;if(isDone(h,ts)||isFroz(h,ts))todayDone++;}});
-  var mExp=0;state.tx.forEach(function(t){if(t.d===ts&&t.kind==='exp')mExp+=+t.amt||0;});
-  var sl=sleepOn(ts),m=moodOf(ts);
-  var insight='Keep the day small: finish one meaningful action next.';
-  if(rate>=80)insight='You are building a strong week. Protect the streak by finishing the next due habit.';
-  else if(sl&&sl.mins<420)insight='Sleep was below 7 hours. Keep today focused on the most important habits.';
-  else if(mExp>0)insight='Today you spent '+inr(mExp)+'. Keep an eye on the weekly budget.';
-  box.innerHTML='<div class="commandCard"><div class="commandTop"><div><div class="setS">DAILY COMMAND CENTER</div><div style="font-weight:800;margin-top:3px">'+todayDone+' / '+todayDue+' habits complete</div></div><div class="pct">'+rate+'%</div></div><div class="featureGrid">'+
-    '<div class="featureStat"><b>'+todayDone+'/'+todayDue+'</b><span>Today</span></div>'+
-    '<div class="featureStat"><b>'+inr(mExp)+'</b><span>Spent today</span></div>'+
-    '<div class="featureStat"><b>'+(m>=0?MOODS[m].e+' '+MOODS[m].l:'—')+'</b><span>Mood</span></div>'+
-    '<div class="featureStat"><b>'+(sl&&sl.mins?Math.floor(sl.mins/60)+'h '+sl.mins%60+'m':'—')+'</b><span>Sleep</span></div></div>'+
-    '<div class="commandInsight">💡 '+insight+'</div></div>';
-  try{if(typeof WidgetBridge!=='undefined'&&WidgetBridge.updateSummary)WidgetBridge.updateSummary((state.set.uname||'Today')+' · '+today(),todayDue?todayDone+'/'+todayDue+' '+rate+'%':'—',nextReminderStr().replace(/<[^>]+>/g,''));}catch(e){}
-}
-function goalProgress(g){return featurePct(g.current,g.target);}
-function renderPatternInsights(){var b=$('patternInsights');if(!b)return;var good=0,goodD=0,low=0,lowD=0,moodGood=0,moodGoodN=0,moodLow=0,moodLowN=0;for(var i=0;i<14;i++){var d=addDays(new Date(),-i),ds=fmt(d),sl=sleepOn(ds),score=0,due=0;state.habits.filter(function(h){return !h.arch;}).forEach(function(h){if(dueOn(h,d)){due++;if(isDone(h,ds)||isFroz(h,ds))score++;}});var r=due?score/due:0;if(sl&&sl.mins>=420){good+=r;goodD++;}else if(sl&&sl.mins>0){low+=r;lowD++;}var mi=moodOf(ds);if(mi>=0){if(mi<=2){moodGood+=r;moodGoodN++;}if(mi>=4){moodLow+=r;moodLowN++;}}}var a=goodD?Math.round(good/goodD*100):0,c=lowD?Math.round(low/lowD*100):0,mg=moodGoodN?Math.round(moodGood/moodGoodN*100):0,ml=moodLowN?Math.round(moodLow/moodLowN*100):0;var rows=[];if(goodD&&lowD)rows.push('😴 7+ hour sleep days: <b>'+a+'%</b> habit completion vs <b>'+c+'%</b> on shorter-sleep days.');if(moodGoodN&&moodLowN)rows.push('😊 Positive-mood days: <b>'+mg+'%</b> completion vs <b>'+ml+'%</b> on low-mood days.');b.innerHTML=rows.length?rows.map(function(x){return '<div class="aiCard" style="margin:6px 0"><div class="aiIco">💡</div><div class="aiBody"><div class="aiText">'+x+'</div></div></div>';}).join(''):'<div class="setS">Keep logging sleep, mood and habits to unlock pattern insights.</div>';}
-function renderFeaturePlan(){
-  var p=$('planSummary');if(!p)return;
-  var gr=state.goals.length, fg=state.finGoals.length, rate=featureHabitCompletionRate();
-  p.innerHTML='<div class="setS">WEEKLY COMMAND CENTER</div><div class="bigStat">'+rate+'% <span style="font-size:12px;font-weight:700;color:var(--mut)">habit consistency</span></div><div class="setS">'+gr+' personal goals · '+fg+' financial goals</div><div class="featureActions" style="margin-top:10px"><span class="featurePill">🎯 Goals</span><span class="featurePill">📅 Weekly plan</span><span class="featurePill">💰 Money</span><span class="featurePill">🏆 Milestones</span></div>';
-  var gl=$('goalList'),html='';
-  state.goals.forEach(function(g){var p=goalProgress(g);html+='<div class="goalItem"><div class="featureRow"><div><b>'+esc(g.name)+'</b><div class="miniNote">'+fmtV(g.current)+' / '+fmtV(g.target)+' '+esc(g.unit||'')+(g.deadline?' · due '+niceDate(g.deadline):'')+'</div></div><button class="sbtn" data-goal-del="'+g.id+'">Delete</button></div><div class="featureProgress"><i style="width:'+p+'%"></i></div><div class="featureActions"><button class="sbtn" data-goal-add="'+g.id+'">+ Progress</button><span class="featurePill">'+p+'%</span></div></div>';});
-  gl.innerHTML=html||'<div class="setS" style="padding:8px 0">No goals yet. Add one that your daily habits can support.</div>';
-  var days=currentWeekDays(),nav=$('weekPlanNav'),sel=state.featurePlanDay||featureDate(new Date());
-  nav.innerHTML=days.map(function(d){var ds=fmt(d),arr=(state.weekPlan[ds]&&state.weekPlan[ds].habits)||[];return '<button class="weekPlanDay '+(ds===sel?'on':'')+'" data-plan-day="'+ds+'"><b>'+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()].slice(0,2)+'</b><span>'+d.getDate()+(arr.length?' · '+arr.length:'')+'</span></button>';}).join('');
-  $('weekFocus').value=(state.weekPlan[sel]&&state.weekPlan[sel].focus)||'';
-  var hp=$('weekHabitPicker');hp.innerHTML=state.habits.filter(function(h){return !h.arch;}).map(function(h){var checked=((state.weekPlan[sel]&&state.weekPlan[sel].habits)||[]).indexOf(h.id)>=0;return '<label class="planHabit"><input type="checkbox" data-plan-habit="'+h.id+'" '+(checked?'checked':'')+'><span>'+h.emoji+' '+esc(h.name)+'</span></label>';}).join('')||'<div class="setS">Create habits first.</div>';
-  var fgList=$('finGoalList');fgList.innerHTML=state.finGoals.map(function(g){var p=featurePct(g.current,g.target);return '<div class="finGoalItem"><div class="featureRow"><div><b>'+esc(g.name)+'</b><div class="miniNote">'+inr(g.current)+' / '+inr(g.target)+(g.deadline?' · due '+niceDate(g.deadline):'')+'</div></div><button class="sbtn" data-fg-del="'+g.id+'">Delete</button></div><div class="featureProgress"><i style="width:'+p+'%;background:var(--sGreen)"></i></div><div class="featureActions"><button class="sbtn" data-fg-add="'+g.id+'">+ Add money</button><span class="featurePill">'+p+'%</span></div></div>';}).join('')||'<div class="setS">No financial goals yet.</div>';
-  $('templateList').innerHTML=state.templates.map(function(t){return '<div class="templateItem"><div class="featureRow"><div><b>'+t.emoji+' '+esc(t.name)+'</b><div class="miniNote">'+t.habits.length+' habits</div></div><button class="sbtn acc" data-template="'+t.id+'">Use</button></div></div>';}).join('');
-  var miles=[7,14,21,30,50,66,100],mh=[];state.habits.filter(function(h){return !h.arch;}).forEach(function(h){var st=streak(h),next=miles.find(function(x){return x>st;});if(next)mh.push({h:h,next:next,st:st});});mh.sort(function(a,b){return (a.next-a.st)-(b.next-b.st);});
-  $('milestoneList').innerHTML=mh.slice(0,8).map(function(x){return '<div class="milestoneItem"><div class="featureRow"><div><b>🏆 '+esc(x.h.name)+'</b><div class="miniNote">'+x.st+' day streak · '+(x.next-x.st)+' to '+x.next+'</div></div><span class="featurePill">'+x.next+' days</span></div><div class="featureProgress"><i style="width:'+featurePct(x.st,x.next)+'%;background:var(--amber)"></i></div></div>';}).join('')||'<div class="setS">Complete habits to unlock milestones.</div>';
-  renderPatternInsights();
-  $('smartRemTog').classList.toggle('on',!!state.feature.smartReminders);$('minDayTog').classList.toggle('on',!!state.feature.minimumDay);$('privacyTog').classList.toggle('on',!!state.feature.privacy);
-}
-function addGoal(){var n=$('goalName').value.trim();if(!n)return;state.goals.push({id:featureId('g'),name:n,target:+$('goalTarget').value||1,current:0,unit:$('goalUnit').value.trim(),deadline:$('goalDeadline').value||'',habitIds:[]});$('goalName').value='';$('goalTarget').value='';$('goalUnit').value='';$('goalDeadline').value='';persist();renderFeaturePlan();toastN('Goal added');}
-function addFinGoal(){var n=$('finGoalName').value.trim();if(!n)return;state.finGoals.push({id:featureId('fg'),name:n,target:+$('finGoalTarget').value||0,current:+$('finGoalCurrent').value||0,deadline:$('finGoalDeadline').value||''});$('finGoalName').value='';$('finGoalTarget').value='';$('finGoalCurrent').value='';$('finGoalDeadline').value='';persist();renderMoneyGoalSummary();toastN('Financial goal added');}
-function minimumDay(){if(!state.feature.minimumDay){toastN('Enable Minimum day in Plan');return;}var ts=today(),changed=0;state.habits.filter(function(h){return !h.arch&&dueOn(h,new Date())&&!isDone(h,ts);}).forEach(function(h){var t=targ(h),v=val(h,ts),min=Math.max(1,Math.ceil(t*0.2));if(h.type==='neg'){setVal(h.id,ts,1);changed++;}else if(v<min){setVal(h.id,ts,min);changed++;}});if(changed){persist();reRenderCurrent();toastN('Minimum day complete · '+changed+' habits moved forward');}else toastN('Minimum day already met');}
-function applyTemplate(id){var t=state.templates.find(function(x){return x.id===id;});if(!t)return;t.habits.forEach(function(x){var h={id:featureId('h'),name:x.name,emoji:'✓',color:'#3b82f6',type:x.type||'count',target:x.target||1,unit:x.unit||'',done:{},frozen:{},created:today(),start:today(),end:'',arch:false,section:'any',cat:'Other',sched:{kind:'daily',quota:1,x:1,dows:[1,2,3,4,5,6,0]},rem:{times:[],repeat:false}};state.habits.push(h);});persist();renderToday();toastN(t.name+' added');}
-function renderMoneyGoalSummary(){var b=$('moneyGoalSummary');if(!b)return;var active=state.finGoals||[];var html='';if(state.feature.privacy){html='<div class="privacyCover"><div style="font-size:24px">🔒</div><b>Money privacy mode is on</b><div class="setS" style="margin:5px 0 12px">Sensitive money details are hidden.</div><button class="sbtn acc" id="moneyRevealBtn">Reveal</button></div>';}else if(active.length){html='<div class="setCard" style="padding:12px 16px;margin-bottom:12px"><div class="setS">FINANCIAL GOALS</div>'+active.slice(0,2).map(function(g){var p=featurePct(g.current,g.target);return '<div style="margin-top:8px"><div class="featureRow"><b>'+esc(g.name)+'</b><span class="featurePill">'+p+'%</span></div><div class="featureProgress"><i style="width:'+p+'%;background:var(--sGreen)"></i></div></div>';}).join('')+'</div>';}b.innerHTML=html;var list=$('finGoalList');if(!list)return;if(state.feature.privacy){list.innerHTML='<div class="setS" style="padding:8px 0">Financial goals are hidden while Money privacy mode is on.</div>';return;}list.innerHTML=active.map(function(g){var p=featurePct(g.current,g.target);return '<div class="finGoalItem"><div class="featureRow"><div><b>'+esc(g.name)+'</b><div class="miniNote">'+inr(g.current)+' / '+inr(g.target)+(g.deadline?' · due '+niceDate(g.deadline):'')+'</div></div><button class="sbtn" data-fg-del="'+g.id+'">Delete</button></div><div class="featureProgress"><i style="width:'+p+'%;background:var(--sGreen)"></i></div><div class="featureActions"><button class="sbtn" data-fg-add="'+g.id+'">+ Add money</button><span class="featurePill">'+p+'%</span></div></div>';}).join('')||'<div class="setS" style="padding:8px 0">No financial goals yet.</div>';}
-function renderReceiptPreview(file){var box=$('receiptPreview');if(!file){box.style.display='none';return;}var rd=new FileReader();rd.onload=function(){var data=rd.result;box.style.display='';box.innerHTML='<img class="receiptImg" src="'+data+'"><div class="featureActions" style="margin-top:8px"><button class="sbtn acc" id="receiptAiBtn">Extract with AI</button><button class="sbtn" id="receiptManualBtn">Add manually</button></div><div id="receiptStatus" class="setS" style="margin-top:7px"></div>';window._receiptData=data;};rd.readAsDataURL(file);}
-function receiptAI(){var data=window._receiptData;if(!data){return;}var status=$('receiptStatus');if(!getAiKey()){status.textContent='Configure AI first, or use Add manually.';return;}var b64=data.split(',')[1];if(getAiProvider()!=='gemini'){status.textContent='Receipt image extraction currently uses Gemini vision. Switch provider to Gemini or add manually.';return;}status.textContent='Reading receipt…';var url='https://generativelanguage.googleapis.com/v1beta/models/'+getAiModel()+':generateContent';fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':getAiKey()},body:JSON.stringify({contents:[{parts:[{text:'Extract this receipt. Return ONLY JSON: {"amount":number,"category":"Food|Transport|Shopping|Bills|Health|Subscriptions|Other","merchant":"string","date":"YYYY-MM-DD or empty"}'} ,{inline_data:{mime_type:data.split(';')[0].split(':')[1],data:b64}}]}],generationConfig:{maxOutputTokens:200}})}).then(function(r){if(!r.ok)throw new Error('API '+r.status);return r.json();}).then(function(d){var raw=d.candidates[0].content.parts[0].text.replace(/```json|```/g,'').trim(),x=JSON.parse(raw);showTab('pgExp');setTimeout(function(){openExp(null);if($('expAmt'))$('expAmt').value=x.amount||'';if(x.category){expCatSel=x.category;expSubSel='';paintExpPickers();}toastN('Receipt extracted · review before saving');},80);}).catch(function(e){status.textContent='Could not extract receipt: '+e.message;});}
-function handleFeatureNotificationMessage(e){var d=e&&e.data;if(!d||d.type!=='habit-notification-action')return;var h=findHabit(d.habitId);if(!h)return;if(d.action==='complete'){setVal(h.id,today(),targ(h));toastN(h.name+' completed ✓');reRenderCurrent();}else if(d.action==='snooze'){setTimeout(function(){try{new Notification(h.emoji+' '+h.name,{body:'Snoozed reminder — keep the chain alive.',icon:'icon-192.png'});}catch(x){}},1800000);toastN('Reminder snoozed 30 minutes');}else{showTab('pgToday');openDetail(h.id);}}
-function initFeatureLayer(){
-  ensureFeatureState();
-  if(navigator.serviceWorker) navigator.serviceWorker.addEventListener('message',handleFeatureNotificationMessage);
-  if(state.feature.privacy)document.documentElement.classList.add('privacy-on');
-  renderFeatureToday();renderMoneyGoalSummary();renderAIMemory();renderPatternInsights();
-  $('finGoalAdd').onclick=addFinGoal;
-  $('finGoalList').onclick=function(e){var d=climb(e.target,this,'data-fg-del'),a=climb(e.target,this,'data-fg-add');if(d){state.finGoals=state.finGoals.filter(function(g){return g.id!==d.getAttribute('data-fg-del');});persist();renderMoneyGoalSummary();}if(a){var g=state.finGoals.find(function(x){return x.id===a.getAttribute('data-fg-add');});if(g){var n=+prompt('Add amount','100');if(n>0){g.current=Math.min(g.target,g.current+n);persist();renderMoneyGoalSummary();}}}};
-  function toggleFeature(key){state.feature[key]=!state.feature[key];persist();if(key==='privacy')document.documentElement.classList.toggle('privacy-on',state.feature.privacy);renderMoneyGoalSummary();}
-  $('smartRemTog').onclick=function(){toggleFeature('smartReminders');};$('privacyTog').onclick=function(){toggleFeature('privacy');};
-  $('receiptBtn').onclick=function(){$('receiptInput').click();};$('receiptInput').onchange=function(){renderReceiptPreview(this.files&&this.files[0]);};
-  document.addEventListener('click',function(e){var a=climb(e.target,document,'data-feature');if(a){var f=a.getAttribute('data-feature');if(f==='planOpen')return;if(f==='minimumDay')return;if(f==='globalSearch')return;}var md=climb(e.target,document,'data-mem-del');if(md){state.aiMemory.splice(+md.getAttribute('data-mem-del'),1);persist();renderAIMemory();}if(e.target.id==='receiptAiBtn')receiptAI();if(e.target.id==='receiptManualBtn'){showTab('pgExp');setTimeout(function(){openExp(null);},80);}if(e.target.id==='moneyRevealBtn'){state.feature.privacy=false;document.documentElement.classList.remove('privacy-on');persist();renderMoneyGoalSummary();}});
-  $('aiMemoryAdd').onclick=addAIMemory;
-  var oldR=renderToday;renderToday=function(){oldR();renderFeatureToday();};
-  var oldE=renderExp;renderExp=function(){oldE();renderMoneyGoalSummary();};
-  var oldA=renderAI;renderAI=function(){oldA();renderAIMemory();};
-  var oldS=renderStats;renderStats=function(){oldS();renderPatternInsights();};
-}
-function ensureFeatureState(){ state=normState(state); }
-
 /* ================= init & wiring ================= */
 function init(){
   buildPickers();
@@ -6194,6 +6141,30 @@ function init(){
     if(b) handleAddAction(b.getAttribute('data-add-action'));
   });
   $('scrim').addEventListener('click', function(){ closeSheet(); });
+
+  /* search & category filter */
+  $('srchBtn').addEventListener('click', function(){
+    var w = $('srchWrap'), on = !w.classList.contains('on');
+    w.classList.toggle('on', on);
+    this.classList.toggle('on', on);
+    if(on){ setTimeout(function(){ $('srch').focus(); }, 80); }
+    else {
+      srchQ = ''; srchCat = 'all';
+      $('srch').value = '';
+      selChip('catFil','data-cf','all');
+      renderToday();
+    }
+  });
+  $('srch').addEventListener('input', function(){
+    srchQ = this.value.toLowerCase().replace(/^\s+/,'');
+    renderToday();
+  });
+  $('catFil').addEventListener('click', function(e){
+    var b = climb(e.target, this, 'data-cf'); if(!b) return;
+    srchCat = b.getAttribute('data-cf');
+    selChip('catFil','data-cf',srchCat);
+    renderToday();
+  });
 
   $('pgToday').addEventListener('click', function(e){
     var actEl = climb(e.target, this, 'data-act');
@@ -7089,7 +7060,6 @@ function init(){
   if(state.set.pin) showLock('unlock');
 }
 init();
-try{initFeatureLayer();}catch(e){console.error('Feature layer init',e);}
 if(nat && nat.getLaunchAction){
   try{
     var _la = JSON.parse(nat.getLaunchAction() || '{}');

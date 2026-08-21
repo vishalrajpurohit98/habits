@@ -1,4 +1,4 @@
-const CACHE = 'habits-v2-64-feature-pack';
+const CACHE = 'habits-v2-62-final-icon-amoled-final';
 const FILES = ['.', 'index.html', 'unbounded.ttf', 'fraunces.ttf', 'spacegrotesk.ttf', 'bricolage.ttf', 'xlsx.min.js', 'firebase-app-compat.js', 'firebase-auth-compat.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'favicon-32.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -13,12 +13,4 @@ self.addEventListener('fetch', e => {
   e.respondWith(caches.match(e.request, {ignoreSearch:true}).then(r => r || fetch(e.request)));
 });
 
-self.addEventListener('notificationclick', e => {
-  e.notification.close();
-  const data = e.notification.data || {};
-  e.waitUntil(self.clients.matchAll({type:'window',includeUncontrolled:true}).then(cs => {
-    const c = cs[0];
-    if(c) return c.focus().then(()=>c.postMessage({type:'habit-notification-action',action:e.action||'open',habitId:data.habitId||''}));
-    return self.clients.openWindow('./');
-  }));
-});
+// AMOLED final theme cache revision: 20260820-0016
