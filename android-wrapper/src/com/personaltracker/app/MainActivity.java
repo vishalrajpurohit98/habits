@@ -100,6 +100,7 @@ public class MainActivity extends Activity {
         });
 
         web.addJavascriptInterface(new FileBridge(), "AndroidFile");
+        web.addJavascriptInterface(new WidgetBridge(), "WidgetBridge");
 
         // Downloads: WebView can't fetch blob: URLs natively. Intercept them and
         // re-read the blob in JS as base64, then hand to the native saver.
@@ -180,6 +181,20 @@ public class MainActivity extends Activity {
 
     private void toast(final String m) {
         runOnUiThread(() -> Toast.makeText(this, m, Toast.LENGTH_LONG).show());
+    }
+
+    private class WidgetBridge {
+        @JavascriptInterface
+        public void updateSummary(String title, String momentum, String next) {
+            getSharedPreferences("actionables_widget", MODE_PRIVATE).edit()
+                    .putString("title", title == null ? "Personal Tracker" : title)
+                    .putString("momentum", momentum == null ? "—" : momentum)
+                    .putString("next", next == null ? "Open the app to plan today" : next)
+                    .apply();
+            android.appwidget.AppWidgetManager mgr = android.appwidget.AppWidgetManager.getInstance(MainActivity.this);
+            int[] ids = mgr.getAppWidgetIds(new android.content.ComponentName(MainActivity.this, TodayWidget.class));
+            for (int id : ids) TodayWidget.update(MainActivity.this, mgr, id);
+        }
     }
 
     private class FileBridge {
