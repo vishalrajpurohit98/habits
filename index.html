@@ -1078,6 +1078,9 @@ html.privacy-on #pgExp .expSum,html.privacy-on #pgExp .expTx,html.privacy-on #pg
 .layoutOption.editing .layoutBody{opacity:.96}
 .layoutHint{font-size:10px;color:var(--mut2);margin:0 0 10px;padding-left:2px}
 html.light .layoutOption{background:var(--card)}
+
+/* Today cleanup: keep the dashboard focused; legacy duplicate sections remain functional but hidden. */
+#todayCommandCenter,#qod,#aiInsights,#wkCard{display:none !important}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -1135,7 +1138,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         <span>Sync</span>
       </button>
     </div>
-    <div id="todayCommandCenter"></div>
     <div class="dailyIns" id="todayDIWrap" style="display:none"><div class="diLead">✨</div><div class="diText" id="todayDI"></div></div>
     <div class="heroTop">
       <div class="momCol">
@@ -1147,10 +1149,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
     <div class="restCard" id="restBox" style="display:none"></div>
     <div class="wkRow" id="wkdots"></div>
-    <div class="wkCard" id="wkCard" style="display:none"></div>
-    <div class="qod" id="qod"></div>
     <div class="nextRem" id="nextRem"></div>
-    <div id="aiInsights"></div>
     <div id="recoverBox"></div>
     <div id="stackBox"></div>
     <div id="list"></div>
@@ -1237,9 +1236,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
 
     <div id="stMain">
-      <div class="lbl"><i class="lic" style="--lc:var(--amber)"></i>Insight</div>
-      <div class="insCard" id="stInsight" style="margin-bottom:6px"></div>
-      <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Patterns</div>
+      <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Insights &amp; Patterns</div>
       <div class="setCard featureCard" id="patternInsights"></div>
       <div class="lbl"><i class="lic" style="--lc:var(--sOrange)"></i>Your progress</div>
       <div class="statGrid" id="stProg"></div>
@@ -3271,10 +3268,6 @@ function renderToday(){
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
   $('greet').textContent = greetTxt();
-  var dmsg = dayMessage();
-  $('qod').textContent = dmsg;
-  $('qod').className = 'dayMsg';
-  $('qod').style.display = dmsg ? '' : 'none';
   $('nextRem').innerHTML = nextReminderStr();
 
   var ts = today(), due = [], doneN = 0, liveCnt = 0;
@@ -3321,7 +3314,6 @@ function renderToday(){
   }
   $('wkdots').style.display = liveCnt ? '' : 'none';
   $('wkdots').innerHTML = wd;
-  renderWkCard();
   renderDailyInsightToday();
 
   var rb = '';
@@ -3847,7 +3839,6 @@ function renderStats(){
     + '<div class="achvRow">'+row+'</div>';
 
   // ----- Section 5: one smart insight -----
-  $('stInsight').innerHTML = smartInsight();
   renderCalendar();
 }
 
