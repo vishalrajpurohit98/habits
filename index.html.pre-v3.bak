@@ -36,7 +36,7 @@
   --amber:#FFAE1F;--amberDeep:#E08900;--amberSoft:rgba(255,174,31,.14);
   --coral:#FF6B5E;--coralSoft:rgba(255,107,94,.13);
   --green:#3ECF8E;--ice:#4EA8FF;--iceSoft:rgba(78,168,255,.14);
-  --gline:rgba(255,244,224,.07);--ringOff:rgba(255,244,224,.18);--ringOffDim:rgba(255,244,224,.12);
+  --gline:rgba(255,244,224,.07);--ringOff:rgba(255,244,224,.14);--ringOffDim:rgba(255,244,224,.05);
   --barOff:rgba(255,244,224,.1);--onAccent:#171310;
   --dockBg:rgba(7,6,5,.92);--scrimBg:rgba(0,0,0,.8);
   --shadow:0 1px 6px rgba(0,0,0,.18);--shadowUp:0 -4px 20px rgba(0,0,0,.25);
@@ -293,7 +293,7 @@ html:not(.light) .tab.on{color:var(--amber)}
 .sheet.open{transform:translateY(0);pointer-events:auto;transition:transform .26s cubic-bezier(.22,.68,.36,1)}
 .grab{width:36px;height:3px;border-radius:2px;background:var(--line2);margin:6px auto 16px}
 .sheet h2{font-family:var(--fDisp);font-size:20px;font-weight:700;letter-spacing:0;margin-bottom:16px}
-.lbl{font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mut);margin:28px 0 10px;padding-top:14px;border-top:1px solid var(--line)}.lbl:first-child{border-top:none;margin-top:0;padding-top:0}
+.lbl{font-size:12px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--mut);margin:18px 0 10px}
 .inp{width:100%;background:var(--card);border:1.5px solid var(--line2);border-radius:14px;
   padding:14px 16px;font-size:16px;color:var(--ink);caret-color:var(--amber);outline:none;
   transition:border-color .2s}
@@ -509,7 +509,7 @@ html:not(.light) .sbtn.acc{color:var(--amber)}
 .calCell.today{outline:2px solid var(--amber);outline-offset:-2px}
 .calCell.sel{background:var(--amberSoft);outline:2px solid var(--amber);outline-offset:-2px}
 .calCell .cnum{font-size:11px;font-weight:800;color:var(--ink2)}
-.calCell.empty .cnum{color:transparent}.calCell.future,.mday.future{opacity:.35}
+.calCell.empty .cnum{color:transparent}
 .calDots{display:flex;gap:2px;height:5px}
 .calDots i{width:5px;height:5px;border-radius:50%}
 .calLegend{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
@@ -579,7 +579,7 @@ html:not(.light) .sbtn.acc{color:var(--amber)}
 .sleepInfo b{font-family:var(--fDisp);font-size:22px;font-weight:700;display:block;line-height:1}
 .sleepInfo span{font-size:12px;color:var(--mut);margin-top:4px;display:block}
 .sleepLogBtn{padding:10px 16px;border-radius:13px;background:var(--sPurple);color:#0F0A1E;font-size:13px;font-weight:800;flex-shrink:0}
-.sleepEmpty{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.sleepQualBar{display:flex;gap:3px;width:100%;margin-top:6px}.sleepQualBar span{flex:1;height:4px;border-radius:2px;background:rgba(155,123,255,.12)}.sleepQualBar .filled{background:rgba(155,123,255,.6)}.sleepQualHints{display:flex;justify-content:space-between;width:100%;font-size:9px;color:var(--mut2);margin-top:2px}
+.sleepEmpty{display:flex;align-items:center;gap:14px}
 .sleepEmpty .se2{flex:1;font-size:13px;color:var(--mut)}
 .sleepCorr{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);font-size:12.5px;color:var(--ink2);line-height:1.5}
 .sleepCorr b{color:var(--sPurple)}
@@ -748,7 +748,7 @@ html.light.p-mono{--amber:#2A241C;--amberDeep:#14100B;--amberSoft:rgba(42,36,28,
   --grad-amber:linear-gradient(135deg,#3A332A,#171310);--emberGlow:radial-gradient(circle,rgba(42,36,28,.08) 0%,rgba(42,36,28,0) 62%)}
 
 /* ============ SEARCH / FILTER ============ */
-.h1row{display:flex;align-items:flex-start;justify-content:space-between}
+.h1row{display:flex;align-items:center;justify-content:space-between}
 .srchBtn{width:42px;height:42px;border-radius:14px;background:var(--card);border:1px solid var(--line);
   display:flex;align-items:center;justify-content:center;color:var(--mut)}
 .srchBtn.on{background:var(--amberSoft);border-color:var(--amber);color:var(--amberDeep)}
@@ -869,7 +869,7 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 
 /* ============ EXPENSE TRACKER ============ */
 .expSum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
-.expSum .es{background:var(--card);border:1px solid var(--line);border-radius:0 16px 16px 0;padding:12px 8px;text-align:center;box-shadow:var(--shadow)}.expSum .es:nth-child(1){border-left:3px solid var(--green)}.expSum .es:nth-child(2){border-left:3px solid var(--coral)}.expSum .es:nth-child(3){border-left:3px solid var(--ice)}
+.expSum .es{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 8px;text-align:center;box-shadow:var(--shadow)}
 .expSum .es b{display:block;font-size:15px;font-weight:800;letter-spacing:-.2px}
 .expSum .es span{font-size:8.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-top:3px;display:block}
 .expMon{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -877,7 +877,7 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 .expMon #expMonTitle{font-family:var(--fDisp);font-size:13px;font-weight:700}
 .segX{display:flex;gap:5px;background:var(--card2);border-radius:14px;padding:4px;margin-bottom:14px;overflow-x:auto}
 .segX button{flex:1;white-space:nowrap;padding:8px 10px;border-radius:10px;font-size:12px;font-weight:800;color:var(--mut);transition:all .2s}
-.segX button.sel{background:var(--card);color:var(--amber);box-shadow:0 1px 4px rgba(0,0,0,.3);font-weight:800}
+.segX button.sel{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 .txRow{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
 .txRow:last-child{border-bottom:none}
 .txIco{width:38px;height:38px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;background:var(--card2)}
@@ -1027,13 +1027,6 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
   .wkBody{max-width:820px;margin:0 auto;width:100%}
   .wkHead{max-width:820px;margin:0 auto;width:100%}
 
-  /* sidebar progress footer */
-  .sideProgress{margin-top:auto;padding:14px 14px 4px;border-top:1px solid var(--line)}
-  .sideProgress .spLbl{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--mut2);margin-bottom:6px}
-  .sideProgress .spBar{height:4px;border-radius:4px;background:var(--card2);overflow:hidden}
-  .sideProgress .spFill{height:100%;border-radius:4px;background:var(--amber);transition:width .3s}
-  .sideProgress .spTxt{font-size:10px;color:var(--mut2);margin-top:4px;text-align:center}
-
   /* mouse hover affordances */
   .habitCard:hover,.exCard:hover,.txRow:hover,.acctCard:hover{border-color:var(--line2)}
   .calCell.hasData:hover{filter:brightness(1.12)}
@@ -1053,7 +1046,7 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 /* ============ POLISHED PRODUCT SYSTEM ============ */
 :root{--primary:#4EA8FF;--primarySoft:rgba(78,168,255,.13);--primaryDeep:#2E7FD6;--surface0:#000;--surface1:#0D1218;--surface2:#151D27;--radius-card:20px;--radius-input:16px;--radius-btn:14px;--radius-chip:10px}
 html.amoled{--surface1:#050505;--surface2:#0E0D0B}
-.h1row{align-items:flex-start}.h1row h1{letter-spacing:-.7px}.heroTop{background:linear-gradient(135deg,var(--card),rgba(78,168,255,.045));border:1px solid var(--line);border-radius:20px;padding:18px 16px;margin:12px 0 10px;min-height:146px;box-shadow:var(--shadow)}.heroTop .hero{justify-content:center}.heroTop .hero::before{width:150px;height:150px}.momBig{font-size:48px;letter-spacing:-2px}.momBig small{font-size:22px}.momLbl{font-size:9px;letter-spacing:2.2px;margin-top:5px;margin-bottom:7px}.chainLine{font-size:12px;color:var(--ink2)}.dayMsg{font-style:normal;background:var(--primarySoft);border:1px solid rgba(78,168,255,.16);border-radius:12px;padding:10px 12px;margin:8px 0 12px;color:var(--ink2)}.wkRow{padding:2px 4px;margin-bottom:12px}.secH{font-size:11px;letter-spacing:1.8px;margin:20px 2px 9px;color:var(--mut2)}.card{border-radius:20px;padding:15px 15px 12px;margin-bottom:10px}.card .emo{width:46px;height:46px;border-radius:14px}.cname{font-size:16px}.cstreak{font-size:12px}.habitMeta{display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap}.habitTarget{font-size:12px;color:var(--mut);font-weight:600}.habitStreak{font-size:11px;color:var(--mut);font-weight:700;background:var(--card2);border-radius:10px;padding:3px 8px}.chk{width:40px;height:40px;border-radius:12px}#fab{height:50px!important;min-height:50px!important;border-radius:14px!important;background:var(--primary)!important;color:#06101A!important;box-shadow:0 8px 24px rgba(78,168,255,.22)!important}#fabLbl{font-weight:800}.segX{border-radius:14px;padding:3px;background:var(--card2);border:1px solid var(--line);gap:2px}.segX button{border-radius:11px;min-height:40px;font-weight:700;color:var(--mut)}.segX button.sel{background:var(--primary);color:#06101A;box-shadow:0 2px 8px rgba(78,168,255,.18)}.expSum .es{border-radius:18px;padding:13px 8px}.expSum .es b{font-size:17px}.expSum .es span{font-size:8px}.txDay{font-size:10px!important;font-weight:800!important;letter-spacing:1.5px!important;text-transform:uppercase;color:var(--mut2)!important;margin-top:17px!important;margin-bottom:7px!important}.txRow{border-radius:16px!important;padding:12px 10px!important;margin-bottom:6px!important}.txIco{border-radius:12px!important}.aiCommandIntro{font-size:12px;color:var(--mut);margin:0 2px 8px}.uaiBox{border-radius:20px;background:linear-gradient(160deg,var(--card),rgba(78,168,255,.035))}.uaiInputRow{border-top:none;padding:10px}.uaiInp{background:var(--bg2);border:1px solid var(--line);border-radius:14px}.uaiMic{border-radius:14px}.uaiSend{background:var(--primary);color:#06101A;border-radius:14px}.uaiHints{padding:0 10px 10px}.uaiHint{border-radius:10px}.aiRecentTitle{font-size:11px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase;color:var(--mut2);margin:20px 2px 8px}.aiRecentEmpty{padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;color:var(--mut);font-size:12px}.aiCfg{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:12px}.aiCfg.notConfigured{border-color:rgba(255,174,31,.25);background:linear-gradient(135deg,rgba(255,174,31,.06),var(--card))}.aiCfgHead{display:flex;align-items:center;gap:10px;padding:14px 15px;cursor:pointer}.aiCfgIcon{width:36px;height:36px;border-radius:11px;background:var(--primarySoft);display:flex;align-items:center;justify-content:center;font-size:16px}.aiCfgMain{flex:1;min-width:0}.aiCfgTitle{font-weight:800;font-size:14px}.aiCfgSub{font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.aiCfgChevron{color:var(--mut);transition:transform .2s}.aiCfg.open .aiCfgChevron{transform:rotate(180deg)}.aiCfgBody{display:none;border-top:1px solid var(--line);padding:12px 15px 15px}.aiCfg.open .aiCfgBody{display:block}.aiStatusLine{display:flex;align-items:center;gap:6px;font-size:11px;margin-top:7px;color:var(--mut)}.aiStatusDot{width:7px;height:7px;border-radius:50%;background:var(--sGreen);display:inline-block}.aiStatusDot.off{background:var(--mut2)}.empty{border-radius:20px!important;background:var(--card)!important;border:1px solid var(--line)!important;padding:30px 18px!important}@media(min-width:700px){#app{max-width:720px;margin:0 auto}.heroTop{min-height:160px}.card{padding-left:18px;padding-right:18px}}
+.h1row{align-items:center}.h1row h1{letter-spacing:-.7px}.heroTop{background:linear-gradient(135deg,var(--card),rgba(78,168,255,.045));border:1px solid var(--line);border-radius:20px;padding:18px 16px;margin:12px 0 10px;min-height:146px;box-shadow:var(--shadow)}.heroTop .hero{justify-content:center}.heroTop .hero::before{width:150px;height:150px}.momBig{font-size:48px;letter-spacing:-2px}.momBig small{font-size:22px}.momLbl{font-size:9px;letter-spacing:2.2px;margin-top:5px;margin-bottom:7px}.chainLine{font-size:12px;color:var(--ink2)}.dayMsg{font-style:normal;background:var(--primarySoft);border:1px solid rgba(78,168,255,.16);border-radius:12px;padding:10px 12px;margin:8px 0 12px;color:var(--ink2)}.wkRow{padding:2px 4px;margin-bottom:12px}.secH{font-size:11px;letter-spacing:1.8px;margin:20px 2px 9px;color:var(--mut2)}.card{border-radius:20px;padding:15px 15px 12px;margin-bottom:10px}.card .emo{width:46px;height:46px;border-radius:14px}.cname{font-size:16px}.cstreak{font-size:12px}.habitMeta{display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap}.habitTarget{font-size:12px;color:var(--mut);font-weight:600}.habitStreak{font-size:11px;color:var(--mut);font-weight:700;background:var(--card2);border-radius:10px;padding:3px 8px}.chk{width:40px;height:40px;border-radius:12px}#fab{height:50px!important;min-height:50px!important;border-radius:14px!important;background:var(--primary)!important;color:#06101A!important;box-shadow:0 8px 24px rgba(78,168,255,.22)!important}#fabLbl{font-weight:800}.segX{border-radius:14px;padding:3px;background:var(--card2);border:1px solid var(--line);gap:2px}.segX button{border-radius:11px;min-height:40px;font-weight:700;color:var(--mut)}.segX button.sel{background:var(--primary);color:#06101A;box-shadow:0 2px 8px rgba(78,168,255,.18)}.expSum .es{border-radius:18px;padding:13px 8px}.expSum .es b{font-size:17px}.expSum .es span{font-size:8px}.txDay{font-size:10px!important;font-weight:800!important;letter-spacing:1.5px!important;text-transform:uppercase;color:var(--mut2)!important;margin-top:17px!important;margin-bottom:7px!important}.txRow{border-radius:16px!important;padding:12px 10px!important;margin-bottom:6px!important}.txIco{border-radius:12px!important}.aiCommandIntro{font-size:12px;color:var(--mut);margin:0 2px 8px}.uaiBox{border-radius:20px;background:linear-gradient(160deg,var(--card),rgba(78,168,255,.035))}.uaiInputRow{border-top:none;padding:10px}.uaiInp{background:var(--bg2);border:1px solid var(--line);border-radius:14px}.uaiMic{border-radius:14px}.uaiSend{background:var(--primary);color:#06101A;border-radius:14px}.uaiHints{padding:0 10px 10px}.uaiHint{border-radius:10px}.aiRecentTitle{font-size:11px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase;color:var(--mut2);margin:20px 2px 8px}.aiRecentEmpty{padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;color:var(--mut);font-size:12px}.aiCfg{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:12px}.aiCfgHead{display:flex;align-items:center;gap:10px;padding:14px 15px;cursor:pointer}.aiCfgIcon{width:36px;height:36px;border-radius:11px;background:var(--primarySoft);display:flex;align-items:center;justify-content:center;font-size:16px}.aiCfgMain{flex:1;min-width:0}.aiCfgTitle{font-weight:800;font-size:14px}.aiCfgSub{font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.aiCfgChevron{color:var(--mut);transition:transform .2s}.aiCfg.open .aiCfgChevron{transform:rotate(180deg)}.aiCfgBody{display:none;border-top:1px solid var(--line);padding:12px 15px 15px}.aiCfg.open .aiCfgBody{display:block}.aiStatusLine{display:flex;align-items:center;gap:6px;font-size:11px;margin-top:7px;color:var(--mut)}.aiStatusDot{width:7px;height:7px;border-radius:50%;background:var(--sGreen);display:inline-block}.aiStatusDot.off{background:var(--mut2)}.empty{border-radius:20px!important;background:var(--card)!important;border:1px solid var(--line)!important;padding:30px 18px!important}@media(min-width:700px){#app{max-width:720px;margin:0 auto}.heroTop{min-height:160px}.card{padding-left:18px;padding-right:18px}}
 
 /* FINAL AMOLED ENFORCEMENT: data-theme is the source of truth and wins over palette/light overrides */
 html[data-theme="amoled"]{
@@ -1296,7 +1289,7 @@ function startReceiptScan(){var inp=$('receiptInput');if(inp)inp.value='';if(inp
 function applyReceiptToExpense(o){
   openExp(null); setTimeout(function(){if(o.amount)$('expAmt').value=o.amount;if(o.merchant)$('expPayee').value=o.merchant;if(o.date){expEd.d=o.date;$('expDateTxt').textContent=niceDate(o.date);}if(o.paymentMethod)$('expMethod').value=o.paymentMethod;if(o.note)$('expNote').value=o.note;if(o.category&&state.cats[o.category]){expCatSel=o.category;expSubSel=o.subcategory||'';paintExpPickers();}if($('expMoreBox').style.display==='none'){$('expMoreBox').style.display='';$('expMore').style.display='none';}toastN('Receipt details loaded — review before saving');},80);
 }
-function wireReceipt(){var b=$('scanReceiptBtn'),inp=$('receiptInput');var ub=$('uploadReceiptBtn'),uinp=$('receiptUploadInput');if(ub&&uinp){ub.addEventListener('click',function(){uinp.value='';uinp.click();});uinp.addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;toastN('Reading receipt…');receiptFileToData(f).then(function(data){return receiptParseWithGemini(data);}).then(function(o){applyReceiptToExpense(o);}).catch(function(e){toastN('Could not read receipt');console.error(e);});});}if(!b||!inp)return;b.addEventListener('click',startReceiptScan);inp.addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;toastN('Reading receipt…');receiptFileToData(f).then(function(data){return receiptParseWithGemini(data);}).then(applyReceiptToExpense).catch(function(e){toastN(e.message||'Receipt scan failed');});});}
+function wireReceipt(){var b=$('scanReceiptBtn'),inp=$('receiptInput');if(!b||!inp)return;b.addEventListener('click',startReceiptScan);inp.addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;toastN('Reading receipt…');receiptFileToData(f).then(function(data){return receiptParseWithGemini(data);}).then(applyReceiptToExpense).catch(function(e){toastN(e.message||'Receipt scan failed');});});}
 setTimeout(function(){try{initLayoutEditors();wireReceipt();}catch(e){console.error(e);}},0);
 
 if(nat && nat.getLaunchAction){
@@ -1468,8 +1461,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="empty" id="empty" hidden>
       <div class="big">&#128279;</div>
       <div class="t">No habits yet</div>
-      <div class="s">Tap + below to add your first habit and start<br>a chain worth keeping.</div>
-      
+      <div class="s">Forge your first habit and start<br>a chain worth keeping.</div>
+      <button class="emptyCtaBtn" id="emptyCta">Create your first habit</button>
     </div>
     
   </div>
@@ -1513,8 +1506,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div id="expAcct" style="display:none"></div>
     <div id="expIns" style="display:none"></div>
 
-    <div class="receiptAction" id="receiptActions" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button class="addT" id="uploadReceiptBtn" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--ink);font-size:12px;font-weight:700">📁 Upload receipt</button><button class="addT" id="scanReceiptBtn" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 8px;border-radius:14px;background:var(--card);border:1px solid var(--line);color:var(--ink);font-size:12px;font-weight:700">📷 Take photo</button></div>
-  <input id="receiptInput" type="file" accept="image/*" capture="environment" style="display:none"><input id="receiptUploadInput" type="file" accept="image/*" style="display:none">
+    <div class="receiptAction" id="receiptActions"><button class="addT" id="scanReceiptBtn">📷 Scan receipt</button></div>
+  <input id="receiptInput" type="file" accept="image/*" capture="environment" style="display:none">
 
   <div class="empty" id="expEmpty" hidden>
       <div class="big">&#128176;</div>
@@ -1855,7 +1848,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <button class="actionItem" data-add-action="mood"><span class="actionIcon">😊</span><span class="actionText"><span class="actionTitle">Mood</span><span class="actionSub">Check in today</span></span></button>
     <button class="actionItem" data-add-action="journal"><span class="actionIcon">📖</span><span class="actionText"><span class="actionTitle">Journal</span><span class="actionSub">Write a quick entry</span></span></button>
     <button class="actionItem" data-add-action="sleep"><span class="actionIcon">😴</span><span class="actionText"><span class="actionTitle">Sleep</span><span class="actionSub">Log last night's sleep</span></span></button>
-    <button class="actionItem" data-add-action="workout"><span class="actionIcon">🏋️</span><span class="actionText"><span class="actionTitle">Workout</span><span class="actionSub">Log an exercise session</span></span></button>
   </div>
 </div>
 
@@ -2271,8 +2263,7 @@ var MOODS = [
  {l:'Neutral',   e:'\uD83D\uDE10', c:'#8B93A7', s:4},
  {l:'Tired',     e:'\uD83D\uDE34', c:'#9B7BFF', s:3},
  {l:'Sad',       e:'\uD83D\uDE22', c:'#4EA8FF', s:2},
- {l:'Stressed',  e:'\uD83D\uDE16', c:'#FF6B5E', s:1},
- {l:'Anxious',   e:'\uD83D\uDE35\u200D\uD83D\uDCAB', c:'#E88B5A', s:0.5}
+ {l:'Stressed',  e:'\uD83D\uDE16', c:'#FF6B5E', s:1}
 ];
 var nat = (typeof Bridge !== 'undefined') ? Bridge : null;
 
@@ -3449,14 +3440,14 @@ function uaiPrompt(text){
   +'complete_habit: {name,date}\n'
   +'uncomplete_habit: {name,date}\n'
   +'delete_habit: {name} always confirm:true\n'
-  +'set_mood: {mood(0=Excellent,1=Happy,2=Calm,3=Neutral,4=Tired,5=Sad,6=Stressed,7=Anxious),date,note}\n'
+  +'set_mood: {mood(0=Excellent,1=Happy,2=Calm,3=Neutral,4=Tired,5=Sad,6=Stressed),date,note}\n'
   +'delete_mood: {date}\n'
   +'set_sleep: {date,bed("HH:MM" 24h),wake("HH:MM" 24h),mins(total)}\n'
   +'delete_sleep: {date}\n'
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
   +'query: {} message=answer the question from app data\n'
   +'clarify: {} message=ask for missing info\n\n'
-  +'RULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,anxious=7,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
+  +'RULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
   +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n\n'
   +'User: '+text;
 }
@@ -4307,14 +4298,13 @@ function renderMoodToday(){
   $('moWhy').style.display = (lowMood && !state.moodNotes[t]) ? '' : 'none';
 }
 function renderMoodWeek(){
-  var ws = weekStart(new Date()), g = '', labels='', days=['M','T','W','T','F','S','S'], t=today();
+  var ws = weekStart(new Date()), g = '';
   for(var i=0;i<7;i++){
-    var ds = fmt(addDays(ws, i)), mi = moodOf(ds), isT=(ds===t);
-    if(mi >= 0) g += '<i style="background:'+hexRgba(MOODS[mi].c,.85)+(isT?';box-shadow:0 0 0 2px var(--amber)':'')+'">'+MOODS[mi].e+'</i>';
-    else g += '<i style="opacity:'+(ds > t ? '.25' : '.6')+(isT?';box-shadow:0 0 0 2px var(--amber)':'')+'">\u00B7</i>';
-    labels += '<span style="flex:1;text-align:center;font-size:8px;font-weight:'+(isT?'800':'600')+';color:'+(isT?'var(--amber)':'var(--mut2)')+'">'+days[i]+'</span>';
+    var ds = fmt(addDays(ws, i)), mi = moodOf(ds);
+    if(mi >= 0) g += '<i style="background:'+hexRgba(MOODS[mi].c,.85)+'">'+MOODS[mi].e+'</i>';
+    else g += '<i style="opacity:'+(ds > today() ? '.25' : '.6')+'">\u00B7</i>';
   }
-  $('moWeek').innerHTML = g + '<div style="display:flex;margin-top:4px">' + labels + '</div>';
+  $('moWeek').innerHTML = g;
 }
 function renderMoodCal(){
   renderMoodWeek();
@@ -4974,7 +4964,7 @@ function renderSleepCard(){
   } else {
     html += '<div class="sleepEmpty"><div class="sleepIco">\uD83D\uDE34</div>'
       +'<div class="se2">How did you sleep last night?</div>'
-      +'<button class="sleepLogBtn" data-sleeplog="1">Log sleep</button><div class="sleepQualBar"><span></span><span></span><span></span><span></span><span></span></div><div class="sleepQualHints"><span>Poor</span><span>Great</span></div></div>';
+      +'<button class="sleepLogBtn" data-sleeplog="1">Log sleep</button></div>';
   }
   // 7-day bars
   var now=new Date(), bars='', anyBar=false, mxH=10;
@@ -6402,7 +6392,7 @@ function handleAddAction(kind){
     else if(kind==='expense'){ showTab('pgExp'); setTimeout(function(){openExp(null);},60); }
     else if(kind==='mood'){ showTab('pgMood'); setTimeout(function(){var g=$('moGrid'); if(g) g.scrollIntoView({behavior:'smooth',block:'center'});},80); }
     else if(kind==='journal'){ setTimeout(function(){openJr(null);},60); }
-    else if(kind==='sleep'){ showTab('pgMood'); setTimeout(function(){openSleep(today());},60); } else if(a==='workout'){ showTab('pgToday'); setTimeout(function(){var wb=document.querySelector('#wkModule button, .wkStartBtn, [onclick*=startWk]');if(wb)wb.click();else toastN('Start a workout from the Today tab');},60); }
+    else if(kind==='sleep'){ showTab('pgMood'); setTimeout(function(){openSleep(today());},60); }
   },80);
 }
 
@@ -7030,7 +7020,7 @@ function init(){
     localStorage.setItem('ai_model',this.value);
     if(getAiKey()) $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Model: '+this.value+'</span>';
   });
-  if($('btnAiSave'))$('btnAiSave').addEventListener('click', function(){
+  $('btnAiSave').addEventListener('click', function(){
     var k=$('aiApiKey').value.trim();
     if(!k){$('aiStatus').textContent='Enter a key first.';return;}
     localStorage.setItem('ai_key',k);
@@ -7040,12 +7030,12 @@ function init(){
     $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Saved · '+AI_PROVIDERS[$('aiProvider').value].name+' · '+$('aiModel').value+'</span>';
     renderInsights();
   });
-  if($('btnAiClear'))$('btnAiClear').addEventListener('click', function(){
+  $('btnAiClear').addEventListener('click', function(){
     localStorage.removeItem('ai_key'); localStorage.removeItem('ai_weekly_narr'); localStorage.removeItem('ai_weekly_narr_day');
     $('aiStatus').innerHTML='Key removed.';
     renderInsights();
   });
-  if($('btnAiFetch'))$('btnAiFetch').addEventListener('click', function(){
+  $('btnAiFetch').addEventListener('click', function(){
     var key=getAiKey()||$('aiApiKey').value.trim();
     var provId=$('aiProvider').value;
     var prov=AI_PROVIDERS[provId];
@@ -7150,7 +7140,7 @@ function init(){
   });
 
   /* empty-state CTAs */
-  if($('emptyCta'))$('emptyCta').addEventListener('click', function(){ openEdit(null); });
+  $('emptyCta').addEventListener('click', function(){ openEdit(null); });
   $('expCta').addEventListener('click', function(){ openExp(null); });
 
   // stats trend selectors
@@ -7437,28 +7427,6 @@ function initLayoutEditors(){
   (function(){var p=$('pgSet'),kids=Array.prototype.slice.call(p.children),ids=[];for(var i=0;i<kids.length;i++){var n=kids[i];if(n.classList.contains('setCard')){var prev=n.previousElementSibling;if(prev&&prev.classList.contains('lbl')){var w=document.createElement('div');w.id='setSec'+ids.length;w.className='layoutSectionSeed';p.insertBefore(w,prev);w.appendChild(prev);w.appendChild(n);ids.push(w.id);}else{if(!n.id)n.id='setCard'+ids.length;ids.push(n.id);}}}layoutInitPage('pgSet','settings',ids.map(function(id){return $(id);}));})();
   Object.keys(layoutDefs).forEach(function(k){bindLayoutCollapse(layoutDefs[k]);});
   layoutAddButton('pgToday','today');layoutAddButton('pgExp','money');layoutAddButton('pgStats','stats');layoutAddButton('pgMood','mood');layoutAddButton('pgJr','journal');layoutAddButton('pgAI','ai');layoutAddButton('pgSet','settings');
-  // sidebar progress bar
-  (function(){
-    var dock=$('tabbar'); if(!dock||!window.matchMedia('(min-width:1000px)').matches)return;
-    var d=document.createElement('div');d.className='sideProgress';d.id='sideProgress';
-    d.innerHTML='<div class="spLbl">Today\'s progress</div><div class="spBar"><div class="spFill" id="spFill" style="width:0%"></div></div><div class="spTxt" id="spTxt">0 / 0 habits</div>';
-    dock.appendChild(d);
-  })();
-  function updateAiCfgStyle(){
-    var cfg=$('aiCfg'); if(!cfg)return;
-    var k=localStorage.getItem('ai_key');
-    cfg.classList.toggle('notConfigured',!k);
-    var sum=$('aiCfgSummary');
-    if(sum&&!k){sum.textContent='Add your API key to get started';sum.style.color='var(--amber)';}
-  }
-  try{setTimeout(updateAiCfgStyle,200);}catch(e){}
-  function updateSideProgress(){
-    var fill=$('spFill'),txt=$('spTxt'); if(!fill)return;
-    var habits=state.habits||[]; var total=habits.length; var done=0;
-    var t=today(); habits.forEach(function(hb){if(hb.log&&hb.log[t])done++;});
-    var pct=total?Math.round(done/total*100):0;
-    fill.style.width=pct+'%'; txt.textContent=done+' / '+total+' habits';
-  }
 }
 function receiptFileToData(file){return new Promise(function(resolve,reject){var r=new FileReader();r.onload=function(){resolve(r.result);};r.onerror=reject;r.readAsDataURL(file);});}
 function receiptParseWithGemini(dataUrl){
@@ -7472,7 +7440,7 @@ function startReceiptScan(){var inp=$('receiptInput');if(inp)inp.value='';if(inp
 function applyReceiptToExpense(o){
   openExp(null); setTimeout(function(){if(o.amount)$('expAmt').value=o.amount;if(o.merchant)$('expPayee').value=o.merchant;if(o.date){expEd.d=o.date;$('expDateTxt').textContent=niceDate(o.date);}if(o.paymentMethod)$('expMethod').value=o.paymentMethod;if(o.note)$('expNote').value=o.note;if(o.category&&state.cats[o.category]){expCatSel=o.category;expSubSel=o.subcategory||'';paintExpPickers();}if($('expMoreBox').style.display==='none'){$('expMoreBox').style.display='';$('expMore').style.display='none';}toastN('Receipt details loaded — review before saving');},80);
 }
-function wireReceipt(){var b=$('scanReceiptBtn'),inp=$('receiptInput');var ub=$('uploadReceiptBtn'),uinp=$('receiptUploadInput');if(ub&&uinp){ub.addEventListener('click',function(){uinp.value='';uinp.click();});uinp.addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;toastN('Reading receipt…');receiptFileToData(f).then(function(data){return receiptParseWithGemini(data);}).then(function(o){applyReceiptToExpense(o);}).catch(function(e){toastN('Could not read receipt');console.error(e);});});}if(!b||!inp)return;b.addEventListener('click',startReceiptScan);inp.addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;toastN('Reading receipt…');receiptFileToData(f).then(function(data){return receiptParseWithGemini(data);}).then(applyReceiptToExpense).catch(function(e){toastN(e.message||'Receipt scan failed');});});}
+function wireReceipt(){var b=$('scanReceiptBtn'),inp=$('receiptInput');if(!b||!inp)return;b.addEventListener('click',startReceiptScan);inp.addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;toastN('Reading receipt…');receiptFileToData(f).then(function(data){return receiptParseWithGemini(data);}).then(applyReceiptToExpense).catch(function(e){toastN(e.message||'Receipt scan failed');});});}
 setTimeout(function(){try{initLayoutEditors();wireReceipt();}catch(e){console.error(e);}},0);
 
 if(nat && nat.getLaunchAction){
