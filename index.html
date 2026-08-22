@@ -1098,35 +1098,24 @@ html[data-theme="amoled"] nav,
 html[data-theme="amoled"] .bottomNav{background:#000000!important}
 html[data-theme="amoled"] .heroTop{background:#000000!important}
 
+
+/* ===== Personal layout editor ===== */
+.layoutEditBtn{margin-left:auto;border:1px solid var(--line);background:var(--card2);color:var(--ink);border-radius:11px;padding:8px 11px;font-weight:800;font-size:11px;letter-spacing:.2px}
+.layoutEditBtn.active{background:var(--primary);color:#06101A;border-color:var(--primary)}
+.layoutSection{position:relative;transition:opacity .18s,transform .18s;margin-bottom:2px}
+.layoutSection.collapsed>.layoutSectionBody{display:none!important}
+.layoutSectionHead{display:flex;align-items:center;gap:8px;padding:0;position:absolute;right:6px;top:6px;z-index:4}
+.layoutSectionHead .layoutSectionGrip,.layoutSectionHead .layoutSectionTitle{display:none}.layoutEditing .layoutSectionHead{position:relative;right:auto;top:auto;padding:7px 3px}.layoutEditing .layoutSectionHead .layoutSectionGrip,.layoutEditing .layoutSectionHead .layoutSectionTitle{display:inline}
+.layoutSectionGrip{font-size:16px;color:var(--mut2);cursor:grab}.layoutSectionTitle{flex:1}.layoutSectionBtns{display:flex;gap:4px}.layoutSectionBtns button{width:28px;height:28px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font-weight:900}.layoutSectionBtns button:disabled{opacity:.3}.layoutCollapseBtn{min-width:28px}
+.layoutSheet .layoutItem{display:flex;align-items:center;gap:9px;padding:11px 10px;border:1px solid var(--line);background:var(--card);border-radius:14px;margin-bottom:7px}.layoutItem .liName{flex:1;font-weight:800;font-size:13px}.layoutItem .liState{font-size:10px;color:var(--mut)}.layoutItem button{width:32px;height:32px;border:1px solid var(--line);background:var(--card2);color:var(--ink);border-radius:9px;font-weight:900}.layoutDone{position:sticky;bottom:0;margin-top:8px}.receiptAction{display:flex;gap:8px;margin:10px 0}.receiptAction button{flex:1;min-height:46px}.receiptPreview{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:12px;margin:10px 0}.receiptPreview img{width:100%;max-height:220px;object-fit:contain;border-radius:12px;background:var(--bg2)}
+.weeklyMini{font-size:10px;color:var(--mut);margin-top:5px}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
 <script>
 if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   window.addEventListener('load', function(){
-    try{
-      var swReloadKey = 'momentum-sw-reloaded';
-      var reloading = false;
-      navigator.serviceWorker.addEventListener('controllerchange', function(){
-        if(reloading || sessionStorage.getItem(swReloadKey) === '1') return;
-        reloading = true;
-        sessionStorage.setItem(swReloadKey, '1');
-        window.location.reload();
-      });
-      navigator.serviceWorker.register('sw.js').then(function(reg){
-        try{ reg.update(); }catch(e){}
-        if(reg.waiting) { try{ reg.waiting.postMessage({type:'SKIP_WAITING'}); }catch(e){} }
-        reg.addEventListener('updatefound', function(){
-          var worker = reg.installing;
-          if(!worker) return;
-          worker.addEventListener('statechange', function(){
-            if(worker.state === 'installed' && navigator.serviceWorker.controller){
-              try{ worker.postMessage({type:'SKIP_WAITING'}); }catch(e){}
-            }
-          });
-        });
-      }).catch(function(){});
-    }catch(e){}
+    try{ navigator.serviceWorker.register('sw.js'); }catch(e){}
   });
 }
 </script>
@@ -1259,7 +1248,10 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div id="expAcct" style="display:none"></div>
     <div id="expIns" style="display:none"></div>
 
-    <div class="empty" id="expEmpty" hidden>
+    <div class="receiptAction" id="receiptActions"><button class="addT" id="scanReceiptBtn">📷 Scan receipt</button></div>
+  <input id="receiptInput" type="file" accept="image/*" capture="environment" style="display:none">
+
+  <div class="empty" id="expEmpty" hidden>
       <div class="big">&#128176;</div>
       <div class="t">No transactions yet</div>
       <div class="s">Track where your money goes.<br>Tap + to add your first expense.</div>
@@ -1803,6 +1795,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <span id="tLbl">per day</span>
   </div>
 
+  <div class="lbl">Weekly target</div>
+  <div class="numRow" style="display:flex"><input id="fWeeklyTarget" class="inp" type="number" min="0" max="7" value="0"><span>days per week (0 = off)</span></div>
+
   <div class="lbl">Icon</div>
   <div class="egrid" id="egrid"></div>
   <div class="lbl">Color</div>
@@ -2046,6 +2041,7 @@ function normHabit(h){
   h.cat = h.cat || 'Other'; h.notes = h.notes || ''; h.quote = h.quote || '';
   h.type = h.type || 'check';
   h.target = Math.max(1, +h.target || 1);
+  h.weeklyTarget = Math.max(0, Math.min(7, +h.weeklyTarget || 0));
   h.unit = h.unit || '';
   h.sched = h.sched || {kind:'daily'};
   h.sched.kind = h.sched.kind || 'daily';
@@ -2645,6 +2641,13 @@ function restLabel(hh){
     if(qp2.n >= qp2.q) lbl = 'Quota met \u00B7 '+qp2.n+'/'+qp2.q+(hh.sched.kind==='wquota'?' this week \uD83C\uDF89':' this month \uD83C\uDF89');
   }
   return lbl;
+}
+function weeklyTargetProgress(h){
+  var target = Math.max(0, Math.min(7, +h.weeklyTarget || 0));
+  if(!target) return null;
+  var ws = weekStart(new Date()), n = 0;
+  for(var i=0;i<7;i++){ var d=addDays(ws,i), ds=fmt(d); if(d>new Date()) continue; if(dueOn(h,d) && (isDone(h,ds)||isFroz(h,ds))) n++; }
+  return {n:n,q:target,pct:Math.min(100,Math.round(n/target*100))};
 }
 function cardHTML(h){
   var ds = today(), t = targ(h), v = val(h, ds), done = v >= t, froz = isFroz(h, ds);
@@ -3559,7 +3562,7 @@ function renderRemList(){
 }
 function syncForm(){
   $('fName').value = ed.name;
-  $('fTarget').value = ed.target; $('fUnit').value = ed.unit;
+  $('fTarget').value = ed.target; $('fUnit').value = ed.unit; $('fWeeklyTarget').value = ed.weeklyTarget || 0;
   $('fX').value = ed.sched.x; $('fQ').value = ed.sched.quota;
   $('fNotes').value = ed.notes; $('fQuote').value = ed.quote;
   $('swRepeat').classList.toggle('on', !!ed.rem.repeat);
@@ -3585,6 +3588,7 @@ function saveHabit(){
   if(!name){ $('fName').focus(); return; }
   ed.name = name;
   ed.target = Math.max(1, +$('fTarget').value || 1);
+  ed.weeklyTarget = Math.max(0, Math.min(7, +$('fWeeklyTarget').value || 0));
   ed.unit = $('fUnit').value.slice(0,12);
   ed.sched.x = Math.max(2, +$('fX').value || 2);
   ed.sched.quota = Math.max(1, +$('fQ').value || 1);
@@ -4493,6 +4497,16 @@ function scheduleWebNotifs(){
 }
 window.extOpen = function(kind, val, acct){
   try{
+    if(kind === 'widget'){
+      var w = typeof val === 'string' ? JSON.parse(val) : val;
+      if(w.action === 'habitCheck' && findHabit(w.habitId)){ setVal(w.habitId, today(), findHabit(w.habitId).goal || 1); toastN('Habit checked in ✓'); }
+      else if(w.action === 'expense'){ openExpFromWidget('exp', null); }
+      else if(w.action === 'receipt'){ showTab('pgExp'); setTimeout(function(){ startReceiptScan(); },200); }
+      else if(w.action === 'mood'){ showTab('pgMood'); setTimeout(function(){ var g=document.querySelector('#moGrid .moBtn'); if(g) g.scrollIntoView({block:'center'}); },250); }
+      else if(w.action === 'moodRemark'){ showTab('pgMood'); setTimeout(function(){ if($('moRem')){ $('moRem').focus(); $('moRem').scrollIntoView({block:'center'}); } },300); }
+      else if(w.action === 'reminder'){ showTab('pgToday'); setTimeout(function(){ if($('nextRem')) $('nextRem').scrollIntoView({block:'center'}); },250); }
+      return;
+    }
     if(kind === 'tab'){ showTab(val); }
     else if(kind === 'habit' && findHabit(val)){ showTab('pgToday'); openDetail(val); }
     else if(kind === 'add'){ openExpFromWidget(val, acct); }
@@ -7082,12 +7096,102 @@ function init(){
   if(state.set.pin) showLock('unlock');
 }
 init();
+/* ================= LAYOUT EDITOR + RECEIPT SCANNER ================= */
+var layoutDefs = {};
+var layoutStateKey = 'habit_layout_v1';
+function layoutLoad(){ try{return JSON.parse(localStorage.getItem(layoutStateKey)||'{}');}catch(e){return {};} }
+function layoutSave(o){ try{localStorage.setItem(layoutStateKey,JSON.stringify(o));}catch(e){} }
+var layoutState = layoutLoad();
+function layoutLabel(el){
+  var id=el.id||'';
+  var map={todayDIWrap:'Today insight',heroTop:'Momentum',restBox:'Rest day',wkdots:'Weekly overview',wkCard:'Weekly summary',qod:'Daily message',nextRem:'Next reminder',aiInsights:'AI insights',recoverBox:'Recovery',stackBox:'Routine stack',list:'Today\'s habits',empty:'Empty state',expSum:'Money summary',expMonNav:'Month',expSeg:'Money views',expSrchWrap:'Search & filters',expTx:'Transactions',expBudg:'Budgets',expAcct:'Accounts',expIns:'Insights',expEmpty:'Empty state',stMain:'Statistics',moWeek:'Mood history',moStats:'Mood statistics',moIns:'Mood insights',jrList:'Journal entries',otdCard:'On this day',uaiBox:'AI assistant',aiRecent:'Recent AI activity',aiCfg:'AI configuration'};
+  if(map[id]) return map[id];
+  var t=el.querySelector('.lbl,.setT,.moPrompt,.aiRecentTitle');
+  return t ? (t.textContent||'Section').trim().slice(0,40) : (id||'Section');
+}
+function ensureLayoutWrap(page, nodes, key){
+  var existing=page.querySelectorAll(':scope > .layoutSection');
+  if(existing.length) return Array.prototype.slice.call(existing);
+  var out=[];
+  nodes.forEach(function(n){
+    if(!n||!n.parentNode)return;
+    var isSeed=n.classList.contains('layoutSectionSeed');
+    var content=isSeed?Array.prototype.slice.call(n.childNodes):[n];
+    var w=isSeed?n:document.createElement('div');
+    w.className='layoutSection';
+    w.dataset.layoutKey=key+'_'+(n.id||Math.random().toString(36).slice(2));
+    if(!isSeed){n.parentNode.insertBefore(w,n);}
+    var head=document.createElement('div');
+    head.className='layoutSectionHead';
+    head.innerHTML='<span class="layoutSectionGrip">☰</span><span class="layoutSectionTitle"></span><div class="layoutSectionBtns"><button class="layoutUp">↑</button><button class="layoutDown">↓</button><button class="layoutCollapseBtn">⌄</button></div>';
+    var body=document.createElement('div'); body.className='layoutSectionBody';
+    while(w.firstChild) w.removeChild(w.firstChild);
+    w.appendChild(head); w.appendChild(body);
+    content.forEach(function(c){body.appendChild(c);});
+    head.querySelector('.layoutSectionTitle').textContent=layoutLabel(content[0]||n);
+    out.push(w);
+  });
+  return out;
+}
+function layoutInitPage(pageId, key, nodeIds){
+  var page=$(pageId); if(!page)return;
+  var nodes=nodeIds.map(function(id){return $(id);}).filter(Boolean);
+  var ws=ensureLayoutWrap(page,nodes,key);
+  layoutDefs[key]={page:page,sections:ws};
+  var saved=layoutState[key]||{}; var order=saved.order||[];
+  var by={}; ws.forEach(function(w){by[w.dataset.layoutKey]=w;});
+  var parent=page; order.forEach(function(id){if(by[id]) parent.appendChild(by[id]);});
+  ws.forEach(function(w){if(!order.includes(w.dataset.layoutKey)) parent.appendChild(w);});
+  var collapsed=saved.collapsed||{}; ws.forEach(function(w){w.classList.toggle('collapsed',!!collapsed[w.dataset.layoutKey]);});
+}
+function layoutAddButton(pageId,key){
+  var page=$(pageId); if(!page)return; var h=page.querySelector('h1'); if(!h)return; var row=h.parentNode; if(row.querySelector('.layoutEditBtn'))return; var b=document.createElement('button');b.className='layoutEditBtn';b.textContent='✎ Edit';b.type='button';b.addEventListener('click',function(){openLayoutEditor(key);});row.classList.add('h1row');row.appendChild(b);
+}
+function openLayoutEditor(key){
+  var def=layoutDefs[key]; if(!def)return; var old=$('layoutSheet'); if(old)old.remove();
+  var sh=document.createElement('div'); sh.className='sheet layoutSheet'; sh.id='layoutSheet'; sh.innerHTML='<div class="grab"></div><h2>Customize '+layoutTabName(key)+'</h2><div class="setS" style="margin-bottom:12px">Reorder sections and choose which ones stay collapsed.</div><div id="layoutItems"></div><button class="primary layoutDone" id="layoutDone">✓ Done</button>';
+  document.body.appendChild(sh); var items=sh.querySelector('#layoutItems');
+  def.sections.forEach(function(w,i){var row=document.createElement('div');row.className='layoutItem';var name=w.querySelector('.layoutSectionTitle').textContent;var col=w.classList.contains('collapsed');row.innerHTML='<span>☰</span><span class="liName"></span><span class="liState">'+(col?'Collapsed':'Expanded')+'</span><button data-move="up">↑</button><button data-move="down">↓</button><button data-col="1">'+(col?'˃':'˅')+'</button>';row.querySelector('.liName').textContent=name;row.querySelector('[data-move="up"]').disabled=i===0;row.querySelector('[data-move="down"]').disabled=i===def.sections.length-1;row.addEventListener('click',function(e){var mv=e.target.getAttribute('data-move');if(mv){var cur=w, sib=mv==='up'?cur.previousElementSibling:cur.nextElementSibling;if(sib&&sib.classList.contains('layoutSection')){cur.parentNode.insertBefore(cur,mv==='up'?sib: sib.nextElementSibling);layoutRefresh(def);openLayoutEditor(key);} } if(e.target.getAttribute('data-col')){w.classList.toggle('collapsed');layoutRefresh(def);openLayoutEditor(key);}});items.appendChild(row);});
+  document.body.appendChild(sh); // openSheet expects existing id
+  openSheet('layoutSheet');
+  sh.querySelector('#layoutDone').addEventListener('click',function(){def.page.classList.remove('layoutEditing');closeSheet();});
+}
+function layoutTabName(k){return ({today:'Today',money:'Money',mood:'Mood',stats:'Stats',journal:'Journal',ai:'AI Assistant',settings:'Settings'})[k]||k;}
+function layoutRefresh(def){var arr=Array.prototype.slice.call(def.page.querySelectorAll(':scope > .layoutSection'));def.sections=arr;var saved=layoutState[Object.keys(layoutDefs).find(function(k){return layoutDefs[k]===def;})]||{};saved.order=arr.map(function(w){return w.dataset.layoutKey;});saved.collapsed={};arr.forEach(function(w){saved.collapsed[w.dataset.layoutKey]=w.classList.contains('collapsed');});layoutState[Object.keys(layoutDefs).find(function(k){return layoutDefs[k]===def;})]=saved;layoutSave(layoutState);}
+function bindLayoutCollapse(def){var p=def.page;p.addEventListener('click',function(e){var b=climb(e.target,p,'class');if(e.target.classList && e.target.classList.contains('layoutCollapseBtn')){var w=e.target.closest('.layoutSection');if(!w)return;w.classList.toggle('collapsed');layoutRefresh(def);e.stopPropagation();}});}
+function initLayoutEditors(){
+  layoutInitPage('pgToday','today',['todaySyncBar','srchWrap','todayDIWrap','heroTop','restBox','wkdots','wkCard','qod','nextRem','aiInsights','recoverBox','stackBox','list','empty']);
+  layoutInitPage('pgExp','money',['expSum','expMonNav','expSeg','expSrchWrap','expTx','expBudg','expAcct','expIns','receiptActions','expEmpty']);
+  layoutInitPage('pgStats','stats',['stEmpty','stMain']);
+  (function(){var p=$('pgMood'),kids=Array.prototype.slice.call(p.children),ids=[];for(var i=0;i<kids.length;i++){var n=kids[i];if(n.classList.contains('setCard')||n.classList.contains('sleepCard')){var prev=n.previousElementSibling;if(prev&&prev.classList.contains('lbl')){var w=document.createElement('div');w.id='moodSec'+ids.length;w.className='layoutSectionSeed';p.insertBefore(w,prev);w.appendChild(prev);w.appendChild(n);ids.push(w.id);}else{if(!n.id)n.id='moodCard'+ids.length;ids.push(n.id);}}}layoutInitPage('pgMood','mood',ids.map(function(id){return $(id);}));})();
+  layoutInitPage('pgJr','journal',['jrSrchWrap','otdCard','jrList','jrEmpty']);
+  layoutInitPage('pgAI','ai',['uaiBox','aiRecent','aiCfg']);
+  (function(){var p=$('pgSet'),kids=Array.prototype.slice.call(p.children),ids=[];for(var i=0;i<kids.length;i++){var n=kids[i];if(n.classList.contains('setCard')){var prev=n.previousElementSibling;if(prev&&prev.classList.contains('lbl')){var w=document.createElement('div');w.id='setSec'+ids.length;w.className='layoutSectionSeed';p.insertBefore(w,prev);w.appendChild(prev);w.appendChild(n);ids.push(w.id);}else{if(!n.id)n.id='setCard'+ids.length;ids.push(n.id);}}}layoutInitPage('pgSet','settings',ids.map(function(id){return $(id);}));})();
+  Object.keys(layoutDefs).forEach(function(k){bindLayoutCollapse(layoutDefs[k]);});
+  layoutAddButton('pgToday','today');layoutAddButton('pgExp','money');layoutAddButton('pgStats','stats');layoutAddButton('pgMood','mood');layoutAddButton('pgJr','journal');layoutAddButton('pgAI','ai');layoutAddButton('pgSet','settings');
+}
+function receiptFileToData(file){return new Promise(function(resolve,reject){var r=new FileReader();r.onload=function(){resolve(r.result);};r.onerror=reject;r.readAsDataURL(file);});}
+function receiptParseWithGemini(dataUrl){
+  var key=getAiKey(); if(!key) return Promise.reject(new Error('Configure a Gemini API key in AI settings first.'));
+  var model=getAiModel()||'gemini-2.5-flash'; var comma=dataUrl.indexOf(','); var b64=dataUrl.slice(comma+1); var mime=(dataUrl.slice(5,comma).split(';')[0]||'image/jpeg');
+  var prompt='Read this receipt and return ONLY valid JSON with keys amount, merchant, date, category, subcategory, paymentMethod, note. amount must be a number. date must be YYYY-MM-DD if visible, otherwise empty. category should be one of Food, Transport, Shopping, Bills & Utilities, Entertainment, Health, Other. Do not invent missing values.';
+  var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent';
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime,data:b64}}]}],generationConfig:{temperature:0.1,maxOutputTokens:300}})}).then(function(r){if(!r.ok)throw new Error('Receipt scan API '+r.status);return r.json();}).then(function(d){var txt=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;if(!txt)throw new Error('No receipt data returned');txt=txt.replace(/^```json\s*|```$/g,'').trim();var o=JSON.parse(txt);return o;});
+}
+function startReceiptScan(){var inp=$('receiptInput');if(inp)inp.value='';if(inp)inp.click();}
+function applyReceiptToExpense(o){
+  openExp(null); setTimeout(function(){if(o.amount)$('expAmt').value=o.amount;if(o.merchant)$('expPayee').value=o.merchant;if(o.date){expEd.d=o.date;$('expDateTxt').textContent=niceDate(o.date);}if(o.paymentMethod)$('expMethod').value=o.paymentMethod;if(o.note)$('expNote').value=o.note;if(o.category&&state.cats[o.category]){expCatSel=o.category;expSubSel=o.subcategory||'';paintExpPickers();}if($('expMoreBox').style.display==='none'){$('expMoreBox').style.display='';$('expMore').style.display='none';}toastN('Receipt details loaded — review before saving');},80);
+}
+function wireReceipt(){var b=$('scanReceiptBtn'),inp=$('receiptInput');if(!b||!inp)return;b.addEventListener('click',startReceiptScan);inp.addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;toastN('Reading receipt…');receiptFileToData(f).then(function(data){return receiptParseWithGemini(data);}).then(applyReceiptToExpense).catch(function(e){toastN(e.message||'Receipt scan failed');});});}
+setTimeout(function(){try{initLayoutEditors();wireReceipt();}catch(e){console.error(e);}},0);
+
 if(nat && nat.getLaunchAction){
   try{
     var _la = JSON.parse(nat.getLaunchAction() || '{}');
     if(_la.tab) showTab(_la.tab);
     else if(_la.habit && findHabit(_la.habit)){ showTab('pgToday'); openDetail(_la.habit); }
     else if(_la.add){ openExpFromWidget(_la.add, _la.acct); }
+    else if(_la.widgetAction){ window.extOpen('widget', JSON.stringify({action:_la.widgetAction, habitId:_la.habitId||''})); }
     else if(_la.voice){ showTab('pgAI'); setTimeout(function(){ startVoice($('uaiInput'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 500); }
   }catch(e){}
 }

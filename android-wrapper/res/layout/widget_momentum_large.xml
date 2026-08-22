@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="16dp" android:background="#0D1218">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
+        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:text="MOMENTUM" android:textColor="#8FA1B5" android:textSize="10sp" android:textStyle="bold" />
+        <TextView android:id="@+id/wMomentum" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="0%" android:textColor="#FFFFFF" android:textSize="28sp" android:textStyle="bold" />
+    </LinearLayout>
+    <ProgressBar android:id="@+id/wProgress" style="@android:style/Widget.ProgressBar.Horizontal" android:layout_width="match_parent" android:layout_height="8dp" android:max="100" android:progress="0" android:progressTint="#4EA8FF" android:backgroundTint="#1A2633" android:layout_marginTop="8dp" />
+    <TextView android:id="@+id/wSub" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="0 / 0 completed" android:textColor="#8FA1B5" android:textSize="11sp" android:paddingTop="6dp" />
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="TODAY'S HABITS" android:textColor="#8FA1B5" android:textSize="10sp" android:textStyle="bold" android:paddingTop="12dp" android:paddingBottom="4dp" />
+    <Button android:id="@+id/wHabit1" android:layout_width="match_parent" android:layout_height="40dp" android:text="Habit 1" android:textAllCaps="false" android:textSize="12sp" android:backgroundTint="#172535" android:textColor="#FFFFFF" />
+    <Button android:id="@+id/wHabit2" android:layout_width="match_parent" android:layout_height="40dp" android:text="Habit 2" android:textAllCaps="false" android:textSize="12sp" android:backgroundTint="#172535" android:textColor="#FFFFFF" />
+    <Button android:id="@+id/wHabit3" android:layout_width="match_parent" android:layout_height="40dp" android:text="Habit 3" android:textAllCaps="false" android:textSize="12sp" android:backgroundTint="#172535" android:textColor="#FFFFFF" />
+    <Button android:id="@+id/wHabit4" android:layout_width="match_parent" android:layout_height="40dp" android:text="Habit 4" android:textAllCaps="false" android:textSize="12sp" android:backgroundTint="#172535" android:textColor="#FFFFFF" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="6dp">
+        <Button android:id="@+id/wExpense" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:text="+ Expense" android:textAllCaps="false" android:textSize="12sp" android:backgroundTint="#172535" android:textColor="#FFFFFF" />
+        <Space android:layout_width="6dp" android:layout_height="1dp" />
+        <Button android:id="@+id/wReceipt" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:text="📷 Receipt" android:textAllCaps="false" android:textSize="12sp" android:backgroundTint="#172535" android:textColor="#FFFFFF" />
+        <Space android:layout_width="6dp" android:layout_height="1dp" />
+        <Button android:id="@+id/wMood" android:layout_width="0dp" android:layout_height="40dp" android:layout_weight="1" android:text="😊 Mood" android:textAllCaps="false" android:textSize="12sp" android:backgroundTint="#172535" android:textColor="#FFFFFF" />
+    </LinearLayout>
+    <Button android:id="@+id/wMoodRemark" android:layout_width="match_parent" android:layout_height="40dp" android:text="📝 Mood + remark" android:textAllCaps="false" android:textSize="12sp" android:backgroundTint="#172535" android:textColor="#FFFFFF" android:layout_marginTop="6dp" />
+    <Button android:id="@+id/wReminder" android:layout_width="match_parent" android:layout_height="40dp" android:text="🔔 Next reminder" android:textAllCaps="false" android:textSize="12sp" android:backgroundTint="#172535" android:textColor="#FFFFFF" android:layout_marginTop="6dp" />
+</LinearLayout>
