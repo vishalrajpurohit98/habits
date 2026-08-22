@@ -1098,17 +1098,6 @@ html[data-theme="amoled"] nav,
 html[data-theme="amoled"] .bottomNav{background:#000000!important}
 html[data-theme="amoled"] .heroTop{background:#000000!important}
 
-
-/* ===== Tab customization + future expense ===== */
-.customizeBtn{border:1px solid var(--line);background:var(--card);color:var(--ink2);border-radius:12px;padding:8px 10px;font-weight:750;font-size:11px}
-.customizeBtn.on{background:var(--amberSoft);color:var(--amber);border-color:var(--amber)}
-.tabEditPanel{display:none;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:10px;margin:8px 0 12px}
-.tabEditPanel.on{display:block}.tabEditTitle{font-size:11px;font-weight:800;letter-spacing:.8px;text-transform:uppercase;color:var(--mut);margin-bottom:8px}
-.tabEditRow{display:flex;align-items:center;gap:8px;padding:9px 8px;border-top:1px solid var(--line)}
-.tabEditRow:first-of-type{border-top:0}.tabEditName{flex:1;font-weight:700;font-size:12px}.tabEditBtns{display:flex;gap:5px}.tabEditBtns button{width:32px;height:30px;border:1px solid var(--line);border-radius:9px;background:var(--card2);color:var(--ink);font-weight:800}.tabEditBtns button:disabled{opacity:.35}.collapseCtl{display:none;float:right;border:0;background:transparent;color:var(--mut);font-size:14px;padding:2px 5px}.customize-edit .collapseCtl{display:inline-flex}.customize-edit [data-custom-section]{outline:1px dashed color-mix(in srgb,var(--amber) 55%,transparent);outline-offset:3px;position:relative}.customize-edit [data-custom-section]:before{content:'⋮⋮';position:absolute;left:-2px;top:-11px;background:var(--amber);color:#111;border-radius:6px;padding:1px 4px;font-size:10px;font-weight:900;z-index:2}.section-collapsed{display:none!important}
-.futureBox{margin-top:12px}.futureHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.futureTitle{font-size:12px;font-weight:850;letter-spacing:.8px;text-transform:uppercase;color:var(--mut)}
-.futureCard{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--line);background:var(--card);border-radius:16px;margin:7px 0}.futureIcon{width:34px;height:34px;border-radius:11px;background:var(--amberSoft);display:grid;place-items:center;font-size:18px}.futureMid{flex:1;min-width:0}.futureName{font-weight:800;font-size:13px}.futureMeta{font-size:11px;color:var(--mut);margin-top:3px}.futureAmt{text-align:right;font-weight:850;font-size:13px}.futureStatus{font-size:10px;margin-top:3px;color:var(--mut)}.futureStatus.overdue{color:var(--coral);font-weight:800}.futureStatus.paid{color:var(--sGreen);font-weight:800}.futureActions{display:flex;gap:6px;margin-top:7px}.futureActions button{border:1px solid var(--line);background:var(--card2);color:var(--ink);border-radius:9px;padding:6px 8px;font-size:10px;font-weight:800}.futureActions .pay{background:var(--sGreen);color:#fff;border-color:var(--sGreen)}
-.receiptBtn{width:100%;border:1px dashed var(--amber);background:var(--amberSoft);color:var(--amber);border-radius:14px;padding:11px;font-weight:800;margin:8px 0}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -1152,9 +1141,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="eyebrow" id="dateLine"></div>
     <div class="h1row">
       <h1 id="greet">Today</h1>
-      <div style="display:flex;gap:6px"><button class="customizeBtn" data-customize="pgToday">Edit</button><button class="srchBtn" id="srchBtn" aria-label="Search habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div>
+      <button class="srchBtn" id="srchBtn" aria-label="Search habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
-    <div class="tabEditPanel" id="editPanel-pgToday"><div class="tabEditTitle">Customize Today</div><div id="editRows-pgToday"></div></div>
     <div class="todaySyncBar" id="todaySyncBar" aria-live="polite">
       <div class="todaySyncState">
         <span class="todaySyncDot" id="todaySyncDot"></span>
@@ -1215,12 +1203,11 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <div class="page" id="pgExp">
     <div class="eyebrow" id="expMonthLbl"></div>
     <div class="h1row"><h1>Money</h1>
-      <div style="display:flex;gap:6px"><button class="customizeBtn" data-customize="pgExp">Edit</button><button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div>
+      <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
-    <div class="tabEditPanel" id="editPanel-pgExp"><div class="tabEditTitle">Customize Money</div><div id="editRows-pgExp"></div></div>
     <div style="height:12px"></div>
 
-    <div class="expSum" id="expSum" data-custom-section="expSum"></div>
+    <div class="expSum" id="expSum"></div>
 
     <div class="expMon" id="expMonNav">
       <button id="expPrev">&#8249;</button>
@@ -1245,8 +1232,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       </div>
     </div>
 
-    <div class="futureBox" id="futureExpBox" data-custom-section="futureExp"><div class="futureHead"><div class="futureTitle">Upcoming &amp; Pending</div><button class="customizeBtn" id="futureAddBtn">+ Add</button></div><div id="futureExpList"></div></div>
-    <div id="expTx" data-custom-section="expTx"></div>
+    <div id="expTx"></div>
     <div id="expBudg" style="display:none"></div>
     <div id="expAcct" style="display:none"></div>
     <div id="expIns" style="display:none"></div>
@@ -1259,7 +1245,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
   </div>
 
-  <div class="page" id="pgStats"><div class="tabEditPanel" id="editPanel-pgStats"><div class="tabEditTitle">Customize Stats</div><div id="editRows-pgStats"></div></div>
+  <div class="page" id="pgStats">
     <div class="eyebrow">Your numbers</div>
     <h1>Stats</h1>
     <div style="height:16px"></div>
@@ -1331,7 +1317,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   </div>
 
   <!-- ============ MOOD ============ -->
-  <div class="page" id="pgMood"><div class="tabEditPanel" id="editPanel-pgMood"><div class="tabEditTitle">Customize Mood</div><div id="editRows-pgMood"></div></div>
+  <div class="page" id="pgMood">
     <div class="eyebrow">Check in</div>
     <h1>Mood</h1>
     <div style="height:16px"></div>
@@ -1433,16 +1419,16 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ SETTINGS ============ -->
   <!-- ============ AI PAGE ============ -->
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
-  <div class="page" id="pgAI"><div class="tabEditPanel" id="editPanel-pgAI"><div class="tabEditTitle">Customize AI</div><div id="editRows-pgAI"></div></div>
+  <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
-    <div class="uaiBox" id="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
+    <div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
     <div class="aiRecentTitle">Recent</div><div id="aiRecent"></div>
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
       <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS" id="aiModelHint">Select a provider first</div></div></div><select class="inp" id="aiModel" style="margin:6px 0 10px;padding:12px 14px"></select><div class="setRow"><div class="setInfo"><div class="setT">API key</div><div class="setS" id="aiKeyHint">Paste your key</div></div></div><input class="inp" id="aiApiKey" type="password" placeholder="Paste your API key" style="margin:6px 0 8px"><div class="half"><button class="sbtn acc" id="btnAiSave">Save</button><button class="sbtn" id="btnAiClear">Remove</button><button class="sbtn" id="btnAiFetch">↻ Models</button></div><div id="aiStatus" class="aiStatusLine"></div>
     </div></div>
   </div>
-  <div class="page" id="pgSet"><div class="tabEditPanel" id="editPanel-pgSet"><div class="tabEditTitle">Customize Settings</div><div id="editRows-pgSet"></div></div>
+  <div class="page" id="pgSet">
     <div class="eyebrow">Make it yours</div>
     <h1>Settings</h1>
     <div style="height:16px"></div>
@@ -1604,7 +1590,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <button data-k="inc">Income</button>
     <button data-k="xfer">Transfer</button>
   </div>
-  <button class="receiptBtn" id="receiptScanBtn">📷 Scan receipt</button><input type="file" id="receiptFile" accept="image/*" capture="environment" style="display:none"><div id="receiptStatus" class="setS" style="display:none;text-align:center;margin:4px 0 8px"></div>
   <input id="expAmt" class="inp numPad" type="number" inputmode="decimal" step="any" min="0" placeholder="0">
   <div class="lbl" id="expCatLbl">Category</div>
   <div class="pickGrid" id="expCatGrid"></div>
@@ -1639,20 +1624,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   </div>
   <button class="primary" id="expSave">Save</button>
   <button class="danger" id="expDel" style="display:none">Delete</button>
-</div>
-
-<!-- ============ FUTURE EXPENSE SHEET ============ -->
-<div class="sheet" id="futureSheet">
-  <div class="grab"></div><h2 id="futureSheetT">Add upcoming expense</h2>
-  <div class="lbl">Name / bill</div><input id="futureName" class="inp" maxlength="60" placeholder="e.g. HDFC Credit Card">
-  <div class="lbl">Amount</div><input id="futureAmt" class="inp numPad" type="number" min="0" step="any" placeholder="0">
-  <div class="lbl">Due date</div><input id="futureDue" class="inp" type="date">
-  <div class="lbl">Category</div><input id="futureCat" class="inp" maxlength="40" placeholder="Bills & Utilities">
-  <div class="lbl">Reminder</div><select id="futureRem" class="inp"><option value="0">On due date</option><option value="1">1 day before</option><option value="3" selected>3 days before</option><option value="5">5 days before</option><option value="7">7 days before</option></select>
-  <div class="lbl">Repeat</div><select id="futureFreq" class="inp"><option value="none">One time</option><option value="monthly">Monthly</option><option value="yearly">Yearly</option></select>
-  <div class="lbl">Account</div><div class="pickGrid" id="futureAcctGrid"></div>
-  <button class="primary" id="futureSave">Save pending expense</button>
-  <button class="danger" id="futureDel" style="display:none">Delete</button>
 </div>
 
 <!-- ============ ACCOUNT SHEET ============ -->
@@ -2140,17 +2111,6 @@ function normState(s){
     x.note = String(x.note || '').slice(0,200); x.tags = String(x.tags || '').slice(0,80);
     x.created = +x.created || 0;
     s.tx[ti] = x;
-  }
-  if(!(s.futureExp instanceof Array)) s.futureExp = [];
-  for(var fi=0; fi<s.futureExp.length; fi++){
-    var fe=s.futureExp[fi]||{};
-    fe.id=fe.id||('f'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
-    fe.name=String(fe.name||'Upcoming expense').slice(0,60); fe.amt=Math.max(0,+fe.amt||0);
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(fe.due||'')) fe.due=today();
-    fe.cat=String(fe.cat||'Bills & Utilities').slice(0,40); fe.acct=String(fe.acct||''); fe.reminder=Math.max(0,+fe.reminder||0);
-    fe.freq=['none','monthly','yearly'].indexOf(fe.freq)>=0?fe.freq:'none'; fe.status=['pending','paid'].indexOf(fe.status)>=0?fe.status:'pending';
-    fe.paidAt=/^\d{4}-\d{2}-\d{2}$/.test(fe.paidAt||'')?fe.paidAt:''; fe.created=+fe.created||Date.now();
-    s.futureExp[fi]=fe;
   }
   if(!s.cats || typeof s.cats !== 'object' || s.cats instanceof Array) s.cats = null;
   if(!s.cats) s.cats = defaultCats();
@@ -3126,12 +3086,6 @@ if(!localStorage.getItem('ai_key')&&localStorage.getItem('gem_api_key')){
 
 function getGemKey(){ return getAiKey(); }
 
-function gemReceiptCall(dataUrl){
-  var key=getAiKey(); if(!key || getAiProvider()!=='gemini') return Promise.reject(new Error('Receipt scanning needs a Gemini API key.'));
-  var model=getAiModel(); var parts=dataUrl.split(','); var mime=(parts[0].match(/data:([^;]+);/)||[])[1]||'image/jpeg';
-  return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:'Read this receipt and return ONLY valid JSON with keys amount, merchant, date, category, method, note. amount must be a number. date must be YYYY-MM-DD or empty. category should be one of Food, Transport, Shopping, Bills & Utilities, Entertainment, Health, Other.'},{inlineData:{mimeType:mime,data:parts[1]}}]}],generationConfig:{temperature:0,maxOutputTokens:250}})}).then(function(r){if(!r.ok)throw new Error('Receipt API '+r.status);return r.json();}).then(function(d){var t=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text||'';t=t.replace(/^```json\s*/,'').replace(/\s*```$/,'').trim();return JSON.parse(t);});
-}
-function receiptFromImage(file){var st=$('receiptStatus');st.style.display='';st.textContent='Reading receipt…';var rd=new FileReader();rd.onload=function(){gemReceiptCall(rd.result).then(function(x){if(x.amount)$('expAmt').value=x.amount;if(x.merchant)$('expPayee').value=x.merchant;if(x.method)$('expMethod').value=x.method;if(x.note)$('expNote').value=x.note;if(x.date&&/^\d{4}-\d{2}-\d{2}$/.test(x.date)){expEd.d=x.date;$('expDateTxt').textContent=x.date===today()?'Today':niceDate(x.date);}if(x.category){expCatSel=x.category;paintExpPickers();}st.textContent='Receipt read — review the fields before saving.';}).catch(function(e){st.textContent=e.message||'Could not read receipt. Enter details manually.';});};rd.readAsDataURL(file);}
 function gemCall(prompt, maxTokens){
   var key=getAiKey(); if(!key) return Promise.reject(new Error('No API key'));
   var prov=AI_PROVIDERS[getAiProvider()];
@@ -4491,9 +4445,6 @@ function scheduleWebNotifs(){
   if(!webNotifSupported() || !state.set.webNotif) return;
   if(Notification.permission !== 'granted') return;
   var now = new Date(), td = today();
-  var future=state.futureExp||[];
-  for(var fi=0;fi<future.length;fi++){var fe=future[fi];if(fe.status==='paid'||!fe.reminder)continue;var dd=toDate(fe.due);dd.setDate(dd.getDate()-fe.reminder);var at=new Date(dd.getFullYear(),dd.getMonth(),dd.getDate(),9,0,0,0);var delay=at.getTime()-Date.now();if(delay<=0||delay>86400000*31)continue;(function(item){var id=setTimeout(function(){try{var n=new Notification('💳 '+item.name,{body:inr(item.amt)+' due '+niceDate(item.due),tag:'future-'+item.id,icon:'icon-192.png'});n.onclick=function(){window.focus();showTab('pgExp');n.close();};}catch(e){}},delay);webTimers.push(id);})(fe);}
-
   for(var i=0;i<state.habits.length;i++){
     var h = state.habits[i];
     if(h.arch || !dueOn(h, now) || isDone(h, td)) continue;
@@ -5214,20 +5165,6 @@ function catTotals(y,m){
   return map;
 }
 
-function futureStatus(fe){ if(fe.status==='paid') return {t:'Paid',c:'paid'}; var t=today(); return fe.due<t?{t:'Overdue',c:'overdue'}:{t:'Pending',c:''}; }
-function renderFutureExpenses(){
-  var box=$('futureExpList'); if(!box) return; var arr=state.futureExp||[];
-  arr.sort(function(a,b){ return a.due<b.due?-1:a.due>b.due?1:0; });
-  if(!arr.length){ box.innerHTML='<div class="setS" style="padding:8px 0 4px">No upcoming expenses. Add a credit-card bill, EMI, rent or subscription.</div>'; return; }
-  var h='';
-  for(var i=0;i<arr.length;i++){ var fe=arr[i], st=futureStatus(fe); var acct=acctById(fe.acct); h+='<div class="futureCard"><div class="futureIcon">💳</div><div class="futureMid"><div class="futureName">'+esc(fe.name)+'</div><div class="futureMeta">Due '+niceDate(fe.due)+(acct?' · '+esc(acct.name):'')+' · '+esc(fe.cat)+'</div><div class="futureStatus '+st.c+'">'+st.t+(fe.paidAt?' on '+niceDate(fe.paidAt):'')+(fe.reminder>0&&st.t!=='Paid'?' · 🔔 '+fe.reminder+'d before':'')+'</div><div class="futureActions"><button data-fedit="'+fe.id+'">Edit</button>'+(st.t!=='Paid'?'<button class="pay" data-fpaid="'+fe.id+'">✓ Mark paid</button>':'')+'<button data-fdel="'+fe.id+'">Delete</button></div></div><div class="futureAmt">'+inr(fe.amt)+'</div></div>'; }
-  box.innerHTML=h;
-}
-var futureEd=null;
-function openFuture(id){ var x=null; if(id){for(var i=0;i<state.futureExp.length;i++)if(state.futureExp[i].id===id)x=state.futureExp[i];} futureEd=x?JSON.parse(JSON.stringify(x)):{id:'',name:'',amt:0,due:today(),cat:'Bills & Utilities',acct:activeAccts()[0]?activeAccts()[0].id:'',reminder:3,freq:'none',status:'pending',paidAt:'',created:Date.now()}; futureEd._edit=id||''; $('futureSheetT').textContent=id?'Edit upcoming expense':'Add upcoming expense'; $('futureName').value=futureEd.name; $('futureAmt').value=futureEd.amt||''; $('futureDue').value=futureEd.due; $('futureCat').value=futureEd.cat; $('futureRem').value=String(futureEd.reminder||0); $('futureFreq').value=futureEd.freq||'none'; var ag='';activeAccts().forEach(function(a){ag+=chip(a.name,a.id===futureEd.acct,'data-fea',a.id);});$('futureAcctGrid').innerHTML=ag;$('futureDel').style.display=id?'':'none';openSheet('futureSheet');}
-function saveFuture(){ var n=$('futureName').value.trim(), amt=parseFloat($('futureAmt').value), due=$('futureDue').value; if(!n){toastN('Enter a bill name');return;}if(!(amt>0)){toastN('Enter an amount');return;}if(!due){toastN('Pick a due date');return;}futureEd.name=n;futureEd.amt=amt;futureEd.due=due;futureEd.cat=$('futureCat').value.trim()||'Other';futureEd.reminder=+$('futureRem').value||0;futureEd.freq=$('futureFreq').value; if(futureEd._edit){for(var i=0;i<state.futureExp.length;i++)if(state.futureExp[i].id===futureEd._edit){delete futureEd._edit;state.futureExp[i]=futureEd;break;}}else{delete futureEd._edit;futureEd.id='f'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);state.futureExp.push(futureEd);}persist();closeSheet();renderExp();scheduleWebNotifs();toastN('Upcoming expense saved');}
-function markFuturePaid(id){for(var i=0;i<state.futureExp.length;i++){var fe=state.futureExp[i];if(fe.id!==id)continue;fe.status='paid';fe.paidAt=today();var tx={kind:'exp',amt:fe.amt,acct:fe.acct,cat:fe.cat,sub:'',payee:fe.name,method:'',note:'Upcoming expense · marked paid',tags:'',d:today(),created:Date.now()};state.tx.push(normTx(tx));if(fe.freq!=='none'){var d=toDate(fe.due);d.setMonth(d.getMonth()+(fe.freq==='monthly'?1:12));fe.due=fmt(d);fe.status='pending';fe.paidAt='';}persist();renderExp();toastN('Marked paid');return;}}
-function deleteFuture(id){if(!confirm('Delete this upcoming expense?'))return;state.futureExp=state.futureExp.filter(function(x){return x.id!==id;});persist();renderExp();toastN('Deleted');}
 function renderExp(){
   runRecur();
   var now=new Date();
@@ -5240,7 +5177,6 @@ function renderExp(){
   $('expMonNav').style.display = (expView==='tx'||expView==='budg'||expView==='ins')?'':'none';
   ['expTx','expBudg','expAcct','expIns'].forEach(function(id){ $(id).style.display='none'; });
   $('expEmpty').hidden = true;
-  renderFutureExpenses();
   if(expView==='tx') renderExpTx();
   else if(expView==='budg') renderExpBudg();
   else if(expView==='acct') renderExpAcct();
@@ -6131,32 +6067,6 @@ window.onNativeResume = function(){
   if(wasHidden){ wasHidden = false; lockNow(); }
 };
 
-/* ================= per-tab customization ================= */
-var CUSTOM_SECTIONS={pgExp:[['expSum','Money summary'],['futureExp','Upcoming & pending'],['expMonNav','Month navigation'],['expSeg','Money views'],['expTx','Transactions']],pgToday:[['todayDIWrap','Daily insight'],['heroTop','Momentum'],['restBox','Recovery'],['wkRow','Week progress'],['wkCard','Week summary'],['qod','Daily prompt'],['nextRem','Next reminder'],['aiInsights','Insights'],['recoverBox','Recovery suggestions'],['stackBox','Habit chain'],['list','Today habits']],pgMood:[['moodToday','Today'],['moodHistory','History']],pgStats:[['stMain','Statistics']],pgAI:[['uaiBox','AI assistant'],['aiRecent','Recent AI']],pgSet:[['setMain','Settings']]};
-function customKey(tab){return 'custom_layout_'+tab;} function customClosedKey(tab){return 'custom_closed_'+tab;}
-function setupCustomSections(){
-  Object.keys(CUSTOM_SECTIONS).forEach(function(tab){
-    var page=$(tab); if(!page)return;
-    var known={}; CUSTOM_SECTIONS[tab].forEach(function(pair){var el=$(pair[0]);if(el&&el.parentElement===page){el.setAttribute('data-custom-section',pair[0]);known[pair[0]]=1;}});
-    if(!CUSTOM_SECTIONS[tab].some(function(pair){return $(pair[0])&&$(pair[0]).parentElement===page;})){
-      var kids=Array.prototype.slice.call(page.children), n=0;
-      kids.forEach(function(el){
-        if(el.classList.contains('eyebrow')||el.tagName==='H1'||el.classList.contains('h1row')||el.classList.contains('tabEditPanel')||el.id==='empty'||el.id==='expEmpty')return;
-        if(el.tagName==='DIV' && !el.textContent.trim())return;
-        var id='autoSec'+n++; el.setAttribute('data-custom-section',id); el.id=el.id||id;
-        CUSTOM_SECTIONS[tab].push([el.id,'Section '+n]);
-      });
-    }
-    var btn=page.querySelector('[data-customize]');
-    if(!btn){var h=page.querySelector('.h1row')||page.querySelector('h1');if(h){btn=document.createElement('button');btn.className='customizeBtn';btn.setAttribute('data-customize',tab);btn.textContent='Edit';(h.parentElement||h).appendChild(btn);}}
-  });
-}
-function getCustomOrder(tab){var d;try{d=JSON.parse(localStorage.getItem(customKey(tab))||'null');}catch(e){d=null;}return d&&d.length?d:CUSTOM_SECTIONS[tab].map(function(x){return x[0];});}
-function getCustomClosed(tab){try{return JSON.parse(localStorage.getItem(customClosedKey(tab))||'{}')||{};}catch(e){return {};}}
-function applyCustomLayout(tab){var page=$(tab);if(!page)return;var order=getCustomOrder(tab), closed=getCustomClosed(tab), pos={};order.forEach(function(id,i){pos[id]=i;});var els=[];CUSTOM_SECTIONS[tab].forEach(function(p){var el=$(p[0]);if(el&&el.parentElement===page)els.push(el);});els.sort(function(a,b){return ((pos[a.id]===undefined)?99:pos[a.id])-(pos[b.id]??99);});els.forEach(function(el){page.appendChild(el);el.classList.toggle('section-collapsed',!!closed[el.id]);});}
-function renderCustomEditor(tab,on){var panel=$('editPanel-'+tab);if(!panel)return;panel.classList.toggle('on',on);var page=$(tab);page.classList.toggle('customize-edit',on);if(!on)return;var order=getCustomOrder(tab), defs=CUSTOM_SECTIONS[tab], closed=getCustomClosed(tab), html='';order.forEach(function(id,i){var d=defs.find(function(x){return x[0]===id;});if(!d)return;html+='<div class="tabEditRow"><div class="tabEditName">'+esc(d[1])+'</div><div class="tabEditBtns"><button data-cu="up" data-id="'+id+'" '+(i?'':'disabled')+'>↑</button><button data-cu="down" data-id="'+id+'" '+(i<order.length-1?'':'disabled')+'>↓</button><button data-cu="collapse" data-id="'+id+'">'+(closed[id]?'▸':'▾')+'</button></div></div>';});panel.querySelector('#editRows-'+tab).innerHTML=html;}
-function toggleCustomize(tab){var page=$(tab),on=!page.classList.contains('customize-edit');applyCustomLayout(tab);renderCustomEditor(tab,on);var b=page.querySelector('[data-customize]');if(b){b.classList.toggle('on',on);b.textContent=on?'Done':'Edit';}}
-function customAction(tab,action,id){var order=getCustomOrder(tab),closed=getCustomClosed(tab),i=order.indexOf(id);if(action==='up'&&i>0){var t=order[i-1];order[i-1]=order[i];order[i]=t;}if(action==='down'&&i<order.length-1){var t=order[i+1];order[i+1]=order[i];order[i]=t;}if(action==='collapse')closed[id]=!closed[id];localStorage.setItem(customKey(tab),JSON.stringify(order));localStorage.setItem(customClosedKey(tab),JSON.stringify(closed));applyCustomLayout(tab);renderCustomEditor(tab,true);}
 /* ================= pickers & tabs ================= */
 function buildPickers(){
   var eh = '';
@@ -6218,8 +6128,6 @@ function climb(el, root, attr){
 /* ================= init & wiring ================= */
 function init(){
   buildPickers();
-  setupCustomSections();
-  Object.keys(CUSTOM_SECTIONS).forEach(function(t){applyCustomLayout(t);});
 
   $('tabbar').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-tab');
@@ -6233,8 +6141,6 @@ function init(){
     if(b) handleAddAction(b.getAttribute('data-add-action'));
   });
   $('scrim').addEventListener('click', function(){ closeSheet(); });
-
-  document.addEventListener('click',function(e){var cb=climb(e.target,document,'data-customize');if(cb){toggleCustomize(cb.getAttribute('data-customize'));return;}var cu=climb(e.target,document,'data-cu');if(cu){var tab=cu.closest('.tabEditPanel')&&cu.closest('.tabEditPanel').id.replace('editPanel-','');if(tab)customAction(tab,cu.getAttribute('data-cu'),cu.getAttribute('data-id'));}});
 
   /* search & category filter */
   $('srchBtn').addEventListener('click', function(){
@@ -7101,14 +7007,6 @@ function init(){
     persist(); closeSheet(); renderExp(); toastN('Deleted');
   });
 
-  $('futureAddBtn').addEventListener('click',function(){openFuture(null);});
-  $('futureExpList').addEventListener('click',function(e){var p=climb(e.target,this,'data-fpaid');if(p){markFuturePaid(p.getAttribute('data-fpaid'));return;}var ed=climb(e.target,this,'data-fedit');if(ed){openFuture(ed.getAttribute('data-fedit'));return;}var dl=climb(e.target,this,'data-fdel');if(dl){deleteFuture(dl.getAttribute('data-fdel'));return;}});
-  $('futureAcctGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-fea');if(!b)return;futureEd.acct=b.getAttribute('data-fea');var bs=this.children;for(var i=0;i<bs.length;i++)bs[i].classList.toggle('sel',bs[i]===b);});
-  $('futureSave').addEventListener('click',saveFuture);
-  $('futureDel').addEventListener('click',function(){if(!futureEd||!futureEd._edit)return;deleteFuture(futureEd._edit);closeSheet();});
-
-  $('receiptScanBtn').addEventListener('click',function(){$('receiptFile').click();});
-  $('receiptFile').addEventListener('change',function(){var f=this.files&&this.files[0];if(!f)return;receiptFromImage(f);this.value='';});
   // account sheet
   $('acctTypeGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-at'); if(!b) return; acctTypeSel=b.getAttribute('data-at'); var bs=this.children; for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i]===b); });
   $('acctActive').addEventListener('click', function(){ this.classList.toggle('on'); });
