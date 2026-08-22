@@ -63,7 +63,7 @@ public class MomentumWidgetProvider extends AppWidgetProvider {
         int[] ids={R.id.wHabit1,R.id.wHabit2,R.id.wHabit3,R.id.wHabit4};
         int pos=0;
         if(hs!=null){
-            for(int i=0;i<hs.length() && pos<ids.length();i++){
+            for(int i=0;i<hs.length() && pos<ids.length;i++){
                 JSONObject h=hs.optJSONObject(i); if(h==null||h.optBoolean("arch",false))continue;
                 String name=h.optString("name","Habit"); boolean done=done(h.optJSONObject("done"),td);
                 v.setTextViewText(ids[pos],(done?"✓ ":"○ ")+name+(h.has("weeklyTarget")?" · "+weeklyProgress(h,hs,td):""));
