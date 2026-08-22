@@ -30,6 +30,8 @@ public class MainActivity extends Activity {
     static final int REQ_EXACT = 402;
     static final int REQ_IMPORT = 403;
     static final int REQ_PHOTO = 404;
+    static final int REQ_RECEIPT_UPLOAD = 406;
+    static final int REQ_RECEIPT_CAMERA = 407;
     static final int REQ_SPEECH = 405;
 
     static final String APP_HOST = "personal-tracker.local";
@@ -123,7 +125,10 @@ public class MainActivity extends Activity {
                 // The app's own import path uses Bridge.pickImport(). This also supports ordinary <input type=file>.
                 Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                 i.addCategory(Intent.CATEGORY_OPENABLE);
-                i.setType("*/*");
+                String[] accept = p.getAcceptTypes();
+                boolean imageOnly = false;
+                if (accept != null) for (String a : accept) if (a != null && a.toLowerCase(Locale.US).startsWith("image/")) imageOnly = true;
+                i.setType(imageOnly ? "image/*" : "*/*");
                 i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
                 fileChooserCallback = cb;
                 try { startActivityForResult(i, REQ_IMPORT); } catch (Exception e) { fileChooserCallback = null; return false; }
@@ -225,6 +230,15 @@ public class MainActivity extends Activity {
         i.addCategory(Intent.CATEGORY_OPENABLE); i.setType("image/*");
         try { startActivityForResult(i, REQ_PHOTO); } catch (Exception e) { toast("Photo picker unavailable"); }
     }
+    void pickReceiptUpload() {
+        Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        i.addCategory(Intent.CATEGORY_OPENABLE); i.setType("image/*");
+        try { startActivityForResult(i, REQ_RECEIPT_UPLOAD); } catch (Exception e) { toast("Receipt picker unavailable"); }
+    }
+    void pickReceiptCamera() {
+        Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        try { startActivityForResult(i, REQ_RECEIPT_CAMERA); } catch (Exception e) { toast("Camera unavailable"); }
+    }
 
     @Override public void onRequestPermissionsResult(int req, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(req, permissions, grants);
@@ -258,6 +272,17 @@ public class MainActivity extends Activity {
                 }
                 js("window.photoResult&&window.photoResult('"+name+"')");
             } catch(Exception e){ toast("Could not save photo"); }
+        } else if (req == REQ_RECEIPT_UPLOAD && result == RESULT_OK && data != null && data.getData()!=null) {
+            saveReceiptFromUri(data.getData());
+        } else if (req == REQ_RECEIPT_CAMERA && result == RESULT_OK && data != null && data.getExtras()!=null && data.getExtras().get("data") instanceof android.graphics.Bitmap) {
+            try {
+                String name = "receipt_"+System.currentTimeMillis()+".jpg";
+                File dir = new File(getFilesDir(), "receipts"); if(!dir.exists()) dir.mkdirs();
+                File f = new File(dir,name);
+                android.graphics.Bitmap bmp = (android.graphics.Bitmap)data.getExtras().get("data");
+                try(OutputStream out=new FileOutputStream(f)){ bmp.compress(android.graphics.Bitmap.CompressFormat.JPEG,90,out); }
+                js("window.receiptResult&&window.receiptResult("+JSONObject.quote(name)+")");
+            } catch(Exception e){ toast("Could not save receipt photo"); }
         } else if (req == REQ_SPEECH) {
             if (result == RESULT_OK && data != null) {
                 ArrayList<String> r = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
@@ -266,6 +291,18 @@ public class MainActivity extends Activity {
             } else js("window._speechResult&&window._speechResult("+JSONObject.quote(pendingSpeechId)+",'','cancelled')");
             pendingSpeechId=null;
         }
+    }
+
+    void saveReceiptFromUri(Uri uri) {
+        try {
+            String name = "receipt_"+System.currentTimeMillis()+".jpg";
+            File dir = new File(getFilesDir(), "receipts"); if(!dir.exists()) dir.mkdirs();
+            File f = new File(dir,name);
+            try(InputStream in=getContentResolver().openInputStream(uri); OutputStream out=new FileOutputStream(f)){
+                byte[] buf=new byte[8192]; int n; while((n=in.read(buf))>0) out.write(buf,0,n);
+            }
+            js("window.receiptResult&&window.receiptResult("+JSONObject.quote(name)+")");
+        } catch(Exception e){ toast("Could not read receipt"); }
     }
 
     static byte[] readAll(InputStream in) throws IOException {
@@ -346,6 +383,9 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void pickTime(int h,int m){MainActivity.this.pickTime(h,m);}
         @JavascriptInterface public void pickImport(){MainActivity.this.importFile();}
         @JavascriptInterface public void pickPhoto(){MainActivity.this.pickPhoto();}
+        @JavascriptInterface public void pickReceiptUpload(){MainActivity.this.pickReceiptUpload();}
+        @JavascriptInterface public void pickReceiptCamera(){MainActivity.this.pickReceiptCamera();}
+        @JavascriptInterface public String readReceipt(String name){try{File f=new File(new File(getFilesDir(),"receipts"),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public String readPhoto(String name){try{File f=new File(new File(getFilesDir(),pendingPhotoDir),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public void deletePhoto(String name){try{new File(new File(getFilesDir(),pendingPhotoDir),name).delete();}catch(Exception ignored){}}
         @JavascriptInterface public void saveFile(String name,String mime,String b64)throws Exception{MainActivity.this.saveFile(name,mime,b64);}
