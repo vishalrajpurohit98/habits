@@ -1098,6 +1098,33 @@ html[data-theme="amoled"] nav,
 html[data-theme="amoled"] .bottomNav{background:#000000!important}
 html[data-theme="amoled"] .heroTop{background:#000000!important}
 
+
+/* ===== Personalization: tab edit/reorder ===== */
+.tabEditBtn{margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:8px 11px;font:600 11px var(--fBody);cursor:pointer}
+.tabEditBtn.on{background:var(--sBlue);color:#fff;border-color:transparent}
+.pageEditHead{display:flex;align-items:center;gap:10px}
+.customizeHint{font-size:11px;color:var(--mut);margin:4px 0 12px}
+.layoutSheet .layoutRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.layoutSheet .layoutRow:last-child{border-bottom:0}
+.layoutGrip{width:28px;text-align:center;color:var(--mut);font-size:16px}
+.layoutName{flex:1;min-width:0;font:600 12px var(--fBody);color:var(--ink)}
+.layoutBtns{display:flex;gap:5px}
+.layoutBtns button{width:34px;height:32px;border:1px solid var(--line);background:var(--card2);color:var(--ink);border-radius:9px;font-weight:700}
+.layoutBtns button:disabled{opacity:.3}
+.layoutBtns .collapseBtn{width:auto;padding:0 9px;font-size:10px}
+.layoutModeBanner{display:none;margin:8px 0 12px;padding:10px 12px;border:1px solid var(--line);background:var(--card);border-radius:14px;color:var(--mut);font-size:11px}
+.page.editing .layoutModeBanner{display:block}
+.uiCollapsed{display:none!important}
+.weekTargetRow{margin:8px 0 4px;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:var(--card)}
+.weekTargetRow .wtTitle{font-size:11px;font-weight:700;color:var(--ink)}
+.weekTargetRow .wtSub{font-size:10px;color:var(--mut);margin-top:2px}
+.weekTargetBar{height:5px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:8px}
+.weekTargetBar i{display:block;height:100%;background:var(--sBlue);border-radius:99px}
+.receiptAction{display:flex;align-items:center;gap:10px;margin:10px 0;padding:11px 12px;border:1px solid var(--line);background:var(--card);border-radius:14px;cursor:pointer;color:var(--ink);width:100%;text-align:left}
+.receiptAction .raIcon{font-size:20px}.receiptAction .raTitle{font-size:12px;font-weight:700}.receiptAction .raSub{font-size:10px;color:var(--mut);display:block;margin-top:2px}
+.receiptPreview{margin:10px 0;padding:11px;border:1px solid var(--line);background:var(--card);border-radius:14px}
+.receiptPreview b{font-size:12px}.receiptPreview .rpSub{font-size:10px;color:var(--mut);margin-top:4px}
+
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -1140,7 +1167,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <div class="page on" id="pgToday">
     <div class="eyebrow" id="dateLine"></div>
     <div class="h1row">
-      <h1 id="greet">Today</h1>
+      <h1 id="greet">Today</h1><button class="tabEditBtn" data-edit-tab="pgToday">Edit</button>
       <button class="srchBtn" id="srchBtn" aria-label="Search habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
     <div class="todaySyncBar" id="todaySyncBar" aria-live="polite">
@@ -1200,9 +1227,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
   <!-- ============ STATS ============ -->
   <!-- ============ EXPENSES ============ -->
-  <div class="page" id="pgExp">
+  <div class="page" id="pgExp"><div class="layoutModeBanner">Edit mode: use Edit to arrange sections and collapse anything you do not need.</div>
     <div class="eyebrow" id="expMonthLbl"></div>
-    <div class="h1row"><h1>Money</h1>
+    <div class="h1row"><h1>Money</h1><button class="tabEditBtn" data-edit-tab="pgExp">Edit</button>
       <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
     <div style="height:12px"></div>
@@ -1245,9 +1272,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
   </div>
 
-  <div class="page" id="pgStats">
+  <div class="page" id="pgStats"><div class="layoutModeBanner">Edit mode: use Edit to arrange sections and collapse anything you do not need.</div>
     <div class="eyebrow">Your numbers</div>
-    <h1>Stats</h1>
+    <h1>Stats</h1><button class="tabEditBtn" data-edit-tab="pgStats">Edit</button>
     <div style="height:16px"></div>
 
     <div id="stEmpty" class="empty" hidden>
@@ -1317,9 +1344,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   </div>
 
   <!-- ============ MOOD ============ -->
-  <div class="page" id="pgMood">
+  <div class="page" id="pgMood"><div class="layoutModeBanner">Edit mode: use Edit to arrange sections and collapse anything you do not need.</div>
     <div class="eyebrow">Check in</div>
-    <h1>Mood</h1>
+    <h1>Mood</h1><button class="tabEditBtn" data-edit-tab="pgMood">Edit</button>
     <div style="height:16px"></div>
 
     <div class="setCard" style="padding:16px">
@@ -1419,8 +1446,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ SETTINGS ============ -->
   <!-- ============ AI PAGE ============ -->
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
-  <div class="page" id="pgAI">
-    <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
+  <div class="page" id="pgAI"><div class="layoutModeBanner">Edit mode: use Edit to arrange sections and collapse anything you do not need.</div>
+    <div class="eyebrow">Personal command center</div><div class="pageEditHead"><h1 style="margin:0">AI Assistant</h1><button class="tabEditBtn" data-edit-tab="pgAI">Edit</button></div><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
     <div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
     <div class="aiRecentTitle">Recent</div><div id="aiRecent"></div>
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
@@ -1428,9 +1455,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS" id="aiModelHint">Select a provider first</div></div></div><select class="inp" id="aiModel" style="margin:6px 0 10px;padding:12px 14px"></select><div class="setRow"><div class="setInfo"><div class="setT">API key</div><div class="setS" id="aiKeyHint">Paste your key</div></div></div><input class="inp" id="aiApiKey" type="password" placeholder="Paste your API key" style="margin:6px 0 8px"><div class="half"><button class="sbtn acc" id="btnAiSave">Save</button><button class="sbtn" id="btnAiClear">Remove</button><button class="sbtn" id="btnAiFetch">↻ Models</button></div><div id="aiStatus" class="aiStatusLine"></div>
     </div></div>
   </div>
-  <div class="page" id="pgSet">
+  <div class="page" id="pgSet"><div class="layoutModeBanner">Edit mode: use Edit to arrange sections and collapse anything you do not need.</div>
     <div class="eyebrow">Make it yours</div>
-    <h1>Settings</h1>
+    <h1>Settings</h1><button class="tabEditBtn" data-edit-tab="pgSet">Edit</button>
     <div style="height:16px"></div>
 
     <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Profile</div>
@@ -1579,6 +1606,14 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   </div>
 </div>
 
+<div class="sheet layoutSheet" id="layoutSheet">
+  <div class="grab"></div>
+  <h2>Customize tab</h2>
+  <div class="setS" style="margin-bottom:8px">Move sections up or down. Collapse sections you do not want to see.</div>
+  <div id="layoutList"></div>
+  <button class="primary" id="layoutDone">Done</button>
+</div>
+
 <div class="snack" id="materialSnack"><div class="snackMsg" id="materialSnackMsg"></div><button class="snackAction" id="materialSnackAction" style="display:none">UNDO</button></div>
 
 <!-- ============ EXPENSE SHEET ============ -->
@@ -1591,6 +1626,12 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <button data-k="xfer">Transfer</button>
   </div>
   <input id="expAmt" class="inp numPad" type="number" inputmode="decimal" step="any" min="0" placeholder="0">
+  <button class="receiptAction" id="receiptBtn" type="button">
+    <span class="raIcon">📷</span>
+    <span><span class="raTitle">Scan receipt</span><span class="raSub">Extract amount, merchant, date and category</span></span>
+  </button>
+  <input id="receiptInput" type="file" accept="image/*" capture="environment" style="display:none">
+  <div id="receiptPreview" class="receiptPreview" style="display:none"></div>
   <div class="lbl" id="expCatLbl">Category</div>
   <div class="pickGrid" id="expCatGrid"></div>
   <div class="newCatRow" id="expNewCatRow" style="display:none">
@@ -1822,6 +1863,11 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   </div>
   <div class="numRow" id="xRow" style="display:none"><input id="fX" class="inp" type="number" min="2" value="2"><span>days apart</span></div>
   <div class="numRow" id="qRow" style="display:none"><input id="fQ" class="inp" type="number" min="1" value="3"><span id="qLbl">times per week</span></div>
+  <div class="weekTargetRow">
+    <div class="wtTitle">Weekly target</div>
+    <div class="wtSub">How many times should this habit be completed each week?</div>
+    <div class="numRow" style="margin-top:8px"><input id="fWeekTarget" class="inp" type="number" min="1" max="7" placeholder="e.g. 4" value=""><span>times / week</span></div>
+  </div>
 
   <div class="lbl">&#9200; Reminders</div>
   <div id="remList"></div>
@@ -2024,6 +2070,7 @@ function normHabit(h){
   h.cat = h.cat || 'Other'; h.notes = h.notes || ''; h.quote = h.quote || '';
   h.type = h.type || 'check';
   h.target = Math.max(1, +h.target || 1);
+  h.weeklyTarget = Math.max(0, Math.min(7, +h.weeklyTarget || 0));
   h.unit = h.unit || '';
   h.sched = h.sched || {kind:'daily'};
   h.sched.kind = h.sched.kind || 'daily';
@@ -2624,6 +2671,18 @@ function restLabel(hh){
   }
   return lbl;
 }
+
+function weeklyTargetProgress(h){
+  var q=Math.max(0,+h.weeklyTarget||0);
+  if(!q) return null;
+  var ws=weekStart(new Date()), n=0;
+  for(var i=0;i<7;i++){
+    var ds=fmt(addDays(ws,i));
+    if(ds>today() || ds<h.created) continue;
+    if(isDone(h,ds) || isFroz(h,ds)) n++;
+  }
+  return {n:n,q:q,p:Math.min(100,Math.round(n/q*100))};
+}
 function cardHTML(h){
   var ds = today(), t = targ(h), v = val(h, ds), done = v >= t, froz = isFroz(h, ds);
   var s = streak(h);
@@ -2654,7 +2713,13 @@ function cardHTML(h){
     if(h.rem.repeat) remHtml += '<span class="pill"><span class="pi">\uD83D\uDD01</span>repeat</span>';
     remHtml += '</div>';
   }
-  return '<div class="card" data-id="'+h.id+'" style="--spine:'+h.color+'">'
+  var wt = weeklyTargetProgress(h), wtHtml = '';
+  if(wt){
+    wtHtml = '<div class="weekTargetRow"><div class="wtTitle">Weekly target · '+wt.n+'/'+wt.q+'</div>'
+      +'<div class="wtSub">'+(wt.n>=wt.q?'Target reached':'Keep going')+'</div>'
+      +'<div class="weekTargetBar"><i style="width:'+wt.p+'%"></i></div></div>';
+  }
+  return '<div class="card" data-id="'+h.id+'" style="--spine:'+h.color+'">' 
     + '<div class="cwrap">'
     +   '<div class="crow">'
     +     '<div class="emo" style="background:'+hexRgba(h.color,.14)+'">'+h.emoji+'</div>'
@@ -2662,7 +2727,7 @@ function cardHTML(h){
     +     '<div class="cstreak" style="color:'+sColor+'">'+sLabel+'</div>'
     +     remHtml + '</div>'
     +   '</div>' + ribbon(h)
-    + '</div>'
+    + '</div>' + wtHtml
     + '<button class="'+chkCls+'" data-act="chk" aria-label="toggle" style="--c:'+h.color+';--cs:'+hexRgba(h.color,.35)+';--cg:'+hexRgba(h.color,.35)+'">'+inner+'</button>'
     + '</div>';
 }
@@ -3538,6 +3603,7 @@ function renderRemList(){
 function syncForm(){
   $('fName').value = ed.name;
   $('fTarget').value = ed.target; $('fUnit').value = ed.unit;
+  $('fWeekTarget').value = ed.weeklyTarget || '';
   $('fX').value = ed.sched.x; $('fQ').value = ed.sched.quota;
   $('fNotes').value = ed.notes; $('fQuote').value = ed.quote;
   $('swRepeat').classList.toggle('on', !!ed.rem.repeat);
@@ -3563,6 +3629,7 @@ function saveHabit(){
   if(!name){ $('fName').focus(); return; }
   ed.name = name;
   ed.target = Math.max(1, +$('fTarget').value || 1);
+  ed.weeklyTarget = Math.max(0, Math.min(7, +$('fWeekTarget').value || 0));
   ed.unit = $('fUnit').value.slice(0,12);
   ed.sched.x = Math.max(2, +$('fX').value || 2);
   ed.sched.quota = Math.max(1, +$('fQ').value || 1);
@@ -3605,6 +3672,7 @@ function renderDetail(){
   $('dName').textContent = h.name;
   var bits = [TYPELBL[h.type]||'Habit', h.cat];
   if(targ(h)>1) bits.push(h.target + (h.unit? ' '+h.unit : (h.type==='time'?' min':h.type==='money'?' \u20B9':'')) + '/day');
+  if(h.weeklyTarget>0) bits.push(h.weeklyTarget + '/week');
   if(h.rem.times.length) bits.push('\u23F0 ' + h.rem.times.map(timeFmt).join(', '));
   bits.push('since ' + niceDate(h.created));
   $('dSub').textContent = bits.join(' \u00B7 ');
@@ -5380,6 +5448,61 @@ function normTx(x){
   return x;
 }
 
+
+/* ================= receipt scanning ================= */
+var receiptBusy=false;
+function receiptGemini(imageData){
+  var key=getAiKey(), model=getAiModel();
+  if(getAiProvider()!=='gemini') return Promise.reject(new Error('Receipt scanning currently uses Google Gemini. Select Gemini in AI configuration.'));
+  if(!key) return Promise.reject(new Error('Add a Gemini API key in AI configuration first.'));
+  var base=imageData.split(',')[1]||'';
+  var mime=(imageData.match(/^data:([^;]+);/)||[])[1]||'image/jpeg';
+  var prompt='Read this receipt image and return ONLY valid JSON with these fields: amount(number), merchant(string), date(YYYY-MM-DD or empty), category(string), paymentMethod(string), note(string). Do not invent values. If a field is unclear use empty string. Choose category from Food, Transport, Shopping, Bills & Utilities, Entertainment, Health, Other.';
+  var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent';
+  return fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
+    body:JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime,data:base}}]}],generationConfig:{maxOutputTokens:250}})
+  }).then(function(r){if(!r.ok) throw new Error('Receipt scan API '+r.status);return r.json();})
+  .then(function(d){
+    var raw=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;
+    if(!raw) throw new Error('No receipt details found');
+    raw=raw.replace(/```json|```/g,'').trim();
+    var a=raw.indexOf('{'), b=raw.lastIndexOf('}');
+    if(a>=0&&b>a) raw=raw.slice(a,b+1);
+    return JSON.parse(raw);
+  });
+}
+function applyReceiptResult(r){
+  r=r||{};
+  if(r.amount) $('expAmt').value=fmtV(+r.amount);
+  if(r.merchant) $('expPayee').value=String(r.merchant).slice(0,60);
+  if(r.paymentMethod) $('expMethod').value=String(r.paymentMethod).slice(0,24);
+  if(r.note) $('expNote').value=String(r.note).slice(0,200);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(r.date||'')){
+    expEd.d=r.date; $('expDateTxt').textContent=r.date===today()?'Today':niceDate(r.date);
+  }
+  var cats=Object.keys(state.cats||{});
+  var cat=String(r.category||'');
+  if(cats.indexOf(cat)<0) cat='Other';
+  expCatSel=cat; paintExpPickers();
+  $('expMoreBox').style.display='';
+  $('expMore').style.display='none';
+  $('receiptPreview').style.display='';
+  $('receiptPreview').innerHTML='<b>Receipt scanned</b><div class="rpSub">'+esc(r.merchant||'Merchant not clear')+' · '+(r.amount?inr(+r.amount):'Amount not clear')+' · '+esc(r.date||'Date not clear')+'</div><div class="rpSub">Review the fields before saving.</div>';
+}
+function scanReceiptFile(file){
+  if(!file||receiptBusy)return;
+  if(!/^image\//.test(file.type)){toastN('Choose a receipt image');return;}
+  receiptBusy=true; toastN('Reading receipt…');
+  var fr=new FileReader();
+  fr.onload=function(){
+    receiptGemini(fr.result).then(function(r){applyReceiptResult(r);toastN('Receipt details extracted');})
+      .catch(function(e){toastN(e.message||'Receipt scan failed');})
+      .finally(function(){receiptBusy=false;});
+  };
+  fr.onerror=function(){receiptBusy=false;toastN('Could not read receipt');};
+  fr.readAsDataURL(file);
+}
+
 /* ---- expense sheet ---- */
 var expEd = null, expKindSel='exp', expCatSel='', expSubSel='', expAcctSel='', expToSel='';
 function activeAccts(){ return state.accts.filter(function(a){return a.active;}); }
@@ -5397,6 +5520,7 @@ function openExp(id){
   $('expPayee').value=expEd.payee; $('expMethod').value=expEd.method; $('expNote').value=expEd.note; $('expTags').value=expEd.tags;
   $('expDateTxt').textContent = expEd.d===today()?'Today':niceDate(expEd.d);
   $('expMoreBox').style.display='none'; $('expMore').style.display='';
+  $('receiptPreview').style.display='none'; $('receiptPreview').innerHTML='';
   $('expDel').style.display = id ? '' : 'none';
   paintKind(); paintExpPickers();
   openSheet('expSheet');
@@ -6125,9 +6249,136 @@ function climb(el, root, attr){
   return null;
 }
 
+
+/* ================= per-tab layout editor ================= */
+var UI_LAYOUTS = {
+  pgToday: {name:'Today'},
+  pgMood: {name:'Mood'},
+  pgExp: {name:'Money'},
+  pgStats: {name:'Stats'},
+  pgAI: {name:'AI Assistant'},
+  pgSet: {name:'Settings'}
+};
+var uiPage = '';
+var uiBlocks = {};
+
+function uiState(){
+  if(!state.ui) state.ui = {};
+  if(!state.ui.layouts) state.ui.layouts = {};
+  if(!state.ui.collapsed) state.ui.collapsed = {};
+  return state.ui;
+}
+function uiBlockLabel(el, i){
+  var t=(el.querySelector && el.querySelector('.lbl,.setT,.aiRecentTitle,.eyebrow,h2')) ? (el.querySelector('.lbl,.setT,.aiRecentTitle,.eyebrow,h2').textContent||'') : '';
+  t=t.replace(/\s+/g,' ').trim();
+  if(t) return t;
+  var id=el.id||'';
+  var map={todaySyncBar:'Cloud sync',srchWrap:'Search',todayDIWrap:'Daily insight',heroTop:'Momentum',restBox:'Rest day',wkdots:'Week overview',wkCard:'Workout',qod:'Daily message',nextRem:'Next reminder',aiInsights:'AI insights',recoverBox:'Recovery',stackBox:'Routine stack',list:'Habits',empty:'Empty state',expSum:'Money summary',expMonNav:'Month',expSeg:'Money sections',expSrchWrap:'Search',expTx:'Transactions',expBudg:'Budgets',expAcct:'Accounts',expIns:'Insights',stInsight:'Insight',stProg:'Progress',trendSeg:'Trend controls',stTrend:'Trend chart',stPerf:'Habit performance',fitSection:'Fitness',stAchv:'Achievements',calGrid:'Calendar',uaiBox:'AI assistant',aiRecent:'Recent AI',aiCfg:'AI configuration'};
+  return map[id] || ('Section '+(i+1));
+}
+function setupUIBlocks(pageId){
+  var page=$(pageId); if(!page) return [];
+  if(page.querySelector('.uiBlock')) return Array.prototype.slice.call(page.querySelectorAll(':scope > .uiBlock'));
+  var children=Array.prototype.slice.call(page.children), blocks=[], current=null, counter=0;
+  function eligible(el){
+    if(!el || el.classList.contains('layoutModeBanner')) return false;
+    if(el.classList.contains('eyebrow')||el.tagName==='H1'||el.classList.contains('h1row')||el.classList.contains('pageEditHead')) return false;
+    if(el.classList.contains('tabEditBtn')) return false;
+    var st=el.getAttribute('style')||'';
+    if(/^height:\s*\d+px/i.test(st.trim())) return false;
+    return true;
+  }
+  children.forEach(function(el){
+    if(!eligible(el)) return;
+    if(el.classList.contains('lbl')){
+      current=document.createElement('div'); current.className='uiBlock'; current.dataset.layoutKey=pageId+'_'+(++counter);
+      page.insertBefore(current,el); current.appendChild(el); blocks.push(current);
+    }else if(current && current.querySelector('.lbl')){
+      current.appendChild(el);
+    }else{
+      current=document.createElement('div'); current.className='uiBlock'; current.dataset.layoutKey=pageId+'_'+(++counter);
+      page.insertBefore(current,el); current.appendChild(el); blocks.push(current);
+    }
+  });
+  uiBlocks[pageId]=blocks;
+  var us=uiState(), saved=us.layouts[pageId]||[];
+  if(saved.length){
+    var map={}; blocks.forEach(function(b){map[b.dataset.layoutKey]=b;});
+    var ordered=[];
+    saved.forEach(function(k){if(map[k]){ordered.push(map[k]);delete map[k];}});
+    Object.keys(map).forEach(function(k){ordered.push(map[k]);});
+    ordered.forEach(function(b){page.appendChild(b);});
+  }
+  applyUIPage(pageId);
+  return blocks;
+}
+function applyUIPage(pageId){
+  var blocks=uiBlocks[pageId]||setupUIBlocks(pageId), us=uiState(), col=us.collapsed[pageId]||{};
+  blocks.forEach(function(b){b.classList.toggle('uiCollapsed',!!col[b.dataset.layoutKey]);});
+}
+function openLayoutEditor(pageId){
+  uiPage=pageId; setupUIBlocks(pageId); renderLayoutEditor(); openSheet('layoutSheet');
+  document.querySelectorAll('.tabEditBtn').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-edit-tab')===pageId);});
+  $(pageId).classList.add('editing');
+}
+function renderLayoutEditor(){
+  var list=$('layoutList'), blocks=uiBlocks[uiPage]||[], us=uiState(), col=us.collapsed[uiPage]||{};
+  var html='';
+  blocks.forEach(function(b,i){
+    var collapsed=!!col[b.dataset.layoutKey];
+    html+='<div class="layoutRow" data-layout-row="'+b.dataset.layoutKey+'">'
+      +'<div class="layoutGrip">☷</div><div class="layoutName">'+esc(uiBlockLabel(b,i))+'</div>'
+      +'<div class="layoutBtns">'
+      +'<button data-lup="'+i+'" '+(i===0?'disabled':'')+'>↑</button>'
+      +'<button data-ldn="'+i+'" '+(i===blocks.length-1?'disabled':'')+'>↓</button>'
+      +'<button class="collapseBtn" data-lcol="'+i+'">'+(collapsed?'Expand':'Collapse')+'</button>'
+      +'</div></div>';
+  });
+  list.innerHTML=html||'<div class="setS">Nothing to customize on this tab.</div>';
+}
+function saveUILayout(){
+  var blocks=uiBlocks[uiPage]||[], us=uiState();
+  us.layouts[uiPage]=blocks.map(function(b){return b.dataset.layoutKey;});
+  persist();
+}
+function moveUIBlock(i,dir){
+  var blocks=uiBlocks[uiPage]||[], page=$(uiPage);
+  var j=i+dir; if(i<0||j<0||i>=blocks.length||j>=blocks.length)return;
+  var a=blocks[i], b=blocks[j];
+  if(dir<0) page.insertBefore(a,b); else page.insertBefore(b,a);
+  blocks[i]=b; blocks[j]=a;
+  saveUILayout(); renderLayoutEditor();
+}
+function toggleUIBlock(i){
+  var b=(uiBlocks[uiPage]||[])[i]; if(!b)return;
+  var us=uiState(); if(!us.collapsed[uiPage])us.collapsed[uiPage]={};
+  var k=b.dataset.layoutKey; us.collapsed[uiPage][k]=!us.collapsed[uiPage][k];
+  applyUIPage(uiPage); persist(); renderLayoutEditor();
+}
+function closeLayoutEditor(){
+  if($(uiPage)) $(uiPage).classList.remove('editing');
+  document.querySelectorAll('.tabEditBtn').forEach(function(b){b.classList.remove('on');});
+  closeSheet();
+}
+function initAllUILayouts(){
+  Object.keys(UI_LAYOUTS).forEach(function(id){setupUIBlocks(id);});
+}
+
 /* ================= init & wiring ================= */
 function init(){
   buildPickers();
+  initAllUILayouts();
+  document.addEventListener('click',function(e){
+    var eb=climb(e.target,document,'data-edit-tab');
+    if(eb){ openLayoutEditor(eb.getAttribute('data-edit-tab')); return; }
+    var up=climb(e.target,$('layoutList'),'data-lup');
+    if(up){ moveUIBlock(+up.getAttribute('data-lup'),-1); return; }
+    var dn=climb(e.target,$('layoutList'),'data-ldn');
+    if(dn){ moveUIBlock(+dn.getAttribute('data-ldn'),1); return; }
+    var lc=climb(e.target,$('layoutList'),'data-lcol');
+    if(lc){ toggleUIBlock(+lc.getAttribute('data-lcol')); return; }
+  });
+  $('layoutDone').addEventListener('click',closeLayoutEditor);
 
   $('tabbar').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-tab');
@@ -6140,6 +6391,8 @@ function init(){
     var b=climb(e.target,this,'data-add-action');
     if(b) handleAddAction(b.getAttribute('data-add-action'));
   });
+  $('receiptBtn').addEventListener('click',function(){ $('receiptInput').click(); });
+  $('receiptInput').addEventListener('change',function(){ var f=this.files&&this.files[0]; scanReceiptFile(f); this.value=''; });
   $('scrim').addEventListener('click', function(){ closeSheet(); });
 
   /* search & category filter */
