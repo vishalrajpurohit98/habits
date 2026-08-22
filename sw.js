@@ -1,4 +1,4 @@
-const CACHE = 'habits-v3-1-fixes';
+const CACHE = 'habits-v3-5-search-fix';
 const FILES = ['.', 'index.html', 'unbounded.ttf', 'fraunces.ttf', 'spacegrotesk.ttf', 'bricolage.ttf', 'xlsx.min.js', 'firebase-app-compat.js', 'firebase-auth-compat.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'favicon-32.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));

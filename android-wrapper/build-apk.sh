@@ -58,7 +58,7 @@ echo ">> aapt2 link"
 echo ">> javac"
 javac -g:none -source 17 -target 17 -classpath "$PLAT" \
   -d build/obj \
-  $(find src/com/personaltracker/app -name "*.java") build/gen/com/personaltracker/app/R.java
+  src/com/personaltracker/app/*.java build/gen/com/personaltracker/app/R.java
 
 echo ">> d8 (dex)"
 "$BT/d8" $(find build/obj -name '*.class') --lib "$PLAT" --min-api 24 --output build/apk/
