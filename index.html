@@ -1107,7 +1107,7 @@ html[data-theme="amoled"] .heroTop{background:#000000!important}
 
 
 /* ===== Personal layout editor ===== */
-.layoutEditBtn{
+.layoutEditBtn{margin-top:4px;flex-shrink:0;
   margin-left:auto;
   border:1px solid var(--line);
   background:var(--card2);
@@ -5480,6 +5480,7 @@ function renderExp(){
   var segShow = expView==='tx';
   $('expMonNav').style.display = (expView==='tx'||expView==='budg'||expView==='ins')?'':'none';
   ['expTx','expBudg','expAcct','expIns'].forEach(function(id){ $(id).style.display='none'; });
+  if($('receiptActions'))$('receiptActions').style.display=(expView==='tx')?'grid':'none';
   $('expEmpty').hidden = true;
   if(expView==='tx') renderExpTx();
   else if(expView==='budg') renderExpBudg();
@@ -6401,8 +6402,8 @@ function handleAddAction(kind){
     if(kind==='habit') openEdit(null);
     else if(kind==='expense'){ showTab('pgExp'); setTimeout(function(){openExp(null);},60); }
     else if(kind==='mood'){ showTab('pgMood'); setTimeout(function(){var g=$('moGrid'); if(g) g.scrollIntoView({behavior:'smooth',block:'center'});},80); }
-    else if(kind==='journal'){ setTimeout(function(){openJr(null);},60); }
-    else if(kind==='sleep'){ showTab('pgMood'); setTimeout(function(){openSleep(today());},60); } else if(a==='workout'){ showTab('pgToday'); setTimeout(function(){var wb=document.querySelector('#wkModule button, .wkStartBtn, [onclick*=startWk]');if(wb)wb.click();else toastN('Start a workout from the Today tab');},60); }
+    else if(kind==='journal'){ showTab('pgJr'); setTimeout(function(){openJr(null);},120); }
+    else if(kind==='sleep'){ showTab('pgMood'); setTimeout(function(){openSleep(today());},60); } else if(kind==='workout'){ showTab('pgToday'); setTimeout(function(){if(typeof openWkModule==='function'){openWkModule();}else{var wc=document.querySelector('[data-wkopen]');if(wc)wc.click();else toastN('Tap the workout card to start');}},120); }
   },80);
 }
 
