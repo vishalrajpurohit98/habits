@@ -274,7 +274,11 @@ html:not(.light) .tab.on{color:var(--amber)}
 .actionItem{display:flex;align-items:center;gap:12px;text-align:left;padding:13px 12px;border-radius:16px;background:var(--card);border:1px solid var(--line);color:var(--ink);transition:transform .14s,background .18s,border-color .18s}
 .actionItem:active{transform:scale(.97);background:var(--card2);border-color:var(--primary)}
 .actionIcon{width:42px;height:42px;flex:0 0 42px;border-radius:12px;display:flex;align-items:center;justify-content:center;background:var(--primarySoft);font-size:20px}
-.actionText{min-width:0}.actionTitle{font-size:13px;font-weight:800}.actionSub{font-size:10.5px;color:var(--mut);margin-top:3px}
+.actionText{min-width:0}.actionTitle{font-size:13px;font-weight:800}.actionSub{display:none}.srOnly{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.receiptBox{border:1px dashed var(--line2);border-radius:14px;padding:10px;background:var(--card)}
+.receiptThumb{width:100%;max-height:180px;object-fit:contain;border-radius:10px;background:var(--bg2);display:block}.receiptName{font-size:11px;color:var(--mut);padding:6px 2px;word-break:break-all}.receiptActions{display:flex;gap:8px;margin-top:8px}.receiptActions .sbtn{flex:1}
+.upcomingCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:9px}.upcomingHead{display:flex;align-items:center;gap:9px}.upcomingHead .uicon{font-size:18px}.upcomingHead b{font-size:13px}.upcomingHead span{margin-left:auto;font-size:11px;color:var(--mut)}
+.recurRow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.recurRow:last-child{border-bottom:0}.recurMain{flex:1;min-width:0}.recurMain b{font-size:13px;display:block}.recurMain span{font-size:10.5px;color:var(--mut)}.recurAmt{font-weight:800;font-size:13px}.smartBadge{display:inline-block;font-size:9px;padding:3px 6px;border-radius:8px;background:var(--primarySoft);color:var(--primary);margin-left:5px}
 .materialSearch{border-radius:18px!important;background:var(--card)!important;border-color:var(--line2)!important;padding-left:16px!important}
 .materialSearch:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px var(--primarySoft)}
 .snack{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:90;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line2);box-shadow:var(--shadowUp);transform:translateY(130%);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.22,.68,.36,1),opacity .2s}
@@ -1167,6 +1171,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
     <div class="segX" id="expSeg">
       <button data-ex="tx" class="sel">Transactions</button>
+      <button data-ex="upcoming">Upcoming</button>
       <button data-ex="budg">Budgets</button>
       <button data-ex="acct">Accounts</button>
       <button data-ex="ins">Insights</button>
@@ -1183,6 +1188,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
 
     <div id="expTx"></div>
+    <div id="expUpcoming" style="display:none"></div>
     <div id="expBudg" style="display:none"></div>
     <div id="expAcct" style="display:none"></div>
     <div id="expIns" style="display:none"></div>
@@ -1512,7 +1518,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
 <button id="fab" aria-label="Add">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-  <span id="fabLbl">Add anything</span>
+  <span id="fabLbl" class="srOnly">Add anything</span>
 </button>
 
 <!-- ============ MATERIAL ADD ACTION SHEET ============ -->
@@ -1521,11 +1527,10 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <h2>Add anything</h2>
   <div class="actionIntro">Choose what you want to add. You can continue without leaving the current screen.</div>
   <div class="actionGrid">
-    <button class="actionItem" data-add-action="habit"><span class="actionIcon">💪</span><span class="actionText"><span class="actionTitle">Habit</span><span class="actionSub">Create a daily habit</span></span></button>
-    <button class="actionItem" data-add-action="expense"><span class="actionIcon">💰</span><span class="actionText"><span class="actionTitle">Expense</span><span class="actionSub">Track money spent</span></span></button>
-    <button class="actionItem" data-add-action="mood"><span class="actionIcon">😊</span><span class="actionText"><span class="actionTitle">Mood</span><span class="actionSub">Check in today</span></span></button>
-    <button class="actionItem" data-add-action="journal"><span class="actionIcon">📖</span><span class="actionText"><span class="actionTitle">Journal</span><span class="actionSub">Write a quick entry</span></span></button>
-    <button class="actionItem" data-add-action="sleep"><span class="actionIcon">😴</span><span class="actionText"><span class="actionTitle">Sleep</span><span class="actionSub">Log last night's sleep</span></span></button>
+    <button class="actionItem" data-add-action="habit"><span class="actionIcon">💪</span><span class="actionText"><span class="actionTitle">Habit</span></span></button>
+    <button class="actionItem" data-add-action="expense"><span class="actionIcon">💰</span><span class="actionText"><span class="actionTitle">Expense</span></span></button>
+    <button class="actionItem" data-add-action="mood"><span class="actionIcon">😊</span><span class="actionText"><span class="actionTitle">Mood</span></span></button>
+    <button class="actionItem" data-add-action="sleep"><span class="actionIcon">😴</span><span class="actionText"><span class="actionTitle">Sleep</span></span></button>
   </div>
 </div>
 
@@ -1571,10 +1576,42 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <input id="expNote" class="inp" maxlength="200" placeholder="Optional note">
     <div class="lbl">Tags</div>
     <input id="expTags" class="inp" maxlength="80" placeholder="#work #trip">
+    <div class="lbl">Receipt</div>
+    <div class="receiptBox" id="expReceiptBox">
+      <div id="expReceiptPreview" class="receiptPreview"></div>
+      <div class="receiptActions">
+        <button class="sbtn" id="expReceiptAdd">Upload receipt</button>
+        <button class="sbtn acc" id="expReceiptScan" style="display:none">Scan receipt</button>
+        <button class="sbtn" id="expReceiptRemove" style="display:none">Remove</button>
+      </div>
+      <input id="expReceiptFile" type="file" accept="image/*" style="display:none">
+    </div>
   </div>
   <button class="primary" id="expSave">Save</button>
   <button class="danger" id="expDel" style="display:none">Delete</button>
 </div>
+
+<!-- ============ RECURRING EXPENSE SHEET ============ -->
+<div class="sheet" id="recurSheet">
+  <div class="grab"></div>
+  <h2 id="recurSheetT">Add recurring expense</h2>
+  <div class="lbl">Name</div>
+  <input id="recurName" class="inp" maxlength="40" placeholder="e.g. Netflix, Rent, Electricity">
+  <div class="lbl">Amount</div>
+  <input id="recurAmt" class="inp" type="number" inputmode="decimal" step="any" placeholder="0">
+  <div class="lbl">Frequency</div>
+  <div class="pickGrid" id="recurFreqGrid"><button class="chip sel" data-rf="monthly">Monthly</button><button class="chip" data-rf="weekly">Weekly</button><button class="chip" data-rf="yearly">Yearly</button></div>
+  <div id="recurMonthlyFields"><div class="lbl">Day of month</div><input id="recurDay" class="inp" type="number" min="1" max="28" value="1"></div>
+  <div id="recurWeeklyFields" style="display:none"><div class="lbl">Day of week</div><div class="pickGrid" id="recurWeekGrid"><button class="chip" data-rw="1">Mon</button><button class="chip" data-rw="2">Tue</button><button class="chip" data-rw="3">Wed</button><button class="chip" data-rw="4">Thu</button><button class="chip" data-rw="5">Fri</button><button class="chip" data-rw="6">Sat</button><button class="chip" data-rw="0">Sun</button></div></div>
+  <div id="recurYearlyFields" style="display:none"><div class="lbl">Month / day</div><div style="display:flex;gap:8px"><select id="recurMonth" class="inp"><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><input id="recurYearDay" class="inp" type="number" min="1" max="28" value="1"></div></div>
+  <div class="lbl">Category</div><div class="pickGrid" id="recurCatGrid"></div>
+  <div class="lbl">Account</div><div class="pickGrid" id="recurAcctGrid"></div>
+  <div class="lbl">Starts</div><input id="recurStart" class="inp" type="date">
+  <div class="setRow" style="padding:12px 0"><div class="setInfo"><div class="setT">Active</div><div class="setS">Automatically add the transaction when due</div></div><div class="tog on" id="recurActive"></div></div>
+  <button class="primary" id="recurSave">Save recurring</button><button class="danger" id="recurDel" style="display:none">Delete recurring</button>
+</div>
+<!-- ============ EXPENSE EXPORT RANGE SHEET ============ -->
+<div class="sheet" id="expExportSheet"><div class="grab"></div><h2>Export expense data</h2><div class="setS" style="margin-bottom:12px">All transaction fields are included. Choose the date range and format.</div><div class="lbl">From</div><input id="expExportFrom" class="inp" type="date"><div class="lbl">To</div><input id="expExportTo" class="inp" type="date"><div class="lbl">Format</div><div style="display:flex;gap:8px"><button class="sbtn acc" id="expExportXlsx">Excel</button><button class="sbtn" id="expExportPdf">PDF</button></div></div>
 
 <!-- ============ ACCOUNT SHEET ============ -->
 <div class="sheet" id="acctSheet">
@@ -1586,6 +1623,14 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <div class="pickGrid" id="acctTypeGrid"></div>
   <div class="lbl">Opening balance</div>
   <input id="acctOpen" class="inp" type="number" inputmode="decimal" step="any" placeholder="0">
+  <div id="acctCreditFields" style="display:none">
+    <div class="lbl">Credit limit</div>
+    <input id="acctCreditLimit" class="inp" type="number" inputmode="decimal" step="any" placeholder="Optional">
+    <div style="display:flex;gap:8px">
+      <div style="flex:1"><div class="lbl">Billing day</div><input id="acctBillDay" class="inp" type="number" min="1" max="28" placeholder="1"></div>
+      <div style="flex:1"><div class="lbl">Payment due day</div><input id="acctDueDay" class="inp" type="number" min="1" max="28" placeholder="15"></div>
+    </div>
+  </div>
   <div class="setRow" style="padding:12px 0"><div class="setInfo"><div class="setT">Active</div></div><div class="tog on" id="acctActive"></div></div>
   <button class="primary" id="acctSave">Save account</button>
   <button class="danger" id="acctDel" style="display:none">Delete account</button>
@@ -2059,6 +2104,10 @@ function normState(s){
     x.cat = String(x.cat || '').slice(0,40); x.sub = String(x.sub || '').slice(0,40);
     x.payee = String(x.payee || '').slice(0,60); x.method = String(x.method || '').slice(0,24);
     x.note = String(x.note || '').slice(0,200); x.tags = String(x.tags || '').slice(0,80);
+    x.receipt = String(x.receipt || '').slice(0,160);
+    x.receiptData = typeof x.receiptData === 'string' && x.receiptData.length < 4000000 ? x.receiptData : '';
+    x.recurId = String(x.recurId || '');
+    x.recurDate = /^\d{4}-\d{2}-\d{2}$/.test(x.recurDate||'') ? x.recurDate : '';
     x.created = +x.created || 0;
     s.tx[ti] = x;
   }
@@ -2074,11 +2123,15 @@ function normState(s){
     if(['exp','inc'].indexOf(rc.kind)<0) rc.kind='exp';
     if(['monthly','weekly','yearly'].indexOf(rc.freq)<0) rc.freq='monthly';
     rc.day = Math.min(28, Math.max(1, +rc.day||1));
+    rc.weekday = Math.min(6, Math.max(0, +rc.weekday || 0));
+    rc.month = Math.min(12, Math.max(1, +rc.month || 1));
+    rc.yearDay = Math.min(28, Math.max(1, +rc.yearDay || rc.day || 1));
     rc.acct = String(rc.acct||''); rc.cat = String(rc.cat||'').slice(0,40);
     if(!/^\d{4}-\d{2}-\d{2}$/.test(rc.start||'')) rc.start = today();
     rc.end = /^\d{4}-\d{2}-\d{2}$/.test(rc.end||'') ? rc.end : '';
     rc.last = /^\d{4}-\d{2}-\d{2}$/.test(rc.last||'') ? rc.last : '';
     rc.active = rc.active !== false;
+    rc.skipNext = !!rc.skipNext;
     s.recur[ri] = rc;
   }
   if(!s.budg || typeof s.budg !== 'object' || s.budg instanceof Array) s.budg = {};
@@ -2136,6 +2189,8 @@ function normState(s){
   d.uname = typeof d.uname === 'string' ? d.uname.slice(0,24) : '';
   d.curr = d.curr || '\u20B9';
   d.lastAutoBk = d.lastAutoBk || ''; d.lastGrant = d.lastGrant || ''; d.lastBkPath = d.lastBkPath || '';
+  d.smartExpRem = d.smartExpRem !== false;
+  if(!/^\d{2}:\d{2}$/.test(d.smartExpRemTime||'')) d.smartExpRemTime='09:00';
   s.mtime = s.mtime || 0;
   return s;
 }
@@ -4418,6 +4473,15 @@ function scheduleWebNotifs(){
       })(h, times[j]);
     }
   }
+  var smart = state.set.smartExpRem ? smartExpensePredictions(7) : [];
+  for(var si=0;si<smart.length;si++){
+    var sp=smart[si], sd=toDate(sp.d), sm=(state.set.smartExpRemTime||'09:00').split(':'), sat=new Date(sd.getFullYear(),sd.getMonth(),sd.getDate(),+sm[0],+sm[1],0,0), sdelay=sat.getTime()-now.getTime();
+    if(sdelay<=0||sdelay>7*86400000) continue;
+    (function(item){
+      var id=setTimeout(function(){try{new Notification('Upcoming expense: '+item.name,{body:'You often have a similar expense around this date.',tag:'smart-expense-'+item.d});}catch(e){}},sdelay);webTimers.push(id);
+    })(sp);
+  }
+  for(var ci=0;ci<state.accts.length;ci++){var ca=state.accts[ci];if(ca.type!=='credit'||!ca.active)continue;var cb=acctBalance(ca.id);if(cb>=0)continue;var due=nextCreditDue(ca), dueAt=new Date(due.getFullYear(),due.getMonth(),due.getDate(),9,0,0,0), cdelay=dueAt.getTime()-now.getTime();if(cdelay<=0||cdelay>7*86400000)continue;(function(card,balance,at){var id=setTimeout(function(){try{new Notification('Credit card payment due: '+card.name,{body:'Outstanding '+inr(Math.abs(balance))+' · payment due today.',tag:'cc-due-'+card.id});}catch(e){}},cdelay);webTimers.push(id);})(ca,cb,dueAt);}
 }
 window.extOpen = function(kind, val, acct){
   try{
@@ -4441,10 +4505,11 @@ function openExpFromWidget(kind, acctId){
   }, sheetOpen ? 80 : 0);
 }
 window.photoResult = function(name){
+  if(window.pendingPhotoTarget==='expense' && expEd && /^[A-Za-z0-9_.-]+$/.test(name)){
+    expEd.receipt=name; expEd.receiptData=''; window.pendingPhotoTarget=''; renderExpReceipt(); toastN('Receipt added'); return;
+  }
   if(jrEd && /^[A-Za-z0-9_.-]+$/.test(name)){
-    jrEd.ph.push(name);
-    renderJrPhotos();
-    toastN('Photo added');
+    jrEd.ph.push(name); renderJrPhotos(); toastN('Photo added');
   }
 };
 
@@ -5099,7 +5164,21 @@ function acctBalance(id){
   }
   return bal;
 }
-function netWorth(){ var t=0; for(var i=0;i<state.accts.length;i++) if(state.accts[i].active) t+=acctBalance(state.accts[i].id); return t; }
+function netWorth(){ var t=0; for(var i=0;i<state.accts.length;i++) if(state.accts[i].active && state.accts[i].type!=='credit') t+=acctBalance(state.accts[i].id); return t; }
+function nextCreditDue(a){
+  var n=new Date(),day=Math.min(28,Math.max(1,+a.dueDay||15));
+  if(n.getDate()>=day)n=new Date(n.getFullYear(),n.getMonth()+1,day);else n=new Date(n.getFullYear(),n.getMonth(),day);
+  return n;
+}
+function cashFlowForecast(days){
+  var horizon=days||30,start=toDate(today()),end=addDays(start,horizon),cash=0;
+  for(var i=0;i<state.accts.length;i++) if(state.accts[i].active&&state.accts[i].type!=='credit') cash+=acctBalance(state.accts[i].id);
+  var upcomingExp=0,upcomingInc=0;
+  for(var r=0;r<state.recur.length;r++){var rr=state.recur[r];if(!rr.active||rr.start>today()||(rr.end&&rr.end<today()))continue;var cur=rr.last||addDays(toDate(rr.start||today()),-1),guard=0;while(guard++<100){var n=nextRecurringDateFrom(rr,cur);if(n>end)break;if(n>=start&&!rr.skipNext){if(rr.kind==='inc')upcomingInc+=rr.amt;else upcomingExp+=rr.amt;}cur=fmt(n);}}
+  var smart=state.set.smartExpRem?smartExpensePredictions(horizon):[];for(var j=0;j<smart.length;j++)upcomingExp+=smart[j].amt;
+  return {cash:cash,income:upcomingInc,expenses:upcomingExp,projected:cash+upcomingInc-upcomingExp};
+}
+
 function txInMonth(y,m){
   var pre = y+'-'+pad(m+1);
   return state.tx.filter(function(x){ return x.d.slice(0,7)===pre; });
@@ -5125,9 +5204,10 @@ function renderExp(){
   $('expSum').innerHTML='<div class="es"><b style="color:var(--sGreen)">'+inr(mt.inc)+'</b><span>Income</span></div><div class="es"><b style="color:var(--coral)">'+inr(mt.exp)+'</b><span>Spent</span></div><div class="es"><b style="color:'+(mt.net>=0?'var(--sBlue)':'var(--coral)')+'">'+inr(mt.net)+'</b><span>Balance</span></div>'+(spendVs?'<div style="grid-column:1/-1;font-size:10.5px;color:var(--mut);text-align:center;margin-top:-2px">'+spendVs+'</div>':'')+(topCat&&topV>0?'<div style="grid-column:1/-1;font-size:11px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 11px;text-align:left">💡 '+esc(topCat)+' is your highest spend category this month · '+inr(topV)+'</div>':'');
   var segShow = expView==='tx';
   $('expMonNav').style.display = (expView==='tx'||expView==='budg'||expView==='ins')?'':'none';
-  ['expTx','expBudg','expAcct','expIns'].forEach(function(id){ $(id).style.display='none'; });
+  ['expTx','expUpcoming','expBudg','expAcct','expIns'].forEach(function(id){ $(id).style.display='none'; });
   $('expEmpty').hidden = true;
   if(expView==='tx') renderExpTx();
+  else if(expView==='upcoming') renderExpUpcoming();
   else if(expView==='budg') renderExpBudg();
   else if(expView==='acct') renderExpAcct();
   else if(expView==='ins') renderExpIns();
@@ -5159,15 +5239,33 @@ function renderExpTx(){
       + '<div class="txAmt '+cls+'">'+sign+inr(x.amt)+'</div></div>';
   }
   box.innerHTML=html;
+  box.insertAdjacentHTML('beforeend','<div style="display:flex;gap:8px;margin:12px 0 4px"><button class="sbtn" id="expRangeExport">Export date range</button></div>');
 }
-
+function smartExpensePredictions(daysAhead){
+  var now=toDate(today()),limit=addDays(now,daysAhead||30),cutoff=addDays(now,-180),groups={};
+  for(var i=0;i<state.tx.length;i++){var x=state.tx[i];if(x.kind!=='exp'||x.d<fmt(cutoff)||x.d>=today())continue;var key=(x.payee||x.cat||'Expense').toLowerCase()+'|'+(x.cat||'');(groups[key]||(groups[key]=[])).push(x);}
+  var out=[];
+  for(var key in groups){var a=groups[key];if(a.length<3)continue;a.sort(function(x,y){return x.d<y.d?-1:1;});var gaps=[];for(var j=1;j<a.length;j++){var g=dayDiff(a[j-1].d,a[j].d);if(g>7&&g<100)gaps.push(g);}if(gaps.length<2)continue;gaps.sort(function(x,y){return x-y;});var median=gaps[Math.floor(gaps.length/2)];if(median<14||median>45)continue;var last=a[a.length-1],next=addDays(toDate(last.d),median);if(next<now||next>limit)continue;var already=false;for(var z=0;z<state.tx.length;z++){if(state.tx[z].kind==='exp'&&state.tx[z].d===fmt(next)&&(state.tx[z].payee||state.tx[z].cat||'').toLowerCase()===(last.payee||last.cat||'').toLowerCase()){already=true;break;}}if(already)continue;out.push({kind:'smart',d:fmt(next),name:last.payee||last.cat||'Expense',amt:last.amt,cat:last.cat||'',acct:acctById(last.acct)});}
+  out.sort(function(a,b){return a.d<b.d?-1:1;});return out.slice(0,8);
+}
+function renderExpUpcoming(){
+  var box=$('expUpcoming');box.style.display='';var now=toDate(today()),end=addDays(now,30),items=[];
+  for(var i=0;i<state.recur.length;i++){var r=state.recur[i];if(!r.active||r.start>today()||(r.end&&r.end<today()))continue;var base=r.last||addDays(toDate(r.start||today()),-1),n=nextRecurringDateFrom(r,base),guard=0;while(n<now&&guard<100){n=recurringNextDate(r,n);guard++;}if(n<=end)items.push({kind:'recur',d:fmt(n),name:r.name,amt:r.amt,cat:r.cat,acct:acctById(r.acct),r:r});}
+  var smart=smartExpensePredictions(30);for(var j=0;j<smart.length;j++)items.push(smart[j]);items.sort(function(a,b){return a.d<b.d?-1:1;});
+  var html='<div class="upcomingCard"><div class="upcomingHead"><span class="uicon">📅</span><b>Upcoming expenses</b><span>next 30 days</span></div>';
+  if(!items.length)html+='<div class="setS" style="padding-top:10px">No upcoming expenses detected yet.</div>';
+  for(var k=0;k<items.length;k++){var it=items[k],acct=it.acct;html+='<div class="recurRow"><div class="recurMain"><b>'+esc(it.name)+(it.kind==='smart'?'<span class="smartBadge">Pattern</span>':'')+'</b><span>'+niceDate(it.d)+(it.cat?' · '+esc(it.cat):'')+(acct?' · '+esc(acct.name):'')+(it.kind==='recur'?(it.r&&it.r.skipNext?' · next occurrence will be skipped':' · auto-posts when due'):'')+'</span></div><div style="text-align:right"><div class="recurAmt">'+inr(it.amt)+'</div>'+(it.kind==='recur'?'<button class="sbtn" data-skip-recur="'+esc(it.r.id)+'" style="margin-top:5px;padding:5px 8px">Skip next</button>':'')+'</div></div>';}
+  html+='</div><button class="addT" id="recurAdd">+ Add recurring expense</button><button class="addT" id="recurManage" style="margin-top:8px">Manage recurring</button><div class="upcomingCard" style="margin-top:10px"><div class="upcomingHead"><span class="uicon">🧠</span><b>Smart reminders</b><span>pattern-based</span></div><div class="setS" style="padding-top:8px">Repeated spending patterns are detected from your recent expenses and can remind you before the predicted date.</div><div class="setRow" style="padding:12px 0 4px"><div class="setInfo"><div class="setT">Smart expense reminders</div><div class="setS">Only patterns with repeated, reasonably consistent timing are used.</div></div><div class="tog" id="smartExpRemTog"></div></div><div style="display:flex;align-items:center;gap:8px;padding-top:8px"><span class="setS">Reminder time</span><input id="smartExpRemTime" class="inp" type="time" style="max-width:120px;margin-left:auto"></div></div>';
+  box.innerHTML=html;var st=$('smartExpRemTog');if(st)st.classList.toggle('on',state.set.smartExpRem!==false);var sti=$('smartExpRemTime');if(sti)sti.value=state.set.smartExpRemTime||'09:00';var add=$('recurAdd'),manage=$('recurManage');if(add)add.onclick=function(){openRecur(null);};if(manage)manage.onclick=function(){openRecurList();};box.onclick=function(e){var b=climb(e.target,box,'data-skip-recur');if(!b)return;var rid=b.getAttribute('data-skip-recur');for(var si=0;si<state.recur.length;si++)if(state.recur[si].id===rid){state.recur[si].skipNext=true;break;}persist();renderExpUpcoming();toastN('Next recurring expense will be skipped');};
+}
 function renderExpAcct(){
   var box=$('expAcct'); box.style.display='';
-  var html='<div class="insCard" style="text-align:center"><div class="il">Net worth</div><div class="iv" style="font-size:26px;color:var(--sBlue)">'+inr(netWorth())+'</div></div>';
+  var html='<div class="insCard" style="text-align:center"><div class="il">Net worth</div><div class="iv" style="font-size:26px;color:var(--sBlue)">'+inr(netWorth())+'</div><div class="setS" style="margin-top:4px">Credit cards are excluded from net worth</div></div>';
   for(var i=0;i<state.accts.length;i++){
     var a=state.accts[i], bal=acctBalance(a.id);
-    html += '<div class="acctCard" data-acct="'+a.id+'"><div class="ai">'+(ACCT_ICON[a.type]||'\uD83D\uDCB0')+'</div>'
-      + '<div class="an"><b>'+esc(a.name)+(a.active?'':' <span style="color:var(--mut)">(inactive)</span>')+'</b><span>'+a.type+'</span></div>'
+    var acctMeta=a.type==='credit' ? ((a.creditLimit?inr(a.creditLimit)+' limit · ':'')+(a.creditLimit?'Available '+inr(Math.max(0,a.creditLimit-Math.max(0,-bal)))+' · ':'')+'Due day '+a.dueDay) : a.type;
+    html += '<div class="acctCard" data-acct="'+a.id+'"><div class="ai">'+(ACCT_ICON[a.type]||'💰')+'</div>'
+      + '<div class="an"><b>'+esc(a.name)+(a.active?'':' <span style="color:var(--mut)">(inactive)</span>')+'</b><span>'+esc(acctMeta)+'</span></div>'
       + '<div class="abal'+(bal<0?' neg':'')+'">'+inr(bal)+'</div></div>';
   }
   html += '<button class="addT" id="acctAdd">+ Add account</button>';
@@ -5248,13 +5346,15 @@ function renderExpIns(){
     for(var t=0;t<top5.length;t++){ t5 += '<div class="catBar"><span class="cbn" style="width:auto;flex:1">'+esc(top5[t].payee||top5[t].cat||'Expense')+'</span><span class="cba">'+inr(top5[t].amt)+'</span></div>'; }
     t5 += '</div>'; html += t5;
   }
-  html += '<div class="lbl" style="margin-top:6px">Reports (this month)</div>';
-  html += '<div style="display:flex;gap:8px"><button class="sbtn" id="repCsv">CSV</button><button class="sbtn" id="repXlsx">Excel</button><button class="sbtn" id="repPdf">PDF</button></div>';
+  var fc=cashFlowForecast(30); html += '<div class="insCard"><div class="il">30-day cash-flow forecast</div><div class="iv" style="color:'+(fc.projected>=0?'var(--sGreen)':'var(--coral)')+'">'+inr(fc.projected)+'</div><div class="setS">Starting cash '+inr(fc.cash)+' · upcoming income '+inr(fc.income)+' · expected expenses '+inr(fc.expenses)+'</div></div>';
+  html += '<div class="lbl" style="margin-top:6px">Reports</div>';
+  html += '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sbtn" id="repCsv">CSV</button><button class="sbtn" id="repXlsx">Excel</button><button class="sbtn" id="repPdf">PDF</button><button class="sbtn acc" id="repRange">Date range</button></div>';
   box.innerHTML=html;
   var csv=$('repCsv'), xl=$('repXlsx'), pd=$('repPdf');
   if(csv) csv.onclick=exportExpCsv;
   if(xl) xl.onclick=exportExpXlsx;
   if(pd) pd.onclick=exportExpPdf;
+  var rr=$('repRange'); if(rr) rr.onclick=openExpRangeExport;
 }
 
 function expRows(){
@@ -5309,35 +5409,72 @@ function exportExpPdf(){
   else toastN('Allow pop-ups to export PDF');
 }
 
+function recurringNextDate(r, after){
+  var d = after instanceof Date ? new Date(after.getTime()) : toDate(after);
+  if(r.freq==='weekly'){ var target=r.weekday; var delta=(target-d.getDay()+7)%7; if(delta===0)delta=7; return addDays(d,delta); }
+  if(r.freq==='yearly'){ var y=d.getFullYear(),m=(r.month||1)-1,day=Math.min(28,r.yearDay||r.day||1),cand=new Date(y,m,day); if(cand.getTime()<=d.getTime())cand=new Date(y+1,m,day); return cand; }
+  var y2=d.getFullYear(),m2=d.getMonth(),day2=Math.min(28,r.day||1),cand2=new Date(y2,m2,day2); if(cand2.getTime()<=d.getTime())cand2=new Date(y2,m2+1,day2); return cand2;
+}
+function nextRecurringDateFrom(r,baseIso){ return recurringNextDate(r,baseIso?toDate(baseIso):addDays(toDate(r.start||today()),-1)); }
+function expRowsRange(from,to){
+  var list=state.tx.filter(function(x){return x.d>=from&&x.d<=to;}).slice().sort(function(a,b){return a.d<b.d?-1:1;});
+  var rows=[['ID','Date','Type','Payee / Merchant','Account','To Account','Category','Subcategory','Amount','Payment Method','Note','Tags','Receipt','Recurring ID','Created']];
+  for(var i=0;i<list.length;i++){var x=list[i],af=acctById(x.acct),at=acctById(x.to);rows.push([x.id,x.d,x.kind,x.payee||'',af?af.name:'',at?at.name:'',x.cat||'',x.sub||'',x.amt,x.method||'',x.note||'',x.tags||'',x.receipt||(x.receiptData?'Uploaded image':''),x.recurId||'',x.created?new Date(x.created).toISOString():'']);}return rows;
+}
+function openExpRangeExport(){var end=today(),start=fmt(addDays(toDate(end),-30));$('expExportFrom').value=start;$('expExportTo').value=end;openSheet('expExportSheet');}
+function exportExpRangeXlsx(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}if(typeof XLSX==='undefined'){toastN('Excel unavailable');return;}var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(expRowsRange(from,to)),'Expenses');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='expenses-'+from+'-to-'+to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);closeSheet();toastN('Saved Excel');return;}catch(e){}}if(webSave(name,XMIME,out)){closeSheet();toastN('Downloading Excel…');}else toastN('Export failed');}
+function exportExpRangePdf(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}var rows=expRowsRange(from,to),title='Expense Data — '+niceDate(from)+' to '+niceDate(to),th='',body='';for(var i=0;i<rows[0].length;i++)th+='<th>'+esc(rows[0][i])+'</th>';for(var r=1;r<rows.length;r++){body+='<tr>';for(var c=0;c<rows[r].length;c++)body+='<td>'+esc(rows[r][c])+'</td>';body+='</tr>';}var doc='<html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;padding:10px;color:#111;font-size:8px}h1{font-size:16px}table{width:100%;border-collapse:collapse;table-layout:auto}th,td{padding:4px 5px;border:1px solid #ddd;vertical-align:top;white-space:nowrap}th{background:#f3f3f3;font-weight:700}</style></head><body><h1>'+esc(title)+'</h1><table><thead><tr>'+th+'</tr></thead><tbody>'+body+'</tbody></table></body></html>';var w=window.open('','_blank');if(w){w.document.write(doc);w.document.close();setTimeout(function(){w.print();},400);}else toastN('Allow pop-ups to export PDF');}
+function openRecurList(){var rows='';for(var i=0;i<state.recur.length;i++){var r=state.recur[i],next=nextRecurringDateFrom(r,r.last||addDays(toDate(r.start||today()),-1));var schedule=r.freq==='weekly'?['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][r.weekday]:r.freq==='yearly'?('Yearly · '+new Date(2000,(r.month||1)-1,r.yearDay||r.day||1).toLocaleDateString(undefined,{month:'short',day:'numeric'})):('Monthly · day '+r.day);rows+='<div class="recurRow" data-rid="'+esc(r.id)+'"><div class="recurMain"><b>'+esc(r.name)+'</b><span>'+schedule+' · next '+niceDate(fmt(next))+(r.active?'':' · paused')+'</span></div><div class="recurAmt">'+inr(r.amt)+'</div></div>';}if(!rows)rows='<div class="setS" style="padding:16px 0">No recurring expenses yet.</div>';var html='<div class="upcomingCard"><div class="upcomingHead"><b>Recurring expenses</b><span>'+state.recur.length+'</span></div>'+rows+'</div><button class="addT" id="recurListAdd">+ Add recurring expense</button>';$('expUpcoming').innerHTML=html;$('expUpcoming').style.display='';$('recurListAdd').onclick=function(){openRecur(null);};$('expUpcoming').onclick=function(e){var b=climb(e.target,this,'data-rid');if(b)openRecur(b.getAttribute('data-rid'));};}
 function runRecur(){
-  var t=today(), changed=false;
+  var t=today(),changed=false,safety=0;
   for(var i=0;i<state.recur.length;i++){
-    var r=state.recur[i]; if(!r.active) continue;
-    if(r.start>t) continue; if(r.end && r.end<t) continue;
-    // monthly only auto-post for simplicity of the due check
-    var due = r.day<=new Date().getDate();
-    var thisPer = t.slice(0,7);
-    if(r.freq==='monthly' && due && (r.last||'').slice(0,7)!==thisPer){
-      state.tx.push(normTx({kind:r.kind, amt:r.amt, acct:r.acct, cat:r.cat, d:thisPer+'-'+pad(r.day),
-        payee:r.name, note:'Recurring', created:Date.now()}));
-      r.last=thisPer+'-'+pad(r.day); changed=true;
+    var r=state.recur[i];if(!r.active||r.start>t)continue;if(r.end&&r.end<t)continue;
+    var cursor=r.last||addDays(toDate(r.start||t),-1),next=nextRecurringDateFrom(r,cursor);
+    while(fmt(next)<=t&&(!r.end||fmt(next)<=r.end)&&safety<500){
+      var ds=fmt(next),exists=false;for(var z=0;z<state.tx.length;z++){if(state.tx[z].recurId===r.id&&state.tx[z].recurDate===ds){exists=true;break;}}
+      if(r.skipNext){ r.skipNext=false; r.last=ds; changed=true; }
+      else { if(!exists){state.tx.push(normTx({kind:r.kind,amt:r.amt,acct:r.acct,cat:r.cat,d:ds,payee:r.name,note:'Recurring',created:Date.now(),recurId:r.id,recurDate:ds}));changed=true;} r.last=ds; }next=recurringNextDate(r,next);safety++;
     }
   }
-  if(changed) persist();
+  if(changed)persist();
 }
-function normTx(x){
-  x.id='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-  return x;
-}
+function normTx(x){ x.id='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); return x; }
 
+/* ---- recurring expense sheet ---- */
+var recurEd=null,recurFreq='monthly',recurWeekday=1,recurCat='',recurAcct='';
+function openRecur(id){var r=null;if(id){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===id){r=state.recur[i];break;}}if(!activeAccts().length){toastN('Add an account first');expView='acct';syncSeg();renderExp();openAcct(null);return;}recurEd=r?JSON.parse(JSON.stringify(r)):{id:'',name:'',amt:0,kind:'exp',freq:'monthly',day:1,weekday:1,month:1,yearDay:1,acct:activeAccts()[0].id,cat:'Other',start:today(),active:true,last:''};recurEd._edit=id||'';recurFreq=recurEd.freq||'monthly';recurWeekday=+recurEd.weekday||1;recurCat=recurEd.cat||'Other';recurAcct=recurEd.acct||activeAccts()[0].id;$('recurSheetT').textContent=id?'Edit recurring expense':'Add recurring expense';$('recurName').value=recurEd.name||'';$('recurAmt').value=recurEd.amt||'';$('recurDay').value=recurEd.day||1;$('recurMonth').value=recurEd.month||1;$('recurYearDay').value=recurEd.yearDay||recurEd.day||1;$('recurStart').value=recurEd.start||today();$('recurActive').classList.toggle('on',recurEd.active!==false);$('recurDel').style.display=id?'':'none';paintRecur();openSheet('recurSheet');}
+function paintRecur(){var bs=$('recurFreqGrid').children;for(var i=0;i<bs.length;i++)bs[i].classList.toggle('sel',bs[i].getAttribute('data-rf')===recurFreq);$('recurMonthlyFields').style.display=recurFreq==='monthly'?'':'none';$('recurWeeklyFields').style.display=recurFreq==='weekly'?'':'none';$('recurYearlyFields').style.display=recurFreq==='yearly'?'':'none';var wb=$('recurWeekGrid').children;for(var j=0;j<wb.length;j++)wb[j].classList.toggle('sel',+wb[j].getAttribute('data-rw')===recurWeekday);var cats=Object.keys(state.cats),cg='';for(var k=0;k<cats.length;k++)cg+=chip(cats[k],cats[k]===recurCat,'data-rc',cats[k]);$('recurCatGrid').innerHTML=cg;var acs=activeAccts(),ag='';for(var m=0;m<acs.length;m++)ag+=chip(acs[m].name,acs[m].id===recurAcct,'data-ra',acs[m].id);$('recurAcctGrid').innerHTML=ag;}
+function saveRecur(){var n=$('recurName').value.trim(),amt=parseFloat($('recurAmt').value);if(!n){$('recurName').focus();toastN('Enter a name');return;}if(!amt||amt<=0){$('recurAmt').focus();toastN('Enter an amount');return;}if(!recurAcct){toastN('Pick an account');return;}recurEd.name=n;recurEd.amt=amt;recurEd.freq=recurFreq;recurEd.day=Math.min(28,Math.max(1,+$('recurDay').value||1));recurEd.weekday=recurWeekday;recurEd.month=Math.min(12,Math.max(1,+$('recurMonth').value||1));recurEd.yearDay=Math.min(28,Math.max(1,+$('recurYearDay').value||1));recurEd.cat=recurCat||'Other';recurEd.acct=recurAcct;recurEd.start=$('recurStart').value||today();recurEd.active=$('recurActive').classList.contains('on');if(recurEd._edit){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===recurEd._edit){delete recurEd._edit;state.recur[i]=recurEd;break;}}else{delete recurEd._edit;recurEd.id='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);state.recur.push(recurEd);}persist();closeSheet();renderExp();toastN('Recurring expense saved');}
 /* ---- expense sheet ---- */
 var expEd = null, expKindSel='exp', expCatSel='', expSubSel='', expAcctSel='', expToSel='';
 function activeAccts(){ return state.accts.filter(function(a){return a.active;}); }
+function renderExpReceipt(){var box=$('expReceiptPreview'),rem=$('expReceiptRemove');if(!box||!rem)return;var src='';if(expEd&&expEd.receiptData)src=expEd.receiptData;else if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)src='data:image/jpeg;base64,'+b;}catch(e){}}if(src)box.innerHTML='<img class="receiptThumb" src="'+src+'" alt="Receipt"><div class="receiptName">'+esc(expEd.receipt||'Uploaded receipt')+'</div>';else if(expEd&&expEd.receipt)box.innerHTML='<div class="receiptName">'+esc(expEd.receipt)+'</div>';else box.innerHTML='<div class="setS">No receipt attached.</div>';rem.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';var sc=$('expReceiptScan');if(sc)sc.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';}
+function clearExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}if(expEd){expEd.receipt='';expEd.receiptData='';}renderExpReceipt();}
+function resizeReceipt(file,cb){var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var max=1600,scale=Math.min(1,max/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*scale)),h=Math.max(1,Math.round(im.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(im,0,0,w,h);cb(c.toDataURL('image/jpeg',.78));};im.onerror=function(){cb(fr.result);};im.src=fr.result;};fr.readAsDataURL(file);}
+function receiptDataForScan(){
+  if(expEd&&expEd.receiptData) return expEd.receiptData;
+  if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)return 'data:image/jpeg;base64,'+b;}catch(e){}}
+  return '';
+}
+function scanReceiptWithAi(){
+  var data=receiptDataForScan(); if(!data){toastN('Upload a receipt image first');return;}
+  var key=getAiKey(); if(!key){toastN('Configure AI first');return;}
+  if(getAiProvider()!=='gemini'){toastN('Receipt scan currently uses Gemini vision');return;}
+  var model=getAiModel(), parts=data.split(','), mime=(parts[0].match(/^data:(.*?);base64$/)||[])[1]||'image/jpeg', b64=parts[1]||'';
+  var prompt='Read this receipt and return ONLY valid JSON with keys amount, merchant, date, category, payment_method, note. amount must be a number. date must be YYYY-MM-DD or empty. category should be one of the common categories if clear. Do not invent missing values. Do not include extra text.';
+  toastN('Scanning receipt…');
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime,data:b64}}]}],generationConfig:{maxOutputTokens:220}})})
+    .then(function(r){if(!r.ok)throw new Error('API '+r.status);return r.json();})
+    .then(function(d){var txt=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;if(!txt)throw new Error('Empty response');txt=txt.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();var o=JSON.parse(txt);if(o.amount>0)$('expAmt').value=fmtV(o.amount);if(o.merchant)$('expPayee').value=String(o.merchant).slice(0,60);if(/^\d{4}-\d{2}-\d{2}$/.test(o.date||'')){expEd.d=o.date;$('expDateTxt').textContent=o.date===today()?'Today':niceDate(o.date);}if(o.payment_method)$('expMethod').value=String(o.payment_method).slice(0,24);if(o.note)$('expNote').value=String(o.note).slice(0,200);var cats=Object.keys(state.cats), want=String(o.category||'').toLowerCase(), best='';for(var i=0;i<cats.length;i++)if(cats[i].toLowerCase()===want){best=cats[i];break;}if(best){expCatSel=best;paintExpPickers();}toastN('Receipt scanned — review before saving');})
+    .catch(function(e){toastN('Receipt scan failed: '+e.message);});
+}
+function addExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}if(nat&&nat.pickPhoto){try{window.pendingPhotoTarget='expense';nat.pickPhoto();return;}catch(e){}}$('expReceiptFile').click();}
+
 function openExp(id){
   var x = id ? null : null;
   if(id){ for(var i=0;i<state.tx.length;i++) if(state.tx[i].id===id) x=state.tx[i]; }
   if(!state.accts.length){ toastN('Add an account first'); expView='acct'; renderExp(); syncSeg(); openAcct(null); return; }
-  expEd = x ? JSON.parse(JSON.stringify(x)) : {id:'', kind:'exp', amt:0, acct:activeAccts()[0].id, to:'', cat:'', sub:'', payee:'', method:'', note:'', tags:'', d:today(), created:Date.now()};
+  expEd = x ? JSON.parse(JSON.stringify(x)) : {id:'', kind:'exp', amt:0, acct:activeAccts()[0].id, to:'', cat:'', sub:'', payee:'', method:'', note:'', tags:'', receipt:'', receiptData:'', d:today(), created:Date.now()};
   expEd._edit = id||'';
   expKindSel = expEd.kind; expCatSel = expEd.cat; expSubSel = expEd.sub;
   expAcctSel = expEd.acct || (activeAccts()[0]&&activeAccts()[0].id) || '';
@@ -5433,7 +5570,7 @@ function openAcct(id){
   acctEd = a?JSON.parse(JSON.stringify(a)):{id:'',name:'',type:'bank',open:0,active:true};
   acctEd._edit=id||''; acctTypeSel=acctEd.type;
   $('acctSheetT').textContent=id?'Edit account':'Add account';
-  $('acctName').value=acctEd.name; $('acctOpen').value=acctEd.open||'';
+  $('acctName').value=acctEd.name; $('acctOpen').value=acctEd.open||''; $('acctCreditLimit').value=acctEd.creditLimit||''; $('acctBillDay').value=acctEd.billDay||1; $('acctDueDay').value=acctEd.dueDay||15; $('acctCreditFields').style.display=acctTypeSel==='credit'?'':'none';
   $('acctActive').classList.toggle('on',acctEd.active!==false);
   $('acctDel').style.display=id?'':'none';
   var g=''; for(var i=0;i<ACCT_TYPES.length;i++) g+=chip(ACCT_TYPES[i][1],ACCT_TYPES[i][0]===acctTypeSel,'data-at',ACCT_TYPES[i][0]);
@@ -5442,7 +5579,7 @@ function openAcct(id){
 }
 function saveAcct(){
   var n=$('acctName').value.trim(); if(!n){ $('acctName').focus(); return; }
-  acctEd.name=n; acctEd.type=acctTypeSel; acctEd.open=parseFloat($('acctOpen').value)||0;
+  acctEd.name=n; acctEd.type=acctTypeSel; acctEd.open=parseFloat($('acctOpen').value)||0; acctEd.creditLimit=Math.max(0,parseFloat($('acctCreditLimit').value)||0); acctEd.billDay=Math.min(28,Math.max(1,+$('acctBillDay').value||1)); acctEd.dueDay=Math.min(28,Math.max(1,+$('acctDueDay').value||15));
   acctEd.active=$('acctActive').classList.contains('on');
   if(acctEd._edit){ for(var i=0;i<state.accts.length;i++) if(state.accts[i].id===acctEd._edit){ delete acctEd._edit; state.accts[i]=acctEd; break; } }
   else { delete acctEd._edit; acctEd.id='a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); state.accts.push(acctEd); }
@@ -5985,6 +6122,14 @@ function computeAlarms(){
         n: 'Journal — a minute for today\u2019s entry', e: '\u270D\uFE0F', r: 0});
     }
   }
+  var smart = state.set.smartExpRem ? smartExpensePredictions(7) : [];
+  for(var si=0;si<smart.length;si++){
+    var sp=smart[si], dsmart=toDate(sp.d), sm2=(state.set.smartExpRemTime||'09:00').split(':'), dtSmart=new Date(dsmart.getFullYear(),dsmart.getMonth(),dsmart.getDate(),+sm2[0],+sm2[1],0,0);
+    if(dtSmart.getTime()<=now) continue;
+    out.push({c:intHash('smart-expense|'+sp.name+'|'+sp.d),t:dtSmart.getTime(),h:'smart-expense',n:'Upcoming expense: '+sp.name,e:'💡',b:'You often have a similar expense around this date.',r:0});
+  }
+  // Credit-card payment reminders: only cards with an outstanding balance are reminded.
+  for(var ci=0;ci<state.accts.length;ci++){var ca=state.accts[ci];if(ca.type!=='credit'||!ca.active)continue;var cb=acctBalance(ca.id);if(cb>=0)continue;var due=nextCreditDue(ca), dueAt=new Date(due.getFullYear(),due.getMonth(),due.getDate(),9,0,0,0);if(dueAt.getTime()<=now||dueAt.getTime()>now+7*86400000)continue;out.push({c:intHash('cc-due|'+ca.id+'|'+fmt(due)),t:dueAt.getTime(),h:'credit',n:'Credit card payment due: '+ca.name,e:'💳',b:'Outstanding '+inr(Math.abs(cb))+' · due today',r:0});}
   out.sort(function(a,b){ return a.t - b.t; });
   return JSON.stringify(out.slice(0, 140));
 }
@@ -6046,7 +6191,7 @@ function handleAddAction(kind){
   setTimeout(function(){
     if(kind==='habit') openEdit(null);
     else if(kind==='expense'){ showTab('pgExp'); setTimeout(function(){openExp(null);},60); }
-    else if(kind==='mood'){ showTab('pgMood'); setTimeout(function(){var g=$('moGrid'); if(g) g.scrollIntoView({behavior:'smooth',block:'center'});},80); }
+    else if(kind==='mood'){ showTab('pgMood'); setTimeout(function(){ var g=$('moGrid'); if(g) g.scrollIntoView({behavior:'smooth',block:'center'}); var first=g&&g.querySelector('[data-mood]'); if(first) first.focus(); },80); }
     else if(kind==='journal'){ setTimeout(function(){openJr(null);},60); }
     else if(kind==='sleep'){ showTab('pgMood'); setTimeout(function(){openSleep(today());},60); }
   },80);
@@ -6085,6 +6230,30 @@ function init(){
   });
   $('fab').addEventListener('click', function(){
     if($('pgExp').classList.contains('on')) openExp(null); else openAddActionSheet();
+  });
+
+  // Dynamic home-card controls: these elements are re-rendered by renderToday().
+  // Delegate the clicks from their stable parent so the handlers survive re-renders.
+  $('focusCard').addEventListener('click', function(e){
+    var b = climb(e.target, this, 'data-fopen');
+    if(b){ openDetail(focusId); return; }
+    if(e.target && e.target.id === 'fBtn'){ focusTap(); }
+  });
+  $('closeCard').addEventListener('click', function(e){
+    if(e.target && e.target.id === 'ccBtn'){
+      var t = today();
+      var due = [];
+      for(var i=0;i<state.habits.length;i++){
+        var h = state.habits[i];
+        if(!h.arch && dueOn(h, new Date())) due.push(h);
+      }
+      var doneN = 0;
+      for(var j=0;j<due.length;j++) if(isDone(due[j], t)) doneN++;
+      state.closed[t] = dayScore(due, doneN);
+      persist();
+      renderToday();
+      toastN('Day closed · '+state.closed[t]+'%');
+    }
   });
   $('actionSheet').addEventListener('click', function(e){
     var b=climb(e.target,this,'data-add-action');
@@ -6715,6 +6884,11 @@ function init(){
   // ---- Universal AI Assistant wiring ----
   function doUaiSend(){ var v=$('uaiInput').value.trim();if(!v)return;$('uaiInput').value='';uaiSend(v); }
   $('uaiSend').addEventListener('click', doUaiSend);
+  $('uaiMic').addEventListener('click', function(){
+    startVoice($('uaiInput'), function(text){
+      toastN('Got: "'+text+'" — tap → to parse');
+    });
+  });
   $('uaiInput').addEventListener('keydown', function(e){if(e.key==='Enter'){e.preventDefault();doUaiSend();}});
   if($('aiCfgHead'))$('aiCfgHead').addEventListener('click',function(){$('aiCfg').classList.toggle('open');});
   // Quick hint chips
@@ -6915,7 +7089,7 @@ function init(){
   $('expSrch').addEventListener('input', function(){ expQ=this.value; renderExp(); });
   function syncFilterChips(){ var bs=$('expFilterRow').children; for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i].getAttribute('data-xf')===expFilter); }
   $('expFilterRow').addEventListener('click', function(e){ var b=climb(e.target,this,'data-xf'); if(!b) return; expFilter=b.getAttribute('data-xf'); syncFilterChips(); renderExp(); });
-  $('expTx').addEventListener('click', function(e){ var b=climb(e.target,this,'data-tx'); if(b) openExp(b.getAttribute('data-tx')); });
+  $('expTx').addEventListener('click', function(e){ var b=climb(e.target,this,'data-tx'); if(b) openExp(b.getAttribute('data-tx')); if(e.target&&e.target.id==='expRangeExport') openExpRangeExport(); });
   $('expAcct').addEventListener('click', function(e){
     if(e.target && e.target.id==='acctAdd'){ openAcct(null); return; }
     if(e.target && e.target.id==='xferBtn'){ openXfer(); return; }
@@ -6957,8 +7131,26 @@ function init(){
     persist(); closeSheet(); renderExp(); toastN('Deleted');
   });
 
+  $('expReceiptAdd').addEventListener('click', addExpReceipt);
+  $('expReceiptScan').addEventListener('click', scanReceiptWithAi);
+  $('expReceiptRemove').addEventListener('click', clearExpReceipt);
+  $('expReceiptFile').addEventListener('change', function(){var f=this.files&&this.files[0];if(!f)return;if(f.size>12*1024*1024){toastN('Receipt is too large');this.value='';return;}resizeReceipt(f,function(data){expEd.receipt='';expEd.receiptData=data;renderExpReceipt();toastN('Receipt added');});this.value='';});
+  $('recurFreqGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rf');if(!b)return;recurFreq=b.getAttribute('data-rf');paintRecur();});
+  $('recurWeekGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rw');if(!b)return;recurWeekday=+b.getAttribute('data-rw');paintRecur();});
+  $('recurCatGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rc');if(!b)return;recurCat=b.getAttribute('data-rc');paintRecur();});
+  $('recurAcctGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-ra');if(!b)return;recurAcct=b.getAttribute('data-ra');paintRecur();});
+  $('recurActive').addEventListener('click',function(){this.classList.toggle('on');});
+  $('recurSave').addEventListener('click',saveRecur);
+  $('recurDel').addEventListener('click',function(){if(!recurEd||!recurEd._edit)return;if(!confirm('Delete this recurring expense? Existing posted transactions will remain.'))return;state.recur=state.recur.filter(function(r){return r.id!==recurEd._edit;});persist();closeSheet();renderExp();toastN('Recurring expense deleted');});
+  $('expExportXlsx').addEventListener('click',exportExpRangeXlsx);
+  $('expExportPdf').addEventListener('click',exportExpRangePdf);
+
+  // smart expense reminder controls
+  document.addEventListener('click', function(e){ if(e.target && e.target.id==='smartExpRemTog'){ state.set.smartExpRem=!state.set.smartExpRem; persist(); renderExpUpcoming(); pushAlarms(); } });
+  document.addEventListener('change', function(e){ if(e.target && e.target.id==='smartExpRemTime'){ var v=e.target.value; if(/^\d{2}:\d{2}$/.test(v)){ state.set.smartExpRemTime=v; persist(); pushAlarms(); toastN('Smart reminder time saved'); } } });
+
   // account sheet
-  $('acctTypeGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-at'); if(!b) return; acctTypeSel=b.getAttribute('data-at'); var bs=this.children; for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i]===b); });
+  $('acctTypeGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-at'); if(!b) return; acctTypeSel=b.getAttribute('data-at'); $('acctCreditFields').style.display=acctTypeSel==='credit'?'':'none'; var bs=this.children; for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i]===b); });
   $('acctActive').addEventListener('click', function(){ this.classList.toggle('on'); });
   $('acctSave').addEventListener('click', saveAcct);
   $('acctDel').addEventListener('click', function(){
