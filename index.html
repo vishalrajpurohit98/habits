@@ -1581,6 +1581,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div id="expReceiptPreview" class="receiptPreview"></div>
       <div class="receiptActions">
         <button class="sbtn" id="expReceiptAdd">Upload receipt</button>
+        <button class="sbtn acc" id="expReceiptScan" style="display:none">Scan receipt</button>
         <button class="sbtn" id="expReceiptRemove" style="display:none">Remove</button>
       </div>
       <input id="expReceiptFile" type="file" accept="image/*" style="display:none">
@@ -1622,6 +1623,14 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <div class="pickGrid" id="acctTypeGrid"></div>
   <div class="lbl">Opening balance</div>
   <input id="acctOpen" class="inp" type="number" inputmode="decimal" step="any" placeholder="0">
+  <div id="acctCreditFields" style="display:none">
+    <div class="lbl">Credit limit</div>
+    <input id="acctCreditLimit" class="inp" type="number" inputmode="decimal" step="any" placeholder="Optional">
+    <div style="display:flex;gap:8px">
+      <div style="flex:1"><div class="lbl">Billing day</div><input id="acctBillDay" class="inp" type="number" min="1" max="28" placeholder="1"></div>
+      <div style="flex:1"><div class="lbl">Payment due day</div><input id="acctDueDay" class="inp" type="number" min="1" max="28" placeholder="15"></div>
+    </div>
+  </div>
   <div class="setRow" style="padding:12px 0"><div class="setInfo"><div class="setT">Active</div></div><div class="tog on" id="acctActive"></div></div>
   <button class="primary" id="acctSave">Save account</button>
   <button class="danger" id="acctDel" style="display:none">Delete account</button>
@@ -2122,6 +2131,7 @@ function normState(s){
     rc.end = /^\d{4}-\d{2}-\d{2}$/.test(rc.end||'') ? rc.end : '';
     rc.last = /^\d{4}-\d{2}-\d{2}$/.test(rc.last||'') ? rc.last : '';
     rc.active = rc.active !== false;
+    rc.skipNext = !!rc.skipNext;
     s.recur[ri] = rc;
   }
   if(!s.budg || typeof s.budg !== 'object' || s.budg instanceof Array) s.budg = {};
@@ -2179,6 +2189,8 @@ function normState(s){
   d.uname = typeof d.uname === 'string' ? d.uname.slice(0,24) : '';
   d.curr = d.curr || '\u20B9';
   d.lastAutoBk = d.lastAutoBk || ''; d.lastGrant = d.lastGrant || ''; d.lastBkPath = d.lastBkPath || '';
+  d.smartExpRem = d.smartExpRem !== false;
+  if(!/^\d{2}:\d{2}$/.test(d.smartExpRemTime||'')) d.smartExpRemTime='09:00';
   s.mtime = s.mtime || 0;
   return s;
 }
@@ -4461,14 +4473,15 @@ function scheduleWebNotifs(){
       })(h, times[j]);
     }
   }
-  var smart = smartExpensePredictions(7);
+  var smart = state.set.smartExpRem ? smartExpensePredictions(7) : [];
   for(var si=0;si<smart.length;si++){
-    var sp=smart[si], sd=toDate(sp.d), sat=new Date(sd.getFullYear(),sd.getMonth(),sd.getDate(),9,0,0,0), sdelay=sat.getTime()-now.getTime();
+    var sp=smart[si], sd=toDate(sp.d), sm=(state.set.smartExpRemTime||'09:00').split(':'), sat=new Date(sd.getFullYear(),sd.getMonth(),sd.getDate(),+sm[0],+sm[1],0,0), sdelay=sat.getTime()-now.getTime();
     if(sdelay<=0||sdelay>7*86400000) continue;
     (function(item){
       var id=setTimeout(function(){try{new Notification('Upcoming expense: '+item.name,{body:'You often have a similar expense around this date.',tag:'smart-expense-'+item.d});}catch(e){}},sdelay);webTimers.push(id);
     })(sp);
   }
+  for(var ci=0;ci<state.accts.length;ci++){var ca=state.accts[ci];if(ca.type!=='credit'||!ca.active)continue;var cb=acctBalance(ca.id);if(cb>=0)continue;var due=nextCreditDue(ca), dueAt=new Date(due.getFullYear(),due.getMonth(),due.getDate(),9,0,0,0), cdelay=dueAt.getTime()-now.getTime();if(cdelay<=0||cdelay>7*86400000)continue;(function(card,balance,at){var id=setTimeout(function(){try{new Notification('Credit card payment due: '+card.name,{body:'Outstanding '+inr(Math.abs(balance))+' · payment due today.',tag:'cc-due-'+card.id});}catch(e){}},cdelay);webTimers.push(id);})(ca,cb,dueAt);}
 }
 window.extOpen = function(kind, val, acct){
   try{
@@ -5152,6 +5165,20 @@ function acctBalance(id){
   return bal;
 }
 function netWorth(){ var t=0; for(var i=0;i<state.accts.length;i++) if(state.accts[i].active && state.accts[i].type!=='credit') t+=acctBalance(state.accts[i].id); return t; }
+function nextCreditDue(a){
+  var n=new Date(),day=Math.min(28,Math.max(1,+a.dueDay||15));
+  if(n.getDate()>=day)n=new Date(n.getFullYear(),n.getMonth()+1,day);else n=new Date(n.getFullYear(),n.getMonth(),day);
+  return n;
+}
+function cashFlowForecast(days){
+  var horizon=days||30,start=toDate(today()),end=addDays(start,horizon),cash=0;
+  for(var i=0;i<state.accts.length;i++) if(state.accts[i].active&&state.accts[i].type!=='credit') cash+=acctBalance(state.accts[i].id);
+  var upcomingExp=0,upcomingInc=0;
+  for(var r=0;r<state.recur.length;r++){var rr=state.recur[r];if(!rr.active||rr.start>today()||(rr.end&&rr.end<today()))continue;var cur=rr.last||addDays(toDate(rr.start||today()),-1),guard=0;while(guard++<100){var n=nextRecurringDateFrom(rr,cur);if(n>end)break;if(n>=start&&!rr.skipNext){if(rr.kind==='inc')upcomingInc+=rr.amt;else upcomingExp+=rr.amt;}cur=fmt(n);}}
+  var smart=state.set.smartExpRem?smartExpensePredictions(horizon):[];for(var j=0;j<smart.length;j++)upcomingExp+=smart[j].amt;
+  return {cash:cash,income:upcomingInc,expenses:upcomingExp,projected:cash+upcomingInc-upcomingExp};
+}
+
 function txInMonth(y,m){
   var pre = y+'-'+pad(m+1);
   return state.tx.filter(function(x){ return x.d.slice(0,7)===pre; });
@@ -5227,17 +5254,18 @@ function renderExpUpcoming(){
   var smart=smartExpensePredictions(30);for(var j=0;j<smart.length;j++)items.push(smart[j]);items.sort(function(a,b){return a.d<b.d?-1:1;});
   var html='<div class="upcomingCard"><div class="upcomingHead"><span class="uicon">📅</span><b>Upcoming expenses</b><span>next 30 days</span></div>';
   if(!items.length)html+='<div class="setS" style="padding-top:10px">No upcoming expenses detected yet.</div>';
-  for(var k=0;k<items.length;k++){var it=items[k],acct=it.acct;html+='<div class="recurRow"><div class="recurMain"><b>'+esc(it.name)+(it.kind==='smart'?'<span class="smartBadge">Pattern</span>':'')+'</b><span>'+niceDate(it.d)+(it.cat?' · '+esc(it.cat):'')+(acct?' · '+esc(acct.name):'')+'</span></div><div class="recurAmt">'+inr(it.amt)+'</div></div>';}
-  html+='</div><button class="addT" id="recurAdd">+ Add recurring expense</button><button class="addT" id="recurManage" style="margin-top:8px">Manage recurring</button><div class="upcomingCard" style="margin-top:10px"><div class="upcomingHead"><span class="uicon">🧠</span><b>Smart reminders</b><span>pattern-based</span></div><div class="setS" style="padding-top:8px">Repeated spending patterns are detected from your recent expenses and shown here. Supported notifications can remind you around the predicted date.</div></div>';
-  box.innerHTML=html;var add=$('recurAdd'),manage=$('recurManage');if(add)add.onclick=function(){openRecur(null);};if(manage)manage.onclick=function(){openRecurList();};
+  for(var k=0;k<items.length;k++){var it=items[k],acct=it.acct;html+='<div class="recurRow"><div class="recurMain"><b>'+esc(it.name)+(it.kind==='smart'?'<span class="smartBadge">Pattern</span>':'')+'</b><span>'+niceDate(it.d)+(it.cat?' · '+esc(it.cat):'')+(acct?' · '+esc(acct.name):'')+(it.kind==='recur'?(it.r&&it.r.skipNext?' · next occurrence will be skipped':' · auto-posts when due'):'')+'</span></div><div style="text-align:right"><div class="recurAmt">'+inr(it.amt)+'</div>'+(it.kind==='recur'?'<button class="sbtn" data-skip-recur="'+esc(it.r.id)+'" style="margin-top:5px;padding:5px 8px">Skip next</button>':'')+'</div></div>';}
+  html+='</div><button class="addT" id="recurAdd">+ Add recurring expense</button><button class="addT" id="recurManage" style="margin-top:8px">Manage recurring</button><div class="upcomingCard" style="margin-top:10px"><div class="upcomingHead"><span class="uicon">🧠</span><b>Smart reminders</b><span>pattern-based</span></div><div class="setS" style="padding-top:8px">Repeated spending patterns are detected from your recent expenses and can remind you before the predicted date.</div><div class="setRow" style="padding:12px 0 4px"><div class="setInfo"><div class="setT">Smart expense reminders</div><div class="setS">Only patterns with repeated, reasonably consistent timing are used.</div></div><div class="tog" id="smartExpRemTog"></div></div><div style="display:flex;align-items:center;gap:8px;padding-top:8px"><span class="setS">Reminder time</span><input id="smartExpRemTime" class="inp" type="time" style="max-width:120px;margin-left:auto"></div></div>';
+  box.innerHTML=html;var st=$('smartExpRemTog');if(st)st.classList.toggle('on',state.set.smartExpRem!==false);var sti=$('smartExpRemTime');if(sti)sti.value=state.set.smartExpRemTime||'09:00';var add=$('recurAdd'),manage=$('recurManage');if(add)add.onclick=function(){openRecur(null);};if(manage)manage.onclick=function(){openRecurList();};box.onclick=function(e){var b=climb(e.target,box,'data-skip-recur');if(!b)return;var rid=b.getAttribute('data-skip-recur');for(var si=0;si<state.recur.length;si++)if(state.recur[si].id===rid){state.recur[si].skipNext=true;break;}persist();renderExpUpcoming();toastN('Next recurring expense will be skipped');};
 }
 function renderExpAcct(){
   var box=$('expAcct'); box.style.display='';
   var html='<div class="insCard" style="text-align:center"><div class="il">Net worth</div><div class="iv" style="font-size:26px;color:var(--sBlue)">'+inr(netWorth())+'</div><div class="setS" style="margin-top:4px">Credit cards are excluded from net worth</div></div>';
   for(var i=0;i<state.accts.length;i++){
     var a=state.accts[i], bal=acctBalance(a.id);
-    html += '<div class="acctCard" data-acct="'+a.id+'"><div class="ai">'+(ACCT_ICON[a.type]||'\uD83D\uDCB0')+'</div>'
-      + '<div class="an"><b>'+esc(a.name)+(a.active?'':' <span style="color:var(--mut)">(inactive)</span>')+'</b><span>'+a.type+'</span></div>'
+    var acctMeta=a.type==='credit' ? ((a.creditLimit?inr(a.creditLimit)+' limit · ':'')+(a.creditLimit?'Available '+inr(Math.max(0,a.creditLimit-Math.max(0,-bal)))+' · ':'')+'Due day '+a.dueDay) : a.type;
+    html += '<div class="acctCard" data-acct="'+a.id+'"><div class="ai">'+(ACCT_ICON[a.type]||'💰')+'</div>'
+      + '<div class="an"><b>'+esc(a.name)+(a.active?'':' <span style="color:var(--mut)">(inactive)</span>')+'</b><span>'+esc(acctMeta)+'</span></div>'
       + '<div class="abal'+(bal<0?' neg':'')+'">'+inr(bal)+'</div></div>';
   }
   html += '<button class="addT" id="acctAdd">+ Add account</button>';
@@ -5318,6 +5346,7 @@ function renderExpIns(){
     for(var t=0;t<top5.length;t++){ t5 += '<div class="catBar"><span class="cbn" style="width:auto;flex:1">'+esc(top5[t].payee||top5[t].cat||'Expense')+'</span><span class="cba">'+inr(top5[t].amt)+'</span></div>'; }
     t5 += '</div>'; html += t5;
   }
+  var fc=cashFlowForecast(30); html += '<div class="insCard"><div class="il">30-day cash-flow forecast</div><div class="iv" style="color:'+(fc.projected>=0?'var(--sGreen)':'var(--coral)')+'">'+inr(fc.projected)+'</div><div class="setS">Starting cash '+inr(fc.cash)+' · upcoming income '+inr(fc.income)+' · expected expenses '+inr(fc.expenses)+'</div></div>';
   html += '<div class="lbl" style="margin-top:6px">Reports</div>';
   html += '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sbtn" id="repCsv">CSV</button><button class="sbtn" id="repXlsx">Excel</button><button class="sbtn" id="repPdf">PDF</button><button class="sbtn acc" id="repRange">Date range</button></div>';
   box.innerHTML=html;
@@ -5403,8 +5432,8 @@ function runRecur(){
     var cursor=r.last||addDays(toDate(r.start||t),-1),next=nextRecurringDateFrom(r,cursor);
     while(fmt(next)<=t&&(!r.end||fmt(next)<=r.end)&&safety<500){
       var ds=fmt(next),exists=false;for(var z=0;z<state.tx.length;z++){if(state.tx[z].recurId===r.id&&state.tx[z].recurDate===ds){exists=true;break;}}
-      if(!exists){state.tx.push(normTx({kind:r.kind,amt:r.amt,acct:r.acct,cat:r.cat,d:ds,payee:r.name,note:'Recurring',created:Date.now(),recurId:r.id,recurDate:ds}));changed=true;}
-      r.last=ds;next=recurringNextDate(r,next);safety++;
+      if(r.skipNext){ r.skipNext=false; r.last=ds; changed=true; }
+      else { if(!exists){state.tx.push(normTx({kind:r.kind,amt:r.amt,acct:r.acct,cat:r.cat,d:ds,payee:r.name,note:'Recurring',created:Date.now(),recurId:r.id,recurDate:ds}));changed=true;} r.last=ds; }next=recurringNextDate(r,next);safety++;
     }
   }
   if(changed)persist();
@@ -5419,9 +5448,26 @@ function saveRecur(){var n=$('recurName').value.trim(),amt=parseFloat($('recurAm
 /* ---- expense sheet ---- */
 var expEd = null, expKindSel='exp', expCatSel='', expSubSel='', expAcctSel='', expToSel='';
 function activeAccts(){ return state.accts.filter(function(a){return a.active;}); }
-function renderExpReceipt(){var box=$('expReceiptPreview'),rem=$('expReceiptRemove');if(!box||!rem)return;var src='';if(expEd&&expEd.receiptData)src=expEd.receiptData;else if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)src='data:image/jpeg;base64,'+b;}catch(e){}}if(src)box.innerHTML='<img class="receiptThumb" src="'+src+'" alt="Receipt"><div class="receiptName">'+esc(expEd.receipt||'Uploaded receipt')+'</div>';else if(expEd&&expEd.receipt)box.innerHTML='<div class="receiptName">'+esc(expEd.receipt)+'</div>';else box.innerHTML='<div class="setS">No receipt attached.</div>';rem.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';}
+function renderExpReceipt(){var box=$('expReceiptPreview'),rem=$('expReceiptRemove');if(!box||!rem)return;var src='';if(expEd&&expEd.receiptData)src=expEd.receiptData;else if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)src='data:image/jpeg;base64,'+b;}catch(e){}}if(src)box.innerHTML='<img class="receiptThumb" src="'+src+'" alt="Receipt"><div class="receiptName">'+esc(expEd.receipt||'Uploaded receipt')+'</div>';else if(expEd&&expEd.receipt)box.innerHTML='<div class="receiptName">'+esc(expEd.receipt)+'</div>';else box.innerHTML='<div class="setS">No receipt attached.</div>';rem.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';var sc=$('expReceiptScan');if(sc)sc.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';}
 function clearExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}if(expEd){expEd.receipt='';expEd.receiptData='';}renderExpReceipt();}
 function resizeReceipt(file,cb){var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var max=1600,scale=Math.min(1,max/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*scale)),h=Math.max(1,Math.round(im.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(im,0,0,w,h);cb(c.toDataURL('image/jpeg',.78));};im.onerror=function(){cb(fr.result);};im.src=fr.result;};fr.readAsDataURL(file);}
+function receiptDataForScan(){
+  if(expEd&&expEd.receiptData) return expEd.receiptData;
+  if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)return 'data:image/jpeg;base64,'+b;}catch(e){}}
+  return '';
+}
+function scanReceiptWithAi(){
+  var data=receiptDataForScan(); if(!data){toastN('Upload a receipt image first');return;}
+  var key=getAiKey(); if(!key){toastN('Configure AI first');return;}
+  if(getAiProvider()!=='gemini'){toastN('Receipt scan currently uses Gemini vision');return;}
+  var model=getAiModel(), parts=data.split(','), mime=(parts[0].match(/^data:(.*?);base64$/)||[])[1]||'image/jpeg', b64=parts[1]||'';
+  var prompt='Read this receipt and return ONLY valid JSON with keys amount, merchant, date, category, payment_method, note. amount must be a number. date must be YYYY-MM-DD or empty. category should be one of the common categories if clear. Do not invent missing values. Do not include extra text.';
+  toastN('Scanning receipt…');
+  fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime,data:b64}}]}],generationConfig:{maxOutputTokens:220}})})
+    .then(function(r){if(!r.ok)throw new Error('API '+r.status);return r.json();})
+    .then(function(d){var txt=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;if(!txt)throw new Error('Empty response');txt=txt.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();var o=JSON.parse(txt);if(o.amount>0)$('expAmt').value=fmtV(o.amount);if(o.merchant)$('expPayee').value=String(o.merchant).slice(0,60);if(/^\d{4}-\d{2}-\d{2}$/.test(o.date||'')){expEd.d=o.date;$('expDateTxt').textContent=o.date===today()?'Today':niceDate(o.date);}if(o.payment_method)$('expMethod').value=String(o.payment_method).slice(0,24);if(o.note)$('expNote').value=String(o.note).slice(0,200);var cats=Object.keys(state.cats), want=String(o.category||'').toLowerCase(), best='';for(var i=0;i<cats.length;i++)if(cats[i].toLowerCase()===want){best=cats[i];break;}if(best){expCatSel=best;paintExpPickers();}toastN('Receipt scanned — review before saving');})
+    .catch(function(e){toastN('Receipt scan failed: '+e.message);});
+}
 function addExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}if(nat&&nat.pickPhoto){try{window.pendingPhotoTarget='expense';nat.pickPhoto();return;}catch(e){}}$('expReceiptFile').click();}
 
 function openExp(id){
@@ -5524,7 +5570,7 @@ function openAcct(id){
   acctEd = a?JSON.parse(JSON.stringify(a)):{id:'',name:'',type:'bank',open:0,active:true};
   acctEd._edit=id||''; acctTypeSel=acctEd.type;
   $('acctSheetT').textContent=id?'Edit account':'Add account';
-  $('acctName').value=acctEd.name; $('acctOpen').value=acctEd.open||'';
+  $('acctName').value=acctEd.name; $('acctOpen').value=acctEd.open||''; $('acctCreditLimit').value=acctEd.creditLimit||''; $('acctBillDay').value=acctEd.billDay||1; $('acctDueDay').value=acctEd.dueDay||15; $('acctCreditFields').style.display=acctTypeSel==='credit'?'':'none';
   $('acctActive').classList.toggle('on',acctEd.active!==false);
   $('acctDel').style.display=id?'':'none';
   var g=''; for(var i=0;i<ACCT_TYPES.length;i++) g+=chip(ACCT_TYPES[i][1],ACCT_TYPES[i][0]===acctTypeSel,'data-at',ACCT_TYPES[i][0]);
@@ -5533,7 +5579,7 @@ function openAcct(id){
 }
 function saveAcct(){
   var n=$('acctName').value.trim(); if(!n){ $('acctName').focus(); return; }
-  acctEd.name=n; acctEd.type=acctTypeSel; acctEd.open=parseFloat($('acctOpen').value)||0;
+  acctEd.name=n; acctEd.type=acctTypeSel; acctEd.open=parseFloat($('acctOpen').value)||0; acctEd.creditLimit=Math.max(0,parseFloat($('acctCreditLimit').value)||0); acctEd.billDay=Math.min(28,Math.max(1,+$('acctBillDay').value||1)); acctEd.dueDay=Math.min(28,Math.max(1,+$('acctDueDay').value||15));
   acctEd.active=$('acctActive').classList.contains('on');
   if(acctEd._edit){ for(var i=0;i<state.accts.length;i++) if(state.accts[i].id===acctEd._edit){ delete acctEd._edit; state.accts[i]=acctEd; break; } }
   else { delete acctEd._edit; acctEd.id='a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); state.accts.push(acctEd); }
@@ -6076,12 +6122,14 @@ function computeAlarms(){
         n: 'Journal — a minute for today\u2019s entry', e: '\u270D\uFE0F', r: 0});
     }
   }
-  var smart = smartExpensePredictions(7);
+  var smart = state.set.smartExpRem ? smartExpensePredictions(7) : [];
   for(var si=0;si<smart.length;si++){
-    var sp=smart[si], dsmart=toDate(sp.d), dtSmart=new Date(dsmart.getFullYear(),dsmart.getMonth(),dsmart.getDate(),9,0,0,0);
+    var sp=smart[si], dsmart=toDate(sp.d), sm2=(state.set.smartExpRemTime||'09:00').split(':'), dtSmart=new Date(dsmart.getFullYear(),dsmart.getMonth(),dsmart.getDate(),+sm2[0],+sm2[1],0,0);
     if(dtSmart.getTime()<=now) continue;
     out.push({c:intHash('smart-expense|'+sp.name+'|'+sp.d),t:dtSmart.getTime(),h:'smart-expense',n:'Upcoming expense: '+sp.name,e:'💡',b:'You often have a similar expense around this date.',r:0});
   }
+  // Credit-card payment reminders: only cards with an outstanding balance are reminded.
+  for(var ci=0;ci<state.accts.length;ci++){var ca=state.accts[ci];if(ca.type!=='credit'||!ca.active)continue;var cb=acctBalance(ca.id);if(cb>=0)continue;var due=nextCreditDue(ca), dueAt=new Date(due.getFullYear(),due.getMonth(),due.getDate(),9,0,0,0);if(dueAt.getTime()<=now||dueAt.getTime()>now+7*86400000)continue;out.push({c:intHash('cc-due|'+ca.id+'|'+fmt(due)),t:dueAt.getTime(),h:'credit',n:'Credit card payment due: '+ca.name,e:'💳',b:'Outstanding '+inr(Math.abs(cb))+' · due today',r:0});}
   out.sort(function(a,b){ return a.t - b.t; });
   return JSON.stringify(out.slice(0, 140));
 }
@@ -6184,29 +6232,6 @@ function init(){
     if($('pgExp').classList.contains('on')) openExp(null); else openAddActionSheet();
   });
 
-  // Dynamic home-card controls: these elements are re-rendered by renderToday().
-  // Delegate the clicks from their stable parent so the handlers survive re-renders.
-  $('focusCard').addEventListener('click', function(e){
-    var b = climb(e.target, this, 'data-fopen');
-    if(b){ openDetail(focusId); return; }
-    if(e.target && e.target.id === 'fBtn'){ focusTap(); }
-  });
-  $('closeCard').addEventListener('click', function(e){
-    if(e.target && e.target.id === 'ccBtn'){
-      var t = today();
-      var due = [];
-      for(var i=0;i<state.habits.length;i++){
-        var h = state.habits[i];
-        if(!h.arch && dueOn(h, new Date())) due.push(h);
-      }
-      var doneN = 0;
-      for(var j=0;j<due.length;j++) if(isDone(due[j], t)) doneN++;
-      state.closed[t] = dayScore(due, doneN);
-      persist();
-      renderToday();
-      toastN('Day closed · '+state.closed[t]+'%');
-    }
-  });
   $('actionSheet').addEventListener('click', function(e){
     var b=climb(e.target,this,'data-add-action');
     if(b) handleAddAction(b.getAttribute('data-add-action'));
@@ -6238,6 +6263,21 @@ function init(){
   });
 
   $('pgToday').addEventListener('click', function(e){
+    // Home focus/close controls are dynamic; handle them from the stable page container.
+    var focusOpen = climb(e.target, this, 'data-fopen');
+    if(focusOpen){ if(focusId) openDetail(focusId); return; }
+    if(e.target && e.target.id === 'fBtn'){ focusTap(); return; }
+    if(e.target && e.target.id === 'ccBtn'){
+      var t = today(), due = [];
+      for(var i=0;i<state.habits.length;i++){
+        var h = state.habits[i];
+        if(!h.arch && dueOn(h, new Date())) due.push(h);
+      }
+      var doneN = 0;
+      for(var j=0;j<due.length;j++) if(isDone(due[j], t)) doneN++;
+      state.closed[t] = dayScore(due, doneN);
+      persist(); renderToday(); toastN('Day closed · '+state.closed[t]+'%'); return;
+    }
     var actEl = climb(e.target, this, 'data-act');
     var act = actEl ? actEl.getAttribute('data-act') : null;
     if(act === 'vacEnd'){ state.set.vacFrom=''; state.set.vacUntil=''; persist(); renderToday(); renderSet(); toastN('Welcome back \uD83D\uDC4B'); return; }
@@ -7084,6 +7124,7 @@ function init(){
   });
 
   $('expReceiptAdd').addEventListener('click', addExpReceipt);
+  $('expReceiptScan').addEventListener('click', scanReceiptWithAi);
   $('expReceiptRemove').addEventListener('click', clearExpReceipt);
   $('expReceiptFile').addEventListener('change', function(){var f=this.files&&this.files[0];if(!f)return;if(f.size>12*1024*1024){toastN('Receipt is too large');this.value='';return;}resizeReceipt(f,function(data){expEd.receipt='';expEd.receiptData=data;renderExpReceipt();toastN('Receipt added');});this.value='';});
   $('recurFreqGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rf');if(!b)return;recurFreq=b.getAttribute('data-rf');paintRecur();});
@@ -7096,8 +7137,12 @@ function init(){
   $('expExportXlsx').addEventListener('click',exportExpRangeXlsx);
   $('expExportPdf').addEventListener('click',exportExpRangePdf);
 
+  // smart expense reminder controls
+  document.addEventListener('click', function(e){ if(e.target && e.target.id==='smartExpRemTog'){ state.set.smartExpRem=!state.set.smartExpRem; persist(); renderExpUpcoming(); pushAlarms(); } });
+  document.addEventListener('change', function(e){ if(e.target && e.target.id==='smartExpRemTime'){ var v=e.target.value; if(/^\d{2}:\d{2}$/.test(v)){ state.set.smartExpRemTime=v; persist(); pushAlarms(); toastN('Smart reminder time saved'); } } });
+
   // account sheet
-  $('acctTypeGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-at'); if(!b) return; acctTypeSel=b.getAttribute('data-at'); var bs=this.children; for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i]===b); });
+  $('acctTypeGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-at'); if(!b) return; acctTypeSel=b.getAttribute('data-at'); $('acctCreditFields').style.display=acctTypeSel==='credit'?'':'none'; var bs=this.children; for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i]===b); });
   $('acctActive').addEventListener('click', function(){ this.classList.toggle('on'); });
   $('acctSave').addEventListener('click', saveAcct);
   $('acctDel').addEventListener('click', function(){
