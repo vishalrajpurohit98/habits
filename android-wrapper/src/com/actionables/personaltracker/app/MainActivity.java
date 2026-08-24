@@ -313,6 +313,11 @@ public class MainActivity extends Activity {
 
     void startSpeech(String id) {
         pendingSpeechId=id;
+        if (Build.VERSION.SDK_INT >= 23 &&
+                checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_SPEECH);
+            return;
+        }
         Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN"); i.putExtra(RecognizerIntent.EXTRA_PROMPT,"Speak");
