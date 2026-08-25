@@ -31,6 +31,7 @@ public class MainActivity extends Activity {
     static final int REQ_IMPORT = 403;
     static final int REQ_PHOTO = 404;
     static final int REQ_SPEECH = 405;
+    static final int REQ_CAMERA = 406;
 
     static final String APP_HOST = "personal-tracker.local";
     WebView web;
@@ -39,6 +40,8 @@ public class MainActivity extends Activity {
     String pendingImportCallback = "importNative";
     String pendingImportMode = "backup";
     String pendingPhotoDir = "photos";
+    Uri pendingCameraUri = null;
+    boolean pendingCameraPermission = false;
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
@@ -257,12 +260,46 @@ public class MainActivity extends Activity {
         try { startActivityForResult(i, REQ_PHOTO); } catch (Exception e) { toast("Photo picker unavailable"); }
     }
 
+    void capturePhoto() {
+        if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            pendingCameraPermission = true;
+            requestPermissions(new String[]{Manifest.permission.CAMERA}, REQ_CAMERA);
+            return;
+        }
+        launchCamera();
+    }
+
+    void launchCamera() {
+        try {
+            String name = "receipt_" + System.currentTimeMillis() + ".jpg";
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+            if (Build.VERSION.SDK_INT >= 29) values.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/PersonalTracker");
+            pendingCameraUri = getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            if (pendingCameraUri == null) { toast("Could not prepare camera"); return; }
+
+            Intent i = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            i.putExtra(MediaStore.EXTRA_OUTPUT, pendingCameraUri);
+            i.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (i.resolveActivity(getPackageManager()) == null) { toast("Camera unavailable"); return; }
+            startActivityForResult(i, REQ_CAMERA);
+        } catch (Exception e) {
+            pendingCameraUri = null;
+            toast("Could not open camera");
+        }
+    }
+
     @Override public void onRequestPermissionsResult(int req, String[] permissions, int[] grants) {
         super.onRequestPermissionsResult(req, permissions, grants);
         if (req == REQ_SPEECH && pendingSpeechId != null) {
             String id = pendingSpeechId;
             if (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) startSpeech(id);
             else { pendingSpeechId = null; js("window._speechResult&&window._speechResult("+JSONObject.quote(id)+",'','Microphone permission denied')"); }
+        } else if (req == REQ_CAMERA) {
+            boolean ok = grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED;
+            pendingCameraPermission = false;
+            if (ok) launchCamera(); else toast("Camera permission denied");
         }
     }
 
@@ -286,6 +323,22 @@ public class MainActivity extends Activity {
                 } catch(Exception e){ toast("Could not read file"); }
                 pendingImportMode = "backup";
             }
+        } else if (req == REQ_CAMERA) {
+            if (result == RESULT_OK && pendingCameraUri != null) {
+                try {
+                    String name = "photo_"+System.currentTimeMillis()+".jpg";
+                    File dir = new File(getFilesDir(), pendingPhotoDir); if(!dir.exists()) dir.mkdirs();
+                    File f = new File(dir,name);
+                    try(InputStream in=getContentResolver().openInputStream(pendingCameraUri);
+                        OutputStream out=new FileOutputStream(f)) {
+                        byte[] buf=new byte[8192]; int n; while((n=in.read(buf))>0) out.write(buf,0,n);
+                    }
+                    js("window.photoResult&&window.photoResult('"+name+"')");
+                } catch(Exception e){ toast("Could not save camera photo"); }
+            } else if (pendingCameraUri != null) {
+                try { getContentResolver().delete(pendingCameraUri,null,null); } catch(Exception ignored) {}
+            }
+            pendingCameraUri=null;
         } else if (req == REQ_PHOTO && result == RESULT_OK && data != null && data.getData()!=null) {
             try {
                 String name = "photo_"+System.currentTimeMillis()+".jpg";
@@ -391,6 +444,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void pickImport(){MainActivity.this.importFile("backup");}
         @JavascriptInterface public void pickImport(String mode){MainActivity.this.importFile(mode);}
         @JavascriptInterface public void pickPhoto(){MainActivity.this.pickPhoto();}
+        @JavascriptInterface public void capturePhoto(){MainActivity.this.capturePhoto();}
         @JavascriptInterface public String readPhoto(String name){try{File f=new File(new File(getFilesDir(),pendingPhotoDir),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public void deletePhoto(String name){try{new File(new File(getFilesDir(),pendingPhotoDir),name).delete();}catch(Exception ignored){}}
         @JavascriptInterface public void saveFile(String name,String mime,String b64)throws Exception{MainActivity.this.saveFile(name,mime,b64);}

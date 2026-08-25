@@ -1596,17 +1596,18 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <input id="expNote" class="inp" maxlength="200" placeholder="Optional note">
     <div class="lbl">Tags</div>
     <input id="expTags" class="inp" maxlength="80" placeholder="#work #trip">
+  </div>
     <div class="lbl">Receipt</div>
     <div class="receiptBox" id="expReceiptBox">
       <div id="expReceiptPreview" class="receiptPreview"></div>
       <div class="receiptActions">
-        <button class="sbtn" id="expReceiptAdd">Upload receipt</button>
-        <button class="sbtn acc" id="expReceiptScan" style="display:none">Scan receipt</button>
+        <button class="sbtn" id="expReceiptAdd">Upload</button>
+        <button class="sbtn" id="expReceiptCamera">Camera</button>
+        <button class="sbtn acc" id="expReceiptScan" style="display:none">Extract details</button>
         <button class="sbtn" id="expReceiptRemove" style="display:none">Remove</button>
       </div>
       <input id="expReceiptFile" type="file" accept="image/*" style="display:none">
     </div>
-  </div>
   <button class="primary" id="expSave">Save</button>
   <button class="danger" id="expDel" style="display:none">Delete</button>
 </div>
@@ -4526,7 +4527,7 @@ function openExpFromWidget(kind, acctId){
 }
 window.photoResult = function(name){
   if(window.pendingPhotoTarget==='expense' && expEd && /^[A-Za-z0-9_.-]+$/.test(name)){
-    expEd.receipt=name; expEd.receiptData=''; window.pendingPhotoTarget=''; renderExpReceipt(); toastN('Receipt added'); return;
+    expEd.receipt=name; expEd.receiptData=''; window.pendingPhotoTarget=''; renderExpReceipt(); toastN('Receipt added'); if(getAiKey()&&getAiProvider()==='gemini')setTimeout(scanReceiptWithAi,250); return;
   }
   if(jrEd && /^[A-Za-z0-9_.-]+$/.test(name)){
     jrEd.ph.push(name); renderJrPhotos(); toastN('Photo added');
@@ -5477,8 +5478,8 @@ function receiptDataForScan(){
   return '';
 }
 function scanReceiptWithAi(){
-  var data=receiptDataForScan(); if(!data){toastN('Upload a receipt image first');return;}
-  var key=getAiKey(); if(!key){toastN('Configure AI first');return;}
+  var data=receiptDataForScan(); if(!data){toastN('Upload or capture a receipt first');return;}
+  var key=getAiKey(); if(!key){toastN('Add your Gemini API key in AI settings to extract receipt details');return;}
   if(getAiProvider()!=='gemini'){toastN('Receipt scan currently uses Gemini vision');return;}
   var model=getAiModel(), parts=data.split(','), mime=(parts[0].match(/^data:(.*?);base64$/)||[])[1]||'image/jpeg', b64=parts[1]||'';
   var prompt='Read this receipt and return ONLY valid JSON with keys amount, merchant, date, category, payment_method, note. amount must be a number. date must be YYYY-MM-DD or empty. category should be one of the common categories if clear. Do not invent missing values. Do not include extra text.';
@@ -7142,9 +7143,15 @@ function init(){
   });
 
   $('expReceiptAdd').addEventListener('click', addExpReceipt);
+  $('expReceiptCamera').addEventListener('click',function(){
+    if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}
+    window.pendingPhotoTarget='expense';
+    if(nat&&nat.capturePhoto){try{nat.capturePhoto();return;}catch(e){toastN('Camera unavailable');}}
+    var input=$('expReceiptFile');if(input){input.setAttribute('capture','environment');input.click();}else toastN('Camera unavailable');
+  });
   $('expReceiptScan').addEventListener('click', scanReceiptWithAi);
   $('expReceiptRemove').addEventListener('click', clearExpReceipt);
-  $('expReceiptFile').addEventListener('change', function(){var f=this.files&&this.files[0];if(!f)return;if(f.size>12*1024*1024){toastN('Receipt is too large');this.value='';return;}resizeReceipt(f,function(data){expEd.receipt='';expEd.receiptData=data;renderExpReceipt();toastN('Receipt added');});this.value='';});
+  $('expReceiptFile').addEventListener('change', function(){var f=this.files&&this.files[0];if(!f)return;if(f.size>12*1024*1024){toastN('Receipt is too large');this.value='';return;}resizeReceipt(f,function(data){expEd.receipt='';expEd.receiptData=data;renderExpReceipt();toastN('Receipt added');if(getAiKey()&&getAiProvider()==='gemini')setTimeout(scanReceiptWithAi,250);});this.value='';});
   $('recurFreqGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rf');if(!b)return;recurFreq=b.getAttribute('data-rf');paintRecur();});
   $('recurWeekGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rw');if(!b)return;recurWeekday=+b.getAttribute('data-rw');paintRecur();});
   $('recurCatGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rc');if(!b)return;recurCat=b.getAttribute('data-rc');paintRecur();});
@@ -7270,6 +7277,7 @@ if(nat && nat.getLaunchAction){
     state.set.baseCurr=state.set.baseCurr||state.set.curr||'₹';
     state.set.vacSkip=state.set.vacSkip||{};
     normalizeFeatureCategories();
+    normalizeCurrencyState();
     for(var i=0;i<state.accts.length;i++)if(!state.accts[i].currency)state.accts[i].currency=state.set.baseCurr;
     for(var j=0;j<state.tx.length;j++){var x=state.tx[j];if(!x.ccy)x.ccy=state.set.baseCurr;if(!x.fxToBase||x.fxToBase<=0)x.fxToBase=1;if(x.foreignAmt==null)x.foreignAmt=x.amt;}
   }
@@ -7545,43 +7553,62 @@ if(nat && nat.getLaunchAction){
 
   /* -------- multi-currency -------- */
   var CURRENCY_META={'₹':['INR','Indian Rupee'],'$':['USD','US Dollar'],'€':['EUR','Euro'],'£':['GBP','Pound Sterling'],'C$':['CAD','Canadian Dollar'],'A$':['AUD','Australian Dollar'],'AED':['AED','UAE Dirham'],'SGD':['SGD','Singapore Dollar']};
-  function activeCurrencies(){var set={},base=fBase();set[base]=true;(state.accts||[]).forEach(function(a){if(a.currency)set[a.currency]=true;});(state.tx||[]).forEach(function(x){if(x.ccy)set[x.ccy]=true;});return Object.keys(set);}
+  var CURRENCY_ALIAS={'INR':'₹','₹':'₹','USD':'$','$':'$','EUR':'€','€':'€','GBP':'£','£':'£','CAD':'C$','C$':'C$','AUD':'A$','A$':'A$','AED':'AED','SGD':'SGD'};
+  function canonicalCurrency(v){var k=String(v||'').trim().toUpperCase();return CURRENCY_ALIAS[k]||String(v||'').trim()||'₹';}
+  function activeCurrencies(){
+    var set={},base=canonicalCurrency(state.set.baseCurr||state.set.curr||'₹');set[base]=true;
+    state.set.activeCurrencies=Array.isArray(state.set.activeCurrencies)?state.set.activeCurrencies:[];
+    state.set.activeCurrencies.forEach(function(c){c=canonicalCurrency(c);if(CURRENCY_META[c])set[c]=true;});
+    (state.accts||[]).forEach(function(a){var c=canonicalCurrency(a.currency);if(CURRENCY_META[c])set[c]=true;});
+    (state.tx||[]).forEach(function(x){var c=canonicalCurrency(x.ccy);if(CURRENCY_META[c])set[c]=true;});
+    return Object.keys(set);
+  }
+  function normalizeCurrencyState(){
+    state.set.baseCurr=canonicalCurrency(state.set.baseCurr||state.set.curr||'₹');state.set.curr=state.set.baseCurr;
+    state.set.activeCurrencies=activeCurrencies();
+    state.accts.forEach(function(a){a.currency=canonicalCurrency(a.currency||state.set.baseCurr);});
+    state.tx.forEach(function(x){x.ccy=canonicalCurrency(x.ccy||state.set.baseCurr);});
+    var out={};Object.keys(state.fxRates||{}).forEach(function(k){var c=canonicalCurrency(k);if(CURRENCY_META[c])out[c]=state.fxRates[k];});state.fxRates=out;
+  }
   function showCurrency(){
+    normalizeCurrencyState();
     var active=activeCurrencies(),all=Object.keys(CURRENCY_META),base=state.set.baseCurr,baseOpts='';
     for(var i=0;i<all.length;i++)baseOpts+='<option value="'+fEsc(all[i])+'" '+(base===all[i]?'selected':'')+'>'+fEsc(CURRENCY_META[all[i]][0]+' — '+CURRENCY_META[all[i]][1])+'</option>';
-    var body='<div class="hint">Choose one base currency for dashboards. Original transaction currencies are preserved. Only currencies actually used or added are shown.</div>'+
+    var body='<div class="hint">Choose one base currency for dashboards. Original transaction currencies are preserved. Add only the currencies you actually use.</div>'+
       '<div class="lbl">Base currency</div><select class="inp" id="baseCurr">'+baseOpts+'</select>'+
-      '<div class="featureRow"><div class="grow"><b>Active currencies</b><br><small>Add a currency only when you need it.</small></div><select class="inp" id="addCurrency" style="max-width:190px"><option value="">+ Add currency</option></select></div>'+
+      '<div class="featureRow"><div class="grow"><b>Active currencies</b><br><small>Only currencies used or added appear below.</small></div><select class="inp" id="addCurrency" style="max-width:190px"><option value="">+ Add currency</option></select></div>'+
       '<div id="currencyRows" class="featurePanel"></div>'+
-      '<div class="featureRow"><div class="grow"><small id="fxStatus">Rates are stored locally and can be updated when online.</small></div><button class="sbtn" id="fxUpdate">Update rates</button></div>'+
+      '<div class="featureRow"><div class="grow"><small id="fxStatus">Rates are stored locally and can be updated online.</small></div><button class="sbtn" id="fxUpdate">Update rates</button></div>'+
       '<button class="primary" id="currencySave">Save currency settings</button>';
     var m=modal('Multiple currencies',body),add=F$('addCurrency');
     all.forEach(function(c){if(active.indexOf(c)<0){var o=document.createElement('option');o.value=c;o.textContent=CURRENCY_META[c][0]+' — '+CURRENCY_META[c][1];add.appendChild(o);}});
     function renderRows(){
-      var baseNow=F$('baseCurr').value,h='',used=activeCurrencies();if(used.indexOf(baseNow)<0)used.push(baseNow);
-      for(var i=0;i<used.length;i++){var c=used[i],meta=CURRENCY_META[c]||[c,c],rate=c===baseNow?1:(state.fxRates[c]||'');
-        h+='<div class="featureRow"><div class="grow"><b>'+fEsc(meta[0])+'</b><br><small>1 '+fEsc(meta[0])+' = '+fEsc(String(rate||'?'))+' '+fEsc(baseNow)+'</small></div>'+(c===baseNow?'<span class="featureTag">BASE</span>':'<input class="inp" data-fx="'+fEsc(c)+'" type="number" min="0" step="any" value="'+fEsc(rate)+'" placeholder="Enter rate">')+'</div>';}
+      var baseNow=canonicalCurrency(F$('baseCurr').value),used=activeCurrencies(),h='';if(used.indexOf(baseNow)<0)used.push(baseNow);
+      for(var i=0;i<used.length;i++){var c=canonicalCurrency(used[i]),meta=CURRENCY_META[c]||[c,c],rate=c===baseNow?1:(state.fxRates[c]||'');
+        h+='<div class="featureRow"><div class="grow"><b>'+fEsc(meta[0])+'</b><br><small>1 '+fEsc(meta[0])+' = '+fEsc(String(rate||'?'))+' '+fEsc((CURRENCY_META[baseNow]||[baseNow])[0])+'</small></div>'+(c===baseNow?'<span class="featureTag">BASE</span>':'<input class="inp" data-fx="'+fEsc(c)+'" type="number" min="0" step="any" value="'+fEsc(rate)+'" placeholder="Enter rate">')+'</div>';}
       F$('currencyRows').innerHTML=h;
     }
     renderRows();F$('baseCurr').addEventListener('change',renderRows);
-    add.addEventListener('change',function(){if(this.value){if(!state.fxRates[this.value])state.fxRates[this.value]=0;this.value='';renderRows();}});
+    add.addEventListener('change',function(){var c=canonicalCurrency(this.value);if(c&&CURRENCY_META[c]){if(state.set.activeCurrencies.indexOf(c)<0)state.set.activeCurrencies.push(c);this.value='';renderRows();}});
     m.addEventListener('click',function(e){
       if(e.target.id==='fxUpdate'){
-        var baseCode=(CURRENCY_META[F$('baseCurr').value]||['INR'])[0];
+        var baseCode=(CURRENCY_META[canonicalCurrency(F$('baseCurr').value)]||['INR'])[0];
         fetch('https://open.er-api.com/v6/latest/'+encodeURIComponent(baseCode)).then(function(r){if(!r.ok)throw new Error();return r.json();}).then(function(data){
-          var baseNow=F$('baseCurr').value;activeCurrencies().forEach(function(c){if(c===baseNow)return;var code=(CURRENCY_META[c]||[])[0],v=data&&data.rates&&data.rates[code];if(v&&v>0)state.fxRates[c]=1/v;});
+          var baseNow=canonicalCurrency(F$('baseCurr').value);activeCurrencies().forEach(function(c){if(c===baseNow)return;var code=(CURRENCY_META[c]||[])[0],v=data&&data.rates&&data.rates[code];if(v>0)state.fxRates[c]=1/v;});
           renderRows();persist();F$('fxStatus').textContent='Rates updated '+new Date().toLocaleString();fToast('Exchange rates updated');
         }).catch(function(){F$('fxStatus').textContent='Rate update unavailable. Enter a rate manually.';fToast('Could not update rates');});
         return;
       }
       if(e.target.id==='currencySave'){
-        var old=state.set.baseCurr,baseNow=F$('baseCurr').value;state.set.baseCurr=baseNow;state.set.curr=baseNow;
-        var ins=m.querySelectorAll('[data-fx]');for(var i=0;i<ins.length;i++){var v=fNum(ins[i].value);if(v>0)state.fxRates[ins[i].getAttribute('data-fx')]=v;}
-        state.accts.forEach(function(a){if(!a.currency)a.currency=baseNow;});persist();renderExp();renderSet();
-        fToast(old===baseNow?'Currency settings saved':'Base currency changed — original transaction currencies retained');m.remove();var ss=F$('featureScrim');if(ss)ss.remove();
+        var old=state.set.baseCurr,baseNow=canonicalCurrency(F$('baseCurr').value);state.set.baseCurr=baseNow;state.set.curr=baseNow;
+        state.set.activeCurrencies=activeCurrencies();if(state.set.activeCurrencies.indexOf(baseNow)<0)state.set.activeCurrencies.push(baseNow);
+        var ins=m.querySelectorAll('[data-fx]');for(var i=0;i<ins.length;i++){var v=fNum(ins[i].value);if(v>0)state.fxRates[canonicalCurrency(ins[i].getAttribute('data-fx'))]=v;}
+        normalizeCurrencyState();persist();renderExp();renderSet();fToast(old===baseNow?'Currency settings saved':'Base currency changed — original transaction currencies retained');
+        m.remove();var ss=F$('featureScrim');if(ss)ss.remove();
       }
     });
   }
+
 
 
   /* -------- import transactions / bank statement -------- */
