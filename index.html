@@ -1066,15 +1066,41 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 .wkBadge{font-size:10px;padding:4px 7px;border-radius:999px;background:var(--card2);color:var(--mut)}
 @media(max-width:480px){.workoutStatGrid{grid-template-columns:1fr 1fr}.workoutStat:last-child{grid-column:1/-1}}
 
-.page{padding-bottom:96px}
+.page{padding-bottom:96px;padding-top:24px}
+.dashGrid{grid-template-columns:repeat(3,1fr)}
+@media(max-width:480px){.dashGrid{grid-template-columns:1fr 1fr}}
+
+
+.aiTopBar{width:100%;max-width:100%;box-sizing:border-box;min-width:0}
+.aiTopBar>div{min-width:0;flex:1}
+.aiTopBar .aiGuideBtn{position:relative;flex:0 0 auto}
+.aiTopBar .aiGuideBtn+*{min-width:0}
+#pgAI{position:relative;overflow-x:hidden;box-sizing:border-box}
+#pgAI>*{max-width:100%;box-sizing:border-box}
+#pgAI .aiCommandIntro{overflow-wrap:break-word}
+#pgAI .aiFeatureGrid{min-width:0}
+#pgAI .aiFeatureGrid>*{min-width:0;max-width:100%}
+.aiTopBar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;max-width:100%;margin-bottom:4px}
+.aiTopBar h1{margin:0}.aiClearBtn{flex:0 0 auto;white-space:nowrap}
+.aiCommandIntro{max-width:760px}
+#pgAI{overflow-x:hidden}
+#pgAI .aiFeatureGrid{width:100%;max-width:100%;box-sizing:border-box}
+#pgAI .aiFeatureCard{min-width:0;overflow:hidden;box-sizing:border-box}
+#pgAI .uaiBox{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
+#pgAI .uaiInputRow{display:grid;grid-template-columns:minmax(0,1fr) 52px 52px;gap:10px;align-items:center}
+#pgAI .uaiInp{min-width:0;width:100%;box-sizing:border-box}
+#pgAI .uaiHints{display:flex;flex-wrap:wrap;gap:8px}
+.moneyReceiptCard{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:10px 0 14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
+.moneyReceiptActions{display:flex;align-items:center;gap:8px;flex:0 0 auto}.moneyReceiptText{display:flex;flex-direction:column;gap:4px;min-width:0}.moneyReceiptText span{font-size:12px;color:var(--mut);line-height:1.45}
+@media(max-width:520px){.aiTopBar{align-items:center}.aiClearBtn{padding:9px 10px}.aiClearBtn{font-size:11px}.moneyReceiptCard{align-items:flex-start;flex-direction:column}.moneyReceiptCard .sbtn{width:100%}}
 .materialNav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9000;width:min(620px,calc(100% - 24px));height:76px;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:7px 8px;background:color-mix(in srgb,var(--card) 94%,transparent);border:1px solid var(--line);border-radius:24px;box-shadow:0 8px 30px rgba(0,0,0,.28);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .mnavItem{position:relative;height:62px;border:0;background:transparent;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:18px;font:inherit;cursor:pointer;min-width:0}
 .mnavItem::before{content:"";position:absolute;top:5px;left:50%;transform:translateX(-50%);width:64px;height:32px;border-radius:18px;background:transparent;z-index:-1;transition:.18s ease}
 .mnavItem.on{color:var(--txt);font-weight:700}.mnavItem.on::before{background:color-mix(in srgb,var(--acc) 18%,transparent)}
-.mnavIcon{height:24px;min-width:24px;display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1}
+.mnavIcon{height:30px;min-width:30px;display:flex;align-items:center;justify-content:center;font-size:25px;line-height:1}
 .mnavLabel{font-size:10px;line-height:12px;white-space:nowrap}
-.materialMoreBtn{position:fixed;right:14px;top:14px;z-index:8999;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:9px 12px;font:600 12px/1 var(--f);box-shadow:var(--shadow)}
-@media(max-width:480px){.materialNav{bottom:8px;width:calc(100% - 16px);height:70px;border-radius:22px}.mnavItem{height:58px}.mnavIcon{font-size:18px}.mnavLabel{font-size:9px}.materialMoreBtn{right:10px;top:10px;padding:8px 10px}.materialMoreBtn span{display:none}}
+.materialMoreBtn{position:absolute;right:14px;top:14px;max-width:calc(100% - 28px);z-index:8999;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:9px 12px;font:600 12px/1 var(--f);box-shadow:var(--shadow)}
+@media(max-width:480px){.materialNav{bottom:8px;width:calc(100% - 16px);height:70px;border-radius:22px}.mnavItem{height:58px}.mnavIcon{font-size:23px;min-width:28px;height:28px}.mnavLabel{font-size:9px}.materialMoreBtn{right:10px;top:10px;padding:8px 10px}.materialMoreBtn span{display:none}}
 .aiFeatureGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .aiFeatureCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;min-width:0}
 .aiFeatureHead{display:flex;align-items:center;gap:8px;margin-bottom:5px}.aiFeatureHead span{font-size:18px}.aiFeatureHead b{font-size:13px;flex:1}
@@ -1165,18 +1191,33 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <div class="eyebrow" id="dashDateLine"></div>
   <div class="h1row"><h1>Dashboard</h1></div>
   <div id="dashSummary"></div>
+
   <div class="dashGrid">
     <div class="setCard dashTile"><div class="dashIco">✓</div><div class="setT">Habits</div><div class="dashVal" id="dashHabits">—</div><div class="setS">today</div></div>
-    <div class="setCard dashTile"><div class="dashIco">🏋️</div><div class="setT">Workout</div><div class="dashVal" id="dashWorkout">—</div><div class="setS">recent</div></div>
+    <div class="setCard dashTile"><div class="dashIco">🏋️</div><div class="setT">Workout</div><div class="dashVal" id="dashWorkout">—</div><div class="setS">last 30 days</div></div>
     <div class="setCard dashTile"><div class="dashIco">😊</div><div class="setT">Mood</div><div class="dashVal" id="dashMood">—</div><div class="setS">today</div></div>
-    <div class="setCard dashTile"><div class="dashIco">💰</div><div class="setT">Money</div><div class="dashVal" id="dashMoney">—</div><div class="setS">today</div></div>
+    <div class="setCard dashTile"><div class="dashIco">😴</div><div class="setT">Sleep</div><div class="dashVal" id="dashSleep">—</div><div class="setS">last logged</div></div>
+    <div class="setCard dashTile"><div class="dashIco">💰</div><div class="setT">Spending</div><div class="dashVal" id="dashMoney">—</div><div class="setS">today</div></div>
+    <div class="setCard dashTile"><div class="dashIco">🔥</div><div class="setT">Streak</div><div class="dashVal" id="dashStreak">—</div><div class="setS">current</div></div>
   </div>
-  <div class="lbl">Today at a glance</div><div class="setCard" id="dashGlance"></div>
-  <div class="lbl">Patterns</div><div id="dashPatterns"></div>
-  <div class="dashActions"><button class="sbtn acc" data-go-tab="pgToday">Habits</button><button class="sbtn" data-go-tab="pgWorkout">Workout</button><button class="sbtn" data-go-tab="pgAI">AI</button></div>
+
+  <div class="lbl">Statistics</div>
+  <div class="statGrid" id="dashStats"></div>
+
+  <div class="lbl">Completion trend</div>
+  <div class="chartBox" id="dashTrend"></div>
+
+  <div class="lbl">Patterns</div>
+  <div id="dashPatterns"></div>
+
+  <div class="dashActions">
+    <button class="sbtn acc" data-go-tab="pgToday">Habits</button>
+    <button class="sbtn" data-go-tab="pgWorkout">Workout</button>
+    <button class="sbtn" data-go-tab="pgAI">AI</button>
+  </div>
 </div>
 
-<div class="page on" id="pgToday">
+<div class="page" id="pgToday">
     <div class="eyebrow" id="dateLine"></div>
     <div class="h1row">
       <h1 id="greet">Today</h1>
@@ -1276,7 +1317,12 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
     <div style="height:12px"></div>
 
-    <div class="expSum" id="expSum"></div>
+    <div class="moneyReceiptCard">
+  <div class="moneyReceiptText"><b>🧾 Scan receipt</b><span>Upload or photograph a bill and extract expense details before saving.</span></div>
+  <div class="moneyReceiptActions"><button class="aiGuideBtn" data-ai-guide="receipt" aria-label="Receipt scanner guide">ⓘ</button><button class="sbtn acc" id="moneyScanReceipt">Scan receipt</button></div>
+</div>
+
+<div class="expSum" id="expSum"></div>
 
     <div class="expMon" id="expMonNav">
       <button id="expPrev">&#8249;</button>
@@ -1493,13 +1539,15 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ AI PAGE ============ -->
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
-    <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
+    <div class="aiTopBar">
+  <div><div class="eyebrow">Personal command center</div><h1>AI Assistant</h1></div>
+  <button class="sbtn aiClearBtn" id="aiClearChat">🗑 Clear chat</button>
+</div>
+<div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
 <div class="aiFeatureCard"><div class="aiFeatureHead"><span>💡</span><b>Smart Insights</b><button class="aiGuideBtn" data-ai-guide="insights">ⓘ</button></div><div class="setS">Pattern-based insights from your tracker.</div><div id="aiInsights"></div></div>
 <div class="aiFeatureGrid">
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎤</span><b>Just Tell the App</b><button class="aiGuideBtn" data-ai-guide="tell">ⓘ</button></div><div class="setS">Speak naturally and log several things.</div><div id="justTellApp"></div></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>📸</span><b>AI Receipt Scanner</b><button class="aiGuideBtn" data-ai-guide="receipt">ⓘ</button></div><div class="setS">Extract receipt details before saving.</div><button class="sbtn acc aiOpenReceipt">Open scanner</button></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧾</span><b>AI Bank Statement</b><button class="aiGuideBtn" data-ai-guide="bank">ⓘ</button></div><div class="setS">Clean and categorise imported transactions.</div><button class="sbtn aiOpenImport">Open import</button></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧠</span><b>Your Week in 30 Seconds</b><button class="aiGuideBtn" data-ai-guide="week">ⓘ</button></div><div id="aiWeekSummary"></div></div>
+
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🔍</span><b>Why Was Today Different?</b><button class="aiGuideBtn" data-ai-guide="why">ⓘ</button></div><div id="aiTodayWhy"></div></div>
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🚨</span><b>Anomaly Detection</b><button class="aiGuideBtn" data-ai-guide="anomaly">ⓘ</button></div><div id="aiAnomalies"></div></div>
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎯</span><b>AI Habit Coach</b><button class="aiGuideBtn" data-ai-guide="habit">ⓘ</button></div><div id="aiHabitCoach"></div></div>
@@ -1518,7 +1566,14 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <h1>Settings</h1>
     <div style="height:16px"></div>
 
-    <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Profile</div>
+    <div class="setCard" style="padding:0;margin-bottom:16px">
+  <button class="setRow" data-go-tab="pgStats" style="width:100%;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer">
+    <div class="setInfo"><div class="setT">📊 Detailed Stats</div><div class="setS">Full trends, achievements, calendar and habit performance</div></div>
+    <span style="font-size:20px">›</span>
+  </button>
+</div>
+
+<div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Profile</div>
     <div class="setCard">
       <div class="setCol">
         <div class="setT" style="margin-bottom:4px">Your name</div>
@@ -1715,7 +1770,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         <button class="sbtn acc" id="expReceiptScan" style="display:none">Extract details</button>
         <button class="sbtn" id="expReceiptRemove" style="display:none">Remove</button>
       </div>
-      <input id="expReceiptFile" type="file" accept="image/*" style="display:none">
+      <input id="expReceiptFile" type="file" accept="image/*" capture="environment" style="display:none">
     </div>
   <button class="primary" id="expSave">Save</button>
   <button class="danger" id="expDel" style="display:none">Delete</button>
@@ -3572,17 +3627,47 @@ function explainWhyToday(){
 }
 
 function renderDashboard(){
-  var d=new Date(),ts=today(),due=state.habits.filter(function(h){return !h.arch&&dueOn(h,d);}),done=due.filter(function(h){return isDone(h,ts);});
+  var d=new Date(),ts=today();
   if($('dashDateLine'))$('dashDateLine').textContent=niceDate(ts);
+
+  var due=state.habits.filter(function(h){return !h.arch&&dueOn(h,d);});
+  var done=due.filter(function(h){return isDone(h,ts);});
   if($('dashHabits'))$('dashHabits').textContent=done.length+' / '+due.length;
-  var wl=(state.wlog||[]).filter(function(x){return x.d>=fmt(addDays(d,-6));});
-  if($('dashWorkout'))$('dashWorkout').textContent=wl.length+' session'+(wl.length===1?'':'s');
-  var mv=state.mood&&state.mood[ts];if($('dashMood'))$('dashMood').textContent=typeof mv==='number'&&MOODS[mv]?MOODS[mv].e+' '+MOODS[mv].n:'Not logged';
+
+  var logs=(state.wlog||[]),from=fmt(addDays(d,-29));
+  var monthLogs=logs.filter(function(x){return x.d>=from&&x.d<=ts;});
+  if($('dashWorkout'))$('dashWorkout').textContent=monthLogs.length+' session'+(monthLogs.length===1?'':'s');
+
+  var mv=state.mood&&state.mood[ts];
+  if($('dashMood'))$('dashMood').textContent=typeof mv==='number'&&MOODS[mv]?MOODS[mv].e+' '+MOODS[mv].n:'Not logged';
+
+  var sleepLogs=state.sleep||[], lastSleep=sleepLogs.slice().sort(function(a,b){return a.d>b.d?-1:1;})[0];
+  if($('dashSleep'))$('dashSleep').textContent=lastSleep&&lastSleep.mins?fmtDur(lastSleep.mins):'Not logged';
+
   var spend=state.tx.filter(function(x){return x.d===ts&&x.kind==='exp';}).reduce(function(a,x){return a+(x.amt||0);},0);
   if($('dashMoney'))$('dashMoney').textContent=inr(spend);
-  if($('dashGlance'))$('dashGlance').innerHTML='<div class="featureRow"><div class="grow"><b>Habits</b><br><small>'+done.length+' completed today</small></div></div><div class="featureRow"><div class="grow"><b>Sleep</b><br><small>'+((state.sleep.find(function(x){return x.d===ts;})||{}).mins?fmtDur((state.sleep.find(function(x){return x.d===ts;})||{}).mins):'Not logged')+'</small></div></div><div class="featureRow"><div class="grow"><b>Money</b><br><small>'+inr(spend)+' spent today</small></div></div>';
-  renderPatternCard('dashPatterns',3);
+
+  var curMax=0,longest=0;
+  state.habits.filter(function(h){return !h.arch;}).forEach(function(h){
+    curMax=Math.max(curMax,streak(h)); longest=Math.max(longest,bestStreak(h));
+  });
+  if($('dashStreak'))$('dashStreak').textContent=curMax+' day'+(curMax===1?'':'s');
+
+  var p30=periodStats(addDays(d,-29),d),comp=Math.round(p30.rate*100);
+  if($('dashStats'))$('dashStats').innerHTML=
+    sc(curMax,curMax===1?'day':'days','Current streak','var(--sOrange)')+
+    sc(longest,longest===1?'day':'days','Longest streak','var(--amber)')+
+    sc(comp,'%','30-day completion','var(--sGreen)')+
+    sc(p30.missed,p30.missed===1?'day':'days','Missed days','var(--coral)');
+
+  if($('dashTrend')){
+    var data=trendData(30);
+    $('dashTrend').innerHTML='<div class="chartT">30-day completion trend</div>'+lineChart(data,'var(--sBlue)','var(--iceSoft)');
+  }
+
+  renderPatternCard('dashPatterns',4);
 }
+
 function renderWorkoutPage(){
   renderWorkoutQuickLog();
   var logs=(state.wlog||[]).slice().sort(function(a,b){return a.d>b.d?-1:1;});
@@ -6632,6 +6717,23 @@ function init(){
     if(b) showTab(b.getAttribute('data-tab'));
   });
   $('materialMoreBtn').addEventListener('click', function(){showTab('pgSet');});
+  $('aiClearChat').addEventListener('click', function(){
+    if(!confirm('Clear this AI conversation and recent AI actions?')) return;
+    var log=$('uaiLog'); if(log) log.innerHTML='';
+    try{localStorage.removeItem('ai_recent');}catch(e){}
+    renderAIRecent();
+    toastN('AI chat cleared');
+  });
+  $('moneyScanReceipt').addEventListener('click', function(){
+    showTab('pgExp');
+    setTimeout(function(){
+      openExp(null);
+      setTimeout(function(){
+        var box=$('expReceiptBox');
+        if(box) box.scrollIntoView({behavior:'smooth',block:'center'});
+      },80);
+    },80);
+  });
   $('aiGuideClose').addEventListener('click', closeAIGuide);
   $('aiGuideX').addEventListener('click', closeAIGuide);
   $('aiGuideScrim').addEventListener('click', closeAIGuide);
