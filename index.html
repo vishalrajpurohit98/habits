@@ -1065,6 +1065,16 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 .wkRow:last-child{border-bottom:0}.wkMain{flex:1;min-width:0}.wkMain b{font-size:13px}.wkMain small{font-size:11px;color:var(--mut)}
 .wkBadge{font-size:10px;padding:4px 7px;border-radius:999px;background:var(--card2);color:var(--mut)}
 @media(max-width:480px){.workoutStatGrid{grid-template-columns:1fr 1fr}.workoutStat:last-child{grid-column:1/-1}}
+
+.page{padding-bottom:96px}
+.materialNav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9000;width:min(620px,calc(100% - 24px));height:76px;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:7px 8px;background:color-mix(in srgb,var(--card) 94%,transparent);border:1px solid var(--line);border-radius:24px;box-shadow:0 8px 30px rgba(0,0,0,.28);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.mnavItem{position:relative;height:62px;border:0;background:transparent;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:18px;font:inherit;cursor:pointer;min-width:0}
+.mnavItem::before{content:"";position:absolute;top:5px;left:50%;transform:translateX(-50%);width:64px;height:32px;border-radius:18px;background:transparent;z-index:-1;transition:.18s ease}
+.mnavItem.on{color:var(--txt);font-weight:700}.mnavItem.on::before{background:color-mix(in srgb,var(--acc) 18%,transparent)}
+.mnavIcon{height:24px;min-width:24px;display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1}
+.mnavLabel{font-size:10px;line-height:12px;white-space:nowrap}
+.materialMoreBtn{position:fixed;right:14px;top:14px;z-index:8999;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:9px 12px;font:600 12px/1 var(--f);box-shadow:var(--shadow)}
+@media(max-width:480px){.materialNav{bottom:8px;width:calc(100% - 16px);height:70px;border-radius:22px}.mnavItem{height:58px}.mnavIcon{font-size:18px}.mnavLabel{font-size:9px}.materialMoreBtn{right:10px;top:10px;padding:8px 10px}.materialMoreBtn span{display:none}}
 .aiFeatureGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .aiFeatureCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;min-width:0}
 .aiFeatureHead{display:flex;align-items:center;gap:8px;margin-bottom:5px}.aiFeatureHead span{font-size:18px}.aiFeatureHead b{font-size:13px;flex:1}
@@ -1208,7 +1218,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
     <div class="restCard" id="restBox" style="display:none"></div>
     <div class="wkRow" id="wkdots"></div>
-    <div class="wkCard" id="wkCard" style="display:none"></div>
+    
     <div class="qod" id="qod"></div>
     <div class="nextRem" id="nextRem"></div>
     <div id="recoverBox"></div>
@@ -1869,15 +1879,24 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <button class="primary" id="aiGuideClose" style="margin-top:12px">Done</button>
 </div>
 
-<div class="dock" id="tabbar">
-  <div class="navBrand"><span class="navLogo">✦</span>Personal Tracker</div>
-  <button class="tab on" data-tab="pgDashboard">⌂ Dashboard</button>
-  <button class="tab" data-tab="pgToday">✓ Habits</button>
-  <button class="tab" data-tab="pgWorkout">🏋️ Workout</button>
-  <button class="tab" data-tab="pgExp">💰 Money</button>
-  <button class="tab" data-tab="pgAI">✦ AI</button>
-  <button class="tab" data-tab="pgSet">⚙ More</button>
-</div>
+<nav class="materialNav" id="tabbar" aria-label="Primary navigation">
+  <button class="mnavItem on" data-tab="pgDashboard" aria-label="Dashboard">
+    <span class="mnavIcon">⌂</span><span class="mnavLabel">Dashboard</span>
+  </button>
+  <button class="mnavItem" data-tab="pgToday" aria-label="Habits">
+    <span class="mnavIcon">✓</span><span class="mnavLabel">Habits</span>
+  </button>
+  <button class="mnavItem" data-tab="pgWorkout" aria-label="Workout">
+    <span class="mnavIcon">🏋</span><span class="mnavLabel">Workout</span>
+  </button>
+  <button class="mnavItem" data-tab="pgExp" aria-label="Money">
+    <span class="mnavIcon">₹</span><span class="mnavLabel">Money</span>
+  </button>
+  <button class="mnavItem" data-tab="pgAI" aria-label="AI">
+    <span class="mnavIcon">✦</span><span class="mnavLabel">AI</span>
+  </button>
+</nav>
+<button class="materialMoreBtn" id="materialMoreBtn" aria-label="More settings">⚙ <span>More</span></button>
 
 <div id="scrim"></div>
 
@@ -3476,7 +3495,7 @@ function renderAIWeeklySummary(){
   var cached=localStorage.getItem('ai_weekly_narr')||'',day=localStorage.getItem('ai_weekly_narr_day')||'';
   var configured=!!getAiKey();
   if(!cached&&!configured){box.innerHTML='';return;}
-  var html='<div class="aiSmartCard"><div class="aiSmartHead"><span>🧠</span><b>Your week in 30 seconds</b><span class="featureTag" style="margin-left:auto">AI</span></div>';
+  var html='<div class="aiSmartCard">';
   if(cached&&day===today())html+='<div class="aiSmartBody">'+cached+'</div>';
   else html+='<div class="aiSmartBody">Generate a short summary across habits, expenses, mood, sleep, workouts and journal.</div>';
   html+='<div class="aiSmartActions"><button class="sbtn acc" id="aiWeekRefresh">'+(cached&&day===today()?'Refresh':'Generate summary')+'</button></div></div>';
@@ -3509,7 +3528,7 @@ function generateAIHabitTip(hid){
 
 function renderJustTellApp(){
   var b=$('justTellApp');if(!b)return;
-  b.innerHTML='<div class="aiQuickCard"><div class="aiSmartHead"><span>🎤</span><b>Just tell the app</b><span class="featureTag" style="margin-left:auto">AI</span></div><div class="aiSmartBody">Say: “Spent ₹850 on dinner, skipped workout and felt tired.”</div><div class="aiQuickRow"><input id="justTellInput" class="inp" placeholder="Type or use microphone…" autocomplete="off"><button class="sbtn acc" id="justTellMic">🎙</button><button class="sbtn" id="justTellDone" style="display:none">Done</button></div></div>';
+  b.innerHTML='<div class="aiQuickCard"><div class="aiSmartBody">Say: “Spent ₹850 on dinner, skipped workout and felt tired.”</div><div class="aiQuickRow"><input id="justTellInput" class="inp" placeholder="Type or use microphone…" autocomplete="off"><button class="sbtn acc" id="justTellMic">🎙</button><button class="sbtn" id="justTellDone" style="display:none">Done</button></div></div>';
 }
 function processJustTell(text){
   text=String(text||'').trim();if(!text)return;var key=getAiKey();if(!key){toastN('Configure AI first');return;}
@@ -3544,7 +3563,7 @@ function processQuickWorkout(text){
 function renderTodayAIExplainers(){
   var why=$('aiTodayWhy'),an=$('aiAnomalies');if(!why||!an)return;var ps=detectedPatterns(),sp=ps.filter(function(p){return p.type==='spike'||p.type==='sleep';}).slice(0,2);
   an.innerHTML=sp.length?'<div class="aiQuickCard"><div class="aiSmartHead"><span>🚨</span><b>Anomalies detected</b></div>'+sp.map(function(p){return '<div class="aiQuickDone"><b>'+p.title+'</b><br>'+p.text+'<br><small>'+p.detail+'</small></div>';}).join('')+'</div>':'';
-  if(!getAiKey()){why.innerHTML='';return;}why.innerHTML='<div class="aiQuickCard"><div class="aiSmartHead"><span>🔍</span><b>Why was today different?</b></div><div class="aiSmartBody">Compare today with your normal patterns.</div><div class="aiQuickRow"><button class="sbtn acc" id="aiWhyTodayBtn">Explain today</button></div><div id="aiWhyTodayResult"></div></div>';
+  if(!getAiKey()){why.innerHTML='';return;}why.innerHTML='<div class="aiQuickCard"><div class="aiSmartBody">Compare today with your normal patterns.</div><div class="aiQuickRow"><button class="sbtn acc" id="aiWhyTodayBtn">Explain today</button></div><div id="aiWhyTodayResult"></div></div>';
 }
 function explainWhyToday(){
   var b=$('aiWhyTodayResult');if(b)b.innerHTML='<small>Analysing…</small>';
@@ -3697,7 +3716,7 @@ function renderToday(){
   }
   $('wkdots').style.display = liveCnt ? '' : 'none';
   $('wkdots').innerHTML = wd;
-  renderWkCard();
+
   renderDailyInsightToday();
 
 
@@ -6612,6 +6631,7 @@ function init(){
     var b = climb(e.target, this, 'data-tab');
     if(b) showTab(b.getAttribute('data-tab'));
   });
+  $('materialMoreBtn').addEventListener('click', function(){showTab('pgSet');});
   $('aiGuideClose').addEventListener('click', closeAIGuide);
   $('aiGuideX').addEventListener('click', closeAIGuide);
   $('aiGuideScrim').addEventListener('click', closeAIGuide);
