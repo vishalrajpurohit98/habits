@@ -12,6 +12,7 @@ public class NotifReceiver extends BroadcastReceiver {
         String name=in.getStringExtra("name");
         String emoji=in.getStringExtra("emoji");
         String id=in.getStringExtra("id");
+        String body=in.getStringExtra("body");
         Intent open=new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
         if(habit!=null)open.putExtra("habit",habit);
         PendingIntent pi=PendingIntent.getActivity(c,Math.abs((id==null?"n":id).hashCode()),open,
@@ -21,7 +22,7 @@ public class NotifReceiver extends BroadcastReceiver {
                 :new Notification.Builder(c);
         b.setSmallIcon(com.actionables.personaltracker.app.R.drawable.app_icon)
          .setContentTitle((emoji==null?"🔔":emoji)+" "+(name==null?"Reminder":name))
-         .setContentText("Time for your habit — keep the chain alive.")
+         .setContentText(body==null?"Time for your reminder.":body)
          .setAutoCancel(true).setContentIntent(pi).setCategory(Notification.CATEGORY_REMINDER)
          .setColor(Color.rgb(255,174,31));
         ((NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE)).notify(

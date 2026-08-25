@@ -23,11 +23,16 @@ echo ">> cleaning"
 rm -rf build && mkdir -p build/compiled build/gen build/obj build/apk build/stage/assets
 
 echo ">> staging web assets from: $WEB_DIR"
+# MainActivity serves the packaged web app from the `web/` asset namespace.
+# Keep the APK asset layout aligned with that runtime contract.
+mkdir -p build/stage/assets/web
 rsync -a \
   --exclude '.git' --exclude '.github' --exclude 'android-wrapper' \
   --exclude 'node_modules' --exclude '*.apk' \
-  "$WEB_DIR"/ build/stage/assets/
-test -f build/stage/assets/index.html || { echo "ERROR: index.html not found in $WEB_DIR"; exit 1; }
+  "$WEB_DIR"/ build/stage/assets/web/
+test -f build/stage/assets/web/index.html || { echo "ERROR: index.html not found in $WEB_DIR"; exit 1; }
+test -f build/stage/assets/web/firebase-app-compat.js || { echo "ERROR: Firebase asset missing"; exit 1; }
+test -f build/stage/assets/web/xlsx.min.js || { echo "ERROR: XLSX asset missing"; exit 1; }
 
 MANIFEST="AndroidManifest.xml"
 if [ -n "${VERSION_CODE:-}" ] || [ -n "${VERSION_NAME:-}" ]; then
@@ -58,7 +63,8 @@ echo ">> aapt2 link"
 echo ">> javac"
 javac -g:none -source 17 -target 17 -classpath "$PLAT" \
   -d build/obj \
-  src/com/personaltracker/app/*.java build/gen/com/personaltracker/app/R.java
+  $(find src/com/actionables/personaltracker/app -name '*.java' -print) \
+  build/gen/com/actionables/personaltracker/app/R.java
 
 echo ">> d8 (dex)"
 "$BT/d8" $(find build/obj -name '*.class') --lib "$PLAT" --min-api 24 --output build/apk/

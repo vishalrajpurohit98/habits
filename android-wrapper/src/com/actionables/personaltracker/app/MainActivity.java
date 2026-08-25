@@ -37,6 +37,7 @@ public class MainActivity extends Activity {
     SharedPreferences prefs;
     String pendingSpeechId = null;
     String pendingImportCallback = "importNative";
+    String pendingImportMode = "backup";
     String pendingPhotoDir = "photos";
 
     @Override public void onCreate(Bundle b) {
@@ -214,10 +215,40 @@ public class MainActivity extends Activity {
 
     void js(String code) { if (web != null) web.post(() -> web.evaluateJavascript(code, null)); }
 
-    void importFile() {
+    void importFile() { importFile("backup"); }
+
+    void importFile(String mode) {
+        pendingImportMode = (mode == null || mode.length() == 0) ? "backup" : mode;
         Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-        i.addCategory(Intent.CATEGORY_OPENABLE); i.setType("application/json");
+        i.addCategory(Intent.CATEGORY_OPENABLE);
+        i.setType("*/*");
+        i.putExtra(Intent.EXTRA_MIME_TYPES, new String[]{
+                "text/csv",
+                "text/comma-separated-values",
+                "application/csv",
+                "application/vnd.ms-excel",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/json"
+        });
+        i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false);
         try { startActivityForResult(i, REQ_IMPORT); } catch (Exception e) { toast("File picker unavailable"); }
+    }
+
+    String displayName(Uri uri) {
+        try {
+            android.database.Cursor c = getContentResolver().query(uri, null, null, null, null);
+            if (c != null) {
+                int ix = c.getColumnIndex(android.provider.OpenableColumns.DISPLAY_NAME);
+                if (ix >= 0 && c.moveToFirst()) {
+                    String n = c.getString(ix);
+                    c.close();
+                    if (n != null && !n.isEmpty()) return n;
+                }
+                c.close();
+            }
+        } catch (Exception ignored) {}
+        String p = uri == null ? null : uri.getLastPathSegment();
+        return (p == null || p.isEmpty()) ? "import.csv" : p;
     }
 
     void pickPhoto() {
@@ -243,9 +274,17 @@ public class MainActivity extends Activity {
                 fileChooserCallback.onReceiveValue(uris); fileChooserCallback=null;
             } else if (result == RESULT_OK && data != null && data.getData()!=null) {
                 try {
-                    byte[] bytes = readAll(getContentResolver().openInputStream(data.getData()));
-                    js("window.importNative&&window.importNative('"+Base64.encodeToString(bytes, Base64.NO_WRAP)+"')");
+                    Uri uri = data.getData();
+                    byte[] bytes = readAll(getContentResolver().openInputStream(uri));
+                    String b64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
+                    String name = displayName(uri);
+                    if ("backup".equals(pendingImportMode)) {
+                        js("window.importNative&&window.importNative('"+b64+"')");
+                    } else {
+                        js("window.featureImportNative&&window.featureImportNative('"+b64+"',"+JSONObject.quote(name)+")");
+                    }
                 } catch(Exception e){ toast("Could not read file"); }
+                pendingImportMode = "backup";
             }
         } else if (req == REQ_PHOTO && result == RESULT_OK && data != null && data.getData()!=null) {
             try {
@@ -313,6 +352,11 @@ public class MainActivity extends Activity {
 
     void startSpeech(String id) {
         pendingSpeechId=id;
+        if (Build.VERSION.SDK_INT >= 23 &&
+                checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_SPEECH);
+            return;
+        }
         Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN"); i.putExtra(RecognizerIntent.EXTRA_PROMPT,"Speak");
@@ -344,7 +388,8 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void bio(){}
         @JavascriptInterface public void pickDate(int y,int m,int d){MainActivity.this.pickDate(y,m,d);}
         @JavascriptInterface public void pickTime(int h,int m){MainActivity.this.pickTime(h,m);}
-        @JavascriptInterface public void pickImport(){MainActivity.this.importFile();}
+        @JavascriptInterface public void pickImport(){MainActivity.this.importFile("backup");}
+        @JavascriptInterface public void pickImport(String mode){MainActivity.this.importFile(mode);}
         @JavascriptInterface public void pickPhoto(){MainActivity.this.pickPhoto();}
         @JavascriptInterface public String readPhoto(String name){try{File f=new File(new File(getFilesDir(),pendingPhotoDir),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public void deletePhoto(String name){try{new File(new File(getFilesDir(),pendingPhotoDir),name).delete();}catch(Exception ignored){}}

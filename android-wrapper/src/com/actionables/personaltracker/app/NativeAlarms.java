@@ -15,7 +15,7 @@ public class NativeAlarms {
  static AlarmManager am(Context c){return (AlarmManager)c.getSystemService(Context.ALARM_SERVICE);}
  static PendingIntent pi(Context c,int code,JSONObject a){
    Intent i=new Intent(c,NotifReceiver.class).setAction(ACTION);
-   try{i.putExtra("habit",a.optString("h",""));i.putExtra("name",a.optString("n","Reminder"));i.putExtra("emoji",a.optString("e","🔔"));i.putExtra("id",a.optString("c",String.valueOf(code)));}catch(Exception ignored){}
+   try{i.putExtra("habit",a.optString("h",""));i.putExtra("name",a.optString("n","Reminder"));i.putExtra("emoji",a.optString("e","🔔"));i.putExtra("body",a.optString("b","Time for your reminder."));i.putExtra("id",a.optString("c",String.valueOf(code)));}catch(Exception ignored){}
    return PendingIntent.getBroadcast(c,code,i,PendingIntent.FLAG_UPDATE_CURRENT|(Build.VERSION.SDK_INT>=23?PendingIntent.FLAG_IMMUTABLE:0));
  }
  static void cancelStored(Context c){
