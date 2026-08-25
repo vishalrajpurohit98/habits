@@ -1057,6 +1057,23 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 .aiQuickCard{margin:10px 0;padding:13px 15px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
 .aiQuickRow{display:flex;gap:8px;margin-top:10px}.aiQuickRow .inp{flex:1}.aiQuickRow .sbtn{flex:0 0 auto}
 .aiQuickDone{margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--card2);font-size:11px;line-height:1.45}
+
+
+.workoutStatGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
+.workoutStat{padding:13px 14px}.workoutHero{border:1px solid var(--line)}
+.wkRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.wkRow:last-child{border-bottom:0}.wkMain{flex:1;min-width:0}.wkMain b{font-size:13px}.wkMain small{font-size:11px;color:var(--mut)}
+.wkBadge{font-size:10px;padding:4px 7px;border-radius:999px;background:var(--card2);color:var(--mut)}
+@media(max-width:480px){.workoutStatGrid{grid-template-columns:1fr 1fr}.workoutStat:last-child{grid-column:1/-1}}
+.aiFeatureGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+.aiFeatureCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;min-width:0}
+.aiFeatureHead{display:flex;align-items:center;gap:8px;margin-bottom:5px}.aiFeatureHead span{font-size:18px}.aiFeatureHead b{font-size:13px;flex:1}
+.aiGuideBtn{border:1px solid var(--line);background:var(--card2);color:var(--mut);border-radius:9px;width:30px;height:30px;font-weight:700}
+.aiFeatureCard .aiQuickCard,.aiFeatureCard .aiSmartCard{box-shadow:none;border:0;padding:8px 0;margin:0;background:transparent}
+.dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.dashTile{padding:14px 15px}.dashIco{font-size:18px;margin-bottom:5px}.dashVal{font-family:var(--fDisp);font-size:20px;font-weight:800;margin-top:4px}.dashActions{display:flex;gap:8px;margin:14px 0}.dashActions .sbtn{flex:1}
+.aiGuideSheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:min(560px,100%);max-height:78vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:22px 22px 0 0;z-index:10001;padding:18px 18px 24px;box-shadow:0 -16px 40px rgba(0,0,0,.28);transition:transform .22s ease}
+.aiGuideSheet.on{transform:translate(-50%,0)}.aiGuideExample{margin:10px 0;padding:11px 12px;border-radius:12px;background:var(--card2);font-size:12px;line-height:1.5}.aiGuideSteps{padding-left:20px;line-height:1.6;font-size:12px}
+@media(max-width:480px){.aiFeatureGrid{grid-template-columns:1fr}.dashActions{flex-wrap:wrap}}
 .aiSmartCard{margin:10px 0;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
 .aiSmartHead{display:flex;align-items:center;gap:9px}.aiSmartHead b{font-size:14px}.aiSmartBody{margin-top:8px;font-size:12px;line-height:1.55;color:var(--text)}
 .aiSmartMeta{margin-top:5px;color:var(--mut);font-size:11px}.aiSmartActions{display:flex;gap:8px;margin-top:10px}.aiSmartActions button{flex:0 0 auto}
@@ -1134,7 +1151,22 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 <div id="app">
 
   <!-- ============ TODAY ============ -->
-  <div class="page on" id="pgToday">
+  <div class="page on" id="pgDashboard">
+  <div class="eyebrow" id="dashDateLine"></div>
+  <div class="h1row"><h1>Dashboard</h1></div>
+  <div id="dashSummary"></div>
+  <div class="dashGrid">
+    <div class="setCard dashTile"><div class="dashIco">✓</div><div class="setT">Habits</div><div class="dashVal" id="dashHabits">—</div><div class="setS">today</div></div>
+    <div class="setCard dashTile"><div class="dashIco">🏋️</div><div class="setT">Workout</div><div class="dashVal" id="dashWorkout">—</div><div class="setS">recent</div></div>
+    <div class="setCard dashTile"><div class="dashIco">😊</div><div class="setT">Mood</div><div class="dashVal" id="dashMood">—</div><div class="setS">today</div></div>
+    <div class="setCard dashTile"><div class="dashIco">💰</div><div class="setT">Money</div><div class="dashVal" id="dashMoney">—</div><div class="setS">today</div></div>
+  </div>
+  <div class="lbl">Today at a glance</div><div class="setCard" id="dashGlance"></div>
+  <div class="lbl">Patterns</div><div id="dashPatterns"></div>
+  <div class="dashActions"><button class="sbtn acc" data-go-tab="pgToday">Habits</button><button class="sbtn" data-go-tab="pgWorkout">Workout</button><button class="sbtn" data-go-tab="pgAI">AI</button></div>
+</div>
+
+<div class="page on" id="pgToday">
     <div class="eyebrow" id="dateLine"></div>
     <div class="h1row">
       <h1 id="greet">Today</h1>
@@ -1166,11 +1198,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       </div>
     </div>
     <div class="dailyIns" id="todayDIWrap" style="display:none"><div class="diLead">✨</div><div class="diText" id="todayDI"></div></div>
-    <div id="justTellApp"></div>
-    <div id="aiWeekSummary"></div>
-    <div id="aiHabitCoach"></div>
-    <div id="aiTodayWhy"></div>
-    <div id="aiAnomalies"></div>
     <div class="heroTop">
       <div class="momCol">
         <div class="momBig" id="momPct">&ndash;</div>
@@ -1184,7 +1211,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="wkCard" id="wkCard" style="display:none"></div>
     <div class="qod" id="qod"></div>
     <div class="nextRem" id="nextRem"></div>
-    <div id="aiInsights"></div>
     <div id="recoverBox"></div>
     <div id="stackBox"></div>
     <div id="list"></div>
@@ -1202,7 +1228,38 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
   <!-- ============ STATS ============ -->
   <!-- ============ EXPENSES ============ -->
-  <div class="page" id="pgExp">
+  <div class="page" id="pgWorkout">
+  <div class="eyebrow">Log movement</div>
+  <div class="h1row"><h1>Workout</h1></div>
+
+  <div class="setCard workoutHero" style="padding:16px">
+    <div class="setT">⚡ Quick Log</div>
+    <div class="setS" style="margin:4px 0 10px">Describe what you did. You can log one or several exercises.</div>
+    <div id="workoutPageQuickLog"></div>
+    <button class="primary" id="openWorkoutSessionBtn">Open workout session</button>
+  </div>
+
+  <div class="lbl">Today's Workout</div>
+  <div class="setCard" id="workoutToday"></div>
+
+  <div class="workoutStatGrid">
+    <div class="setCard workoutStat"><div class="dashIco">🏋️</div><div class="setT">This month</div><div class="dashVal" id="wkMonthCount">0</div><div class="setS">sessions</div></div>
+    <div class="setCard workoutStat"><div class="dashIco">🔥</div><div class="setT">Consistency</div><div class="dashVal" id="wkConsistency">0%</div><div class="setS">last 30 days</div></div>
+    <div class="setCard workoutStat"><div class="dashIco">⏱</div><div class="setT">Time logged</div><div class="dashVal" id="wkTimeLogged">0m</div><div class="setS">this month</div></div>
+  </div>
+
+  <div class="lbl">🏆 Personal Records</div>
+  <div class="setCard" id="workoutRecords"></div>
+
+  <div class="lbl">🧠 Patterns</div>
+  <div id="workoutPagePatterns"></div>
+
+  <div class="lbl">🕘 Recent Workouts</div>
+  <div class="setCard" id="workoutRecent"></div>
+</div>
+
+
+<div class="page" id="pgExp">
     <div class="eyebrow" id="expMonthLbl"></div>
     <div class="h1row"><h1>Money</h1>
       <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
@@ -1282,8 +1339,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div id="fitSection" style="display:none">
         <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Fitness</div>
         <div class="insCard" id="fitInsight" style="margin-bottom:10px"></div>
-        <div id="workoutQuickLog"></div>
-    <div id="fitPatternInsights"></div>
+        <div id="fitPatternInsights"></div>
     <div class="statGrid" id="fitStats"></div>
         <div class="trendSeg" id="fitTrendSeg">
           <button data-ft="7">7D</button>
@@ -1428,7 +1484,19 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
-    <div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
+<div class="aiFeatureCard"><div class="aiFeatureHead"><span>💡</span><b>Smart Insights</b><button class="aiGuideBtn" data-ai-guide="insights">ⓘ</button></div><div class="setS">Pattern-based insights from your tracker.</div><div id="aiInsights"></div></div>
+<div class="aiFeatureGrid">
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎤</span><b>Just Tell the App</b><button class="aiGuideBtn" data-ai-guide="tell">ⓘ</button></div><div class="setS">Speak naturally and log several things.</div><div id="justTellApp"></div></div>
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>📸</span><b>AI Receipt Scanner</b><button class="aiGuideBtn" data-ai-guide="receipt">ⓘ</button></div><div class="setS">Extract receipt details before saving.</div><button class="sbtn acc aiOpenReceipt">Open scanner</button></div>
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧾</span><b>AI Bank Statement</b><button class="aiGuideBtn" data-ai-guide="bank">ⓘ</button></div><div class="setS">Clean and categorise imported transactions.</div><button class="sbtn aiOpenImport">Open import</button></div>
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧠</span><b>Your Week in 30 Seconds</b><button class="aiGuideBtn" data-ai-guide="week">ⓘ</button></div><div id="aiWeekSummary"></div></div>
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🔍</span><b>Why Was Today Different?</b><button class="aiGuideBtn" data-ai-guide="why">ⓘ</button></div><div id="aiTodayWhy"></div></div>
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🚨</span><b>Anomaly Detection</b><button class="aiGuideBtn" data-ai-guide="anomaly">ⓘ</button></div><div id="aiAnomalies"></div></div>
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎯</span><b>AI Habit Coach</b><button class="aiGuideBtn" data-ai-guide="habit">ⓘ</button></div><div id="aiHabitCoach"></div></div>
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🏋️</span><b>Workout Quick Log</b><button class="aiGuideBtn" data-ai-guide="workout">ⓘ</button></div><div id="workoutQuickLog"></div></div>
+</div>
+
+    <div style="display:flex;justify-content:flex-end;margin:8px 0"><button class="aiGuideBtn" data-ai-guide="assistant">ⓘ How to use AI Assistant</button></div><div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
     <div class="aiRecentTitle">Recent</div><div id="aiRecent"></div>
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
@@ -1793,14 +1861,22 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <button class="danger" id="sleepDel" style="display:none">Clear this night</button>
 </div>
 
+<div id="aiGuideScrim" class="scrim"></div>
+<div class="aiGuideSheet" id="aiGuideSheet">
+  <div class="grab"></div>
+  <div class="h1row"><h2 id="aiGuideTitle" style="margin:0"></h2><button class="calDayClose" id="aiGuideX">✕</button></div>
+  <div id="aiGuideBody"></div>
+  <button class="primary" id="aiGuideClose" style="margin-top:12px">Done</button>
+</div>
+
 <div class="dock" id="tabbar">
   <div class="navBrand"><span class="navLogo">✦</span>Personal Tracker</div>
-  <button class="tab on" data-tab="pgToday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5.5"/></svg>Today</button>
-  <button class="tab" data-tab="pgMood"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.6 14.4c.9 1.1 2.1 1.7 3.4 1.7s2.5-.6 3.4-1.7M9 9.7h.01M15 9.7h.01"/></svg>Mood</button>
-  <button class="tab" data-tab="pgExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3z"/><path d="M3 10h18M7 15h4"/></svg>Money</button>
-  <button class="tab" data-tab="pgStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
-  <button class="tab" data-tab="pgAI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>AI</button>
-  <button class="tab" data-tab="pgSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 00-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 002 1.2l.4 2.7h4l.4-2.7a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
+  <button class="tab on" data-tab="pgDashboard">⌂ Dashboard</button>
+  <button class="tab" data-tab="pgToday">✓ Habits</button>
+  <button class="tab" data-tab="pgWorkout">🏋️ Workout</button>
+  <button class="tab" data-tab="pgExp">💰 Money</button>
+  <button class="tab" data-tab="pgAI">✦ AI</button>
+  <button class="tab" data-tab="pgSet">⚙ More</button>
 </div>
 
 <div id="scrim"></div>
@@ -3441,13 +3517,30 @@ function processJustTell(text){
   toastN('Understanding…');gemCall(prompt,350).then(function(raw){var arr=JSON.parse(raw.replace(/```json|```/g,'').trim());if(!Array.isArray(arr)||!arr.length){toastN('No clear log found');return;}var preview=arr.map(function(a){return (a.action||'action')+' '+(a.payee||a.exercise||a.habit||a.amount||a.score||'');}).join('\\n');if(!confirm('I found:\\n\\n'+preview+'\\n\\nLog these items?'))return;arr.forEach(function(a){var act=a.action,p={};if(act==='add_expense'){p.amount=a.amount;p.payee=a.payee;p.category=a.category;p.date=a.date||today();p.note=a.note||'';}else if(act==='set_sleep'){p.date=a.date||today();p.bed=a.bed;p.wake=a.wake;p.mins=a.mins;}else if(act==='log_workout'){p.exercise=a.exercise;p.sets=a.sets;p.date=a.date||today();}else if(act==='add_mood'){p.date=a.date||today();p.score=a.score;p.note=a.note||'';}else if(act==='check_habit'){p.habit=a.habit;p.date=a.date||today();}else return;executeAction(act,p);});persist();renderToday();renderExp();toastN('Logged '+arr.length+' item'+(arr.length===1?'':'s'));}).catch(function(e){toastN('AI could not process that: '+e.message);});
 }
 function renderWorkoutQuickLog(){
-  var b=$('workoutQuickLog');if(!b)return;
-  b.innerHTML='<div class="aiQuickCard"><div class="aiSmartHead"><span>🏋️</span><b>Workout Quick Log</b></div><div class="aiSmartBody">Log without opening a detailed session.</div><div class="aiQuickRow"><input id="quickWorkoutText" class="inp" placeholder="e.g. 25 push-ups, 40 squats"><button class="sbtn acc" id="quickWorkoutSave">Save</button></div></div>';
+  var make=function(prefix){return '<div class="aiQuickCard"><div class="aiSmartBody">Log without opening a detailed session.</div><div class="aiQuickRow"><input id="'+prefix+'Text" class="inp" placeholder="e.g. 25 push-ups, 40 squats" autocomplete="off"><button class="sbtn acc" id="'+prefix+'Save">Save</button></div></div>';};
+  var a=$('workoutQuickLog');if(a)a.innerHTML=make('quickWorkoutAI');
+  var b=$('workoutPageQuickLog');if(b)b.innerHTML=make('quickWorkoutPage');
 }
 function processQuickWorkout(text){
-  if(!text)return;var key=getAiKey();if(!key){toastN('Configure AI first');return;}var prompt='Extract workout logs. Return ONLY JSON array of {exercise,sets,date}. One numeric value per exercise. Do not invent. Text: '+JSON.stringify(text);
-  gemCall(prompt,220).then(function(raw){var arr=JSON.parse(raw.replace(/```json|```/g,'').trim());if(!Array.isArray(arr)||!arr.length)throw new Error('No workout found');var msg=arr.map(function(a){return a.exercise+' '+(a.sets||[]).join(' / ');}).join('\\n');if(!confirm('Log:\\n\\n'+msg+'?'))return;arr.forEach(function(a){executeAction('log_workout',{exercise:a.exercise,sets:a.sets,date:a.date||today()});});persist();renderFitStats();toastN('Workout logged');}).catch(function(e){toastN('Could not read workout: '+e.message);});
+  text=String(text||'').trim();if(!text)return;
+  var key=getAiKey();
+  if(!key){
+    toastN('Configure AI to use natural-language workout logging');
+    return;
+  }
+  var prompt='Extract workout logs. Return ONLY JSON array of {exercise,sets,date,mins}. One numeric value per exercise where applicable. Do not invent. Text: '+JSON.stringify(text);
+  gemCall(prompt,220).then(function(raw){
+    var arr=JSON.parse(raw.replace(/```json|```/g,'').trim());
+    if(!Array.isArray(arr)||!arr.length)throw new Error('No workout found');
+    var msg=arr.map(function(a){return a.exercise+(a.sets?' '+a.sets.join(' / '):'')+(a.mins?' '+a.mins+' min':'');}).join('\n');
+    if(!confirm('Review workout log:\n\n'+msg+'\n\nSave?'))return;
+    arr.forEach(function(a){
+      executeAction('log_workout',{exercise:a.exercise,sets:a.sets,date:a.date||today(),mins:a.mins||0});
+    });
+    persist();renderFitStats();renderWorkoutPage();toastN('Workout logged');
+  }).catch(function(e){toastN('Could not read workout: '+e.message);});
 }
+
 function renderTodayAIExplainers(){
   var why=$('aiTodayWhy'),an=$('aiAnomalies');if(!why||!an)return;var ps=detectedPatterns(),sp=ps.filter(function(p){return p.type==='spike'||p.type==='sleep';}).slice(0,2);
   an.innerHTML=sp.length?'<div class="aiQuickCard"><div class="aiSmartHead"><span>🚨</span><b>Anomalies detected</b></div>'+sp.map(function(p){return '<div class="aiQuickDone"><b>'+p.title+'</b><br>'+p.text+'<br><small>'+p.detail+'</small></div>';}).join('')+'</div>':'';
@@ -3458,6 +3551,98 @@ function explainWhyToday(){
   var prompt='Explain why today may be different from the user normal baseline. Compare habits, expense, mood, sleep, workout and journal when available. Mention 1-3 strongest differences only. Do not claim causation. Under 80 words. DATA:\\n'+buildDataContext();
   gemCall(prompt,180).then(function(r){if(b)b.innerHTML='<div class="aiQuickDone">'+esc(r)+'</div>';}).catch(function(e){if(b)b.innerHTML='<small>'+esc(e.message)+'</small>';});
 }
+
+function renderDashboard(){
+  var d=new Date(),ts=today(),due=state.habits.filter(function(h){return !h.arch&&dueOn(h,d);}),done=due.filter(function(h){return isDone(h,ts);});
+  if($('dashDateLine'))$('dashDateLine').textContent=niceDate(ts);
+  if($('dashHabits'))$('dashHabits').textContent=done.length+' / '+due.length;
+  var wl=(state.wlog||[]).filter(function(x){return x.d>=fmt(addDays(d,-6));});
+  if($('dashWorkout'))$('dashWorkout').textContent=wl.length+' session'+(wl.length===1?'':'s');
+  var mv=state.mood&&state.mood[ts];if($('dashMood'))$('dashMood').textContent=typeof mv==='number'&&MOODS[mv]?MOODS[mv].e+' '+MOODS[mv].n:'Not logged';
+  var spend=state.tx.filter(function(x){return x.d===ts&&x.kind==='exp';}).reduce(function(a,x){return a+(x.amt||0);},0);
+  if($('dashMoney'))$('dashMoney').textContent=inr(spend);
+  if($('dashGlance'))$('dashGlance').innerHTML='<div class="featureRow"><div class="grow"><b>Habits</b><br><small>'+done.length+' completed today</small></div></div><div class="featureRow"><div class="grow"><b>Sleep</b><br><small>'+((state.sleep.find(function(x){return x.d===ts;})||{}).mins?fmtDur((state.sleep.find(function(x){return x.d===ts;})||{}).mins):'Not logged')+'</small></div></div><div class="featureRow"><div class="grow"><b>Money</b><br><small>'+inr(spend)+' spent today</small></div></div>';
+  renderPatternCard('dashPatterns',3);
+}
+function renderWorkoutPage(){
+  renderWorkoutQuickLog();
+  var logs=(state.wlog||[]).slice().sort(function(a,b){return a.d>b.d?-1:1;});
+  var now=new Date(), month=fmt(addDays(now,-29)), todayD=today();
+  var monthLogs=logs.filter(function(x){return x.d>=month&&x.d<=todayD;});
+  var todayLogs=logs.filter(function(x){return x.d===todayD;});
+
+  if($('wkMonthCount'))$('wkMonthCount').textContent=monthLogs.length;
+  var activeDays={};monthLogs.forEach(function(x){activeDays[x.d]=1;});
+  if($('wkConsistency'))$('wkConsistency').textContent=Math.round(Object.keys(activeDays).length/30*100)+'%';
+
+  var mins=0;
+  monthLogs.forEach(function(x){
+    if(x.mins)mins+=Number(x.mins)||0;
+    else if(x.duration)mins+=Number(x.duration)||0;
+  });
+  if($('wkTimeLogged'))$('wkTimeLogged').textContent=mins>=60?Math.floor(mins/60)+'h '+(mins%60)+'m':mins+'m';
+
+  var todayBox=$('workoutToday');
+  if(todayBox){
+    todayBox.innerHTML=todayLogs.length?todayLogs.map(function(x){
+      var name=x.name||x.exercise||x.type||'Workout';
+      var val='';
+      if(Array.isArray(x.sets)&&x.sets.length)val=x.sets.join(' / ');
+      else if(x.mins)val=x.mins+' min';
+      else if(x.duration)val=x.duration+' min';
+      else if(x.value)val=x.value;
+      return '<div class="wkRow"><div class="wkMain"><b>'+esc(name)+'</b><br><small>'+esc(val||'Logged today')+'</small></div><span class="wkBadge">'+esc(x.d||todayD)+'</span></div>';
+    }).join(''):'<div class="setS">Nothing logged today. Use Quick Log above.</div>';
+  }
+
+  // Detect simple numeric exercise records from the existing workout log.
+  var prs={}, prLabels=[];
+  logs.forEach(function(x){
+    var name=String(x.name||x.exercise||'').trim();
+    if(!name)return;
+    var nums=[];
+    if(Array.isArray(x.sets)) nums=x.sets.map(Number).filter(function(n){return isFinite(n);});
+    else if(isFinite(Number(x.value))) nums=[Number(x.value)];
+    if(!nums.length)return;
+    var mx=Math.max.apply(null,nums);
+    if(!prs[name]||mx>prs[name].value)prs[name]={value:mx,date:x.d};
+  });
+  Object.keys(prs).slice(0,6).forEach(function(k){prLabels.push('<div class="wkRow"><div class="wkMain"><b>'+esc(k)+'</b><br><small>Best logged value</small></div><span class="wkBadge">🏆 '+fmtV(prs[k].value)+'</span></div>');});
+  if($('workoutRecords'))$('workoutRecords').innerHTML=prLabels.length?prLabels.join(''):'<div class="setS">Personal records will appear as you log measurable workouts.</div>';
+
+  renderPatternCard('workoutPagePatterns',4);
+
+  if($('workoutRecent')){
+    var recent=logs.slice(0,8);
+    $('workoutRecent').innerHTML=recent.length?recent.map(function(x){
+      var name=x.name||x.exercise||x.type||'Workout';
+      var detail=Array.isArray(x.sets)&&x.sets.length?x.sets.join(' / '):(x.mins?x.mins+' min':'Logged');
+      return '<div class="wkRow"><div class="wkMain"><b>'+esc(name)+'</b><br><small>'+esc(detail)+'</small></div><span class="wkBadge">'+esc(x.d)+'</span></div>';
+    }).join(''):'<div class="setS">No workout logs yet.</div>';
+  }
+}
+
+function guideData(k){
+  var m={
+    tell:{t:'Just Tell the App',i:'Speak naturally and log several things from one statement.',s:['Tap the microphone.','Pause whenever you need; the transcript is kept and new speech is appended.','Tap Done when finished.','Review detected actions before saving.'],e:'“I spent ₹850 on dinner, skipped my workout and felt tired.”'},
+    receipt:{t:'AI Receipt Scanner',i:'Extract receipt details so you do not type everything manually.',s:['Open Money → Add Expense → Scan receipt.','Take or upload a clear receipt.','Review merchant, date, total, tax, currency, payment method, category, subcategory and items.','Edit if needed, then save.'],e:'“Starbucks · ₹420 · 25 Aug · Food · Coffee”'},
+    bank:{t:'AI Bank Statement',i:'Clean merchant names and categories before importing.',s:['Open Money → Import.','Choose Bank statement or Transactions.','Select CSV/XLS/XLSX.','Tap AI categorise & clean.','Review changes and confirm import.'],e:'“AMZN MKTPLACE” → “Amazon” → “Shopping”'},
+    week:{t:'Your Week in 30 Seconds',i:'A short summary across your tracked areas.',s:['Open AI.','Tap Generate summary or Refresh.','The AI uses available habits, expenses, mood, sleep, workouts and journal data.'],e:'“Habits improved, sleep fell by 40 minutes and food spending rose 18%.”'},
+    why:{t:'Why Was Today Different?',i:'Compare today with your normal baseline.',s:['Open AI → Why Was Today Different?','Tap Explain today.','Review the strongest differences; the AI avoids claiming causation.'],e:'“Sleep was below normal and spending was above your recent average.”'},
+    anomaly:{t:'Anomaly Detection',i:'Finds behaviour that is unusually high, low or inconsistent.',s:['Open AI → Anomaly Detection.','Review the supporting numbers.','Use the result as a signal to investigate, not as a diagnosis.'],e:'“Food spending is 2× your recent weekly pace.”'},
+    habit:{t:'AI Habit Coach',i:'Uses your habit history and patterns to suggest one practical improvement.',s:['Open AI → AI Habit Coach.','Tap Get AI tip.','Review the suggestion and decide whether it fits.'],e:'“You miss this habit most often on Monday. Try moving it to Tuesday.”'},
+    workout:{t:'Workout Quick Log',i:'Log simple workouts without opening a detailed session.',s:['Enter a phrase such as “25 push-ups, 40 squats”.','Tap Save.','Review the detected exercises and values.','Confirm the logs.'],e:'“30 push-ups and a 60-second plank.”'},
+    insights:{t:'Smart Insights',i:'Shows useful patterns and changes found in your tracker data.',s:['Open AI → Smart Insights.','Read the supporting numbers and pattern details.','Use the insight as a prompt for action, not as a certainty.'],e:'“Your food spending is above your recent weekly pace.”'},assistant:{t:'AI Assistant',i:'Ask questions or give direct instructions in normal language.',s:['Type or speak what you want.','Use clear amounts and dates when possible.','Review any action before it changes your data.'],e:'“How much did I spend on food this month?”'}
+  };return m[k]||m.assistant;
+}
+function openAIGuide(k){
+  var g=guideData(k),sh=$('aiGuideSheet');if(!sh)return;
+  $('aiGuideTitle').textContent=g.t;
+  $('aiGuideBody').innerHTML='<p class="setS">'+g.i+'</p><ol class="aiGuideSteps">'+g.s.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ol><div class="aiGuideExample"><b>Example</b><br>'+g.e+'</div>';
+  sh.classList.add('on');$('aiGuideScrim').classList.add('on');
+}
+function closeAIGuide(){$('aiGuideSheet').classList.remove('on');$('aiGuideScrim').classList.remove('on');}
+function renderAIPageFeatures(){renderInsights();renderJustTellApp();renderAIWeeklySummary();renderAIHabitCoach();renderTodayAIExplainers();renderWorkoutQuickLog();}
 function renderToday(){
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
@@ -3514,10 +3699,8 @@ function renderToday(){
   $('wkdots').innerHTML = wd;
   renderWkCard();
   renderDailyInsightToday();
-  renderJustTellApp();
-  renderAIWeeklySummary();
-  renderAIHabitCoach();
-  renderTodayAIExplainers();
+
+
 
   var rb = '';
   if(onVacation(ts)){
@@ -4153,7 +4336,6 @@ function renderFitStats(){
   var actives=state.exs.filter(function(e){return e.active;});
   if(!state.exs.length){ sec.style.display='none'; return; }
   sec.style.display='';
-  renderWorkoutQuickLog();
   $('fitInsight').innerHTML = fitnessInsight(); renderPatternCard('fitPatternInsights',2);
   var streakN=workoutStreak(), completed=workoutsCompleted(), pbs=personalBests(), gp=goalProgress();
   var rows =
@@ -6394,16 +6576,18 @@ function handleAddAction(kind){
 
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
-  var pgs = ['pgToday','pgMood','pgExp','pgStats','pgAI','pgSet'];
+  var pgs = ['pgDashboard','pgToday','pgWorkout','pgMood','pgExp','pgStats','pgAI','pgSet'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
+  if(id==='pgDashboard') renderDashboard();
   if(id==='pgStats') renderStats();
   if(id==='pgMood') renderMood();
   if(id==='pgExp') renderExp();
+  if(id==='pgWorkout') renderWorkoutPage();
   if(id==='pgSet') renderSet();
-  if(id==='pgAI') renderAI();
+  if(id==='pgAI'){ renderAI(); renderAIPageFeatures(); }
   $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
   $('app').scrollTop = 0;
 }
@@ -6417,11 +6601,26 @@ function climb(el, root, attr){
 
 /* ================= init & wiring ================= */
 function init(){
+  document.querySelectorAll('input, textarea, select').forEach(function(el){
+    if(!el.getAttribute('autocomplete')) el.setAttribute('autocomplete','off');
+    if(el.tagName==='INPUT' && el.type==='text') el.setAttribute('autocapitalize','sentences');
+  });
+
   buildPickers();
 
   $('tabbar').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-tab');
     if(b) showTab(b.getAttribute('data-tab'));
+  });
+  $('aiGuideClose').addEventListener('click', closeAIGuide);
+  $('aiGuideX').addEventListener('click', closeAIGuide);
+  $('aiGuideScrim').addEventListener('click', closeAIGuide);
+  $('openWorkoutSessionBtn').addEventListener('click', function(){if(typeof openWkModule==='function')openWkModule();});
+  document.addEventListener('click', function(e){
+    var g=e.target&&e.target.getAttribute&&e.target.getAttribute('data-ai-guide');if(g){openAIGuide(g);return;}
+    var t=e.target&&e.target.getAttribute&&e.target.getAttribute('data-go-tab');if(t){showTab(t);return;}
+    if(e.target&&e.target.classList&&e.target.classList.contains('aiOpenReceipt')){showTab('pgExp');setTimeout(function(){openExp(null);},80);return;}
+    if(e.target&&e.target.classList&&e.target.classList.contains('aiOpenImport')){showTab('pgExp');setTimeout(function(){showImport();},80);return;}
   });
   $('fab').addEventListener('click', function(){
     if($('pgExp').classList.contains('on')) openExp(null); else openAddActionSheet();
@@ -7072,9 +7271,9 @@ function init(){
   function doUaiSend(){ var v=$('uaiInput').value.trim();if(!v)return;$('uaiInput').value='';uaiSend(v); }
   $('uaiSend').addEventListener('click', doUaiSend);
   $('uaiMic').addEventListener('click', function(){
-    startVoice($('uaiInput'), function(text){
-      toastN('Got: "'+text+'" — tap → to parse');
-    });
+    if(_continuousVoice.active){ stopContinuousVoice(); this.textContent='🎙'; toastN('Voice input stopped — review the text'); return; }
+    var inp=$('uaiInput'); inp.value=''; this.textContent='■';
+    startContinuousVoice(inp);
   });
   $('uaiInput').addEventListener('keydown', function(e){if(e.key==='Enter'){e.preventDefault();doUaiSend();}});
   if($('aiCfgHead'))$('aiCfgHead').addEventListener('click',function(){$('aiCfg').classList.toggle('open');});
@@ -7357,7 +7556,7 @@ function init(){
   document.addEventListener('click', function(e){
     if(e.target&&e.target.id==='justTellMic'){var i=$('justTellInput');if(i){startContinuousVoice(i);$('justTellMic').style.display='none';$('justTellDone').style.display='';}return;}
     if(e.target&&e.target.id==='justTellDone'){var i=$('justTellInput');stopContinuousVoice();$('justTellMic').style.display='';$('justTellDone').style.display='none';if(i&&i.value)processJustTell(i.value);return;}
-    if(e.target&&e.target.id==='quickWorkoutSave'){processQuickWorkout(($('quickWorkoutText')||{}).value||'');return;}
+    if(e.target&&(/^quickWorkout(AI|Page)Save$/.test(e.target.id))){var qid=e.target.id.replace('Save','Text');processQuickWorkout(($(qid)||{}).value||'');return;}
     if(e.target&&e.target.id==='aiWhyTodayBtn'){explainWhyToday();return;}
 
     if(e.target && e.target.id==='aiWeekRefresh'){generateAIWeekSummary();return;}
@@ -7411,6 +7610,7 @@ function init(){
   grantMonthly();
   applyTheme();
   applyGrey();
+  renderDashboard();
   renderToday();
   autoBackupDaily();
   persist();
@@ -7424,7 +7624,7 @@ if(nat && nat.getLaunchAction){
     if(_la.tab) showTab(_la.tab);
     else if(_la.habit && findHabit(_la.habit)){ showTab('pgToday'); openDetail(_la.habit); }
     else if(_la.add){ openExpFromWidget(_la.add, _la.acct); }
-    else if(_la.voice){ showTab('pgAI'); setTimeout(function(){ startVoice($('uaiInput'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 500); }
+    else if(_la.voice){ showTab('pgAI'); setTimeout(function(){ var _ui=$('uaiInput'); if(_ui){ _ui.value=''; startContinuousVoice(_ui); } }, 500); }
   }catch(e){}
 }
 </script>
