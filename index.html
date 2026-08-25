@@ -1054,6 +1054,16 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 
 
 /* FEATURE PACK: finance + planning enhancements v1 */
+.financialToolsLauncher{width:100%;display:flex;align-items:center;gap:12px;padding:15px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--text);text-align:left;box-shadow:var(--shadow);cursor:pointer}
+.financialToolsLauncher:active{transform:scale(.995)}
+.financialToolsIcon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:var(--card2);font-size:21px;flex:0 0 auto}
+.financialToolsCopy{flex:1;min-width:0}.financialToolsCopy b{display:block;font-size:14px}.financialToolsCopy small{display:block;color:var(--mut);font-size:11px;margin-top:3px}
+.financialToolsArrow{font-size:26px;color:var(--mut);line-height:1}
+.financialToolsSheet{top:auto;bottom:0;transform:translateX(-50%);width:min(94vw,620px);max-height:82vh;border-radius:22px 22px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+.financialToolsHint{font-size:12px;color:var(--mut);margin:2px 0 14px}
+.financialToolGroup{margin:0 0 14px}.financialToolGroup:last-child{margin-bottom:0}
+.financialToolGroupTitle{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 2px 7px}
+.financialToolGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .featureTools{margin:14px 0 18px}.featureToolsHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .featureToolsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .featureToolBtn{padding:13px 12px;border:1px solid var(--line);border-radius:15px;background:var(--card);text-align:left;box-shadow:var(--shadow)}
@@ -7290,18 +7300,18 @@ if(nat && nat.getLaunchAction){
         var div=document.createElement('div');
         div.id='featureTools';
         div.className='featureTools';
-        div.innerHTML='<div class="featureToolsHead"><div><div class="eyebrow">Financial tools</div><b>Plan & manage</b></div><button class="sbtn" id="featureRefresh">Refresh</button></div>'+
-          '<div class="featureToolsGrid">'+
-          '<button class="featureToolBtn" data-ft="import"><b>⬆ Import</b><span>Transactions / bank statement</span></button>'+
-          '<button class="featureToolBtn" data-ft="split"><b>✂ Split</b><span>Split one payment</span></button>'+
-          '<button class="featureToolBtn" data-ft="cards"><b>💳 Card payments</b><span>Pay without double-counting</span></button>'+
-          '<button class="featureToolBtn" data-ft="recur"><b>🔁 Recurring</b><span>Pause, skip, end</span></button>'+
-          '<button class="featureToolBtn" data-ft="goals"><b>🎯 Savings goals</b><span>Track targets</span></button>'+
-          '<button class="featureToolBtn" data-ft="report"><b>🧠 Smart report</b><span>Natural-language summary</span></button>'+
-          '<button class="featureToolBtn" data-ft="duplicates"><b>🔎 Duplicates</b><span>Find possible duplicates</span></button>'+
-          '<button class="featureToolBtn" data-ft="currency"><b>🌍 Currency</b><span>Base currency & FX</span></button>'+
-          '</div><div id="featureSummary"></div>';
-        if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(div,anchor.nextSibling); else pg.insertBefore(div,pg.firstChild);
+        div.innerHTML=
+          '<div class="featureToolsHead">'+
+            '<div><div class="eyebrow">Financial tools</div><b>Plan & manage</b></div>'+
+            '<button class="sbtn" id="featureRefresh">Refresh</button>'+
+          '</div>'+
+          '<button class="financialToolsLauncher" data-ft="financial-tools">'+
+            '<span class="financialToolsIcon">💰</span>'+
+            '<span class="financialToolsCopy"><b>Financial Tools</b><small>Import, split, recurring, savings, currency & more</small></span>'+
+            '<span class="financialToolsArrow">›</span>'+
+          '</button>';
+        if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(div,anchor.nextSibling);
+        else pg.insertBefore(div,pg.firstChild);
       }
     }
     if(!F$('featureSettings')){
@@ -7319,6 +7329,36 @@ if(nat && nat.getLaunchAction){
         if(dataLabel && dataLabel.parentNode) dataLabel.parentNode.insertBefore(d,dataLabel.nextSibling); else ps.appendChild(d);
       }
     }
+  }
+
+  function showFinancialTools(){
+    var body=
+      '<div class="financialToolsHint">Choose a tool. Your existing functionality stays unchanged.</div>'+
+      '<div class="financialToolGroup">'+
+        '<div class="financialToolGroupTitle">Transactions</div>'+
+        '<div class="financialToolGrid">'+
+          '<button class="featureToolBtn" data-ft="import"><b>⬆ Import</b><span>Transactions / bank statement</span></button>'+
+          '<button class="featureToolBtn" data-ft="split"><b>✂ Split</b><span>Split one payment</span></button>'+
+          '<button class="featureToolBtn" data-ft="cards"><b>💳 Card payments</b><span>Pay without double-counting</span></button>'+
+          '<button class="featureToolBtn" data-ft="duplicates"><b>🔎 Duplicates</b><span>Find possible duplicates</span></button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="financialToolGroup">'+
+        '<div class="financialToolGroupTitle">Planning</div>'+
+        '<div class="financialToolGrid">'+
+          '<button class="featureToolBtn" data-ft="recur"><b>🔁 Recurring</b><span>Pause, skip, end</span></button>'+
+          '<button class="featureToolBtn" data-ft="goals"><b>🎯 Savings goals</b><span>Track targets</span></button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="financialToolGroup">'+
+        '<div class="financialToolGroupTitle">Analysis</div>'+
+        '<div class="financialToolGrid">'+
+          '<button class="featureToolBtn" data-ft="report"><b>🧠 Smart report</b><span>Natural-language summary</span></button>'+
+          '<button class="featureToolBtn" data-ft="currency"><b>🌍 Currency</b><span>Base currency & FX</span></button>'+
+        '</div>'+
+      '</div>';
+    var m=modal('Financial Tools',body);
+    m.classList.add('financialToolsSheet');
   }
 
   function modal(title,body){
@@ -7769,7 +7809,7 @@ if(nat && nat.getLaunchAction){
   function bindFeatureEvents(){
     document.addEventListener('click',function(e){
       var b=e.target.closest('[data-ft]');
-      if(b){var a=b.getAttribute('data-ft');if(a==='import')showImport();else if(a==='split')showSplit();else if(a==='cards')showCards();else if(a==='recur')showRecurControls();else if(a==='goals')showGoals();else if(a==='report')showNaturalReport();else if(a==='duplicates')showDuplicates();else if(a==='currency')showCurrency();return;}
+      if(b){var a=b.getAttribute('data-ft');if(a==='financial-tools')showFinancialTools();else if(a==='import')showImport();else if(a==='split')showSplit();else if(a==='cards')showCards();else if(a==='recur')showRecurControls();else if(a==='goals')showGoals();else if(a==='report')showNaturalReport();else if(a==='duplicates')showDuplicates();else if(a==='currency')showCurrency();return;}
       if(e.target.id==='featureRefresh'){ensureFeatureState();persist();refreshFeatureSummary();renderExp();return;}
       if(e.target.id==='featureBackupTest'){backupTest();return;}
       if(e.target.id==='featureRestoreTest'){restoreValidate();return;}
