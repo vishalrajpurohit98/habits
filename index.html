@@ -1054,6 +1054,7 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 
 
 /* FEATURE PACK: finance + planning enhancements v1 */
+.featureTag{white-space:nowrap}.featureRow .grow b{line-height:1.35}
 .financialToolsLauncher{width:100%;display:flex;align-items:center;gap:12px;padding:15px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--text);text-align:left;box-shadow:var(--shadow);cursor:pointer}
 .financialToolsLauncher:active{transform:scale(.995)}
 .financialToolsIcon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:var(--card2);font-size:21px;flex:0 0 auto}
@@ -1270,7 +1271,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div id="fitSection" style="display:none">
         <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Fitness</div>
         <div class="insCard" id="fitInsight" style="margin-bottom:10px"></div>
-        <div class="statGrid" id="fitStats"></div>
+        <div id="fitPatternInsights"></div>
+    <div class="statGrid" id="fitStats"></div>
         <div class="trendSeg" id="fitTrendSeg">
           <button data-ft="7">7D</button>
           <button data-ft="30" class="sel">30D</button>
@@ -1375,6 +1377,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="setCard" style="padding:8px 16px" id="moDist"></div>
     <div class="lbl">Insights</div>
     <div id="moIns"></div>
+    <div id="moPatternInsights"></div>
     </div>
   </div>
 
@@ -2848,9 +2851,65 @@ function greetTxt(){
   var g = h < 12 ? 'Good morning' : (h < 17 ? 'Good afternoon' : 'Good evening');
   return g + (state.set.uname ? ', ' + state.set.uname : '');
 }
+
+/* ============ PATTERN RECOGNITION ENGINE ============ */
+function patternStats(nums){
+  if(!nums.length)return {n:0,avg:0,cv:999};
+  var sum=0,i;for(i=0;i<nums.length;i++)sum+=nums[i];var avg=sum/nums.length,ss=0;
+  for(i=0;i<nums.length;i++)ss+=Math.pow(nums[i]-avg,2);
+  return {n:nums.length,avg:avg,cv:avg?Math.sqrt(ss/nums.length)/avg:999};
+}
+function medianNum(a){if(!a.length)return 0;var b=a.slice().sort(function(x,y){return x-y;}),m=Math.floor(b.length/2);return b.length%2?b[m]:(b[m-1]+b[m])/2;}
+function detectedPatterns(){
+  var out=[],now=new Date(),ts=today(),tx=state.tx.filter(function(x){return x.d<=ts;}),groups={},i,j;
+  /* recurring merchant/category */
+  tx.forEach(function(x){if(x.kind!=='exp')return;var k=(x.payee||x.cat||'').trim().toLowerCase();if(k)(groups[k]||(groups[k]=[])).push(x);});
+  Object.keys(groups).forEach(function(k){
+    var a=groups[k].slice().sort(function(x,y){return x.d>y.d?1:-1;});if(a.length<3)return;
+    var gaps=[],amts=[];for(var n=0;n<a.length;n++){amts.push(Math.abs(a[n].amt||0));if(n)gaps.push(Math.round((new Date(a[n].d)-new Date(a[n-1].d))/86400000));}
+    var gs=patternStats(gaps),as=patternStats(amts),med=medianNum(gaps);
+    if(med>=5&&med<=35&&gs.cv<=.30&&as.cv<=.35){
+      var next=addDays(new Date(a[a.length-1].d),med),days=Math.round((next-new Date(ts))/86400000);
+      if(days>=-3&&days<=10)out.push({type:'recurring',score:90,title:'Likely recurring expense',text:'<b>'+esc(a[a.length-1].payee||a[a.length-1].cat)+'</b> repeats about every '+med+' days.',detail:'Typical amount '+inr(as.avg)+' · '+(days>0?'likely in '+days+' day'+(days===1?'':'s'):days===0?'likely due today':'likely due now'),tag:'pattern'});
+    }
+  });
+  /* category spike */
+  var recentStart=fmt(addDays(now,-6)),priorStart=fmt(addDays(now,-27)),recent={},prior={};
+  tx.forEach(function(x){if(x.kind!=='exp')return;var c=x.cat||'Other';if(x.d>=recentStart)recent[c]=(recent[c]||0)+(x.amt||0);else if(x.d>=priorStart)prior[c]=(prior[c]||0)+(x.amt||0);});
+  Object.keys(recent).forEach(function(c){var r=recent[c],p=(prior[c]||0)/3;if(r>=500&&p>0&&r>p*1.6)out.push({type:'spike',score:80,title:'Spending spike',text:'<b>'+esc(c)+'</b> is '+Math.round(r/p)+'× your recent weekly pace.',detail:'7-day spend '+inr(r)+' vs about '+inr(p)+' previously',tag:'watch'});});
+  /* weekday spending */
+  var dw=[0,0,0,0,0,0,0],dn=[0,0,0,0,0,0,0];tx.forEach(function(x){if(x.kind!=='exp')return;var d=new Date(x.d);if(isNaN(d))return;var w=d.getDay();dw[w]+=x.amt||0;dn[w]++;});
+  var best=-1,bavg=0,total=0,n=0;for(i=0;i<7;i++){if(dn[i]>=3){var av=dw[i]/dn[i];if(av>bavg){bavg=av;best=i;}}total+=dw[i];n+=dn[i];}
+  var overall=n?total/n:0;
+  if(best>=0&&bavg>overall*1.6&&bavg>300)out.push({type:'weekday',score:55,title:'Spending day pattern',text:'<b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][best]+'</b> is your highest average spending day.',detail:inr(bavg)+' average per transaction vs '+inr(overall)+' overall',tag:'pattern'});
+  /* habit weak weekday */
+  state.habits.filter(function(h){return !h.arch;}).forEach(function(h){
+    var miss=[0,0,0,0,0,0,0],due=[0,0,0,0,0,0,0];
+    for(var d=1;d<=42;d++){var dt=addDays(now,-d),ds=fmt(dt);if(dueOn(h,dt)&&ds>=h.created){var w=dt.getDay();due[w]++;if(!isDone(h,ds))miss[w]++;}}
+    var weak=-1,rate=0;for(i=0;i<7;i++)if(due[i]>=3&&miss[i]/due[i]>rate){rate=miss[i]/due[i];weak=i;}
+    if(weak>=0&&rate>=.5)out.push({type:'habit',score:70,title:h.name+' has a weak day',text:'You miss this habit most often on <b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][weak]+'</b>.',detail:Math.round(rate*100)+'% missed across '+due[weak]+' scheduled occurrences',tag:'watch'});
+  });
+  /* mood weekday */
+  var md=[0,0,0,0,0,0,0],mn=[0,0,0,0,0,0,0];for(var key in state.mood){var mi=state.mood[key],dtm=new Date(key);if(typeof mi==='number'&&!isNaN(dtm)){var mw=dtm.getDay();md[mw]+=MOODS[mi].s;mn[mw]++;}}
+  var hi=-1,lo=-1,hia=-1,loa=99;for(i=0;i<7;i++)if(mn[i]>=3){var ma=md[i]/mn[i];if(ma>hia){hia=ma;hi=i;}if(ma<loa){loa=ma;lo=i;}}
+  if(hi>=0&&lo>=0&&hi!==lo&&hia-loa>=1.2)out.push({type:'mood',score:45,title:'Mood weekday pattern',text:'Mood is highest on <b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][hi]+'</b> and lowest on <b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][lo]+'</b>.',detail:hia.toFixed(1)+' vs '+loa.toFixed(1)+' average mood score',tag:'pattern'});
+  /* sleep consistency */
+  var sv=state.sleep.filter(function(x){return x.mins>0&&x.d<=ts;}).slice(-21).map(function(x){return x.mins;});if(sv.length>=7){var sp=patternStats(sv);if(sp.cv>=.18)out.push({type:'sleep',score:50,title:'Sleep duration varies',text:'Your recent sleep duration is inconsistent.',detail:'Average '+fmtDur(Math.round(sp.avg))+' · '+Math.round(sp.cv*100)+'% variation',tag:'watch'});}
+  /* workout weekday pattern */
+  if(state.wlog&&state.wlog.length>=5){var ww=[0,0,0,0,0,0,0];state.wlog.forEach(function(wl){var d=new Date(wl.d);if(!isNaN(d))ww[d.getDay()]++;});var wm=0,wi=-1;for(i=0;i<7;i++)if(ww[i]>wm){wm=ww[i];wi=i;}if(wi>=0&&wm>=3)out.push({type:'workout',score:40,title:'Workout day pattern',text:'You log workouts most often on <b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][wi]+'</b>.',detail:wm+' sessions on that weekday in your history',tag:'pattern'});}
+  out.sort(function(a,b){return b.score-a.score;});var seen={};return out.filter(function(p){var k=p.type+'|'+p.title;if(seen[k])return false;seen[k]=1;return true;}).slice(0,8);
+}
+function renderPatternCard(id,limit){
+  var box=$(id);if(!box)return;var ps=detectedPatterns().slice(0,limit||3);if(!ps.length){box.innerHTML='';return;}
+  var h='<div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Patterns detected</div><div class="setCard" style="padding:6px 16px">';
+  ps.forEach(function(p){h+='<div class="featureRow" style="align-items:flex-start"><div class="grow"><b>'+p.text+'</b><br><small>'+p.detail+'</small></div><span class="featureTag">'+p.tag+'</span></div>';});
+  h+='</div>';box.innerHTML=h;
+}
+
 /* ============ AI INSIGHTS ENGINE (Tier 1: offline heuristics) ============ */
 function generateInsights(){
   var ins = [], now = new Date(), ts = today(), h, i, d;
+  var pNow=detectedPatterns(); for(var pi=0;pi<Math.min(2,pNow.length);pi++){var pp=pNow[pi];ins.push({ico:pp.type==='recurring'?'🔁':pp.type==='spike'?'📈':pp.type==='habit'?'📅':pp.type==='mood'?'🙂':pp.type==='sleep'?'😴':'🏋️',title:pp.title,text:pp.text+' '+pp.detail,tag:pp.tag==='watch'?'info':'neutral',tagText:'pattern'});}
   var active = state.habits.filter(function(h){ return !h.arch; });
   if(!active.length && !state.tx.length && !state.sleep.length) return ins;
 
@@ -3995,7 +4054,7 @@ function renderFitStats(){
   var actives=state.exs.filter(function(e){return e.active;});
   if(!state.exs.length){ sec.style.display='none'; return; }
   sec.style.display='';
-  $('fitInsight').innerHTML = fitnessInsight();
+  $('fitInsight').innerHTML = fitnessInsight(); renderPatternCard('fitPatternInsights',2);
   var streakN=workoutStreak(), completed=workoutsCompleted(), pbs=personalBests(), gp=goalProgress();
   var rows =
     sc(streakN, streakN===1?'day':'days', 'Workout streak', 'var(--sOrange)')
@@ -4247,7 +4306,7 @@ function renderMoodStats(){
   var ih='';
   for(var z=0;z<Math.min(4,out.length);z++)
     ih += '<div class="insight"><span class="ii">'+out[z][0]+'</span><div>'+out[z][1]+'</div></div>';
-  $('moIns').innerHTML = ih;
+  $('moIns').innerHTML = ih; renderPatternCard('moPatternInsights',2);
 }
 function renderMood(){
   if($('sleepCard')) renderSleepCard();
@@ -5384,6 +5443,7 @@ function renderExpIns(){
     t5 += '</div>'; html += t5;
   }
   var fc=cashFlowForecast(30); html += '<div class="insCard"><div class="il">30-day cash-flow forecast</div><div class="iv" style="color:'+(fc.projected>=0?'var(--sGreen)':'var(--coral)')+'">'+inr(fc.projected)+'</div><div class="setS">Starting cash '+inr(fc.cash)+' · upcoming income '+inr(fc.income)+' · expected expenses '+inr(fc.expenses)+'</div></div>';
+  html += '<div id="expPatternInsights" style="margin-top:10px"></div>'; renderPatternCard('expPatternInsights',4);
   html += '<div class="lbl" style="margin-top:6px">Reports</div>';
   html += '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sbtn" id="repCsv">CSV</button><button class="sbtn" id="repXlsx">Excel</button><button class="sbtn" id="repPdf">PDF</button><button class="sbtn acc" id="repRange">Date range</button></div>';
   box.innerHTML=html;
