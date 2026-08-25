@@ -1054,6 +1054,9 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 
 
 /* FEATURE PACK: finance + planning enhancements v1 */
+.aiSmartCard{margin:10px 0;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
+.aiSmartHead{display:flex;align-items:center;gap:9px}.aiSmartHead b{font-size:14px}.aiSmartBody{margin-top:8px;font-size:12px;line-height:1.55;color:var(--text)}
+.aiSmartMeta{margin-top:5px;color:var(--mut);font-size:11px}.aiSmartActions{display:flex;gap:8px;margin-top:10px}.aiSmartActions button{flex:0 0 auto}
 .featureTag{white-space:nowrap}.featureRow .grow b{line-height:1.35}
 .financialToolsLauncher{width:100%;display:flex;align-items:center;gap:12px;padding:15px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--text);text-align:left;box-shadow:var(--shadow);cursor:pointer}
 .financialToolsLauncher:active{transform:scale(.995)}
@@ -1160,6 +1163,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       </div>
     </div>
     <div class="dailyIns" id="todayDIWrap" style="display:none"><div class="diLead">✨</div><div class="diText" id="todayDI"></div></div>
+    <div id="aiWeekSummary"></div>
+    <div id="aiHabitCoach"></div>
     <div class="heroTop">
       <div class="momCol">
         <div class="momBig" id="momPct">&ndash;</div>
@@ -3241,6 +3246,14 @@ function buildDataContext(){
   var ms=ts.slice(0,8)+'01',mExp=0,mInc=0,cats=[];
   state.tx.forEach(function(t){if(t.d>=ms&&t.d<=ts){if(t.kind==='exp')mExp+=t.amt||0;else if(t.kind==='inc')mInc+=t.amt||0;}});
   lines.push('MONEY this month: income='+mInc+' expenses='+mExp+' net='+(mInc-mExp));
+  var weekFrom=fmt(addDays(now,-6)),wExp=0,wInc=0,wCat={};
+  state.tx.forEach(function(t){if(t.d>=weekFrom&&t.d<=ts){if(t.kind==='exp'){wExp+=t.amt||0;var wc=t.cat||'Other';wCat[wc]=(wCat[wc]||0)+(t.amt||0);}else if(t.kind==='inc')wInc+=t.amt||0;}});
+  lines.push('MONEY last 7 days: income='+wInc+' expenses='+wExp+' net='+(wInc-wExp));
+  Object.keys(wCat).forEach(function(c){lines.push('  7d category '+c+'='+wCat[c]);});
+  if(Array.isArray(state.jr)){
+    lines.push('JOURNAL last 7 days:');
+    state.jr.filter(function(j){return j.d>=weekFrom&&j.d<=ts;}).slice(-10).forEach(function(j){lines.push('  '+j.d+': '+String(j.text||j.body||'').slice(0,180));});
+  }
   if(state.cats)for(var ck in state.cats)cats.push(ck);
   if(cats.length)lines.push('CATEGORIES: '+cats.join(', '));
   if(state.accts)state.accts.forEach(function(a){if(a.active!==false)lines.push('ACCOUNT: "'+a.name+'" id='+a.id+' bal='+acctBalance(a.id));});
@@ -3261,12 +3274,13 @@ function uaiPrompt(text){
   +'set_mood: {mood(0=Excellent,1=Happy,2=Calm,3=Neutral,4=Tired,5=Sad,6=Stressed),date,note}\n'
   +'delete_mood: {date}\n'
   +'set_sleep: {date,bed("HH:MM" 24h),wake("HH:MM" 24h),mins(total)}\n'
+  +'log_workout: {exercise,sets:[numbers],date} — use one value for simple entries such as "25 push-ups"\n'
   +'delete_sleep: {date}\n'
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
   +'query: {} message=answer the question from app data\n'
   +'clarify: {} message=ask for missing info\n\n'
   +'RULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
-  +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n\n'
+  +'For natural language logging: "I spent 850 on dinner yesterday" -> add_expense; "I slept at 12 and woke up at 7" -> set_sleep; "I did 25 push-ups today" -> log_workout when a matching exercise exists. For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n\n'
   +'User: '+text;
 }
 function executeAction(r){
@@ -3306,6 +3320,16 @@ function executeAction(r){
       persist();return{ok:1,msg:msg,detail:MOODS[mi].e+' '+MOODS[mi].l+' \u00b7 '+d};
     }
     if(a==='delete_mood'){var prev=state.mood[d];delete state.mood[d];persist();return{ok:1,msg:msg,undo:function(){if(prev!==undefined)state.mood[d]=prev;persist();}};}
+    if(a==='log_workout'){
+      var exName=String(p.exercise||p.name||'').toLowerCase(), exFound=null;
+      for(var ei=0;ei<state.exs.length;ei++){var exx=state.exs[ei];if(exx.active&&exx.name.toLowerCase().indexOf(exName)>=0){exFound=exx;break;}}
+      if(!exFound)return{ok:0,msg:'Exercise "'+(p.exercise||p.name||'')+'" not found. Add it in Workout first.'};
+      var sets=Array.isArray(p.sets)?p.sets.map(function(v){return Math.max(0,+v||0);}):[];
+      if(!sets.length&&p.value!=null)sets=[Math.max(0,+p.value||0)];
+      if(!sets.length)return{ok:0,msg:'Tell me the workout value, for example "25 push-ups"'};
+      setExVal(exFound.id,sets,p.date||today());
+      return{ok:1,msg:msg,detail:exFound.name+' · '+sets.join(' / ')+' · '+(p.date||today())};
+    }
     if(a==='set_sleep'){
       var si=state.sleep.findIndex(function(s){return s.d===d;}),entry={d:d,bed:p.bed||'23:00',wake:p.wake||'06:00',mins:p.mins||420,note:''};
       if(si>=0)state.sleep[si]=entry;else state.sleep.push(entry);persist();
@@ -3363,6 +3387,42 @@ function getHabitCoaching(h){
   return gemCall(prompt,120);
 }
 
+
+function renderAIWeeklySummary(){
+  var box=$('aiWeekSummary');if(!box)return;
+  var cached=localStorage.getItem('ai_weekly_narr')||'',day=localStorage.getItem('ai_weekly_narr_day')||'';
+  var configured=!!getAiKey();
+  if(!cached&&!configured){box.innerHTML='';return;}
+  var html='<div class="aiSmartCard"><div class="aiSmartHead"><span>🧠</span><b>Your week in 30 seconds</b><span class="featureTag" style="margin-left:auto">AI</span></div>';
+  if(cached&&day===today())html+='<div class="aiSmartBody">'+cached+'</div>';
+  else html+='<div class="aiSmartBody">Generate a short summary across habits, expenses, mood, sleep, workouts and journal.</div>';
+  html+='<div class="aiSmartActions"><button class="sbtn acc" id="aiWeekRefresh">'+(cached&&day===today()?'Refresh':'Generate summary')+'</button></div></div>';
+  box.innerHTML=html;
+}
+function generateAIWeekSummary(){
+  var key=getAiKey();if(!key){toastN('Configure AI first');return;}
+  var ctx=buildDataContext();
+  var prompt='You are the Personal Tracker AI. Write a concise "Your week in 30 seconds" summary using only the supplied data. Cover habits, expenses, mood, sleep, workouts and journal when data exists. Mention concrete percentages, amounts, durations or counts. Identify one meaningful connection across areas only when supported by the data. Do not claim causation. Do not invent missing data. Use 3-5 short sentences, plain language, no headings, no generic motivation.\n\nDATA:\n'+ctx;
+  toastN('Generating your weekly summary…');
+  gemCall(prompt,260).then(function(r){localStorage.setItem('ai_weekly_narr',r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));localStorage.setItem('ai_weekly_narr_day',today());renderAIWeeklySummary();toastN('Weekly AI summary updated');}).catch(function(e){toastN('AI summary failed: '+e.message);});
+}
+function renderAIHabitCoach(){
+  var box=$('aiHabitCoach');if(!box)return;
+  var weak=null,now=new Date();
+  for(var i=0;i<state.habits.length;i++){var h=state.habits[i];if(h.arch)continue;var r=periodRate(h,30);if(!weak||r<weak.rate)weak={h:h,rate:r};}
+  if(!weak||weak.rate>=.65){box.innerHTML='';return;}
+  var cached=localStorage.getItem('ai_habit_tip_'+weak.h.id)||'';
+  var html='<div class="aiSmartCard"><div class="aiSmartHead"><span>🎯</span><b>AI Habit Coach</b><span class="featureTag" style="margin-left:auto">'+Math.round(weak.rate*100)+'% · 30d</span></div><div class="aiSmartBody"><b>'+esc(weak.h.name)+'</b> is your weakest recent habit. Ask AI for one practical change based on your actual pattern.</div>';
+  if(cached)html+='<div class="aiSmartMeta">'+cached+'</div>';
+  html+='<div class="aiSmartActions"><button class="sbtn acc" data-ai-coach="'+esc(weak.h.id)+'">'+(cached?'Get another tip':'Get AI tip')+'</button></div></div>';
+  box.innerHTML=html;
+}
+function generateAIHabitTip(hid){
+  var h=findHabit(hid);if(!h)return;var key=getAiKey();if(!key){toastN('Configure AI first');return;}
+  var ctx='Habit: '+h.name+'\n30-day completion: '+Math.round(periodRate(h,30)*100)+'%\nCurrent streak: '+streak(h)+' days\nSchedule: '+(h.sched&&h.sched.kind||'daily')+'\nRecent detected patterns: '+detectedPatterns().filter(function(p){return p.type==='habit'&&p.title.indexOf(h.name)>=0;}).map(function(p){return p.detail;}).join('; ');
+  var prompt='You are a practical habit coach. Based only on this data, give ONE small, realistic change that could improve this habit. If there is a weekday weakness, use it. Keep it to 1-2 sentences and do not invent reasons.\n\n'+ctx;
+  toastN('Thinking about '+h.name+'…');gemCall(prompt,150).then(function(r){localStorage.setItem('ai_habit_tip_'+h.id,r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));renderAIHabitCoach();toastN('AI habit tip updated');}).catch(function(e){toastN('AI coach failed: '+e.message);});
+}
 function renderToday(){
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
@@ -3419,6 +3479,8 @@ function renderToday(){
   $('wkdots').innerHTML = wd;
   renderWkCard();
   renderDailyInsightToday();
+  renderAIWeeklySummary();
+  renderAIHabitCoach();
 
   var rb = '';
   if(onVacation(ts)){
@@ -5545,7 +5607,7 @@ function saveRecur(){var n=$('recurName').value.trim(),amt=parseFloat($('recurAm
 /* ---- expense sheet ---- */
 var expEd = null, expKindSel='exp', expCatSel='', expSubSel='', expAcctSel='', expToSel='';
 function activeAccts(){ return state.accts.filter(function(a){return a.active;}); }
-function renderExpReceipt(){var box=$('expReceiptPreview'),rem=$('expReceiptRemove');if(!box||!rem)return;var src='';if(expEd&&expEd.receiptData)src=expEd.receiptData;else if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)src='data:image/jpeg;base64,'+b;}catch(e){}}if(src)box.innerHTML='<img class="receiptThumb" src="'+src+'" alt="Receipt"><div class="receiptName">'+esc(expEd.receipt||'Uploaded receipt')+'</div>';else if(expEd&&expEd.receipt)box.innerHTML='<div class="receiptName">'+esc(expEd.receipt)+'</div>';else box.innerHTML='<div class="setS">No receipt attached.</div>';rem.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';var sc=$('expReceiptScan');if(sc)sc.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';}
+function renderExpReceipt(){var box=$('expReceiptPreview'),rem=$('expReceiptRemove');if(!box||!rem)return;var src='';if(expEd&&expEd.receiptData)src=expEd.receiptData;else if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)src='data:image/jpeg;base64,'+b;}catch(e){}}if(src)box.innerHTML='<img class="receiptThumb" src="'+src+'" alt="Receipt"><div class="receiptName">'+esc(expEd.receipt||'Uploaded receipt')+'</div>';else if(expEd&&expEd.receipt)box.innerHTML='<div class="receiptName">'+esc(expEd.receipt)+'</div>';else box.innerHTML='<div class="setS">No receipt attached.</div>';if(expEd&&expEd.receiptMeta){var rm=expEd.receiptMeta,items=Array.isArray(rm.items)?rm.items:[];box.innerHTML+='<div class="featurePanel" style="margin-top:8px"><b>AI extraction review</b><br><small>'+((rm.currency?esc(rm.currency)+' · ':'')+(rm.tax?'Tax '+inr(rm.tax)+' · ':'')+(items.length?items.length+' item'+(items.length===1?'':'s'):'No item lines detected'))+'</small></div>';}rem.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';var sc=$('expReceiptScan');if(sc)sc.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';}
 function clearExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}if(expEd){expEd.receipt='';expEd.receiptData='';}renderExpReceipt();}
 function resizeReceipt(file,cb){var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var max=1600,scale=Math.min(1,max/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*scale)),h=Math.max(1,Math.round(im.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(im,0,0,w,h);cb(c.toDataURL('image/jpeg',.78));};im.onerror=function(){cb(fr.result);};im.src=fr.result;};fr.readAsDataURL(file);}
 function receiptDataForScan(){
@@ -5558,11 +5620,11 @@ function scanReceiptWithAi(){
   var key=getAiKey(); if(!key){toastN('Add your Gemini API key in AI settings to extract receipt details');return;}
   if(getAiProvider()!=='gemini'){toastN('Receipt scan currently uses Gemini vision');return;}
   var model=getAiModel(), parts=data.split(','), mime=(parts[0].match(/^data:(.*?);base64$/)||[])[1]||'image/jpeg', b64=parts[1]||'';
-  var prompt='Read this receipt and return ONLY valid JSON with keys amount, merchant, date, category, payment_method, note. amount must be a number. date must be YYYY-MM-DD or empty. category should be one of the common categories if clear. Do not invent missing values. Do not include extra text.';
+  var prompt='Read this receipt and return ONLY valid JSON with keys amount, merchant, date, tax, currency, payment_method, category, subcategory, items, note. amount and tax must be numbers or null. currency must be a 3-letter code such as INR, USD, GBP or empty. date must be YYYY-MM-DD or empty. items must be an array of {name,quantity,amount}. category and subcategory should use the closest available app category only when clear. Never invent missing values. Do not include extra text.';
   toastN('Scanning receipt…');
   fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime,data:b64}}]}],generationConfig:{maxOutputTokens:220}})})
     .then(function(r){if(!r.ok)throw new Error('API '+r.status);return r.json();})
-    .then(function(d){var txt=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;if(!txt)throw new Error('Empty response');txt=txt.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();var o=JSON.parse(txt);if(o.amount>0)$('expAmt').value=fmtV(o.amount);if(o.merchant)$('expPayee').value=String(o.merchant).slice(0,60);if(/^\d{4}-\d{2}-\d{2}$/.test(o.date||'')){expEd.d=o.date;$('expDateTxt').textContent=o.date===today()?'Today':niceDate(o.date);}if(o.payment_method)$('expMethod').value=String(o.payment_method).slice(0,24);if(o.note)$('expNote').value=String(o.note).slice(0,200);var cats=Object.keys(state.cats), want=String(o.category||'').toLowerCase(), best='';for(var i=0;i<cats.length;i++)if(cats[i].toLowerCase()===want){best=cats[i];break;}if(best){expCatSel=best;paintExpPickers();}toastN('Receipt scanned — review before saving');})
+    .then(function(d){var txt=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;if(!txt)throw new Error('Empty response');txt=txt.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();var o=JSON.parse(txt);if(o.amount>0)$('expAmt').value=fmtV(o.amount);if(o.merchant)$('expPayee').value=String(o.merchant).slice(0,60);if(/^\d{4}-\d{2}-\d{2}$/.test(o.date||'')){expEd.d=o.date;$('expDateTxt').textContent=o.date===today()?'Today':niceDate(o.date);}if(o.payment_method)$('expMethod').value=String(o.payment_method).slice(0,24);if(o.note)$('expNote').value=String(o.note).slice(0,200);var cats=Object.keys(state.cats),want=String(o.category||'').toLowerCase(),best='';for(var i=0;i<cats.length;i++)if(cats[i].toLowerCase()===want){best=cats[i];break;}if(best){expCatSel=best;expSubSel='';var subs=state.cats[best]||[];var sw=String(o.subcategory||'').toLowerCase();for(var si=0;si<subs.length;si++)if(String(subs[si]).toLowerCase()===sw){expSubSel=subs[si];break;}paintExpPickers();}expEd.receiptMeta={tax:o.tax>0?+o.tax:0,currency:String(o.currency||'').slice(0,3).toUpperCase(),items:Array.isArray(o.items)?o.items.slice(0,30):[]};renderExpReceipt();toastN('Receipt scanned — review before saving');})
     .catch(function(e){toastN('Receipt scan failed: '+e.message);});
 }
 function addExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}if(nat&&nat.pickPhoto){try{window.pendingPhotoTarget='expense';nat.pickPhoto();return;}catch(e){}}$('expReceiptFile').click();}
@@ -5571,7 +5633,7 @@ function openExp(id){
   var x = id ? null : null;
   if(id){ for(var i=0;i<state.tx.length;i++) if(state.tx[i].id===id) x=state.tx[i]; }
   if(!state.accts.length){ toastN('Add an account first'); expView='acct'; renderExp(); syncSeg(); openAcct(null); return; }
-  expEd = x ? JSON.parse(JSON.stringify(x)) : {id:'', kind:'exp', amt:0, acct:activeAccts()[0].id, to:'', cat:'', sub:'', payee:'', method:'', note:'', tags:'', receipt:'', receiptData:'', d:today(), created:Date.now()};
+  expEd = x ? JSON.parse(JSON.stringify(x)) : {id:'', kind:'exp', amt:0, acct:activeAccts()[0].id, to:'', cat:'', sub:'', payee:'', method:'', note:'', tags:'', receipt:'', receiptData:'', receiptMeta:null, d:today(), created:Date.now()};
   expEd._edit = id||'';
   expKindSel = expEd.kind; expCatSel = expEd.cat; expSubSel = expEd.sub;
   expAcctSel = expEd.acct || (activeAccts()[0]&&activeAccts()[0].id) || '';
@@ -7239,7 +7301,10 @@ function init(){
   $('expExportPdf').addEventListener('click',exportExpRangePdf);
 
   // smart expense reminder controls
-  document.addEventListener('click', function(e){ if(e.target && e.target.id==='smartExpRemTog'){ state.set.smartExpRem=!state.set.smartExpRem; persist(); renderExpUpcoming(); pushAlarms(); } });
+  document.addEventListener('click', function(e){
+    if(e.target && e.target.id==='aiWeekRefresh'){generateAIWeekSummary();return;}
+    var coach=e.target&&e.target.getAttribute&&e.target.getAttribute('data-ai-coach');if(coach){generateAIHabitTip(coach);return;}
+    if(e.target && e.target.id==='smartExpRemTog'){ state.set.smartExpRem=!state.set.smartExpRem; persist(); renderExpUpcoming(); pushAlarms(); } });
   document.addEventListener('change', function(e){ if(e.target && e.target.id==='smartExpRemTime'){ var v=e.target.value; if(/^\d{2}:\d{2}$/.test(v)){ state.set.smartExpRemTime=v; persist(); pushAlarms(); toastN('Smart reminder time saved'); } } });
 
   // account sheet
@@ -7789,11 +7854,31 @@ if(nat && nat.getLaunchAction){
     var acctOpts='<option value="">Default account</option>';for(var ai=0;ai<state.accts.length;ai++)if(state.accts[ai].active!==false)acctOpts+='<option value="'+fEsc(state.accts[ai].id)+'">'+fEsc(state.accts[ai].name)+'</option>';
     var body='<div class="hint">'+(window.featureImportMode==='bank'?'Bank statement':'Transaction export')+' preview: '+incoming.length+' new transactions · '+dups+' duplicates skipped.</div><div class="lbl">Import into account</div><select class="inp" id="importAcct">'+acctOpts+'</select><div class="featureList">';
     for(var q=0;q<Math.min(50,incoming.length);q++)body+='<div class="featureRow"><div class="grow">'+fEsc(incoming[q].d)+' · '+fEsc(incoming[q].payee)+'<br><small>'+fEsc(incoming[q].kind==='exp'?'Expense':'Income')+' · '+fEsc(incoming[q].ccy)+' '+incoming[q].foreignAmt.toFixed(2)+' · '+fEsc(incoming[q].cat)+'</small></div></div>';
-    body+='</div><button class="primary" id="confirmImport">Import '+incoming.length+' transactions</button>';
+    body+='</div><div class="featureGrid2"><button class="sbtn acc" id="aiCategorizeImport">AI categorise & clean</button><button class="primary" id="confirmImport">Import '+incoming.length+' transactions</button></div>';
     var m=modal('Import preview',body);
-    m.addEventListener('click',function(e){if(e.target.id!=='confirmImport')return;var importAcct=F$('importAcct')?F$('importAcct').value:'';for(var i=0;i<incoming.length;i++){if(importAcct)incoming[i].acct=importAcct;state.tx.push(incoming[i]);}persist();renderExp();m.remove();var ss=F$('featureScrim');if(ss)ss.remove();fToast('Imported '+incoming.length+' transactions');});
+    function rerenderImportPreview(){
+      var list=m.querySelector('.featureList');if(!list)return;
+      var h='';for(var z=0;z<Math.min(50,incoming.length);z++)h+='<div class="featureRow"><div class="grow">'+fEsc(incoming[z].d)+' · '+fEsc(incoming[z].payee)+'<br><small>'+fEsc(incoming[z].kind==='exp'?'Expense':'Income')+' · '+fEsc(incoming[z].ccy)+' '+incoming[z].foreignAmt.toFixed(2)+' · '+fEsc(incoming[z].cat)+(incoming[z].sub?' / '+fEsc(incoming[z].sub):'')+'</small></div></div>';
+      list.innerHTML=h;
+    }
+    m.addEventListener('click',function(e){
+      if(e.target.id==='aiCategorizeImport'){aiCategorizeImported(incoming,m,rerenderImportPreview);return;}
+      if(e.target.id!=='confirmImport')return;var importAcct=F$('importAcct')?F$('importAcct').value:'';for(var i=0;i<incoming.length;i++){if(importAcct)incoming[i].acct=importAcct;state.tx.push(incoming[i]);}persist();renderExp();m.remove();var ss=F$('featureScrim');if(ss)ss.remove();fToast('Imported '+incoming.length+' transactions');});
   }
 
+  function aiCategorizeImported(incoming, modalEl, rerender){
+    var key=getAiKey();if(!key){fToast('Configure AI first to use AI categorisation');return;}
+    var sample=incoming.slice(0,80).map(function(x,i){return{i:i,description:x.payee,amount:x.foreignAmt,currency:x.ccy,category:x.cat};});
+    var cats=featureCategoryEntries().map(function(c){return c.label;});
+    var prompt='You are categorising imported bank transactions. Return ONLY JSON array. For each input index return {i,merchant,category,subcategory}. Clean merchant names without inventing merchants. Use one of these categories when suitable: '+cats.join(', ')+'. Use empty subcategory when unclear. Never change amount/date.\\nINPUT:\\n'+JSON.stringify(sample);
+    fToast('AI categorising imported transactions…');
+    gemCall(prompt,700).then(function(raw){
+      var txt=raw.replace(/```json|```/g,'').trim(),arr=JSON.parse(txt);if(!Array.isArray(arr))throw new Error('Invalid AI response');
+      var changed=0;
+      arr.forEach(function(v){var idx=+v.i;if(idx<0||idx>=incoming.length)return;var cat=String(v.category||'').trim(),ent=featureCategoryEntries().find(function(c){return c.label.toLowerCase()===cat.toLowerCase();});if(ent)incoming[idx].cat=ent.label;var sub=String(v.subcategory||'').trim();if(ent&&sub){var subs=state.cats[ent.label]||[];var sm=subs.find(function(x){return String(x).toLowerCase()===sub.toLowerCase();});incoming[idx].sub=sm||'';}var merchant=String(v.merchant||'').trim();if(merchant)incoming[idx].payee=merchant.slice(0,60);changed++;});
+      rerender();fToast('AI categorised '+changed+' imported rows — review before importing');
+    }).catch(function(e){fToast('AI categorisation failed: '+e.message);});
+  }
   function showImport(){
     var body='<div class="hint">Choose the source. Android uses the native file picker; desktop/web uses the browser picker. Both continue into column detection, preview, duplicate checks and confirmation.</div>'+
       '<div class="featureGrid2"><button class="sbtn acc" id="importBank">Bank statement</button><button class="sbtn" id="importGeneric">Transactions</button></div>'+
