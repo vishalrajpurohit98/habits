@@ -1054,6 +1054,9 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 
 
 /* FEATURE PACK: finance + planning enhancements v1 */
+.aiQuickCard{margin:10px 0;padding:13px 15px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
+.aiQuickRow{display:flex;gap:8px;margin-top:10px}.aiQuickRow .inp{flex:1}.aiQuickRow .sbtn{flex:0 0 auto}
+.aiQuickDone{margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--card2);font-size:11px;line-height:1.45}
 .aiSmartCard{margin:10px 0;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
 .aiSmartHead{display:flex;align-items:center;gap:9px}.aiSmartHead b{font-size:14px}.aiSmartBody{margin-top:8px;font-size:12px;line-height:1.55;color:var(--text)}
 .aiSmartMeta{margin-top:5px;color:var(--mut);font-size:11px}.aiSmartActions{display:flex;gap:8px;margin-top:10px}.aiSmartActions button{flex:0 0 auto}
@@ -1163,8 +1166,11 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       </div>
     </div>
     <div class="dailyIns" id="todayDIWrap" style="display:none"><div class="diLead">✨</div><div class="diText" id="todayDI"></div></div>
+    <div id="justTellApp"></div>
     <div id="aiWeekSummary"></div>
     <div id="aiHabitCoach"></div>
+    <div id="aiTodayWhy"></div>
+    <div id="aiAnomalies"></div>
     <div class="heroTop">
       <div class="momCol">
         <div class="momBig" id="momPct">&ndash;</div>
@@ -1276,7 +1282,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div id="fitSection" style="display:none">
         <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Fitness</div>
         <div class="insCard" id="fitInsight" style="margin-bottom:10px"></div>
-        <div id="fitPatternInsights"></div>
+        <div id="workoutQuickLog"></div>
+    <div id="fitPatternInsights"></div>
     <div class="statGrid" id="fitStats"></div>
         <div class="trendSeg" id="fitTrendSeg">
           <button data-ft="7">7D</button>
@@ -3423,6 +3430,34 @@ function generateAIHabitTip(hid){
   var prompt='You are a practical habit coach. Based only on this data, give ONE small, realistic change that could improve this habit. If there is a weekday weakness, use it. Keep it to 1-2 sentences and do not invent reasons.\n\n'+ctx;
   toastN('Thinking about '+h.name+'…');gemCall(prompt,150).then(function(r){localStorage.setItem('ai_habit_tip_'+h.id,r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));renderAIHabitCoach();toastN('AI habit tip updated');}).catch(function(e){toastN('AI coach failed: '+e.message);});
 }
+
+function renderJustTellApp(){
+  var b=$('justTellApp');if(!b)return;
+  b.innerHTML='<div class="aiQuickCard"><div class="aiSmartHead"><span>🎤</span><b>Just tell the app</b><span class="featureTag" style="margin-left:auto">AI</span></div><div class="aiSmartBody">Say: “Spent ₹850 on dinner, skipped workout and felt tired.”</div><div class="aiQuickRow"><input id="justTellInput" class="inp" placeholder="Type or use microphone…" autocomplete="off"><button class="sbtn acc" id="justTellMic">🎙</button><button class="sbtn" id="justTellDone" style="display:none">Done</button></div></div>';
+}
+function processJustTell(text){
+  text=String(text||'').trim();if(!text)return;var key=getAiKey();if(!key){toastN('Configure AI first');return;}
+  var prompt='Return ONLY JSON array of clearly supported tracker actions. Supported: {action:\"add_expense\",amount,payee,category,date,note}; {action:\"set_sleep\",date,bed,wake,mins}; {action:\"log_workout\",exercise,sets,date}; {action:\"add_mood\",date,score,note}; {action:\"check_habit\",habit,date}. Do not invent values. Text: '+JSON.stringify(text);
+  toastN('Understanding…');gemCall(prompt,350).then(function(raw){var arr=JSON.parse(raw.replace(/```json|```/g,'').trim());if(!Array.isArray(arr)||!arr.length){toastN('No clear log found');return;}var preview=arr.map(function(a){return (a.action||'action')+' '+(a.payee||a.exercise||a.habit||a.amount||a.score||'');}).join('\\n');if(!confirm('I found:\\n\\n'+preview+'\\n\\nLog these items?'))return;arr.forEach(function(a){var act=a.action,p={};if(act==='add_expense'){p.amount=a.amount;p.payee=a.payee;p.category=a.category;p.date=a.date||today();p.note=a.note||'';}else if(act==='set_sleep'){p.date=a.date||today();p.bed=a.bed;p.wake=a.wake;p.mins=a.mins;}else if(act==='log_workout'){p.exercise=a.exercise;p.sets=a.sets;p.date=a.date||today();}else if(act==='add_mood'){p.date=a.date||today();p.score=a.score;p.note=a.note||'';}else if(act==='check_habit'){p.habit=a.habit;p.date=a.date||today();}else return;executeAction(act,p);});persist();renderToday();renderExp();toastN('Logged '+arr.length+' item'+(arr.length===1?'':'s'));}).catch(function(e){toastN('AI could not process that: '+e.message);});
+}
+function renderWorkoutQuickLog(){
+  var b=$('workoutQuickLog');if(!b)return;
+  b.innerHTML='<div class="aiQuickCard"><div class="aiSmartHead"><span>🏋️</span><b>Workout Quick Log</b></div><div class="aiSmartBody">Log without opening a detailed session.</div><div class="aiQuickRow"><input id="quickWorkoutText" class="inp" placeholder="e.g. 25 push-ups, 40 squats"><button class="sbtn acc" id="quickWorkoutSave">Save</button></div></div>';
+}
+function processQuickWorkout(text){
+  if(!text)return;var key=getAiKey();if(!key){toastN('Configure AI first');return;}var prompt='Extract workout logs. Return ONLY JSON array of {exercise,sets,date}. One numeric value per exercise. Do not invent. Text: '+JSON.stringify(text);
+  gemCall(prompt,220).then(function(raw){var arr=JSON.parse(raw.replace(/```json|```/g,'').trim());if(!Array.isArray(arr)||!arr.length)throw new Error('No workout found');var msg=arr.map(function(a){return a.exercise+' '+(a.sets||[]).join(' / ');}).join('\\n');if(!confirm('Log:\\n\\n'+msg+'?'))return;arr.forEach(function(a){executeAction('log_workout',{exercise:a.exercise,sets:a.sets,date:a.date||today()});});persist();renderFitStats();toastN('Workout logged');}).catch(function(e){toastN('Could not read workout: '+e.message);});
+}
+function renderTodayAIExplainers(){
+  var why=$('aiTodayWhy'),an=$('aiAnomalies');if(!why||!an)return;var ps=detectedPatterns(),sp=ps.filter(function(p){return p.type==='spike'||p.type==='sleep';}).slice(0,2);
+  an.innerHTML=sp.length?'<div class="aiQuickCard"><div class="aiSmartHead"><span>🚨</span><b>Anomalies detected</b></div>'+sp.map(function(p){return '<div class="aiQuickDone"><b>'+p.title+'</b><br>'+p.text+'<br><small>'+p.detail+'</small></div>';}).join('')+'</div>':'';
+  if(!getAiKey()){why.innerHTML='';return;}why.innerHTML='<div class="aiQuickCard"><div class="aiSmartHead"><span>🔍</span><b>Why was today different?</b></div><div class="aiSmartBody">Compare today with your normal patterns.</div><div class="aiQuickRow"><button class="sbtn acc" id="aiWhyTodayBtn">Explain today</button></div><div id="aiWhyTodayResult"></div></div>';
+}
+function explainWhyToday(){
+  var b=$('aiWhyTodayResult');if(b)b.innerHTML='<small>Analysing…</small>';
+  var prompt='Explain why today may be different from the user normal baseline. Compare habits, expense, mood, sleep, workout and journal when available. Mention 1-3 strongest differences only. Do not claim causation. Under 80 words. DATA:\\n'+buildDataContext();
+  gemCall(prompt,180).then(function(r){if(b)b.innerHTML='<div class="aiQuickDone">'+esc(r)+'</div>';}).catch(function(e){if(b)b.innerHTML='<small>'+esc(e.message)+'</small>';});
+}
 function renderToday(){
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
@@ -3479,8 +3514,10 @@ function renderToday(){
   $('wkdots').innerHTML = wd;
   renderWkCard();
   renderDailyInsightToday();
+  renderJustTellApp();
   renderAIWeeklySummary();
   renderAIHabitCoach();
+  renderTodayAIExplainers();
 
   var rb = '';
   if(onVacation(ts)){
@@ -4116,6 +4153,7 @@ function renderFitStats(){
   var actives=state.exs.filter(function(e){return e.active;});
   if(!state.exs.length){ sec.style.display='none'; return; }
   sec.style.display='';
+  renderWorkoutQuickLog();
   $('fitInsight').innerHTML = fitnessInsight(); renderPatternCard('fitPatternInsights',2);
   var streakN=workoutStreak(), completed=workoutsCompleted(), pbs=personalBests(), gp=goalProgress();
   var rows =
@@ -7057,6 +7095,21 @@ function init(){
     cb(text);
   };
 
+
+  var _continuousVoice={active:false,target:null,text:'',restarts:0};
+  function stopContinuousVoice(){_continuousVoice.active=false;_continuousVoice.target=null;_continuousVoice.text='';_continuousVoice.restarts=0;try{if(nat&&nat.stopSpeech)nat.stopSpeech();}catch(e){}}
+  function startContinuousVoice(targetInput){stopContinuousVoice();_continuousVoice.active=true;_continuousVoice.target=targetInput;toastN('🎙 Listening — pause anytime; tap Done when finished');listenContinuousChunk();}
+  function listenContinuousChunk(){
+    if(!_continuousVoice.active)return;var target=_continuousVoice.target,id='csp_'+(++_speechCbId);
+    _speechCallbacks[id]=function(text){if(!_continuousVoice.active)return;text=String(text||'').trim();if(text){_continuousVoice.text=(_continuousVoice.text?(_continuousVoice.text+' '):'')+text;target.value=_continuousVoice.text;target.focus();}if(_continuousVoice.active)setTimeout(listenContinuousChunk,180);};
+    if(nat&&nat.startSpeech){try{nat.startSpeech(id);return;}catch(e){}}
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toastN('Voice input not supported');stopContinuousVoice();return;}
+    var rec=new SR();rec.lang='en-IN';rec.interimResults=false;rec.maxAlternatives=1;
+    rec.onresult=function(e){if(e.results&&e.results[0])_speechCallbacks[id](e.results[0][0].transcript);};
+    rec.onerror=function(e){if(e.error==='no-speech'){if(_continuousVoice.active)setTimeout(listenContinuousChunk,250);}else{toastN('Voice error: '+e.error);stopContinuousVoice();}};
+    try{rec.start();}catch(e){if(_continuousVoice.active)setTimeout(listenContinuousChunk,250);}
+  }
+
   function startVoice(targetInput, onDone){
     // APK: use native Android speech recognizer (WebView doesn't support Web Speech API)
     if(nat && nat.startSpeech){
@@ -7302,6 +7355,11 @@ function init(){
 
   // smart expense reminder controls
   document.addEventListener('click', function(e){
+    if(e.target&&e.target.id==='justTellMic'){var i=$('justTellInput');if(i){startContinuousVoice(i);$('justTellMic').style.display='none';$('justTellDone').style.display='';}return;}
+    if(e.target&&e.target.id==='justTellDone'){var i=$('justTellInput');stopContinuousVoice();$('justTellMic').style.display='';$('justTellDone').style.display='none';if(i&&i.value)processJustTell(i.value);return;}
+    if(e.target&&e.target.id==='quickWorkoutSave'){processQuickWorkout(($('quickWorkoutText')||{}).value||'');return;}
+    if(e.target&&e.target.id==='aiWhyTodayBtn'){explainWhyToday();return;}
+
     if(e.target && e.target.id==='aiWeekRefresh'){generateAIWeekSummary();return;}
     var coach=e.target&&e.target.getAttribute&&e.target.getAttribute('data-ai-coach');if(coach){generateAIHabitTip(coach);return;}
     if(e.target && e.target.id==='smartExpRemTog'){ state.set.smartExpRem=!state.set.smartExpRem; persist(); renderExpUpcoming(); pushAlarms(); } });
