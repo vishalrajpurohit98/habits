@@ -1,4 +1,4 @@
-const CACHE = 'habits-v2-62-final-icon';
+const CACHE = 'habits-v2-63-money-fixes';
 const FILES = ['.', 'index.html', 'unbounded.ttf', 'fraunces.ttf', 'spacegrotesk.ttf', 'bricolage.ttf', 'xlsx.min.js', 'firebase-app-compat.js', 'firebase-auth-compat.js', 'manifest.json', 'icon-192.png', 'icon-512.png', 'favicon-32.png', 'apple-touch-icon.png'];
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting()));
@@ -10,5 +10,5 @@ self.addEventListener('fetch', e => {
   // only handle same-origin GET requests from the cache; let everything else
   // Firebase Cloud Firestore SDK is loaded from the Firebase CDN when cloud sync is enabled.
   if (e.request.method !== 'GET' || new URL(e.request.url).origin !== self.location.origin) return;
-  e.respondWith(caches.match(e.request, {ignoreSearch:true}).then(r => r || fetch(e.request)));
+  if (e.request.mode === 'navigate') { e.respondWith(fetch(e.request).then(r => { const copy=r.clone(); caches.open(CACHE).then(c=>c.put('index.html',copy)); return r; }).catch(()=>caches.match('index.html'))); return; } e.respondWith(caches.match(e.request, {ignoreSearch:true}).then(r => r || fetch(e.request)));
 });
