@@ -268,7 +268,7 @@ Only permissions used by the wrapper are declared:
 | `RECORD_AUDIO` | Native speech input |
 | `VIBRATE` | Reminder notification vibration |
 
-The APK targets Android API 34 and uses a minimum Android API level of 24.
+The APK targets Android API 35 and uses a minimum Android API level of 29.
 
 ## Notifications
 
