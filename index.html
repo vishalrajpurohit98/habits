@@ -1059,6 +1059,12 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 .financialToolsIcon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:var(--card2);font-size:21px;flex:0 0 auto}
 .financialToolsCopy{flex:1;min-width:0}.financialToolsCopy b{display:block;font-size:14px}.financialToolsCopy small{display:block;color:var(--mut);font-size:11px;margin-top:3px}
 .financialToolsArrow{font-size:26px;color:var(--mut);line-height:1}
+#featureSummary{margin-top:10px}
+#featureSummary .featurePanel{margin:0;padding:10px 14px}
+#featureSummary .featureRow{padding:9px 0}
+#featureSummary .featureRow b{font-size:13px}
+#featureSummary .featureRow small{font-size:11px}
+
 .financialToolsSheet{top:auto;bottom:0;transform:translateX(-50%);width:min(94vw,620px);max-height:82vh;border-radius:22px 22px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
 .financialToolsHint{font-size:12px;color:var(--mut);margin:2px 0 14px}
 .financialToolGroup{margin:0 0 14px}.financialToolGroup:last-child{margin-bottom:0}
@@ -7309,7 +7315,8 @@ if(nat && nat.getLaunchAction){
             '<span class="financialToolsIcon">💰</span>'+
             '<span class="financialToolsCopy"><b>Financial Tools</b><small>Import, split, recurring, savings, currency & more</small></span>'+
             '<span class="financialToolsArrow">›</span>'+
-          '</button>';
+          '</button>'+
+          '<div id="featureSummary"></div>';
         if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(div,anchor.nextSibling);
         else pg.insertBefore(div,pg.firstChild);
       }
