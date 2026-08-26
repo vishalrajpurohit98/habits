@@ -1157,6 +1157,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 .mnavIcon{height:29px;min-width:29px;display:flex;align-items:center;justify-content:center;font-size:25px;line-height:1;}
 .mnavLabel{font-size:13px;line-height:14px;white-space:nowrap;font-weight:650;}
 #fab{z-index:9001!important;bottom:calc(112px + env(safe-area-inset-bottom,0px))!important;}
+.materialNav,.mnavItem{pointer-events:auto;}
 #fab.dashboardAdd{height:50px!important;padding:0 18px!important;border-radius:16px!important;gap:8px!important;}
 #fab.dashboardAdd #fabLbl{position:static!important;width:auto!important;height:auto!important;overflow:visible!important;clip:auto!important;white-space:nowrap!important;font-size:14px!important;}
 #fab:not(.dashboardAdd) #fabLbl{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;}
@@ -1333,7 +1334,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 <div class="page" id="pgExp">
     <div class="eyebrow" id="expMonthLbl"></div>
     <div class="h1row"><h1>Money</h1>
-      <div style="display:flex;align-items:center;gap:7px"><button class="sbtn acc" id="expAddTop" type="button">+ Add expense</button><button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <div style="display:flex;align-items:center;gap:7px"><button class="sbtn acc" id="expAddTop" type="button">+ Add expense</button><button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div>
     </div>
     <div style="height:12px"></div>
 
