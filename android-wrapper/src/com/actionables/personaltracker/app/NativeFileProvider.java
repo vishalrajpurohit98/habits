@@ -23,7 +23,13 @@ public class NativeFileProvider extends ContentProvider {
         return f;
     }
     @Override public ParcelFileDescriptor openFile(Uri uri,String mode)throws FileNotFoundException{
-        return ParcelFileDescriptor.open(resolve(uri),ParcelFileDescriptor.MODE_READ_ONLY);
+        try {
+            return ParcelFileDescriptor.open(resolve(uri),ParcelFileDescriptor.MODE_READ_ONLY);
+        } catch (IOException e) {
+            FileNotFoundException ex = new FileNotFoundException(e.getMessage());
+            ex.initCause(e);
+            throw ex;
+        }
     }
     @Override public String getType(Uri uri){ return "application/octet-stream"; }
     @Override public Cursor query(Uri uri,String[] projection,String sel,String[] args,String sort){
