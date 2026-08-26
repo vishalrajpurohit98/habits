@@ -36,5 +36,5 @@ public class NativeFileProvider extends ContentProvider {
     }
     @Override public int delete(Uri u,String s,String[] a){try{return resolve(u).delete()?1:0;}catch(Exception e){return 0;}}
     @Override public int update(Uri u,ContentValues v,String s,String[] a){return 0;}
-    @Override public int insert(Uri u,ContentValues v){throw new UnsupportedOperationException();}
+    @Override public Uri insert(Uri u,ContentValues v){throw new UnsupportedOperationException();}
 }
