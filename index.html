@@ -1054,6 +1054,23 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 
 
 /* FEATURE PACK: finance + planning enhancements v1 */
+.featureTag{white-space:nowrap}.featureRow .grow b{line-height:1.35}
+.financialToolsLauncher{width:100%;display:flex;align-items:center;gap:12px;padding:15px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--text);text-align:left;box-shadow:var(--shadow);cursor:pointer}
+.financialToolsLauncher:active{transform:scale(.995)}
+.financialToolsIcon{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:var(--card2);font-size:21px;flex:0 0 auto}
+.financialToolsCopy{flex:1;min-width:0}.financialToolsCopy b{display:block;font-size:14px}.financialToolsCopy small{display:block;color:var(--mut);font-size:11px;margin-top:3px}
+.financialToolsArrow{font-size:26px;color:var(--mut);line-height:1}
+#featureSummary{margin-top:10px}
+#featureSummary .featurePanel{margin:0;padding:10px 14px}
+#featureSummary .featureRow{padding:9px 0}
+#featureSummary .featureRow b{font-size:13px}
+#featureSummary .featureRow small{font-size:11px}
+
+.financialToolsSheet{top:auto;bottom:0;transform:translateX(-50%);width:min(94vw,620px);max-height:82vh;border-radius:22px 22px 0 0;padding-bottom:calc(18px + env(safe-area-inset-bottom))}
+.financialToolsHint{font-size:12px;color:var(--mut);margin:2px 0 14px}
+.financialToolGroup{margin:0 0 14px}.financialToolGroup:last-child{margin-bottom:0}
+.financialToolGroupTitle{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:0 2px 7px}
+.financialToolGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .featureTools{margin:14px 0 18px}.featureToolsHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
 .featureToolsGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .featureToolBtn{padding:13px 12px;border:1px solid var(--line);border-radius:15px;background:var(--card);text-align:left;box-shadow:var(--shadow)}
@@ -1254,7 +1271,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div id="fitSection" style="display:none">
         <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Fitness</div>
         <div class="insCard" id="fitInsight" style="margin-bottom:10px"></div>
-        <div class="statGrid" id="fitStats"></div>
+        <div id="fitPatternInsights"></div>
+    <div class="statGrid" id="fitStats"></div>
         <div class="trendSeg" id="fitTrendSeg">
           <button data-ft="7">7D</button>
           <button data-ft="30" class="sel">30D</button>
@@ -1359,6 +1377,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="setCard" style="padding:8px 16px" id="moDist"></div>
     <div class="lbl">Insights</div>
     <div id="moIns"></div>
+    <div id="moPatternInsights"></div>
     </div>
   </div>
 
@@ -1616,15 +1635,16 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 <div class="sheet" id="recurSheet">
   <div class="grab"></div>
   <h2 id="recurSheetT">Add recurring expense</h2>
+  <div class="lbl">Type</div><div class="pickGrid" id="recurKindGrid"><button class="chip sel" data-rkind="exp">Expense</button><button class="chip" data-rkind="inc">Income</button></div>
   <div class="lbl">Name</div>
   <input id="recurName" class="inp" maxlength="40" placeholder="e.g. Netflix, Rent, Electricity">
   <div class="lbl">Amount</div>
   <input id="recurAmt" class="inp" type="number" inputmode="decimal" step="any" placeholder="0">
   <div class="lbl">Frequency</div>
   <div class="pickGrid" id="recurFreqGrid"><button class="chip sel" data-rf="monthly">Monthly</button><button class="chip" data-rf="weekly">Weekly</button><button class="chip" data-rf="yearly">Yearly</button></div>
-  <div id="recurMonthlyFields"><div class="lbl">Day of month</div><input id="recurDay" class="inp" type="number" min="1" max="28" value="1"></div>
+  <div id="recurMonthlyFields"><div class="lbl">Day of month</div><input id="recurDay" class="inp" type="number" min="1" max="31" value="1"></div>
   <div id="recurWeeklyFields" style="display:none"><div class="lbl">Day of week</div><div class="pickGrid" id="recurWeekGrid"><button class="chip" data-rw="1">Mon</button><button class="chip" data-rw="2">Tue</button><button class="chip" data-rw="3">Wed</button><button class="chip" data-rw="4">Thu</button><button class="chip" data-rw="5">Fri</button><button class="chip" data-rw="6">Sat</button><button class="chip" data-rw="0">Sun</button></div></div>
-  <div id="recurYearlyFields" style="display:none"><div class="lbl">Month / day</div><div style="display:flex;gap:8px"><select id="recurMonth" class="inp"><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><input id="recurYearDay" class="inp" type="number" min="1" max="28" value="1"></div></div>
+  <div id="recurYearlyFields" style="display:none"><div class="lbl">Month / day</div><div style="display:flex;gap:8px"><select id="recurMonth" class="inp"><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><input id="recurYearDay" class="inp" type="number" min="1" max="31" value="1"></div></div>
   <div class="lbl">Category</div><div class="pickGrid" id="recurCatGrid"></div>
   <div class="lbl">Account</div><div class="pickGrid" id="recurAcctGrid"></div>
   <div class="lbl">Starts</div><input id="recurStart" class="inp" type="date">
@@ -2832,9 +2852,65 @@ function greetTxt(){
   var g = h < 12 ? 'Good morning' : (h < 17 ? 'Good afternoon' : 'Good evening');
   return g + (state.set.uname ? ', ' + state.set.uname : '');
 }
+
+/* ============ PATTERN RECOGNITION ENGINE ============ */
+function patternStats(nums){
+  if(!nums.length)return {n:0,avg:0,cv:999};
+  var sum=0,i;for(i=0;i<nums.length;i++)sum+=nums[i];var avg=sum/nums.length,ss=0;
+  for(i=0;i<nums.length;i++)ss+=Math.pow(nums[i]-avg,2);
+  return {n:nums.length,avg:avg,cv:avg?Math.sqrt(ss/nums.length)/avg:999};
+}
+function medianNum(a){if(!a.length)return 0;var b=a.slice().sort(function(x,y){return x-y;}),m=Math.floor(b.length/2);return b.length%2?b[m]:(b[m-1]+b[m])/2;}
+function detectedPatterns(){
+  var out=[],now=new Date(),ts=today(),tx=state.tx.filter(function(x){return x.d<=ts;}),groups={},i,j;
+  /* recurring merchant/category */
+  tx.forEach(function(x){if(x.kind!=='exp')return;var k=(x.payee||x.cat||'').trim().toLowerCase();if(k)(groups[k]||(groups[k]=[])).push(x);});
+  Object.keys(groups).forEach(function(k){
+    var a=groups[k].slice().sort(function(x,y){return x.d>y.d?1:-1;});if(a.length<3)return;
+    var gaps=[],amts=[];for(var n=0;n<a.length;n++){amts.push(Math.abs(a[n].amt||0));if(n)gaps.push(Math.round((new Date(a[n].d)-new Date(a[n-1].d))/86400000));}
+    var gs=patternStats(gaps),as=patternStats(amts),med=medianNum(gaps);
+    if(med>=5&&med<=35&&gs.cv<=.30&&as.cv<=.35){
+      var next=addDays(new Date(a[a.length-1].d),med),days=Math.round((next-new Date(ts))/86400000);
+      if(days>=-3&&days<=10)out.push({type:'recurring',score:90,title:'Likely recurring expense',text:'<b>'+esc(a[a.length-1].payee||a[a.length-1].cat)+'</b> repeats about every '+med+' days.',detail:'Typical amount '+inr(as.avg)+' · '+(days>0?'likely in '+days+' day'+(days===1?'':'s'):days===0?'likely due today':'likely due now'),tag:'pattern'});
+    }
+  });
+  /* category spike */
+  var recentStart=fmt(addDays(now,-6)),priorStart=fmt(addDays(now,-27)),recent={},prior={};
+  tx.forEach(function(x){if(x.kind!=='exp')return;var c=x.cat||'Other';if(x.d>=recentStart)recent[c]=(recent[c]||0)+(x.amt||0);else if(x.d>=priorStart)prior[c]=(prior[c]||0)+(x.amt||0);});
+  Object.keys(recent).forEach(function(c){var r=recent[c],p=(prior[c]||0)/3;if(r>=500&&p>0&&r>p*1.6)out.push({type:'spike',score:80,title:'Spending spike',text:'<b>'+esc(c)+'</b> is '+Math.round(r/p)+'× your recent weekly pace.',detail:'7-day spend '+inr(r)+' vs about '+inr(p)+' previously',tag:'watch'});});
+  /* weekday spending */
+  var dw=[0,0,0,0,0,0,0],dn=[0,0,0,0,0,0,0];tx.forEach(function(x){if(x.kind!=='exp')return;var d=new Date(x.d);if(isNaN(d))return;var w=d.getDay();dw[w]+=x.amt||0;dn[w]++;});
+  var best=-1,bavg=0,total=0,n=0;for(i=0;i<7;i++){if(dn[i]>=3){var av=dw[i]/dn[i];if(av>bavg){bavg=av;best=i;}}total+=dw[i];n+=dn[i];}
+  var overall=n?total/n:0;
+  if(best>=0&&bavg>overall*1.6&&bavg>300)out.push({type:'weekday',score:55,title:'Spending day pattern',text:'<b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][best]+'</b> is your highest average spending day.',detail:inr(bavg)+' average per transaction vs '+inr(overall)+' overall',tag:'pattern'});
+  /* habit weak weekday */
+  state.habits.filter(function(h){return !h.arch;}).forEach(function(h){
+    var miss=[0,0,0,0,0,0,0],due=[0,0,0,0,0,0,0];
+    for(var d=1;d<=42;d++){var dt=addDays(now,-d),ds=fmt(dt);if(dueOn(h,dt)&&ds>=h.created){var w=dt.getDay();due[w]++;if(!isDone(h,ds))miss[w]++;}}
+    var weak=-1,rate=0;for(i=0;i<7;i++)if(due[i]>=3&&miss[i]/due[i]>rate){rate=miss[i]/due[i];weak=i;}
+    if(weak>=0&&rate>=.5)out.push({type:'habit',score:70,title:h.name+' has a weak day',text:'You miss this habit most often on <b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][weak]+'</b>.',detail:Math.round(rate*100)+'% missed across '+due[weak]+' scheduled occurrences',tag:'watch'});
+  });
+  /* mood weekday */
+  var md=[0,0,0,0,0,0,0],mn=[0,0,0,0,0,0,0];for(var key in state.mood){var mi=state.mood[key],dtm=new Date(key);if(typeof mi==='number'&&!isNaN(dtm)){var mw=dtm.getDay();md[mw]+=MOODS[mi].s;mn[mw]++;}}
+  var hi=-1,lo=-1,hia=-1,loa=99;for(i=0;i<7;i++)if(mn[i]>=3){var ma=md[i]/mn[i];if(ma>hia){hia=ma;hi=i;}if(ma<loa){loa=ma;lo=i;}}
+  if(hi>=0&&lo>=0&&hi!==lo&&hia-loa>=1.2)out.push({type:'mood',score:45,title:'Mood weekday pattern',text:'Mood is highest on <b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][hi]+'</b> and lowest on <b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][lo]+'</b>.',detail:hia.toFixed(1)+' vs '+loa.toFixed(1)+' average mood score',tag:'pattern'});
+  /* sleep consistency */
+  var sv=state.sleep.filter(function(x){return x.mins>0&&x.d<=ts;}).slice(-21).map(function(x){return x.mins;});if(sv.length>=7){var sp=patternStats(sv);if(sp.cv>=.18)out.push({type:'sleep',score:50,title:'Sleep duration varies',text:'Your recent sleep duration is inconsistent.',detail:'Average '+fmtDur(Math.round(sp.avg))+' · '+Math.round(sp.cv*100)+'% variation',tag:'watch'});}
+  /* workout weekday pattern */
+  if(state.wlog&&state.wlog.length>=5){var ww=[0,0,0,0,0,0,0];state.wlog.forEach(function(wl){var d=new Date(wl.d);if(!isNaN(d))ww[d.getDay()]++;});var wm=0,wi=-1;for(i=0;i<7;i++)if(ww[i]>wm){wm=ww[i];wi=i;}if(wi>=0&&wm>=3)out.push({type:'workout',score:40,title:'Workout day pattern',text:'You log workouts most often on <b>'+['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][wi]+'</b>.',detail:wm+' sessions on that weekday in your history',tag:'pattern'});}
+  out.sort(function(a,b){return b.score-a.score;});var seen={};return out.filter(function(p){var k=p.type+'|'+p.title;if(seen[k])return false;seen[k]=1;return true;}).slice(0,8);
+}
+function renderPatternCard(id,limit){
+  var box=$(id);if(!box)return;var ps=detectedPatterns().slice(0,limit||3);if(!ps.length){box.innerHTML='';return;}
+  var h='<div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Patterns detected</div><div class="setCard" style="padding:6px 16px">';
+  ps.forEach(function(p){h+='<div class="featureRow" style="align-items:flex-start"><div class="grow"><b>'+p.text+'</b><br><small>'+p.detail+'</small></div><span class="featureTag">'+p.tag+'</span></div>';});
+  h+='</div>';box.innerHTML=h;
+}
+
 /* ============ AI INSIGHTS ENGINE (Tier 1: offline heuristics) ============ */
 function generateInsights(){
   var ins = [], now = new Date(), ts = today(), h, i, d;
+  var pNow=detectedPatterns(); for(var pi=0;pi<Math.min(2,pNow.length);pi++){var pp=pNow[pi];ins.push({ico:pp.type==='recurring'?'🔁':pp.type==='spike'?'📈':pp.type==='habit'?'📅':pp.type==='mood'?'🙂':pp.type==='sleep'?'😴':'🏋️',title:pp.title,text:pp.text+' '+pp.detail,tag:pp.tag==='watch'?'info':'neutral',tagText:'pattern'});}
   var active = state.habits.filter(function(h){ return !h.arch; });
   if(!active.length && !state.tx.length && !state.sleep.length) return ins;
 
@@ -3979,7 +4055,7 @@ function renderFitStats(){
   var actives=state.exs.filter(function(e){return e.active;});
   if(!state.exs.length){ sec.style.display='none'; return; }
   sec.style.display='';
-  $('fitInsight').innerHTML = fitnessInsight();
+  $('fitInsight').innerHTML = fitnessInsight(); renderPatternCard('fitPatternInsights',2);
   var streakN=workoutStreak(), completed=workoutsCompleted(), pbs=personalBests(), gp=goalProgress();
   var rows =
     sc(streakN, streakN===1?'day':'days', 'Workout streak', 'var(--sOrange)')
@@ -4231,7 +4307,7 @@ function renderMoodStats(){
   var ih='';
   for(var z=0;z<Math.min(4,out.length);z++)
     ih += '<div class="insight"><span class="ii">'+out[z][0]+'</span><div>'+out[z][1]+'</div></div>';
-  $('moIns').innerHTML = ih;
+  $('moIns').innerHTML = ih; renderPatternCard('moPatternInsights',2);
 }
 function renderMood(){
   if($('sleepCard')) renderSleepCard();
@@ -5216,6 +5292,7 @@ function catTotals(y,m){
 }
 
 function renderExp(){
+  runRecur();
   var now=new Date();
   $('expMonTitle').textContent = new Date(expY,expM,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});
   $('expNext').disabled = (expY>now.getFullYear())||(expY===now.getFullYear()&&expM>=now.getMonth());
@@ -5234,7 +5311,7 @@ function renderExp(){
 }
 
 function renderExpTx(){
-  var list = txInMonth(expY,expM).slice();
+  var list = state.tx.slice();
   if(expFilter!=='all') list = list.filter(function(x){ return x.kind===expFilter; });
   if(expQ){ var q=expQ.toLowerCase(); list = list.filter(function(x){
     return (x.payee+' '+x.note+' '+x.cat+' '+x.sub+' '+x.tags).toLowerCase().indexOf(q)>=0; }); }
@@ -5265,18 +5342,21 @@ function smartExpensePredictions(daysAhead){
   var now=toDate(today()),limit=addDays(now,daysAhead||30),cutoff=addDays(now,-180),groups={};
   for(var i=0;i<state.tx.length;i++){var x=state.tx[i];if(x.kind!=='exp'||x.d<fmt(cutoff)||x.d>=today())continue;var key=(x.payee||x.cat||'Expense').toLowerCase()+'|'+(x.cat||'');(groups[key]||(groups[key]=[])).push(x);}
   var out=[];
-  for(var key in groups){var a=groups[key];if(a.length<3)continue;a.sort(function(x,y){return x.d<y.d?-1:1;});var gaps=[];for(var j=1;j<a.length;j++){var g=dayDiff(a[j-1].d,a[j].d);if(g>7&&g<100)gaps.push(g);}if(gaps.length<2)continue;gaps.sort(function(x,y){return x-y;});var median=gaps[Math.floor(gaps.length/2)];if(median<14||median>45)continue;var last=a[a.length-1],next=addDays(toDate(last.d),median);if(next<now||next>limit)continue;var already=false;for(var z=0;z<state.tx.length;z++){if(state.tx[z].kind==='exp'&&state.tx[z].d===fmt(next)&&(state.tx[z].payee||state.tx[z].cat||'').toLowerCase()===(last.payee||last.cat||'').toLowerCase()){already=true;break;}}if(already)continue;out.push({kind:'smart',d:fmt(next),name:last.payee||last.cat||'Expense',amt:last.amt,cat:last.cat||'',acct:acctById(last.acct)});}
+  for(var key in groups){var a=groups[key];if(a.length<3)continue;a.sort(function(x,y){return x.d<y.d?-1:1;});var gaps=[];for(var j=1;j<a.length;j++){var g=dayDiff(a[j-1].d,a[j].d);if(g>7&&g<100)gaps.push(g);}if(gaps.length<2)continue;gaps.sort(function(x,y){return x-y;});var median=gaps[Math.floor(gaps.length/2)];if(median<14||median>45)continue;var last=a[a.length-1],next=addDays(toDate(last.d),median);if(next<now||next>limit)continue;var already=false;for(var z=0;z<state.tx.length;z++){if(state.tx[z].kind==='exp'&&state.tx[z].d===fmt(next)&&(state.tx[z].payee||state.tx[z].cat||'').toLowerCase()===(last.payee||last.cat||'').toLowerCase()){already=true;break;}}if(already)continue;var amounts=a.map(function(x){return +x.amt||0;}).sort(function(x,y){return x-y;});var medAmt=amounts[Math.floor(amounts.length/2)]||last.amt;out.push({kind:'smart',d:fmt(next),name:last.payee||last.cat||'Expense',amt:medAmt,cat:last.cat||'',acct:acctById(last.acct)});}
   out.sort(function(a,b){return a.d<b.d?-1:1;});return out.slice(0,8);
 }
 function renderExpUpcoming(){
-  var box=$('expUpcoming');box.style.display='';var now=toDate(today()),end=addDays(now,30),items=[];
-  for(var i=0;i<state.recur.length;i++){var r=state.recur[i];if(!r.active||r.start>today()||(r.end&&r.end<today()))continue;var base=r.last||addDays(toDate(r.start||today()),-1),n=nextRecurringDateFrom(r,base),guard=0;while(n<now&&guard<100){n=recurringNextDate(r,n);guard++;}if(r.skipNext){n=recurringNextDate(r,n);}if(n<=end&&(!r.end||fmt(n)<=r.end))items.push({kind:'recur',d:fmt(n),name:r.name,amt:r.amt,cat:r.cat,acct:acctById(r.acct),r:r});}
-  var smart=smartExpensePredictions(30);for(var j=0;j<smart.length;j++)items.push(smart[j]);items.sort(function(a,b){return a.d<b.d?-1:1;});
-  var html='<div class="upcomingCard"><div class="upcomingHead"><span class="uicon">📅</span><b>Upcoming expenses</b><span>next 30 days</span></div>';
-  if(!items.length)html+='<div class="setS" style="padding-top:10px">No upcoming expenses detected yet.</div>';
-  for(var k=0;k<items.length;k++){var it=items[k],acct=it.acct;html+='<div class="recurRow"><div class="recurMain"><b>'+esc(it.name)+(it.kind==='smart'?'<span class="smartBadge">Pattern</span>':'')+'</b><span>'+niceDate(it.d)+(it.cat?' · '+esc(it.cat):'')+(acct?' · '+esc(acct.name):'')+(it.kind==='recur'?(it.r&&it.r.skipNext?' · next occurrence will be skipped':' · auto-posts when due'):'')+'</span></div><div style="text-align:right"><div class="recurAmt">'+inr(it.amt)+'</div>'+(it.kind==='recur'?'<button class="sbtn" data-skip-recur="'+esc(it.r.id)+'" style="margin-top:5px;padding:5px 8px">Skip next</button>':'')+'</div></div>';}
-  html+='</div><button class="addT" id="recurAdd">+ Add recurring expense</button><button class="addT" id="recurManage" style="margin-top:8px">Manage recurring</button><div class="upcomingCard" style="margin-top:10px"><div class="upcomingHead"><span class="uicon">🧠</span><b>Smart reminders</b><span>pattern-based</span></div><div class="setS" style="padding-top:8px">Repeated spending patterns are detected from your recent expenses and can remind you before the predicted date.</div><div class="setRow" style="padding:12px 0 4px"><div class="setInfo"><div class="setT">Smart expense reminders</div><div class="setS">Only patterns with repeated, reasonably consistent timing are used.</div></div><div class="tog" id="smartExpRemTog"></div></div><div style="display:flex;align-items:center;gap:8px;padding-top:8px"><span class="setS">Reminder time</span><input id="smartExpRemTime" class="inp" type="time" style="max-width:120px;margin-left:auto"></div></div>';
-  box.innerHTML=html;var st=$('smartExpRemTog');if(st)st.classList.toggle('on',state.set.smartExpRem!==false);var sti=$('smartExpRemTime');if(sti)sti.value=state.set.smartExpRemTime||'09:00';var add=$('recurAdd'),manage=$('recurManage');if(add)add.onclick=function(){openRecur(null);};if(manage)manage.onclick=function(){openRecurList();};box.onclick=function(e){var b=climb(e.target,box,'data-skip-recur');if(!b)return;var rid=b.getAttribute('data-skip-recur');for(var si=0;si<state.recur.length;si++)if(state.recur[si].id===rid){state.recur[si].skipNext=true;break;}persist();renderExp();toastN('Next recurring expense will be skipped');};
+  var box=$('expUpcoming'); box.style.display=''; var now=toDate(today()), end=addDays(now,30), real=[], smart=smartExpensePredictions(30);
+  for(var i=0;i<state.recur.length;i++){var r=state.recur[i];if(!r.active||r.start>today()||(r.end&&r.end<today()))continue;var base=r.last||addDays(toDate(r.start||today()),-1),n=nextRecurringDateFrom(r,base),guard=0;while(n<now&&guard<100){n=recurringNextDate(r,n);guard++;}if(n<=end)real.push({kind:'recur',d:fmt(n),name:r.name,amt:r.amt,cat:r.cat,acct:acctById(r.acct),r:r});}
+  real.sort(function(x,y){return x.d<y.d?-1:1;});smart.sort(function(x,y){return x.d<y.d?-1:1;});
+  var html='<div class="upcomingCard"><div class="upcomingHead"><span class="uicon">📅</span><b>Scheduled transactions</b><span>next 30 days</span></div>';
+  if(!real.length)html+='<div class="setS" style="padding-top:10px">No scheduled transactions in the next 30 days.</div>';
+  for(var k=0;k<real.length;k++){var it=real[k],acct=it.acct,sign=it.r.kind==='inc'?'+':'-',label=it.r.kind==='inc'?'Income':'Expense';html+='<div class="recurRow"><div class="recurMain"><b>'+esc(it.name)+'</b><span>'+niceDate(it.d)+' · '+label+(it.cat?' · '+esc(it.cat):'')+(acct?' · '+esc(acct.name):'')+(it.r.skipNext?' · next occurrence will be skipped':' · auto-posts when due')+'</span></div><div style="text-align:right"><div class="recurAmt">'+sign+inr(it.amt)+'</div><button class="sbtn" data-skip-recur="'+esc(it.r.id)+'" style="margin-top:5px;padding:5px 8px">Skip next</button></div></div>';}
+  html+='</div><div class="upcomingCard" style="margin-top:10px"><div class="upcomingHead"><span class="uicon">🧠</span><b>Predicted spending</b><span>pattern-based</span></div>';
+  if(!smart.length)html+='<div class="setS" style="padding-top:10px">No strong spending patterns detected.</div>';
+  for(var j=0;j<smart.length;j++){var sp=smart[j];html+='<div class="recurRow"><div class="recurMain"><b>'+esc(sp.name)+' <span class="smartBadge">Pattern</span></b><span>'+niceDate(sp.d)+(sp.cat?' · '+esc(sp.cat):'')+(sp.acct?' · '+esc(sp.acct.name):'')+' · estimated from past spending</span></div><div class="recurAmt">-'+inr(sp.amt)+'</div></div>';}
+  html+='</div><button class="addT" id="recurAdd">+ Add recurring transaction</button><button class="addT" id="recurManage" style="margin-top:8px">Manage recurring</button><div class="upcomingCard" style="margin-top:10px"><div class="upcomingHead"><span class="uicon">🔔</span><b>Smart reminders</b></div><div class="setS" style="padding-top:8px">Patterns are estimates only. They never create transactions.</div><div class="setRow" style="padding:12px 0 4px"><div class="setInfo"><div class="setT">Smart expense reminders</div><div class="setS">Only repeated, reasonably consistent spending patterns are used.</div></div><div class="tog" id="smartExpRemTog"></div></div><div style="display:flex;align-items:center;gap:8px;padding-top:8px"><span class="setS">Reminder time</span><input id="smartExpRemTime" class="inp" type="time" style="max-width:120px;margin-left:auto"></div></div>';
+  box.innerHTML=html;var st=$('smartExpRemTog');if(st)st.classList.toggle('on',state.set.smartExpRem!==false);var sti=$('smartExpRemTime');if(sti)sti.value=state.set.smartExpRemTime||'09:00';var add=$('recurAdd'),manage=$('recurManage');if(add)add.onclick=function(){openRecur(null);};if(manage)manage.onclick=function(){openRecurList();};box.onclick=function(e){var b=climb(e.target,box,'data-skip-recur');if(!b)return;var rid=b.getAttribute('data-skip-recur');for(var si=0;si<state.recur.length;si++)if(state.recur[si].id===rid){state.recur[si].skipNext=true;break;}persist();renderExpUpcoming();toastN('Next recurring transaction will be skipped');};
 }
 function renderExpAcct(){
   var box=$('expAcct'); box.style.display='';
@@ -5367,6 +5447,7 @@ function renderExpIns(){
     t5 += '</div>'; html += t5;
   }
   var fc=cashFlowForecast(30); html += '<div class="insCard"><div class="il">30-day cash-flow forecast</div><div class="iv" style="color:'+(fc.projected>=0?'var(--sGreen)':'var(--coral)')+'">'+inr(fc.projected)+'</div><div class="setS">Starting cash '+inr(fc.cash)+' · upcoming income '+inr(fc.income)+' · expected expenses '+inr(fc.expenses)+'</div></div>';
+  html += '<div id="expPatternInsights" style="margin-top:10px"></div>'; renderPatternCard('expPatternInsights',4);
   html += '<div class="lbl" style="margin-top:6px">Reports</div>';
   html += '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sbtn" id="repCsv">CSV</button><button class="sbtn" id="repXlsx">Excel</button><button class="sbtn" id="repPdf">PDF</button><button class="sbtn acc" id="repRange">Date range</button></div>';
   box.innerHTML=html;
@@ -5444,27 +5525,17 @@ function expRowsRange(from,to){
 function openExpRangeExport(){var end=today(),start=fmt(addDays(toDate(end),-30));$('expExportFrom').value=start;$('expExportTo').value=end;openSheet('expExportSheet');}
 function exportExpRangeXlsx(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}if(typeof XLSX==='undefined'){toastN('Excel unavailable');return;}var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(expRowsRange(from,to)),'Expenses');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='expenses-'+from+'-to-'+to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);closeSheet();toastN('Saved Excel');return;}catch(e){}}if(webSave(name,XMIME,out)){closeSheet();toastN('Downloading Excel…');}else toastN('Export failed');}
 function exportExpRangePdf(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}var rows=expRowsRange(from,to),title='Expense Data — '+niceDate(from)+' to '+niceDate(to),th='',body='';for(var i=0;i<rows[0].length;i++)th+='<th>'+esc(rows[0][i])+'</th>';for(var r=1;r<rows.length;r++){body+='<tr>';for(var c=0;c<rows[r].length;c++)body+='<td>'+esc(rows[r][c])+'</td>';body+='</tr>';}var doc='<html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;padding:10px;color:#111;font-size:8px}h1{font-size:16px}table{width:100%;border-collapse:collapse;table-layout:auto}th,td{padding:4px 5px;border:1px solid #ddd;vertical-align:top;white-space:nowrap}th{background:#f3f3f3;font-weight:700}</style></head><body><h1>'+esc(title)+'</h1><table><thead><tr>'+th+'</tr></thead><tbody>'+body+'</tbody></table></body></html>';var w=window.open('','_blank');if(w){w.document.write(doc);w.document.close();setTimeout(function(){w.print();},400);}else toastN('Allow pop-ups to export PDF');}
-function openRecurList(){var rows='';for(var i=0;i<state.recur.length;i++){var r=state.recur[i],next=nextRecurringDateFrom(r,r.last||addDays(toDate(r.start||today()),-1));var schedule=r.freq==='weekly'?['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][r.weekday]:r.freq==='yearly'?('Yearly · '+new Date(2000,(r.month||1)-1,r.yearDay||r.day||1).toLocaleDateString(undefined,{month:'short',day:'numeric'})):('Monthly · day '+r.day);rows+='<div class="recurRow" data-rid="'+esc(r.id)+'"><div class="recurMain"><b>'+esc(r.name)+'</b><span>'+schedule+' · next '+niceDate(fmt(next))+(r.active?'':' · paused')+'</span></div><div class="recurAmt">'+inr(r.amt)+'</div></div>';}if(!rows)rows='<div class="setS" style="padding:16px 0">No recurring expenses yet.</div>';var html='<div class="upcomingCard"><div class="upcomingHead"><b>Recurring expenses</b><span>'+state.recur.length+'</span></div>'+rows+'</div><button class="addT" id="recurListAdd">+ Add recurring expense</button>';$('expUpcoming').innerHTML=html;$('expUpcoming').style.display='';$('recurListAdd').onclick=function(){openRecur(null);};$('expUpcoming').onclick=function(e){var b=climb(e.target,this,'data-rid');if(b)openRecur(b.getAttribute('data-rid'));};}
-function runRecur(){
-  var t=today(),changed=false,safety=0;
-  for(var i=0;i<state.recur.length;i++){
-    var r=state.recur[i];if(!r.active||r.start>t)continue;if(r.end&&r.end<t)continue;
-    var cursor=r.last||addDays(toDate(r.start||t),-1),next=nextRecurringDateFrom(r,cursor);
-    while(fmt(next)<=t&&(!r.end||fmt(next)<=r.end)&&safety<500){
-      var ds=fmt(next),exists=false;for(var z=0;z<state.tx.length;z++){if(state.tx[z].recurId===r.id&&state.tx[z].recurDate===ds){exists=true;break;}}
-      if(r.skipNext){ r.skipNext=false; r.last=ds; changed=true; }
-      else { if(!exists){state.tx.push(normTx({kind:r.kind,amt:r.amt,acct:r.acct,cat:r.cat,d:ds,payee:r.name,note:'Recurring',created:Date.now(),recurId:r.id,recurDate:ds}));changed=true;} r.last=ds; }next=recurringNextDate(r,next);safety++;
-    }
-  }
-  if(changed)persist();
-}
+function openRecurList(){var rows='';for(var i=0;i<state.recur.length;i++){var r=state.recur[i],next=nextRecurringDateFrom(r,r.last||addDays(toDate(r.start||today()),-1));var schedule=r.freq==='weekly'?['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][r.weekday]:r.freq==='yearly'?('Yearly · '+new Date(2000,(r.month||1)-1,Math.min(28,r.yearDay||r.day||1)).toLocaleDateString(undefined,{month:'short',day:'numeric'})):('Monthly · day '+r.day);rows+='<div class="recurRow" data-rid="'+esc(r.id)+'"><div class="recurMain"><b>'+esc(r.name)+' <span class="smartBadge">'+(r.kind==='inc'?'Income':'Expense')+'</span></b><span>'+schedule+' · next '+niceDate(fmt(next))+(r.active?'':' · paused')+'</span></div><div class="recurAmt">'+(r.kind==='inc'?'+':'-')+inr(r.amt)+'</div></div>';}if(!rows)rows='<div class="setS" style="padding:16px 0">No recurring transactions yet.</div>';var html='<div class="upcomingCard"><div class="upcomingHead"><b>Recurring transactions</b><span>'+state.recur.length+'</span></div>'+rows+'</div><button class="addT" id="recurListAdd">+ Add recurring transaction</button>';$('expUpcoming').innerHTML=html;$('expUpcoming').style.display='';$('recurListAdd').onclick=function(){openRecur(null);};$('expUpcoming').onclick=function(e){var b=climb(e.target,this,'data-rid');if(b)openRecur(b.getAttribute('data-rid'));};}
+function runRecur(){var t=today(),changed=false;for(var i=0;i<state.recur.length;i++){var r=state.recur[i];if(!r.active||r.start>t)continue;if(r.end&&r.end<t)continue;var cursor=r.last||addDays(toDate(r.start||t),-1),next=nextRecurringDateFrom(r,cursor),latest=null,guard=0;while(fmt(next)<=t&&(!r.end||fmt(next)<=r.end)&&guard<500){latest=next;next=recurringNextDate(r,next);guard++;}if(!latest)continue;var ds=fmt(latest),exists=state.tx.some(function(x){return x.recurId===r.id&&x.recurDate===ds;});if(r.skipNext){r.skipNext=false;r.last=ds;changed=true;continue;}if(!exists){state.tx.push(normTx({kind:r.kind||'exp',amt:r.amt,acct:r.acct,cat:r.cat,d:ds,payee:r.name,note:'Recurring',created:Date.now(),recurId:r.id,recurDate:ds}));changed=true;}if(r.last!==ds){r.last=ds;changed=true;}}if(changed)persist();}
 function normTx(x){ x.id='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); return x; }
 
 /* ---- recurring expense sheet ---- */
 var recurEd=null,recurFreq='monthly',recurWeekday=1,recurCat='',recurAcct='';
-function openRecur(id){var r=null;if(id){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===id){r=state.recur[i];break;}}if(!activeAccts().length){toastN('Add an account first');expView='acct';syncSeg();renderExp();openAcct(null);return;}recurEd=r?JSON.parse(JSON.stringify(r)):{id:'',name:'',amt:0,kind:'exp',freq:'monthly',day:1,weekday:1,month:1,yearDay:1,acct:activeAccts()[0].id,cat:'Other',start:today(),active:true,last:''};recurEd._edit=id||'';recurFreq=recurEd.freq||'monthly';recurWeekday=+recurEd.weekday||1;recurCat=recurEd.cat||'Other';recurAcct=recurEd.acct||activeAccts()[0].id;$('recurSheetT').textContent=id?'Edit recurring expense':'Add recurring expense';$('recurName').value=recurEd.name||'';$('recurAmt').value=recurEd.amt||'';$('recurDay').value=recurEd.day||1;$('recurMonth').value=recurEd.month||1;$('recurYearDay').value=recurEd.yearDay||recurEd.day||1;$('recurStart').value=recurEd.start||today();$('recurActive').classList.toggle('on',recurEd.active!==false);$('recurDel').style.display=id?'':'none';paintRecur();openSheet('recurSheet');}
+function openRecur(id){var r=null;if(id){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===id){r=state.recur[i];break;}}if(!activeAccts().length){toastN('Add an account first');expView='acct';syncSeg();renderExp();openAcct(null);return;}recurEd=r?JSON.parse(JSON.stringify(r)):{id:'',name:'',amt:0,kind:'exp',freq:'monthly',day:1,weekday:1,month:1,yearDay:1,acct:activeAccts()[0].id,cat:'Other',start:today(),active:true,last:''};recurEd._edit=id||'';recurFreq=recurEd.freq||'monthly';recurWeekday=+recurEd.weekday||1;recurCat=recurEd.cat||'Other';recurAcct=recurEd.acct||activeAccts()[0].id;$('recurSheetT').textContent=id?'Edit recurring transaction':'Add recurring transaction';$('recurName').value=recurEd.name||'';$('recurAmt').value=recurEd.amt||'';$('recurDay').value=recurEd.day||1;$('recurMonth').value=recurEd.month||1;$('recurYearDay').value=recurEd.yearDay||recurEd.day||1;$('recurStart').value=recurEd.start||today();$('recurActive').classList.toggle('on',recurEd.active!==false);var kb=$('recurKindGrid').children;for(var q=0;q<kb.length;q++)kb[q].classList.toggle('sel',kb[q].getAttribute('data-rkind')===(recurEd.kind||'exp'));$('recurDel').style.display=id?'':'none';paintRecur();openSheet('recurSheet');}
+
 function paintRecur(){var bs=$('recurFreqGrid').children;for(var i=0;i<bs.length;i++)bs[i].classList.toggle('sel',bs[i].getAttribute('data-rf')===recurFreq);$('recurMonthlyFields').style.display=recurFreq==='monthly'?'':'none';$('recurWeeklyFields').style.display=recurFreq==='weekly'?'':'none';$('recurYearlyFields').style.display=recurFreq==='yearly'?'':'none';var wb=$('recurWeekGrid').children;for(var j=0;j<wb.length;j++)wb[j].classList.toggle('sel',+wb[j].getAttribute('data-rw')===recurWeekday);var cats=Object.keys(state.cats),cg='';for(var k=0;k<cats.length;k++)cg+=chip(cats[k],cats[k]===recurCat,'data-rc',cats[k]);$('recurCatGrid').innerHTML=cg;var acs=activeAccts(),ag='';for(var m=0;m<acs.length;m++)ag+=chip(acs[m].name,acs[m].id===recurAcct,'data-ra',acs[m].id);$('recurAcctGrid').innerHTML=ag;}
-function saveRecur(){var n=$('recurName').value.trim(),amt=parseFloat($('recurAmt').value);if(!n){$('recurName').focus();toastN('Enter a name');return;}if(!amt||amt<=0){$('recurAmt').focus();toastN('Enter an amount');return;}if(!recurAcct){toastN('Pick an account');return;}recurEd.name=n;recurEd.amt=amt;recurEd.freq=recurFreq;recurEd.day=Math.min(28,Math.max(1,+$('recurDay').value||1));recurEd.weekday=recurWeekday;recurEd.month=Math.min(12,Math.max(1,+$('recurMonth').value||1));recurEd.yearDay=Math.min(28,Math.max(1,+$('recurYearDay').value||1));recurEd.cat=recurCat||'Other';recurEd.acct=recurAcct;recurEd.start=$('recurStart').value||today();recurEd.active=$('recurActive').classList.contains('on');if(recurEd._edit){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===recurEd._edit){delete recurEd._edit;state.recur[i]=recurEd;break;}}else{delete recurEd._edit;recurEd.id='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);state.recur.push(recurEd);}persist();runRecur();closeSheet();renderExp();toastN('Recurring expense saved');}
+function saveRecur(){var n=$('recurName').value.trim(),amt=parseFloat($('recurAmt').value);if(!n){$('recurName').focus();toastN('Enter a name');return;}if(!amt||amt<=0){$('recurAmt').focus();toastN('Enter an amount');return;}if(!recurAcct){toastN('Pick an account');return;}var old=recurEd._edit?state.recur.find(function(x){return x.id===recurEd._edit;}):null;var oldKey=old?[old.kind,old.freq,old.day,old.weekday,old.month,old.yearDay,old.acct,old.start].join('|'):'';recurEd.kind=recurEd.kind||'exp';recurEd.name=n;recurEd.amt=amt;recurEd.freq=recurFreq;recurEd.day=Math.min(31,Math.max(1,+$('recurDay').value||1));recurEd.weekday=recurWeekday;recurEd.month=Math.min(12,Math.max(1,+$('recurMonth').value||1));recurEd.yearDay=Math.min(31,Math.max(1,+$('recurYearDay').value||1));recurEd.cat=recurCat||'Other';recurEd.acct=recurAcct;recurEd.start=$('recurStart').value||today();recurEd.active=$('recurActive').classList.contains('on');var newKey=[recurEd.kind,recurEd.freq,recurEd.day,recurEd.weekday,recurEd.month,recurEd.yearDay,recurEd.acct,recurEd.start].join('|');if(old&&oldKey!==newKey)recurEd.last=today();if(recurEd._edit){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===recurEd._edit){delete recurEd._edit;state.recur[i]=recurEd;break;}}else{delete recurEd._edit;recurEd.id='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);state.recur.push(recurEd);}persist();closeSheet();renderExp();toastN((recurEd.kind==='inc'?'Recurring income':'Recurring expense')+' saved');}
+
 /* ---- expense sheet ---- */
 var expEd = null, expKindSel='exp', expCatSel='', expSubSel='', expAcctSel='', expToSel='';
 function activeAccts(){ return state.accts.filter(function(a){return a.active;}); }
@@ -7151,6 +7222,7 @@ function init(){
   $('expReceiptScan').addEventListener('click', scanReceiptWithAi);
   $('expReceiptRemove').addEventListener('click', clearExpReceipt);
   $('expReceiptFile').addEventListener('change', function(){var f=this.files&&this.files[0];if(!f)return;if(f.size>12*1024*1024){toastN('Receipt is too large');this.value='';return;}resizeReceipt(f,function(data){expEd.receipt='';expEd.receiptData=data;renderExpReceipt();toastN('Receipt added');if(getAiKey()&&getAiProvider()==='gemini')setTimeout(scanReceiptWithAi,250);});this.value='';});
+  $('recurKindGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rkind');if(!b)return;recurEd.kind=b.getAttribute('data-rkind');var bs=this.children;for(var i=0;i<bs.length;i++)bs[i].classList.toggle('sel',bs[i]===b);});
   $('recurFreqGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rf');if(!b)return;recurFreq=b.getAttribute('data-rf');paintRecur();});
   $('recurWeekGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rw');if(!b)return;recurWeekday=+b.getAttribute('data-rw');paintRecur();});
   $('recurCatGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rc');if(!b)return;recurCat=b.getAttribute('data-rc');paintRecur();});
@@ -7289,18 +7361,19 @@ if(nat && nat.getLaunchAction){
         var div=document.createElement('div');
         div.id='featureTools';
         div.className='featureTools';
-        div.innerHTML='<div class="featureToolsHead"><div><div class="eyebrow">Financial tools</div><b>Plan & manage</b></div><button class="sbtn" id="featureRefresh">Refresh</button></div>'+
-          '<div class="featureToolsGrid">'+
-          '<button class="featureToolBtn" data-ft="import"><b>⬆ Import</b><span>Transactions / bank statement</span></button>'+
-          '<button class="featureToolBtn" data-ft="split"><b>✂ Split</b><span>Split one payment</span></button>'+
-          '<button class="featureToolBtn" data-ft="cards"><b>💳 Card payments</b><span>Pay without double-counting</span></button>'+
-          '<button class="featureToolBtn" data-ft="recur"><b>🔁 Recurring</b><span>Pause, skip, end</span></button>'+
-          '<button class="featureToolBtn" data-ft="goals"><b>🎯 Savings goals</b><span>Track targets</span></button>'+
-          '<button class="featureToolBtn" data-ft="report"><b>🧠 Smart report</b><span>Natural-language summary</span></button>'+
-          '<button class="featureToolBtn" data-ft="duplicates"><b>🔎 Duplicates</b><span>Find possible duplicates</span></button>'+
-          '<button class="featureToolBtn" data-ft="currency"><b>🌍 Currency</b><span>Base currency & FX</span></button>'+
-          '</div><div id="featureSummary"></div>';
-        if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(div,anchor.nextSibling); else pg.insertBefore(div,pg.firstChild);
+        div.innerHTML=
+          '<div class="featureToolsHead">'+
+            '<div><div class="eyebrow">Financial tools</div><b>Plan & manage</b></div>'+
+            '<button class="sbtn" id="featureRefresh">Refresh</button>'+
+          '</div>'+
+          '<button class="financialToolsLauncher" data-ft="financial-tools">'+
+            '<span class="financialToolsIcon">💰</span>'+
+            '<span class="financialToolsCopy"><b>Financial Tools</b><small>Import, split, recurring, savings, currency & more</small></span>'+
+            '<span class="financialToolsArrow">›</span>'+
+          '</button>'+
+          '<div id="featureSummary"></div>';
+        if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(div,anchor.nextSibling);
+        else pg.insertBefore(div,pg.firstChild);
       }
     }
     if(!F$('featureSettings')){
@@ -7318,6 +7391,36 @@ if(nat && nat.getLaunchAction){
         if(dataLabel && dataLabel.parentNode) dataLabel.parentNode.insertBefore(d,dataLabel.nextSibling); else ps.appendChild(d);
       }
     }
+  }
+
+  function showFinancialTools(){
+    var body=
+      '<div class="financialToolsHint">Choose a tool. Your existing functionality stays unchanged.</div>'+
+      '<div class="financialToolGroup">'+
+        '<div class="financialToolGroupTitle">Transactions</div>'+
+        '<div class="financialToolGrid">'+
+          '<button class="featureToolBtn" data-ft="import"><b>⬆ Import</b><span>Transactions / bank statement</span></button>'+
+          '<button class="featureToolBtn" data-ft="split"><b>✂ Split</b><span>Split one payment</span></button>'+
+          '<button class="featureToolBtn" data-ft="cards"><b>💳 Card payments</b><span>Pay without double-counting</span></button>'+
+          '<button class="featureToolBtn" data-ft="duplicates"><b>🔎 Duplicates</b><span>Find possible duplicates</span></button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="financialToolGroup">'+
+        '<div class="financialToolGroupTitle">Planning</div>'+
+        '<div class="financialToolGrid">'+
+          '<button class="featureToolBtn" data-ft="recur"><b>🔁 Recurring</b><span>Pause, skip, end</span></button>'+
+          '<button class="featureToolBtn" data-ft="goals"><b>🎯 Savings goals</b><span>Track targets</span></button>'+
+        '</div>'+
+      '</div>'+
+      '<div class="financialToolGroup">'+
+        '<div class="financialToolGroupTitle">Analysis</div>'+
+        '<div class="financialToolGrid">'+
+          '<button class="featureToolBtn" data-ft="report"><b>🧠 Smart report</b><span>Natural-language summary</span></button>'+
+          '<button class="featureToolBtn" data-ft="currency"><b>🌍 Currency</b><span>Base currency & FX</span></button>'+
+        '</div>'+
+      '</div>';
+    var m=modal('Financial Tools',body);
+    m.classList.add('financialToolsSheet');
   }
 
   function modal(title,body){
@@ -7768,7 +7871,7 @@ if(nat && nat.getLaunchAction){
   function bindFeatureEvents(){
     document.addEventListener('click',function(e){
       var b=e.target.closest('[data-ft]');
-      if(b){var a=b.getAttribute('data-ft');if(a==='import')showImport();else if(a==='split')showSplit();else if(a==='cards')showCards();else if(a==='recur')showRecurControls();else if(a==='goals')showGoals();else if(a==='report')showNaturalReport();else if(a==='duplicates')showDuplicates();else if(a==='currency')showCurrency();return;}
+      if(b){var a=b.getAttribute('data-ft');if(a==='financial-tools')showFinancialTools();else if(a==='import')showImport();else if(a==='split')showSplit();else if(a==='cards')showCards();else if(a==='recur')showRecurControls();else if(a==='goals')showGoals();else if(a==='report')showNaturalReport();else if(a==='duplicates')showDuplicates();else if(a==='currency')showCurrency();return;}
       if(e.target.id==='featureRefresh'){ensureFeatureState();persist();refreshFeatureSummary();renderExp();return;}
       if(e.target.id==='featureBackupTest'){backupTest();return;}
       if(e.target.id==='featureRestoreTest'){restoreValidate();return;}
