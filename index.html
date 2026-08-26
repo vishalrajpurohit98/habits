@@ -973,7 +973,14 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 
 /* ============ DESKTOP LAYOUT ============ */
 @media (min-width:1000px){
-  /* left sidebar navigation (transforms the bottom dock) */
+  
+/* Revised primary navigation: all sections remain directly accessible via horizontal scroll. */
+.materialNavScroll{overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;touch-action:pan-x;justify-content:flex-start;}
+.materialNavScroll::-webkit-scrollbar{display:none;}
+#tabbar .mnavItem{flex:0 0 84px;min-width:84px;}
+#tabbar .mnavIcon{font-size:27px;height:31px;min-width:31px;}
+
+/* left sidebar navigation (transforms the bottom dock) */
   #tabbar.dock{
     left:0; right:auto; top:0; bottom:0; transform:none;
     width:248px; flex-direction:column; align-items:stretch; justify-content:flex-start;
@@ -1070,12 +1077,12 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 .materialNav{position:fixed;left:50%;bottom:calc(10px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:50;width:min(620px,calc(100% - 24px));height:78px;padding:7px 8px;background:color-mix(in srgb,var(--card) 94%,transparent);border:1px solid var(--line);border-radius:24px;box-shadow:0 8px 30px rgba(0,0,0,.28);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);overflow:hidden;pointer-events:auto}
 .materialNavScroll{height:100%;display:flex;align-items:stretch;gap:3px;overflow-x:auto;overflow-y:hidden;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;scrollbar-width:none;overscroll-behavior-x:contain;touch-action:pan-x}
 .materialNavScroll::-webkit-scrollbar{display:none}
-.mnavItem{position:relative;height:62px;flex:0 0 76px;border:0;background:transparent;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:18px;font:inherit;cursor:pointer;min-width:76px;padding:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.mnavItem{position:relative;height:70px;flex:0 0 84px;border:0;background:transparent;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:18px;font:inherit;cursor:pointer;min-width:76px;padding:0;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .mnavItem::before{content:"";position:absolute;top:5px;left:50%;transform:translateX(-50%);width:64px;height:32px;border-radius:18px;background:transparent;z-index:-1;transition:.18s ease}
 .mnavItem.on{color:var(--txt);font-weight:700}.mnavItem.on::before{background:color-mix(in srgb,var(--acc) 18%,transparent)}
-.mnavIcon{height:24px;min-width:24px;display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1}.mnavLabel{font-size:10px;line-height:12px;white-space:nowrap}
+.mnavIcon{height:31px;min-width:31px;display:flex;align-items:center;justify-content:center;font-size:27px;line-height:1}.mnavLabel{font-size:10px;line-height:13px;white-space:nowrap;font-weight:750}
 .materialNavScroll::after{content:"";flex:0 0 4px}
-@media(max-width:480px){.materialNav{bottom:calc(8px + env(safe-area-inset-bottom,0px));width:calc(100% - 16px);height:70px;border-radius:22px}.materialNavScroll{gap:2px}.mnavItem{height:58px;flex-basis:74px;min-width:74px}.mnavIcon{font-size:18px}.mnavLabel{font-size:9px}}
+@media(max-width:480px){.materialNav{bottom:calc(8px + env(safe-area-inset-bottom,0px));width:calc(100% - 16px);height:86px;border-radius:26px;padding:7px}.materialNavScroll{gap:3px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch}.materialNavScroll::-webkit-scrollbar{display:none}.mnavItem{height:70px;flex:0 0 82px;min-width:82px}.mnavIcon{font-size:27px;height:31px;min-width:31px}.mnavLabel{font-size:10px}}
 .aiFeatureGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .aiFeatureCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;min-width:0}
 .aiFeatureHead{display:flex;align-items:center;gap:8px;margin-bottom:5px}.aiFeatureHead span{font-size:18px}.aiFeatureHead b{font-size:13px;flex:1}
