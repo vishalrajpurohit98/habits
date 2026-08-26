@@ -1073,7 +1073,7 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 .mnavItem.on{color:var(--txt);font-weight:700}.mnavItem.on::before{background:color-mix(in srgb,var(--acc) 18%,transparent)}
 .mnavIcon{height:24px;min-width:24px;display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1}
 .mnavLabel{font-size:10px;line-height:12px;white-space:nowrap}
-.materialMoreBtn{position:fixed;right:14px;top:14px;z-index:8999;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:9px 12px;font:600 12px/1 var(--f);box-shadow:var(--shadow)}
+.materialMoreBtn{display:none!important;position:fixed;right:14px;top:14px;z-index:8999;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:9px 12px;font:600 12px/1 var(--f);box-shadow:var(--shadow)}
 @media(max-width:480px){.materialNav{bottom:8px;width:calc(100% - 16px);height:70px;border-radius:22px}.mnavItem{height:58px}.mnavIcon{font-size:18px}.mnavLabel{font-size:9px}.materialMoreBtn{right:10px;top:10px;padding:8px 10px}.materialMoreBtn span{display:none}}
 .aiFeatureGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .aiFeatureCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;min-width:0}
@@ -1135,6 +1135,43 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   });
 }
 </script>
+
+<style id="navigation_ux_fix">
+/* Navigation UX v2: six-tab dock + safe action area */
+#app{padding-bottom:calc(220px + env(safe-area-inset-bottom,0px));}
+.page{padding-bottom:150px;}
+.materialNav{
+  position:fixed;left:50%;bottom:10px;transform:translateX(-50%);
+  z-index:9000;width:min(720px,calc(100% - 16px));height:92px;
+  display:grid;grid-template-columns:repeat(6,1fr);align-items:center;
+  padding:7px 8px;background:rgba(10,10,9,.94);border:1px solid rgba(255,255,255,.14);
+  border-radius:26px;box-shadow:0 10px 34px rgba(0,0,0,.45);
+  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
+}
+.mnavItem{position:relative;height:76px;border:0;background:transparent;color:#b7b1a8;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  border-radius:20px;font:inherit;cursor:pointer;min-width:0;z-index:1;padding:5px 2px;}
+.mnavItem::before{content:"";position:absolute;inset:6px 3px;background:transparent;border-radius:20px;z-index:-1;transition:.18s ease;}
+.mnavItem.on{color:#f2c66d;font-weight:800;}
+.mnavItem.on::before{background:rgba(185,128,22,.18);}
+.mnavIcon{height:29px;min-width:29px;display:flex;align-items:center;justify-content:center;font-size:25px;line-height:1;}
+.mnavLabel{font-size:13px;line-height:14px;white-space:nowrap;font-weight:650;}
+#fab{z-index:9001!important;bottom:calc(112px + env(safe-area-inset-bottom,0px))!important;}
+#fab.dashboardAdd{height:50px!important;padding:0 18px!important;border-radius:16px!important;gap:8px!important;}
+#fab.dashboardAdd #fabLbl{position:static!important;width:auto!important;height:auto!important;overflow:visible!important;clip:auto!important;white-space:nowrap!important;font-size:14px!important;}
+#fab:not(.dashboardAdd) #fabLbl{position:absolute!important;width:1px!important;height:1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;}
+@media(max-width:480px){
+  .materialNav{bottom:8px;width:calc(100% - 12px);height:88px;border-radius:25px;padding:6px 5px;}
+  .mnavItem{height:74px;border-radius:19px;}
+  .mnavIcon{font-size:23px;height:27px;}
+  .mnavLabel{font-size:12px;}
+  #fab{bottom:calc(106px + env(safe-area-inset-bottom,0px))!important;}
+}
+/* Keep fixed action controls above the dock and out of its hit area. */
+.sheet,.modal,.aiGuideSheet{z-index:10001!important;}
+#scrim,.sheetScrim,.aiGuideScrim{z-index:10000!important;}
+</style>
+
 </head>
 <body>
 
@@ -1175,7 +1212,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="setCard dashTile"><div class="dashIco">💰</div><div class="setT">Money</div><div class="dashVal" id="dashMoney">—</div><div class="setS">today</div></div>
   </div>
   <div class="lbl">Today at a glance</div><div class="setCard" id="dashGlance"></div>
-  <div class="lbl">Actionables</div>
+  <div class="lbl" style="display:flex;align-items:center;justify-content:space-between"><span>Actionables</span><button class="sbtn acc" id="dashAddAnything" type="button" style="min-height:36px;padding:7px 12px">+ Add anything</button></div>
   <div class="setCard dashTaskCard" id="dashTasksCard"></div>
   <div class="lbl">Patterns</div><div id="dashPatterns"></div>
   <div class="dashActions"><button class="sbtn acc" data-go-tab="pgToday">Habits</button><button class="sbtn" data-go-tab="pgWorkout">Workout</button><button class="sbtn" data-go-tab="pgAI">AI</button></div>
@@ -1296,7 +1333,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 <div class="page" id="pgExp">
     <div class="eyebrow" id="expMonthLbl"></div>
     <div class="h1row"><h1>Money</h1>
-      <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <div style="display:flex;align-items:center;gap:7px"><button class="sbtn acc" id="expAddTop" type="button">+ Add expense</button><button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
     <div style="height:12px"></div>
 
@@ -1905,11 +1942,12 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 </div>
 
 <nav class="materialNav" id="tabbar" aria-label="Primary navigation">
-  <button class="mnavItem on" data-tab="pgDashboard" aria-label="Dashboard"><span class="mnavIcon">⌂</span><span class="mnavLabel">Home</span></button>
-  <button class="mnavItem" data-tab="pgTasks" aria-label="Tasks"><span class="mnavIcon">✓</span><span class="mnavLabel">Tasks</span></button>
-  <button class="mnavItem" data-tab="pgToday" aria-label="Habits"><span class="mnavIcon">◷</span><span class="mnavLabel">Habits</span></button>
-  <button class="mnavItem" data-tab="pgExp" aria-label="Money"><span class="mnavIcon">₹</span><span class="mnavLabel">Money</span></button>
-  <button class="mnavItem" data-tab="pgAI" aria-label="More"><span class="mnavIcon">•••</span><span class="mnavLabel">More</span></button>
+  <button class="mnavItem on" data-tab="pgDashboard" aria-label="Today"><span class="mnavIcon">✓</span><span class="mnavLabel">Today</span></button>
+  <button class="mnavItem" data-tab="pgMood" aria-label="Mood"><span class="mnavIcon">☺</span><span class="mnavLabel">Mood</span></button>
+  <button class="mnavItem" data-tab="pgExp" aria-label="Money"><span class="mnavIcon">▣</span><span class="mnavLabel">Money</span></button>
+  <button class="mnavItem" data-tab="pgStats" aria-label="Stats"><span class="mnavIcon">▥</span><span class="mnavLabel">Stats</span></button>
+  <button class="mnavItem" data-tab="pgAI" aria-label="AI"><span class="mnavIcon">✧</span><span class="mnavLabel">AI</span></button>
+  <button class="mnavItem" data-tab="pgSet" aria-label="Settings"><span class="mnavIcon">⚙</span><span class="mnavLabel">Settings</span></button>
 </nav>
 <button class="materialMoreBtn" id="materialMoreBtn" aria-label="More settings">⚙ <span>More</span></button>
 
@@ -5511,7 +5549,7 @@ function exportExLogPdf(ex){
     +'<div><b>'+fmtExVal(ex,exToday(ex.id))+'</b><span>Today</span></div></div>'
     +'<h2>Session log</h2>'
     +'<table><tr><th>Date</th><th style="text-align:right">Value</th><th>Sets</th><th style="text-align:center">Goal</th></tr>'+body+'</table>'
-    +'</body></html>';
+    +'\n</body></html>';
   var w2=window.open('','_blank');
   if(w2){ w2.document.write(doc2); w2.document.close(); setTimeout(function(){ w2.print(); },400); }
   else toastN('Allow pop-ups to export PDF');
@@ -6725,7 +6763,8 @@ function showTab(id){
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
-  $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
+  $('fabLbl').textContent = id==='pgDashboard' ? 'Add anything' : 'Add';
+  $('fab').classList.toggle('dashboardAdd', id==='pgDashboard');
   if(id==='pgDashboard') renderDashboard();
   if(id==='pgTasks') renderTasks();
   if(id==='pgStats') renderStats();
@@ -6734,7 +6773,7 @@ function showTab(id){
   if(id==='pgWorkout') renderWorkoutPage();
   if(id==='pgSet') renderSet();
   if(id==='pgAI'){ renderAI(); renderAIPageFeatures(); }
-  $('fab').style.display = (id==='pgToday'||id==='pgExp'||id==='pgTasks') ? '' : 'none';
+  $('fab').style.display = (id==='pgDashboard'||id==='pgToday'||id==='pgExp'||id==='pgTasks') ? '' : 'none';
   $('app').scrollTop = 0;
 }
 function climb(el, root, attr){
@@ -6885,7 +6924,10 @@ function init(){
     if(e.target&&e.target.classList&&e.target.classList.contains('aiOpenImport')){showTab('pgExp');setTimeout(function(){showImport();},80);return;}
   });
   $('fab').addEventListener('click', function(){
-    if($('pgExp').classList.contains('on')) openExp(null); else if($('pgTasks').classList.contains('on')) openTaskSheet(null); else openAddActionSheet();
+    if($('pgExp').classList.contains('on')) openExp(null);
+    else if($('pgTasks').classList.contains('on')) openTaskSheet(null);
+    else if($('pgToday').classList.contains('on')) openEdit(null);
+    else if($('pgDashboard').classList.contains('on')) openAddActionSheet();
   });
 
   $('actionSheet').addEventListener('click', function(e){
@@ -7635,6 +7677,8 @@ function init(){
   /* empty-state CTAs */
   $('emptyCta').addEventListener('click', function(){ openEdit(null); });
   $('expCta').addEventListener('click', function(){ openExp(null); });
+  if($('expAddTop')) $('expAddTop').addEventListener('click', function(){ openExp(null); });
+  if($('dashAddAnything')) $('dashAddAnything').addEventListener('click', function(){ openAddActionSheet(); });
 
   // stats trend selectors
   $('trendSeg').addEventListener('click', function(e){ var b=climb(e.target,this,'data-tr'); if(!b) return;
@@ -8550,5 +8594,14 @@ if(nat && nat.getLaunchAction){
 })();
 </script>
 
+<script id="navInitFix">
+(function(){
+  function initNav(){
+    var f=document.getElementById('fab');
+    if(f){f.classList.add('dashboardAdd'); var l=document.getElementById('fabLbl'); if(l)l.textContent='Add anything';}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initNav);else initNav();
+})();
+</script>
 </body>
 </html>
