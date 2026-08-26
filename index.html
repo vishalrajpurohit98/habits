@@ -1066,41 +1066,15 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 .wkBadge{font-size:10px;padding:4px 7px;border-radius:999px;background:var(--card2);color:var(--mut)}
 @media(max-width:480px){.workoutStatGrid{grid-template-columns:1fr 1fr}.workoutStat:last-child{grid-column:1/-1}}
 
-.page{padding-bottom:96px;padding-top:24px}
-.dashGrid{grid-template-columns:repeat(3,1fr)}
-@media(max-width:480px){.dashGrid{grid-template-columns:1fr 1fr}}
-
-
-.aiTopBar{width:100%;max-width:100%;box-sizing:border-box;min-width:0}
-.aiTopBar>div{min-width:0;flex:1}
-.aiTopBar .aiGuideBtn{position:relative;flex:0 0 auto}
-.aiTopBar .aiGuideBtn+*{min-width:0}
-#pgAI{position:relative;overflow-x:hidden;box-sizing:border-box}
-#pgAI>*{max-width:100%;box-sizing:border-box}
-#pgAI .aiCommandIntro{overflow-wrap:break-word}
-#pgAI .aiFeatureGrid{min-width:0}
-#pgAI .aiFeatureGrid>*{min-width:0;max-width:100%}
-.aiTopBar{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;max-width:100%;margin-bottom:4px}
-.aiTopBar h1{margin:0}.aiClearBtn{flex:0 0 auto;white-space:nowrap}
-.aiCommandIntro{max-width:760px}
-#pgAI{overflow-x:hidden}
-#pgAI .aiFeatureGrid{width:100%;max-width:100%;box-sizing:border-box}
-#pgAI .aiFeatureCard{min-width:0;overflow:hidden;box-sizing:border-box}
-#pgAI .uaiBox{width:100%;max-width:100%;box-sizing:border-box;overflow:hidden}
-#pgAI .uaiInputRow{display:grid;grid-template-columns:minmax(0,1fr) 52px 52px;gap:10px;align-items:center}
-#pgAI .uaiInp{min-width:0;width:100%;box-sizing:border-box}
-#pgAI .uaiHints{display:flex;flex-wrap:wrap;gap:8px}
-.moneyReceiptCard{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:10px 0 14px;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card)}
-.moneyReceiptActions{display:flex;align-items:center;gap:8px;flex:0 0 auto}.moneyReceiptText{display:flex;flex-direction:column;gap:4px;min-width:0}.moneyReceiptText span{font-size:12px;color:var(--mut);line-height:1.45}
-@media(max-width:520px){.aiTopBar{align-items:center}.aiClearBtn{padding:9px 10px}.aiClearBtn{font-size:11px}.moneyReceiptCard{align-items:flex-start;flex-direction:column}.moneyReceiptCard .sbtn{width:100%}}
+.page{padding-bottom:96px}
 .materialNav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9000;width:min(620px,calc(100% - 24px));height:76px;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:7px 8px;background:color-mix(in srgb,var(--card) 94%,transparent);border:1px solid var(--line);border-radius:24px;box-shadow:0 8px 30px rgba(0,0,0,.28);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
 .mnavItem{position:relative;height:62px;border:0;background:transparent;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:18px;font:inherit;cursor:pointer;min-width:0}
 .mnavItem::before{content:"";position:absolute;top:5px;left:50%;transform:translateX(-50%);width:64px;height:32px;border-radius:18px;background:transparent;z-index:-1;transition:.18s ease}
 .mnavItem.on{color:var(--txt);font-weight:700}.mnavItem.on::before{background:color-mix(in srgb,var(--acc) 18%,transparent)}
-.mnavIcon{height:30px;min-width:30px;display:flex;align-items:center;justify-content:center;font-size:25px;line-height:1}
+.mnavIcon{height:24px;min-width:24px;display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1}
 .mnavLabel{font-size:10px;line-height:12px;white-space:nowrap}
-.materialMoreBtn{position:absolute;right:14px;top:14px;max-width:calc(100% - 28px);z-index:8999;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:9px 12px;font:600 12px/1 var(--f);box-shadow:var(--shadow)}
-@media(max-width:480px){.materialNav{bottom:8px;width:calc(100% - 16px);height:70px;border-radius:22px}.mnavItem{height:58px}.mnavIcon{font-size:23px;min-width:28px;height:28px}.mnavLabel{font-size:9px}.materialMoreBtn{right:10px;top:10px;padding:8px 10px}.materialMoreBtn span{display:none}}
+.materialMoreBtn{position:fixed;right:14px;top:14px;z-index:8999;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:9px 12px;font:600 12px/1 var(--f);box-shadow:var(--shadow)}
+@media(max-width:480px){.materialNav{bottom:8px;width:calc(100% - 16px);height:70px;border-radius:22px}.mnavItem{height:58px}.mnavIcon{font-size:18px}.mnavLabel{font-size:9px}.materialMoreBtn{right:10px;top:10px;padding:8px 10px}.materialMoreBtn span{display:none}}
 .aiFeatureGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
 .aiFeatureCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;min-width:0}
 .aiFeatureHead{display:flex;align-items:center;gap:8px;margin-bottom:5px}.aiFeatureHead span{font-size:18px}.aiFeatureHead b{font-size:13px;flex:1}
@@ -1148,6 +1122,9 @@ html.light select.inp,html.light input.inp{color-scheme:light}
 html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @media(max-width:430px){.featureGrid3{grid-template-columns:1fr 1fr}.featureModal{width:94vw}}
 
+
+/* ============ ACTIONABLES / TASKS ============ */
+.taskHero{background:linear-gradient(135deg,var(--card),rgba(78,168,255,.05));border:1px solid var(--line);border-radius:20px;padding:16px;margin:12px 0 10px}.taskHeroTop{display:flex;align-items:center;justify-content:space-between;gap:10px}.taskHero h2{margin:0;font-size:20px}.taskHero p{margin:4px 0 0;color:var(--mut);font-size:11px;line-height:1.45}.taskSearchRow{display:flex;gap:7px;margin:10px 0}.taskSearch{flex:1;min-width:0}.taskIconBtn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:13px;min-width:44px;height:44px;cursor:pointer;font-weight:800}.taskIconBtn.acc{background:var(--primary);color:#06101A;border-color:transparent}.taskFilters{display:flex;gap:6px;overflow:auto;padding:2px 0 4px}.taskFilters .chip{white-space:nowrap}.taskSectionTitle{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 8px}.taskSectionTitle b{font-size:12px;letter-spacing:1.2px;text-transform:uppercase}.taskSectionTitle span{font-size:10px;color:var(--mut)}.taskCard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px;margin-bottom:8px}.taskRow{display:flex;gap:10px;align-items:flex-start}.taskCheck{width:24px;height:24px;border-radius:8px;border:1.8px solid var(--line2);display:grid;place-items:center;flex:0 0 auto;cursor:pointer;color:#06101A}.taskCheck.done{background:var(--sGreen);border-color:var(--sGreen)}.taskBody{min-width:0;flex:1}.taskName{font-size:14px;font-weight:800;line-height:1.3}.taskName.done{text-decoration:line-through;color:var(--mut)}.taskDesc{font-size:11px;color:var(--mut);line-height:1.45;margin-top:4px}.taskMeta{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-top:7px}.taskBadge{font-size:9px;font-weight:850;border-radius:8px;padding:5px 7px;background:var(--card2);color:var(--mut)}.taskBadge.high{background:rgba(255,90,75,.14);color:#ff5a4b}.taskBadge.medium{background:rgba(255,174,31,.14);color:#b36b00}.taskBadge.low{background:rgba(47,198,160,.13);color:#23876c}.taskBadge.overdue{background:#6b211a;color:#fff}.taskBadge.habit{background:rgba(78,168,255,.12);color:var(--primary)}.taskMenu{border:0;background:transparent;color:var(--mut);font-size:18px;cursor:pointer}.taskSubtasks{margin:9px 0 0 34px;border-left:2px solid var(--line);padding-left:10px}.taskSub{display:flex;align-items:center;gap:7px;margin:6px 0;font-size:11px;color:var(--ink2)}.taskSubCheck{width:16px;height:16px;border:1px solid var(--line2);border-radius:5px;display:grid;place-items:center;cursor:pointer;font-size:9px;flex:0 0 auto}.taskSubCheck.done{background:var(--sGreen);border-color:var(--sGreen);color:#06101A}.taskReminder{font-size:10px;color:var(--mut);margin-top:7px}.taskReminder b{color:var(--ink2)}.taskProgress{height:5px;background:var(--card2);border-radius:99px;overflow:hidden;margin-top:8px}.taskProgress i{display:block;height:100%;background:var(--primary);border-radius:99px}.taskHabitNote{font-size:10px;color:var(--primary);margin-top:7px}.taskEmpty{padding:25px 15px;text-align:center;border:1px dashed var(--line);border-radius:18px;color:var(--mut);font-size:12px}.taskModalSheet{max-height:90vh;overflow:auto}.taskFieldLabel{font-size:9px;letter-spacing:1.3px;text-transform:uppercase;color:var(--mut2);font-weight:800;margin:11px 0 6px}.taskRepeatRow{display:flex;gap:6px;flex-wrap:wrap}.taskRepeatRow .chip{padding:8px 10px}.taskRepeatRow .chip.sel{background:var(--primary);color:#06101A}.taskSubEditor{display:flex;gap:6px;margin-top:7px}.taskSubEditor input{flex:1}.taskSubEditor button{width:40px;border:1px solid var(--line);background:var(--card2);border-radius:12px}.taskExportBox{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}.taskExportBox button{border:1px solid var(--line);background:var(--card);border-radius:13px;padding:10px;font-weight:800;color:var(--ink);cursor:pointer}.taskVoiceHint{font-size:10px;color:var(--mut);margin:0 2px 8px}.taskVoiceHint b{color:var(--primary)}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -1158,77 +1135,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   });
 }
 </script>
-<style id="tasks-v3">
-#pgTasks .taskToolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
-#pgTasks .taskSearch{flex:1 1 260px;min-width:180px}
-#pgTasks .taskFilters{display:flex;gap:7px;overflow:auto;padding-bottom:4px}
-#pgTasks .taskFilter{border:1px solid var(--line);background:var(--card2);color:var(--mut);border-radius:999px;padding:8px 13px;white-space:nowrap;cursor:pointer}
-#pgTasks .taskFilter.active{background:var(--acc);color:#15120c;border-color:var(--acc)}
-#pgTasks .taskInsights{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:16px 0}
-#pgTasks .taskInsight{padding:14px;border:1px solid var(--line);border-radius:15px;background:var(--card2)}
-#pgTasks .taskInsight span{display:block;color:var(--mut);font-size:11px}
-#pgTasks .taskInsight b{font-size:22px}
-#pgTasks .taskSections{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-#pgTasks .taskSection{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;min-width:0}
-#pgTasks .taskSection.full{grid-column:1/-1}
-#pgTasks .taskRow{display:grid;grid-template-columns:auto 1fr auto;gap:11px;align-items:center;padding:13px 0;border-bottom:1px solid var(--line)}
-#pgTasks .taskRow:last-child{border-bottom:0}
-#pgTasks .taskCheck{width:21px;height:21px;accent-color:var(--acc)}
-#pgTasks .taskTitle{font-weight:650}
-#pgTasks .taskMeta{font-size:11px;color:var(--mut);margin-top:4px;display:flex;gap:7px;flex-wrap:wrap}
-#pgTasks .taskBadge{border:1px solid var(--line);border-radius:999px;padding:3px 7px}
-#pgTasks .taskOverdue{color:#ff9f9f}
-#pgTasks .taskActions{display:flex;gap:6px}
-#pgTasks .taskMini{border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:9px;padding:7px 9px;cursor:pointer}
-#pgTasks .taskEmpty{color:var(--mut);font-size:13px;padding:12px 0}
-#taskModal{font-family:inherit}
-#taskModal .taskFormGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-#taskModal .taskFormFull{grid-column:1/-1}
-#taskModal label{display:block;font-size:11px;color:var(--mut);margin:0 0 5px}
-#taskModal .taskLinkGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
-#taskModal .taskLinkBtn{border:1px solid var(--line);background:var(--card2);color:var(--mut);padding:9px;border-radius:10px;cursor:pointer}
-#taskModal .taskLinkBtn.active{border-color:var(--acc);color:var(--txt)}
-#taskModal .taskRecurrence{display:flex;gap:8px;align-items:center}
-#taskCalendar{overflow:auto}
-#taskCalendar .calGrid{display:grid;grid-template-columns:repeat(7,minmax(100px,1fr));gap:6px;min-width:700px}
-#taskCalendar .calCell{min-height:90px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px}
-#taskCalendar .calDate{font-size:11px;color:var(--mut)}
-#taskCalendar .calTask{font-size:11px;margin-top:5px;padding:5px;border-radius:7px;background:rgba(120,180,150,.14)}
-@media(max-width:899px){#pgTasks .taskSections{grid-template-columns:1fr}}
-@media(max-width:599px){
- #pgTasks .taskInsights{grid-template-columns:1fr}
- #taskModal .taskFormGrid{grid-template-columns:1fr}
- #taskModal .taskFormFull{grid-column:auto}
-}
-</style>
-
-<style id="tasks-nav-final">
-@media(max-width:899px){
- .materialNav{grid-template-columns:repeat(6,minmax(0,1fr))!important;width:calc(100vw - 12px)!important;max-width:none!important;padding:5px 4px!important}
- .mnavItem{min-width:0!important;padding:0 1px!important}
- .mnavIcon{font-size:20px!important}
- .mnavLabel{font-size:8px!important;white-space:nowrap!important}
-}
-@media(max-width:420px){
- .mnavLabel{font-size:7px!important}.mnavIcon{font-size:18px!important}
-}
-</style>
-<style id="tasks-ui-fix-v2">
-#pgTasks{width:100%;max-width:920px;margin:0 auto;box-sizing:border-box;overflow-x:hidden}
-#pgTasks .taskPageHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.taskPageCopy{min-width:0}.taskAddBtn{flex:0 0 auto;white-space:nowrap}
-#pgTasks .taskInsights{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.taskInsight{min-height:0!important}
-#pgTasks .taskToolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}.taskSearch{width:100%;min-width:0;box-sizing:border-box}.taskToolbar .sbtn{white-space:nowrap}
-#pgTasks .taskFilters{scrollbar-width:none}.taskFilters::-webkit-scrollbar{display:none}
-.taskModal{display:none;position:fixed;inset:0;z-index:10000;align-items:center;justify-content:center;background:rgba(0,0,0,.68);padding:18px;box-sizing:border-box}.taskModal[aria-hidden="false"]{display:flex}
-.taskModalCard{width:min(680px,100%);max-height:min(90vh,820px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:22px;box-sizing:border-box;box-shadow:0 24px 80px rgba(0,0,0,.5)}
-.taskModalHead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:20px}.taskModalHead h2{margin:0 0 4px;font-size:24px}.taskModalClose{flex:0 0 auto}
-.taskModal .taskFormGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.taskModal .taskFormFull{grid-column:1/-1}.taskModal label{display:block;font-size:12px;color:var(--mut);margin:0 0 6px}.taskModal input.inp,.taskModal select.inp{width:100%;box-sizing:border-box;min-width:0}
-.taskLinkGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.taskLinkBtn{width:100%;min-height:46px}.taskLinkBtn.active{border-color:var(--acc)!important;color:var(--txt)!important;background:color-mix(in srgb,var(--acc) 10%,var(--card2))!important}
-.taskReminderBox{border:1px solid var(--line);border-radius:16px;padding:14px;box-sizing:border-box}.taskCheckLabel{display:flex!important;align-items:center;gap:8px;color:var(--txt)!important;font-size:13px!important}.taskCheckLabel input{margin:0;width:17px;height:17px}.taskSubFields{margin-top:12px}.taskRepeatRow{margin-top:12px}.taskRepeatRow>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.taskNumber{width:84px!important;flex:0 0 84px}.taskModalActions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
-@media(max-width:700px){#pgTasks{padding-left:14px;padding-right:14px}.taskPageHeader{align-items:flex-start!important}.taskInsights{grid-template-columns:repeat(3,minmax(0,1fr))!important}.taskInsight{padding:11px 10px!important}.taskInsight span{font-size:10px!important}.taskInsight b{font-size:20px!important}.taskToolbar{grid-template-columns:minmax(0,1fr) auto!important}.taskToolbar .sbtn{padding:10px 12px!important}.taskModal{padding:10px}.taskModalCard{padding:18px;border-radius:20px;max-height:calc(100vh - 20px)}.taskModal .taskFormGrid{grid-template-columns:1fr}.taskModal .taskFormFull{grid-column:auto}.taskLinkGrid{grid-template-columns:1fr 1fr 1fr!important}.taskModalActions .sbtn{flex:1}.taskSections{grid-template-columns:1fr!important}}
-@media(max-width:480px){#pgTasks .taskPageHeader{display:block;margin-bottom:14px}.taskAddBtn{margin-top:10px;width:100%}.taskInsights{gap:7px!important}.taskInsight{border-radius:14px!important}.taskToolbar{gap:7px!important}.taskToolbar .sbtn{font-size:11px!important}.taskFilters{gap:6px!important}.taskFilter{padding:8px 11px!important}.taskLinkBtn{font-size:11px;padding:7px 4px!important}.taskModalHead h2{font-size:21px}.taskModalActions{position:sticky;bottom:0;background:var(--card);margin-left:-18px;margin-right:-18px;padding:14px 18px 0}}
-@media(min-width:701px){#pgTasks .taskToolbar{grid-template-columns:minmax(0,1fr) auto auto auto auto}#pgTasks .taskSearch{min-width:220px}}
-</style>
 </head>
 <body>
 
@@ -1262,30 +1168,34 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <div class="eyebrow" id="dashDateLine"></div>
   <div class="h1row"><h1>Dashboard</h1></div>
   <div id="dashSummary"></div>
-
   <div class="dashGrid">
     <div class="setCard dashTile"><div class="dashIco">✓</div><div class="setT">Habits</div><div class="dashVal" id="dashHabits">—</div><div class="setS">today</div></div>
-    <div class="setCard dashTile"><div class="dashIco">🏋️</div><div class="setT">Workout</div><div class="dashVal" id="dashWorkout">—</div><div class="setS">last 30 days</div></div>
+    <div class="setCard dashTile"><div class="dashIco">🏋️</div><div class="setT">Workout</div><div class="dashVal" id="dashWorkout">—</div><div class="setS">recent</div></div>
     <div class="setCard dashTile"><div class="dashIco">😊</div><div class="setT">Mood</div><div class="dashVal" id="dashMood">—</div><div class="setS">today</div></div>
-    <div class="setCard dashTile"><div class="dashIco">😴</div><div class="setT">Sleep</div><div class="dashVal" id="dashSleep">—</div><div class="setS">last logged</div></div>
-    <div class="setCard dashTile"><div class="dashIco">💰</div><div class="setT">Spending</div><div class="dashVal" id="dashMoney">—</div><div class="setS">today</div></div>
-    <div class="setCard dashTile"><div class="dashIco">🔥</div><div class="setT">Streak</div><div class="dashVal" id="dashStreak">—</div><div class="setS">current</div></div>
+    <div class="setCard dashTile"><div class="dashIco">💰</div><div class="setT">Money</div><div class="dashVal" id="dashMoney">—</div><div class="setS">today</div></div>
   </div>
+  <div class="lbl">Today at a glance</div><div class="setCard" id="dashGlance"></div>
+  <div class="lbl">Patterns</div><div id="dashPatterns"></div>
+  <div class="dashActions"><button class="sbtn acc" data-go-tab="pgToday">Habits</button><button class="sbtn" data-go-tab="pgWorkout">Workout</button><button class="sbtn" data-go-tab="pgAI">AI</button></div>
+</div>
 
-  <div class="lbl">Statistics</div>
-  <div class="statGrid" id="dashStats"></div>
 
-  <div class="lbl">Completion trend</div>
-  <div class="chartBox" id="dashTrend"></div>
-
-  <div class="lbl">Patterns</div>
-  <div id="dashPatterns"></div>
-
-  <div class="dashActions">
-    <button class="sbtn acc" data-go-tab="pgToday">Habits</button>
-    <button class="sbtn" data-go-tab="pgWorkout">Workout</button>
-    <button class="sbtn" data-go-tab="pgAI">AI</button>
+<div class="page" id="pgTasks">
+  <div class="eyebrow" id="taskDateLine"></div>
+  <div class="h1row"><h1>Tasks</h1><button class="srchBtn" id="taskVoiceBtn" aria-label="Add task by voice">🎙</button></div>
+  <div class="taskHero">
+    <div class="taskHeroTop"><div><h2 id="taskOpenTitle">Today's focus</h2><p id="taskSummary">Loading actionables…</p></div><button class="taskIconBtn acc" id="taskAddBtn">＋</button></div>
+    <div class="taskProgress"><i id="taskOverallProgress" style="width:0%"></i></div>
   </div>
+  <div class="taskSearchRow"><input id="taskSearch" class="inp taskSearch" placeholder="Search tasks…" autocomplete="off"><button class="taskIconBtn" id="taskClearSearch" aria-label="Clear search">×</button></div>
+  <div class="taskVoiceHint">Say: <b>“Add task: Finish API testing tomorrow, high priority, repeat weekly.”</b></div>
+  <div class="taskFilters" id="taskFilters">
+    <button class="chip sel" data-task-filter="all">All</button><button class="chip" data-task-filter="overdue">Overdue</button><button class="chip" data-task-filter="today">Today</button><button class="chip" data-task-filter="upcoming">Upcoming</button><button class="chip" data-task-filter="completed">Completed</button>
+  </div>
+  <div class="taskSectionTitle"><b>Overdue</b><span id="taskOverdueCount"></span></div><div id="taskOverdueList"></div>
+  <div class="taskSectionTitle"><b>Actionables</b><span id="taskListCount"></span></div><div id="taskList"></div>
+  <div class="taskSectionTitle"><b>Reports</b><span>Choose a time range</span></div>
+  <div class="setCard" style="padding:13px"><div class="taskFieldLabel" style="margin-top:0">TIME RANGE</div><select id="taskExportRange" class="inp"><option value="today">Today</option><option value="7">Next 7 days</option><option value="30">Next 30 days</option><option value="custom">Custom range</option></select><div id="taskCustomRange" class="half" style="display:none;margin-top:7px"><input id="taskExportFrom" class="inp" type="date"><input id="taskExportTo" class="inp" type="date"></div><div class="taskExportBox"><button id="taskPdfBtn">⇩ PDF</button><button id="taskExcelBtn">⇩ Excel</button></div></div>
 </div>
 
 <div class="page" id="pgToday">
@@ -1388,12 +1298,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
     <div style="height:12px"></div>
 
-    <div class="moneyReceiptCard">
-  <div class="moneyReceiptText"><b>🧾 Scan receipt</b><span>Upload or photograph a bill and extract expense details before saving.</span></div>
-  <div class="moneyReceiptActions"><button class="aiGuideBtn" data-ai-guide="receipt" aria-label="Receipt scanner guide">ⓘ</button><button class="sbtn acc" id="moneyScanReceipt">Scan receipt</button></div>
-</div>
-
-<div class="expSum" id="expSum"></div>
+    <div class="expSum" id="expSum"></div>
 
     <div class="expMon" id="expMonNav">
       <button id="expPrev">&#8249;</button>
@@ -1609,59 +1514,14 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ SETTINGS ============ -->
   <!-- ============ AI PAGE ============ -->
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
-  <section id="pgTasks" class="page">
-  <div class="taskPageHeader">
-    <div class="taskPageCopy"><div class="eyebrow">ACTION CENTER</div><h1>Tasks</h1><div class="setS">Plan, track and finish what matters.</div></div>
-    <button class="sbtn acc taskAddBtn" id="taskAddBtn">+ Add task</button>
-  </div>
-
-  <div class="taskInsights">
-    <div class="taskInsight"><span>Today</span><b id="taskTodayCount">0</b></div>
-    <div class="taskInsight"><span>Completion rate</span><b id="taskCompletionRate">0%</b></div>
-    <div class="taskInsight"><span>Overdue</span><b id="taskOverdueCount">0</b></div>
-  </div>
-
-  <div class="taskToolbar">
-    <input id="taskSearch" class="inp taskSearch" placeholder="Search tasks…" autocomplete="off">
-    <button class="sbtn" id="taskCalendarBtn">📅 Calendar</button>
-    <button class="sbtn" id="taskPatternsBtn">📊 Patterns</button>
-    <button class="sbtn" id="taskAIBtn">🧠 AI suggestions</button>
-    <button class="sbtn" id="taskNaturalBtn">📥 Just tell me</button>
-  </div>
-
-  <div class="taskFilters">
-    <button class="taskFilter active" data-filter="today">Today</button>
-    <button class="taskFilter" data-filter="upcoming">Upcoming</button>
-    <button class="taskFilter" data-filter="overdue">Overdue</button>
-    <button class="taskFilter" data-filter="completed">Completed</button>
-    <button class="taskFilter" data-filter="archived">Archived</button>
-    <button class="taskFilter" data-filter="all">All</button>
-  </div>
-
-  <div id="taskCalendar" class="taskSection full" style="display:none;margin-top:14px">
-    <h3>Calendar</h3><div id="taskCalendarGrid" class="calGrid"></div>
-  </div>
-
-  <div id="taskPatterns" class="taskSection full" style="display:none;margin-top:14px">
-    <h3>Task completion patterns</h3><div id="taskPatternText" class="taskEmpty">Complete a few tasks to see patterns.</div>
-  </div>
-
-  <div id="taskAI" class="taskSection full" style="display:none;margin-top:14px">
-    <h3>AI task suggestions</h3><div id="taskAISuggestions" class="taskEmpty"></div>
-  </div>
-
-  <div id="taskSections" class="taskSections" style="margin-top:14px"></div>
-</section>
-<div class="page" id="pgAI">
-    <div class="aiTopBar">
-  <div><div class="eyebrow">Personal command center</div><h1>AI Assistant</h1></div>
-  <button class="sbtn aiClearBtn" id="aiClearChat">🗑 Clear chat</button>
-</div>
-<div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
+  <div class="page" id="pgAI">
+    <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
 <div class="aiFeatureCard"><div class="aiFeatureHead"><span>💡</span><b>Smart Insights</b><button class="aiGuideBtn" data-ai-guide="insights">ⓘ</button></div><div class="setS">Pattern-based insights from your tracker.</div><div id="aiInsights"></div></div>
 <div class="aiFeatureGrid">
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎤</span><b>Just Tell the App</b><button class="aiGuideBtn" data-ai-guide="tell">ⓘ</button></div><div class="setS">Speak naturally and log several things.</div><div id="justTellApp"></div></div>
-
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>📸</span><b>AI Receipt Scanner</b><button class="aiGuideBtn" data-ai-guide="receipt">ⓘ</button></div><div class="setS">Extract receipt details before saving.</div><button class="sbtn acc aiOpenReceipt">Open scanner</button></div>
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧾</span><b>AI Bank Statement</b><button class="aiGuideBtn" data-ai-guide="bank">ⓘ</button></div><div class="setS">Clean and categorise imported transactions.</div><button class="sbtn aiOpenImport">Open import</button></div>
+  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧠</span><b>Your Week in 30 Seconds</b><button class="aiGuideBtn" data-ai-guide="week">ⓘ</button></div><div id="aiWeekSummary"></div></div>
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🔍</span><b>Why Was Today Different?</b><button class="aiGuideBtn" data-ai-guide="why">ⓘ</button></div><div id="aiTodayWhy"></div></div>
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🚨</span><b>Anomaly Detection</b><button class="aiGuideBtn" data-ai-guide="anomaly">ⓘ</button></div><div id="aiAnomalies"></div></div>
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎯</span><b>AI Habit Coach</b><button class="aiGuideBtn" data-ai-guide="habit">ⓘ</button></div><div id="aiHabitCoach"></div></div>
@@ -1680,14 +1540,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <h1>Settings</h1>
     <div style="height:16px"></div>
 
-    <div class="setCard" style="padding:0;margin-bottom:16px">
-  <button class="setRow" data-go-tab="pgStats" style="width:100%;border:0;background:transparent;color:inherit;text-align:left;cursor:pointer">
-    <div class="setInfo"><div class="setT">📊 Detailed Stats</div><div class="setS">Full trends, achievements, calendar and habit performance</div></div>
-    <span style="font-size:20px">›</span>
-  </button>
-</div>
-
-<div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Profile</div>
+    <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Profile</div>
     <div class="setCard">
       <div class="setCol">
         <div class="setT" style="margin-bottom:4px">Your name</div>
@@ -1826,6 +1679,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <div class="actionIntro">Choose what you want to add. You can continue without leaving the current screen.</div>
   <div class="actionGrid">
     <button class="actionItem" data-add-action="habit"><span class="actionIcon">💪</span><span class="actionText"><span class="actionTitle">Habit</span></span></button>
+    <button class="actionItem" data-add-action="task"><span class="actionIcon">✓</span><span class="actionText"><span class="actionTitle">Task</span></span></button>
     <button class="actionItem" data-add-action="expense"><span class="actionIcon">💰</span><span class="actionText"><span class="actionTitle">Expense</span></span></button>
     <button class="actionItem" data-add-action="mood"><span class="actionIcon">😊</span><span class="actionText"><span class="actionTitle">Mood</span></span></button>
     <button class="actionItem" data-add-action="sleep"><span class="actionIcon">😴</span><span class="actionText"><span class="actionTitle">Sleep</span></span></button>
@@ -1884,7 +1738,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         <button class="sbtn acc" id="expReceiptScan" style="display:none">Extract details</button>
         <button class="sbtn" id="expReceiptRemove" style="display:none">Remove</button>
       </div>
-      <input id="expReceiptFile" type="file" accept="image/*" capture="environment" style="display:none">
+      <input id="expReceiptFile" type="file" accept="image/*" style="display:none">
     </div>
   <button class="primary" id="expSave">Save</button>
   <button class="danger" id="expDel" style="display:none">Delete</button>
@@ -2049,24 +1903,11 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 </div>
 
 <nav class="materialNav" id="tabbar" aria-label="Primary navigation">
-  <button class="mnavItem on" data-tab="pgDashboard" aria-label="Dashboard">
-    <span class="mnavIcon">⌂</span><span class="mnavLabel">Dashboard</span>
-  </button>
-  <button class="mnavItem" data-tab="pgToday" aria-label="Habits">
-    <span class="mnavIcon">✓</span><span class="mnavLabel">Habits</span>
-  </button>
-  <button class="mnavItem" data-tab="pgTasks" aria-label="Tasks">
-    <span class="mnavIcon">☑</span><span class="mnavLabel">Tasks</span>
-  </button>
-  <button class="mnavItem" data-tab="pgWorkout" aria-label="Workout">
-    <span class="mnavIcon">🏋</span><span class="mnavLabel">Workout</span>
-  </button>
-  <button class="mnavItem" data-tab="pgExp" aria-label="Money">
-    <span class="mnavIcon">₹</span><span class="mnavLabel">Money</span>
-  </button>
-  <button class="mnavItem" data-tab="pgAI" aria-label="AI">
-    <span class="mnavIcon">✦</span><span class="mnavLabel">AI</span>
-  </button>
+  <button class="mnavItem on" data-tab="pgDashboard" aria-label="Dashboard"><span class="mnavIcon">⌂</span><span class="mnavLabel">Home</span></button>
+  <button class="mnavItem" data-tab="pgTasks" aria-label="Tasks"><span class="mnavIcon">✓</span><span class="mnavLabel">Tasks</span></button>
+  <button class="mnavItem" data-tab="pgToday" aria-label="Habits"><span class="mnavIcon">◷</span><span class="mnavLabel">Habits</span></button>
+  <button class="mnavItem" data-tab="pgExp" aria-label="Money"><span class="mnavIcon">₹</span><span class="mnavLabel">Money</span></button>
+  <button class="mnavItem" data-tab="pgAI" aria-label="More"><span class="mnavIcon">•••</span><span class="mnavLabel">More</span></button>
 </nav>
 <button class="materialMoreBtn" id="materialMoreBtn" aria-label="More settings">⚙ <span>More</span></button>
 
@@ -2229,6 +2070,19 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <button class="primary" id="archDone">Done</button>
 </div>
 
+
+<div class="sheet taskModalSheet" id="taskSheet">
+  <div class="grab"></div><h2 id="taskSheetTitle">New task</h2>
+  <div class="taskFieldLabel">Task</div><input id="taskName" class="inp" maxlength="120" placeholder="What needs to be done?">
+  <div class="taskFieldLabel">Description</div><textarea id="taskDescription" class="inp" maxlength="1000" rows="3" placeholder="Add details, context or notes…"></textarea>
+  <div class="taskFieldLabel">Subtasks</div><div id="taskSubEditor"></div><button class="addT" id="taskAddSub">＋ Add subtask</button>
+  <div class="half"><div><div class="taskFieldLabel">Due date</div><input id="taskDueDate" class="inp" type="date"></div><div><div class="taskFieldLabel">Due time</div><input id="taskDueTime" class="inp" type="time" value="18:00"></div></div>
+  <div class="half"><div><div class="taskFieldLabel">Priority</div><select id="taskPriority" class="inp"><option value="High">High</option><option value="Medium" selected>Medium</option><option value="Low">Low</option></select></div><div><div class="taskFieldLabel">Reminder</div><select id="taskReminder" class="inp"><option value="both">1 & 2 days before</option><option value="1">1 day before</option><option value="2">2 days before</option><option value="none">No reminder</option></select></div></div>
+  <div class="taskFieldLabel">Repeat</div><div class="taskRepeatRow" id="taskRepeatRow"><button class="chip sel" data-repeat="none">Doesn't repeat</button><button class="chip" data-repeat="daily">Daily</button><button class="chip" data-repeat="weekdays">Weekdays</button><button class="chip" data-repeat="weekly">Weekly</button><button class="chip" data-repeat="monthly">Monthly</button></div>
+  <div id="taskRepeatExtra" style="display:none"><div class="taskFieldLabel">Repeat ends</div><input id="taskRepeatEnd" class="inp" type="date"><div class="setS" style="margin-top:5px">The next occurrence is created when the current occurrence is completed.</div></div>
+  <div class="half" style="margin-top:14px"><button class="ghost" id="taskCancelBtn">Cancel</button><button class="primary" id="taskSaveBtn">Save task</button></div>
+</div>
+
 <!-- ============ JOURNAL ENTRY SHEET ============ -->
 <div class="sheet" id="jrSheet">
   <div class="grab"></div>
@@ -2305,6 +2159,16 @@ var MOODS = [
  {l:'Stressed',  e:'\uD83D\uDE16', c:'#FF6B5E', s:1}
 ];
 var nat = (typeof Bridge !== 'undefined') ? Bridge : null;
+var taskFilter = 'all', taskEditingId = null, taskRepeat = 'none';
+function normTask(t){
+  t=t||{}; t.id=t.id||('task_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6));
+  t.title=t.title||'Task'; t.desc=t.desc||t.description||''; t.description=t.desc;
+  t.due=t.due||today(); t.time=t.time||'18:00'; t.priority=t.priority||'Medium';
+  t.reminder=t.reminder||'both'; t.repeat=t.repeat||'none'; t.repeatEnd=t.repeatEnd||'';
+  t.status=t.status||'open'; t.deleted=!!t.deleted; t.habitId=t.habitId||''; t.source=t.source||'manual';
+  t.subtasks=Array.isArray(t.subtasks)?t.subtasks:[]; t.completedDates=Array.isArray(t.completedDates)?t.completedDates:[]; t.created=t.created||today();
+  return t;
+}
 
 /* ================= helpers ================= */
 function $(id){ return document.getElementById(id); }
@@ -2316,6 +2180,63 @@ function today(){ return fmt(new Date()); }
 function toDate(s){ var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
 function addDays(d, n){ var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
 function dayDiff(a, b){ return Math.round((toDate(b) - toDate(a)) / 86400000); }
+function taskIsDone(t){return t.status==='completed'||t.status==='closed';}
+function taskOverdue(t){return !taskIsDone(t)&&t.due<today();}
+function taskIsHabitSatisfied(h, d){
+  if(!h || h.arch) return false;
+  var dd=toDate(d), ds=fmt(dd);
+  if(!dueOn(h,dd)) return false;
+  return isDone(h,ds)||isFroz(h,ds);
+}
+function habitTaskOccurrence(h, d){
+  var ds=fmt(d); if(!dueOn(h,d)||taskIsHabitSatisfied(h,ds)) return null;
+  return normTask({id:'habit_'+h.id+'_'+ds,title:h.name,desc:'Linked habit · '+habitScheduleLabel(h),due:ds,time:(h.rem&&h.rem.times&&h.rem.times[0])||'18:00',priority:'Medium',reminder:'none',repeat:'habit',status:'open',habitId:h.id,source:'habit',subtasks:[]});
+}
+function habitScheduleLabel(h){
+  var k=h.sched&&h.sched.kind;
+  if(k==='wquota') return (h.sched.quota||1)+' days/week';
+  if(k==='mquota') return (h.sched.quota||1)+' days/month';
+  if(k==='dow') return 'Scheduled weekdays';
+  if(k==='everyx') return 'Every '+(h.sched.x||2)+' days';
+  return k==='daily'?'Daily':'Scheduled habit';
+}
+function taskOccurrenceForDate(t, d){
+  var ds=fmt(d); if(t.deleted) return null;
+  if(t.repeat==='none') return t.due===ds?t:null;
+  if(t.repeat==='daily') return ds>=t.due && (!t.repeatEnd||ds<=t.repeatEnd) ? taskVirtual(t,ds) : null;
+  if(t.repeat==='weekdays'){var wd=d.getDay();return ds>=t.due&&wd>=1&&wd<=5&&(!t.repeatEnd||ds<=t.repeatEnd)?taskVirtual(t,ds):null;}
+  if(t.repeat==='weekly') return ds>=t.due&&((dayDiff(t.due,ds)%7)===0)&&(!t.repeatEnd||ds<=t.repeatEnd)?taskVirtual(t,ds):null;
+  if(t.repeat==='monthly'){var base=toDate(t.due);return ds>=t.due&&d.getDate()===base.getDate()&&(!t.repeatEnd||ds<=t.repeatEnd)?taskVirtual(t,ds):null;}
+  return null;
+}
+function taskVirtual(t,ds){var x={};for(var k in t)x[k]=t[k];x.id=t.id+'@'+ds;x.due=ds;x.baseId=t.id;x.status=(t.completedDates||[]).indexOf(ds)>=0?'completed':'open';return x;}
+function taskOccurrences(days){
+  var out=[], start=addDays(new Date(),-30), end=addDays(new Date(),days||30);
+  // manual tasks + recurring occurrences
+  for(var i=0;i<state.tasks.length;i++){
+    var t=normTask(state.tasks[i]); if(t.deleted)continue;
+    if(t.repeat==='none'){if(t.due<=fmt(end)&&t.due>=fmt(start))out.push(t);}
+    else{var d=new Date(start.getTime());for(;d<=end;d=addDays(d,1)){var o=taskOccurrenceForDate(t,d);if(o)out.push(o);}}
+  }
+  // linked habits: show only genuinely due, incomplete occurrences. Weekly/monthly quotas naturally suppress after quota is met.
+  for(var hi=0;hi<state.habits.length;hi++){
+    var h=state.habits[hi];if(h.arch)continue;
+    var hd=new Date(start.getTime());for(;hd<=end;hd=addDays(hd,1)){var ho=habitTaskOccurrence(h,hd);if(ho)out.push(ho);}
+  }
+  out.sort(function(a,b){var ao=taskOverdue(a)?0:1,bo=taskOverdue(b)?0:1;if(ao!==bo)return ao-bo;var ap=a.priority==='High'?0:a.priority==='Medium'?1:2,bp=b.priority==='High'?0:b.priority==='Medium'?1:2;if(ap!==bp)return ap-bp;return a.due.localeCompare(b.due);});
+  return out;
+}
+function taskPersist(){persist();pushAlarms();if($('pgTasks')&&$('pgTasks').classList.contains('on'))renderTasks();}
+function taskFindBase(id){var base=id.split('@')[0];for(var i=0;i<state.tasks.length;i++)if(state.tasks[i].id===base)return state.tasks[i];return null;}
+function linkedHabitForTask(t){return t&&t.habitId?findHabit(t.habitId):null;}
+function syncTaskFromHabitOccurrence(h, ds){
+  if(!h)return;
+  var done=isDone(h,ds)||isFroz(h,ds);
+  var linked=habitTaskOccurrence(h,toDate(ds));
+  if(!done && linked)return linked;
+  return null;
+}
+
 function monKey(d){ return d.getFullYear() + '-' + pad(d.getMonth()+1); }
 function weekStart(d){ var x = new Date(d.getTime()); var off = (x.getDay()+6)%7; x.setDate(x.getDate()-off); return x; }
 function hexRgba(hex, a){
@@ -2383,6 +2304,8 @@ function normState(s){
   var nameByEmoji={'💪':'Pushups','🏃':'Walk','📚':'Reading','💧':'Hydration','🧘':'Meditation','🛏️':'Sleep routine','🥗':'Eat healthy','✍️':'Journaling','🎯':'Daily focus','🎸':'Practice music','🚭':'No smoking','💊':'Medicine','🦷':'Dental care','🌅':'Morning routine','🧹':'Clean up','💻':'Deep work','🗣️':'Speaking practice','🚴':'Cycling','🙏':'Gratitude','🍎':'Fruit','💤':'Sleep','📵':'Screen-free time','🎨':'Creative time','💰':'Save money'};
   for(var ni=0;ni<s.habits.length;ni++){var nh=s.habits[ni];if(nh.name==='Habit'){var base=nameByEmoji[nh.emoji]||'Personal habit';unnamed[base]=(unnamed[base]||0)+1;nh.name=unnamed[base]>1?base+' '+unnamed[base]:base;}}
 
+  s.tasks = Array.isArray(s.tasks) ? s.tasks : [];
+  for(var ti=0;ti<s.tasks.length;ti++) normTask(s.tasks[ti]);
   s.stack = s.stack || [];
   s.closed = s.closed || {};
   s.hlog = s.hlog || {};
@@ -2753,6 +2676,7 @@ function setVal(hid, ds, v){
   }
   persist();
   renderToday();
+  if($('pgTasks') && $('pgTasks').classList.contains('on')) renderTasks();
   if(sheetOpen === 'detailSheet' && detailId === hid) renderDetail();
 }
 function tapMain(hid){
@@ -3550,10 +3474,15 @@ function uaiPrompt(text){
   +'set_sleep: {date,bed("HH:MM" 24h),wake("HH:MM" 24h),mins(total)}\n'
   +'log_workout: {exercise,sets:[numbers],date} — use one value for simple entries such as "25 push-ups"\n'
   +'delete_sleep: {date}\n'
+  +'add_task: {title,description,due,time,priority,reminder,repeat,repeatEnd,subtasks[]}\n'
+  +'complete_task: {title,date}\n'
+  +'close_task: {title,date}\n'
+  +'reopen_task: {title,date}\n'
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
   +'query: {} message=answer the question from app data\n'
   +'clarify: {} message=ask for missing info\n\n'
   +'RULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
+  +'For natural language logging: "Add task: Finish API testing tomorrow, high priority" -> add_task; "close the API testing task" -> complete_task.\n'
   +'For natural language logging: "I spent 850 on dinner yesterday" -> add_expense; "I slept at 12 and woke up at 7" -> set_sleep; "I did 25 push-ups today" -> log_workout when a matching exercise exists. For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n\n'
   +'User: '+text;
 }
@@ -3587,6 +3516,16 @@ function executeAction(r){
       var hd=state.habits.find(function(hh){return !hh.arch&&hh.name.toLowerCase().indexOf((p.name||'').toLowerCase())>=0;});
       if(!hd)return{ok:0,msg:'Habit not found'};
       hd.arch=true;persist();return{ok:1,msg:msg,detail:'"'+hd.name+'" archived',undo:function(){hd.arch=false;persist();}};
+    }
+    if(a==='add_task'){
+      var nt=normTask({id:'task_'+Date.now(),title:p.title||'Task',description:p.description||'',desc:p.description||'',due:p.due||today(),time:p.time||'18:00',priority:p.priority||'Medium',reminder:p.reminder||'both',repeat:p.repeat||'none',repeatEnd:p.repeatEnd||'',subtasks:Array.isArray(p.subtasks)?p.subtasks.map(function(x){return typeof x==='string'?{title:x,done:false}:x;}):[],status:'open',source:'ai'});
+      state.tasks.push(nt);taskPersist();return{ok:1,msg:msg,detail:nt.title+' · '+nt.due};
+    }
+    if(a==='complete_task'||a==='close_task'||a==='reopen_task'){
+      var tq=String(p.title||'').toLowerCase(), found=null;
+      for(var q=0;q<state.tasks.length;q++){var qt=state.tasks[q];if(!qt.deleted&&qt.title.toLowerCase().indexOf(tq)>=0&&(!p.date||qt.due===p.date||qt.repeat!=='none')){found=qt;break;}}
+      if(!found)return{ok:0,msg:'Task not found'};
+      found.status=(a==='reopen_task')?'open':'completed';taskPersist();return{ok:1,msg:msg,detail:found.title};
     }
     if(a==='set_mood'){
       var mi=typeof p.mood==='number'?p.mood:3;state.mood[d]=mi;
@@ -3744,47 +3683,17 @@ function explainWhyToday(){
 }
 
 function renderDashboard(){
-  var d=new Date(),ts=today();
+  var d=new Date(),ts=today(),due=state.habits.filter(function(h){return !h.arch&&dueOn(h,d);}),done=due.filter(function(h){return isDone(h,ts);});
   if($('dashDateLine'))$('dashDateLine').textContent=niceDate(ts);
-
-  var due=state.habits.filter(function(h){return !h.arch&&dueOn(h,d);});
-  var done=due.filter(function(h){return isDone(h,ts);});
   if($('dashHabits'))$('dashHabits').textContent=done.length+' / '+due.length;
-
-  var logs=(state.wlog||[]),from=fmt(addDays(d,-29));
-  var monthLogs=logs.filter(function(x){return x.d>=from&&x.d<=ts;});
-  if($('dashWorkout'))$('dashWorkout').textContent=monthLogs.length+' session'+(monthLogs.length===1?'':'s');
-
-  var mv=state.mood&&state.mood[ts];
-  if($('dashMood'))$('dashMood').textContent=typeof mv==='number'&&MOODS[mv]?MOODS[mv].e+' '+MOODS[mv].n:'Not logged';
-
-  var sleepLogs=state.sleep||[], lastSleep=sleepLogs.slice().sort(function(a,b){return a.d>b.d?-1:1;})[0];
-  if($('dashSleep'))$('dashSleep').textContent=lastSleep&&lastSleep.mins?fmtDur(lastSleep.mins):'Not logged';
-
+  var wl=(state.wlog||[]).filter(function(x){return x.d>=fmt(addDays(d,-6));});
+  if($('dashWorkout'))$('dashWorkout').textContent=wl.length+' session'+(wl.length===1?'':'s');
+  var mv=state.mood&&state.mood[ts];if($('dashMood'))$('dashMood').textContent=typeof mv==='number'&&MOODS[mv]?MOODS[mv].e+' '+MOODS[mv].n:'Not logged';
   var spend=state.tx.filter(function(x){return x.d===ts&&x.kind==='exp';}).reduce(function(a,x){return a+(x.amt||0);},0);
   if($('dashMoney'))$('dashMoney').textContent=inr(spend);
-
-  var curMax=0,longest=0;
-  state.habits.filter(function(h){return !h.arch;}).forEach(function(h){
-    curMax=Math.max(curMax,streak(h)); longest=Math.max(longest,bestStreak(h));
-  });
-  if($('dashStreak'))$('dashStreak').textContent=curMax+' day'+(curMax===1?'':'s');
-
-  var p30=periodStats(addDays(d,-29),d),comp=Math.round(p30.rate*100);
-  if($('dashStats'))$('dashStats').innerHTML=
-    sc(curMax,curMax===1?'day':'days','Current streak','var(--sOrange)')+
-    sc(longest,longest===1?'day':'days','Longest streak','var(--amber)')+
-    sc(comp,'%','30-day completion','var(--sGreen)')+
-    sc(p30.missed,p30.missed===1?'day':'days','Missed days','var(--coral)');
-
-  if($('dashTrend')){
-    var data=trendData(30);
-    $('dashTrend').innerHTML='<div class="chartT">30-day completion trend</div>'+lineChart(data,'var(--sBlue)','var(--iceSoft)');
-  }
-
-  renderPatternCard('dashPatterns',4);
+  if($('dashGlance'))$('dashGlance').innerHTML='<div class="featureRow"><div class="grow"><b>Habits</b><br><small>'+done.length+' completed today</small></div></div><div class="featureRow"><div class="grow"><b>Sleep</b><br><small>'+((state.sleep.find(function(x){return x.d===ts;})||{}).mins?fmtDur((state.sleep.find(function(x){return x.d===ts;})||{}).mins):'Not logged')+'</small></div></div><div class="featureRow"><div class="grow"><b>Money</b><br><small>'+inr(spend)+' spent today</small></div></div>';
+  renderPatternCard('dashPatterns',3);
 }
-
 function renderWorkoutPage(){
   renderWorkoutQuickLog();
   var logs=(state.wlog||[]).slice().sort(function(a,b){return a.d>b.d?-1:1;});
@@ -6726,6 +6635,17 @@ function computeAlarms(){
     if(dtSmart.getTime()<=now) continue;
     out.push({c:intHash('smart-expense|'+sp.name+'|'+sp.d),t:dtSmart.getTime(),h:'smart-expense',n:'Upcoming expense: '+sp.name,e:'💡',b:'You often have a similar expense around this date.',r:0});
   }
+  // Task reminders: 1/2 days before due date. Recurring occurrences use their calculated date.
+  var taskNow=new Date(), taskLook=taskOccurrences(35);
+  for(var ti=0;ti<taskLook.length;ti++){
+    var tt=taskLook[ti]; if(taskIsDone(tt)||tt.reminder==='none') continue;
+    var offsets=tt.reminder==='both'?[1,2]:[+tt.reminder];
+    for(var oi=0;oi<offsets.length;oi++){
+      var rd=addDays(toDate(tt.due),-offsets[oi]), rt=(tt.time||'09:00').split(':');
+      var rdt=new Date(rd.getFullYear(),rd.getMonth(),rd.getDate(),+rt[0],+rt[1],0,0);
+      if(rdt>taskNow && rdt<taskNow+14*86400000) out.push({c:intHash('task-rem|'+tt.id+'|'+offsets[oi]),t:rdt.getTime(),h:'task',n:'Task reminder: '+tt.title,e:'✓',b:offsets[oi]+' day'+(offsets[oi]===1?'':'s')+' before · due '+tt.due,r:0});
+    }
+  }
   // Credit-card payment reminders: only cards with an outstanding balance are reminded.
   for(var ci=0;ci<state.accts.length;ci++){var ca=state.accts[ci];if(ca.type!=='credit'||!ca.active)continue;var cb=acctBalance(ca.id);if(cb>=0)continue;var due=nextCreditDue(ca), dueAt=new Date(due.getFullYear(),due.getMonth(),due.getDate(),9,0,0,0);if(dueAt.getTime()<=now||dueAt.getTime()>now+7*86400000)continue;out.push({c:intHash('cc-due|'+ca.id+'|'+fmt(due)),t:dueAt.getTime(),h:'credit',n:'Credit card payment due: '+ca.name,e:'💳',b:'Outstanding '+inr(Math.abs(cb))+' · due today',r:0});}
   out.sort(function(a,b){ return a.t - b.t; });
@@ -6788,6 +6708,7 @@ function handleAddAction(kind){
   closeSheet();
   setTimeout(function(){
     if(kind==='habit') openEdit(null);
+    else if(kind==='task') openTaskSheet(null);
     else if(kind==='expense'){ showTab('pgExp'); setTimeout(function(){openExp(null);},60); }
     else if(kind==='mood'){ showTab('pgMood'); setTimeout(function(){ var g=$('moGrid'); if(g) g.scrollIntoView({behavior:'smooth',block:'center'}); var first=g&&g.querySelector('[data-mood]'); if(first) first.focus(); },80); }
     else if(kind==='journal'){ setTimeout(function(){openJr(null);},60); }
@@ -6797,19 +6718,20 @@ function handleAddAction(kind){
 
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
-  var pgs = ['pgDashboard','pgToday','pgTasks','pgWorkout','pgMood','pgExp','pgStats','pgAI','pgSet'];
+  var pgs = ['pgDashboard','pgTasks','pgToday','pgWorkout','pgMood','pgExp','pgStats','pgAI','pgSet'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
   if(id==='pgDashboard') renderDashboard();
+  if(id==='pgTasks') renderTasks();
   if(id==='pgStats') renderStats();
   if(id==='pgMood') renderMood();
   if(id==='pgExp') renderExp();
   if(id==='pgWorkout') renderWorkoutPage();
   if(id==='pgSet') renderSet();
   if(id==='pgAI'){ renderAI(); renderAIPageFeatures(); }
-  $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
+  $('fab').style.display = (id==='pgToday'||id==='pgExp'||id==='pgTasks') ? '' : 'none';
   $('app').scrollTop = 0;
 }
 function climb(el, root, attr){
@@ -6820,6 +6742,98 @@ function climb(el, root, attr){
   return null;
 }
 
+
+/* ================= tasks ================= */
+function taskDateText(d){if(d===today())return'Today';if(d===fmt(addDays(new Date(),1)))return'Tomorrow';return toDate(d).toLocaleDateString(undefined,{day:'numeric',month:'short'});}
+function taskPriorityClass(p){return p==='High'?'high':p==='Medium'?'medium':'low';}
+function taskCard(t){
+  var done=taskIsDone(t), h=linkedHabitForTask(t), subs=t.subtasks||[], completedSubs=subs.filter(function(x){return x.done;}).length;
+  var overdue=taskOverdue(t), repeat=t.repeat&&t.repeat!=='none'&&t.repeat!=='habit';
+  var subHtml='';
+  if(subs.length){subHtml='<div class="taskSubtasks">'+subs.map(function(x,i){return '<div class="taskSub"><span class="taskSubCheck '+(x.done?'done':'')+'" data-sub-task="'+esc(t.id)+'" data-sub-index="'+i+'">'+(x.done?'✓':'')+'</span><span style="'+(x.done?'text-decoration:line-through;color:var(--mut)':'')+'">'+esc(x.title||x.name||'Subtask')+'</span></div>';}).join('')+'</div><div class="taskProgress"><i style="width:'+Math.round((completedSubs/subs.length)*100)+'%"></i></div>'}
+  return '<div class="taskCard">'+
+    '<div class="taskRow"><button class="taskCheck '+(done?'done':'')+'" data-task-toggle="'+esc(t.id)+'">'+(done?'✓':'')+'</button>'+
+    '<div class="taskBody"><div class="taskName '+(done?'done':'')+'">'+esc(t.title)+'</div>'+
+    (t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+
+    '<div class="taskMeta"><span class="taskBadge '+taskPriorityClass(t.priority)+'">'+esc(t.priority)+'</span>'+(overdue?'<span class="taskBadge overdue">OVERDUE</span>':'')+(h?'<span class="taskBadge habit">↔ '+esc(h.name)+'</span>':'')+(repeat?'<span class="taskBadge">↻ '+esc(t.repeat)+'</span>':'')+(subs.length?'<span class="taskBadge">'+completedSubs+'/'+subs.length+' subtasks</span>':'')+'</div>'+
+    '<div class="taskReminder">'+taskDateText(t.due)+(t.time?' · '+timeFmt(t.time):'')+(t.reminder!=='none'?' · Remind '+(t.reminder==='both'?'1 & 2 days before':t.reminder+' day before'):'')+'</div>'+
+    (h?'<div class="taskHabitNote">Completing this also completes the linked habit occurrence.</div>':'')+
+    subHtml+'</div><button class="taskMenu" data-task-menu="'+esc(t.id)+'">⋮</button></div></div>';
+}
+function taskVisible(t){
+  if(t.deleted)return false;
+  if(taskFilter==='overdue')return taskOverdue(t);
+  if(taskFilter==='today')return t.due===today()&&!taskIsDone(t);
+  if(taskFilter==='upcoming')return t.due>today()&&!taskIsDone(t);
+  if(taskFilter==='completed')return taskIsDone(t);
+  return true;
+}
+function renderTasks(){
+  if(!$('pgTasks'))return;
+  var q=(($('taskSearch')&&$('taskSearch').value)||'').toLowerCase().trim();
+  var all=taskOccurrences(30).filter(taskVisible).filter(function(t){return !q||t.title.toLowerCase().indexOf(q)>=0||String(t.description||'').toLowerCase().indexOf(q)>=0||(t.subtasks||[]).some(function(x){return String(x.title||'').toLowerCase().indexOf(q)>=0;});});
+  var overdue=all.filter(taskOverdue), rest=all.filter(function(t){return !taskOverdue(t);});
+  $('taskDateLine').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
+  var open=taskOccurrences(1).filter(function(t){return !taskIsDone(t);}).length, done=taskOccurrences(1).filter(taskIsDone).length;
+  $('taskSummary').textContent=open+' open today · '+overdue.length+' overdue · habits are linked automatically';
+  $('taskOverallProgress').style.width=(open+done?Math.round(done/(open+done)*100):0)+'%';
+  $('taskOverdueCount').textContent=overdue.length?overdue.length+' item'+(overdue.length===1?'':'s'):'';
+  $('taskListCount').textContent=rest.length+' shown';
+  $('taskOverdueList').innerHTML=overdue.length?overdue.map(taskCard).join(''):'<div class="taskEmpty">No overdue tasks.</div>';
+  $('taskList').innerHTML=rest.length?rest.map(taskCard).join(''):'<div class="taskEmpty">No tasks match this view.</div>';
+}
+function openTaskSheet(id, seed){
+  taskEditingId=id||null;var t=id?taskFindBase(id):null;
+  $('taskSheetTitle').textContent=t?'Edit task':'New task';$('taskName').value=t?t.title:(seed||'');$('taskDescription').value=t?(t.description||t.desc||''):'';
+  $('taskDueDate').value=t?t.due:today();$('taskDueTime').value=t?t.time:'18:00';$('taskPriority').value=t?t.priority:'Medium';$('taskReminder').value=t?t.reminder:'both';
+  taskRepeat=t?(t.repeat||'none'):'none';$('taskRepeatEnd').value=t?(t.repeatEnd||''):'';renderTaskRepeat();
+  $('taskSubEditor').innerHTML='';(t?t.subtasks:[]).forEach(function(x){addTaskSubInput(x.title||x.name||'');});
+  if(t&&t.subtasks.length===0)addTaskSubInput('');
+  openSheet('taskSheet');
+}
+function addTaskSubInput(v){var row=document.createElement('div');row.className='taskSubEditor';row.innerHTML='<input class="inp taskSubField" maxlength="120" placeholder="Subtask" value="'+esc(v||'')+'"><button type="button" aria-label="Remove subtask">×</button>';row.querySelector('button').onclick=function(){row.remove();};$('taskSubEditor').appendChild(row);}
+function renderTaskRepeat(){document.querySelectorAll('#taskRepeatRow .chip').forEach(function(b){b.classList.toggle('sel',b.getAttribute('data-repeat')===taskRepeat);});$('taskRepeatExtra').style.display=(taskRepeat==='none'||taskRepeat==='habit')?'none':'';}
+function saveTaskSheet(){
+  var title=$('taskName').value.trim();if(!title){toastN('Enter a task name');return;}
+  var subs=[];document.querySelectorAll('.taskSubField').forEach(function(i){var v=i.value.trim();if(v)subs.push({title:v,done:false});});
+  if(taskEditingId){var t=taskFindBase(taskEditingId);if(!t)return;t.title=title;t.description=$('taskDescription').value.trim();t.desc=t.description;t.due=$('taskDueDate').value||today();t.time=$('taskDueTime').value||'18:00';t.priority=$('taskPriority').value;t.reminder=$('taskReminder').value;t.repeat=taskRepeat;t.repeatEnd=$('taskRepeatEnd').value||'';t.subtasks=subs;}
+  else state.tasks.push(normTask({id:'task_'+Date.now(),title:title,description:$('taskDescription').value.trim(),due:$('taskDueDate').value||today(),time:$('taskDueTime').value||'18:00',priority:$('taskPriority').value,reminder:$('taskReminder').value,repeat:taskRepeat,repeatEnd:$('taskRepeatEnd').value||'',subtasks:subs,status:'open',source:'manual'}));
+  closeSheet();taskPersist();toastN(taskEditingId?'Task updated':'Task added');
+}
+function completeTaskOccurrence(id){
+  var base=taskFindBase(id), occ=taskOccurrences(60).find(function(x){return x.id===id;});
+  var t=occ||base;
+  if(t&&t.habitId){var h=linkedHabitForTask(t);if(h){setVal(h.id,t.due,targ(h));toastN('Task + habit completed');return;}}
+  if(!base)return;
+  if(base.repeat&&base.repeat!=='none'){
+    var ds=t?t.due:base.due, ix=base.completedDates.indexOf(ds);
+    if(ix>=0)base.completedDates.splice(ix,1);else base.completedDates.push(ds);
+  }else base.status=taskIsDone(base)?'open':'completed';
+  taskPersist();toastN((base.repeat&&base.repeat!=='none')?(base.completedDates.indexOf(t.due)>=0?'Occurrence completed':'Occurrence reopened'):(base.status==='completed'?'Task completed':'Task reopened'));
+}
+function taskSubToggle(taskId, idx){var t=taskFindBase(taskId);if(!t)return;if(t.subtasks[idx])t.subtasks[idx].done=!t.subtasks[idx].done;taskPersist();}
+function taskMenuAction(id){
+  var base=taskFindBase(id);var t=base||taskOccurrences(1).find(function(x){return x.id===id;});if(!t)return;
+  var action=prompt('Type: edit, completed, close, reopen, delete');if(!action)return;action=action.toLowerCase();
+  if(action==='edit'&&!t.habitId)openTaskSheet(t.id);
+  else if(action==='completed'||action==='close')completeTaskOccurrence(t.id);
+  else if(action==='reopen'){if(t.habitId){var h=linkedHabitForTask(t);if(h)setVal(h.id,t.due,0);}else{var b=taskFindBase(t.id);if(b){b.status='open';taskPersist();}}}
+  else if(action==='delete'&&!t.habitId){var b=taskFindBase(t.id);if(b){b.deleted=true;taskPersist();toastN('Task deleted permanently');}}
+}
+function taskExportData(){
+  var range=$('taskExportRange').value,start=range==='today'?today():($('taskExportFrom').value||today()),end=range==='today'?today():(range==='7'?fmt(addDays(new Date(),7)):range==='30'?fmt(addDays(new Date(),30)):($('taskExportTo').value||fmt(addDays(new Date(),30))));
+  return taskOccurrences(60).filter(function(t){return t.due>=start&&t.due<=end;}).map(function(t){return{Task:t.title,Description:t.description||'',DueDate:t.due,DueTime:t.time||'',Priority:t.priority,Status:taskIsDone(t)?'Completed':taskOverdue(t)?'Overdue':'Open',Repeat:t.repeat==='none'?'':t.repeat,Reminder:t.reminder==='none'?'':t.reminder,Subtasks:(t.subtasks||[]).map(function(x){return (x.done?'✓ ':'')+x.title;}).join(' | '),Habit:t.habitId?(linkedHabitForTask(t)||{}).name||'':''};});
+}
+function exportTasksExcel(){var rows=taskExportData();if(!rows.length){toastN('No tasks in this range');return;}if(typeof XLSX==='undefined'){toastN('Excel export library unavailable');return;}var ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Actionables');XLSX.writeFile(wb,'Actionables_'+today()+'.xlsx');}
+function exportTasksPdf(){var rows=taskExportData();if(!rows.length){toastN('No tasks in this range');return;}var w=window.open('','_blank');if(!w){toastN('Allow pop-ups to create PDF');return;}var body=rows.map(function(r){return '<tr><td>'+esc(r.Task)+'</td><td>'+esc(r.DueDate+' '+r.DueTime)+'</td><td>'+esc(r.Priority)+'</td><td>'+esc(r.Status)+'</td><td>'+esc(r.Habit)+'</td></tr>';}).join('');w.document.write('<!doctype html><html><head><title>Actionables</title><style>body{font-family:Arial;padding:28px;color:#222}h1{font-size:22px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:11px}th{background:#f3f3f3}</style></head><body><h1>Actionables report</h1><p>'+today()+'</p><table><thead><tr><th>Task</th><th>Due</th><th>Priority</th><th>Status</th><th>Habit</th></tr></thead><tbody>'+body+'</tbody></table></body></html>');w.document.close();w.focus();setTimeout(function(){w.print();},250);}
+function startTaskVoice(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toastN('Voice input is not supported here');return;}var r=new SR();r.lang='en-IN';r.interimResults=false;r.onstart=function(){toastN('Listening… say your task');};r.onresult=function(e){var text=e.results[0][0].transcript;parseVoiceTask(text);};r.onerror=function(){toastN('Could not capture voice');};r.start();}
+function parseVoiceTask(text){var lower=text.toLowerCase(),priority=/\bhigh priority\b|\bhigh\b/.test(lower)?'High':/\blow priority\b|\blow\b/.test(lower)?'Low':'Medium',repeat=/\bweekly\b|\bevery week\b/.test(lower)?'weekly':/\bweekdays?\b/.test(lower)?'weekdays':/\bmonthly\b|\bevery month\b/.test(lower)?'monthly':/\bdaily\b|\bevery day\b/.test(lower)?'daily':'none';var due=today();if(/tomorrow/.test(lower))due=fmt(addDays(new Date(),1));else{var dm=lower.match(/in (\d+) days?/);if(dm)due=fmt(addDays(new Date(),+dm[1]));}var clean=text.replace(/^add (a )?task[: ]*/i,'').replace(/,?\s*(high|medium|low) priority\b/i,'').replace(/,?\s*repeat (daily|weekly|monthly|weekdays?)\b/i,'').trim();openTaskSheet(null,clean);$('taskPriority').value=priority;$('taskDueDate').value=due;taskRepeat=repeat;renderTaskRepeat();}
+
+function taskEventHandler(e){
+ var tog=climb(e.target,this,'data-task-toggle');if(tog){completeTaskOccurrence(tog.getAttribute('data-task-toggle'));renderTasks();return;}
+ var sub=climb(e.target,this,'data-sub-task');if(sub){taskSubToggle(sub.getAttribute('data-sub-task').split('@')[0],+sub.getAttribute('data-sub-index'));return;}
+ var menu=climb(e.target,this,'data-task-menu');if(menu){taskMenuAction(menu.getAttribute('data-task-menu'));return;}
+}
 /* ================= init & wiring ================= */
 function init(){
   document.querySelectorAll('input, textarea, select').forEach(function(el){
@@ -6828,29 +6842,27 @@ function init(){
   });
 
   buildPickers();
+  if($('taskDueDate')) $('taskDueDate').value=today();
+  if($('taskAddBtn')) $('taskAddBtn').addEventListener('click',function(){openTaskSheet(null);});
+  if($('taskVoiceBtn')) $('taskVoiceBtn').addEventListener('click',startTaskVoice);
+  if($('taskAddSub')) $('taskAddSub').addEventListener('click',function(){addTaskSubInput('');});
+  if($('taskSaveBtn')) $('taskSaveBtn').addEventListener('click',saveTaskSheet);
+  if($('taskCancelBtn')) $('taskCancelBtn').addEventListener('click',function(){closeSheet();});
+  if($('taskSearch')) $('taskSearch').addEventListener('input',renderTasks);
+  if($('taskClearSearch')) $('taskClearSearch').addEventListener('click',function(){$('taskSearch').value='';renderTasks();});
+  if($('taskFilters')) $('taskFilters').addEventListener('click',function(e){var b=climb(e.target,this,'data-task-filter');if(!b)return;taskFilter=b.getAttribute('data-task-filter');this.querySelectorAll('.chip').forEach(function(x){x.classList.remove('sel');});b.classList.add('sel');renderTasks();});
+  if($('taskRepeatRow')) $('taskRepeatRow').addEventListener('click',function(e){var b=climb(e.target,this,'data-repeat');if(!b)return;taskRepeat=b.getAttribute('data-repeat');renderTaskRepeat();});
+  if($('taskExportRange')) $('taskExportRange').addEventListener('change',function(){$('taskCustomRange').style.display=this.value==='custom'?'':'none';});
+  if($('taskExcelBtn')) $('taskExcelBtn').addEventListener('click',exportTasksExcel);
+  if($('taskPdfBtn')) $('taskPdfBtn').addEventListener('click',exportTasksPdf);
+  if($('taskList')) $('taskList').addEventListener('click',taskEventHandler);
+  if($('taskOverdueList')) $('taskOverdueList').addEventListener('click',taskEventHandler);
 
   $('tabbar').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-tab');
     if(b) showTab(b.getAttribute('data-tab'));
   });
   $('materialMoreBtn').addEventListener('click', function(){showTab('pgSet');});
-  $('aiClearChat').addEventListener('click', function(){
-    if(!confirm('Clear this AI conversation and recent AI actions?')) return;
-    var log=$('uaiLog'); if(log) log.innerHTML='';
-    try{localStorage.removeItem('ai_recent');}catch(e){}
-    renderAIRecent();
-    toastN('AI chat cleared');
-  });
-  $('moneyScanReceipt').addEventListener('click', function(){
-    showTab('pgExp');
-    setTimeout(function(){
-      openExp(null);
-      setTimeout(function(){
-        var box=$('expReceiptBox');
-        if(box) box.scrollIntoView({behavior:'smooth',block:'center'});
-      },80);
-    },80);
-  });
   $('aiGuideClose').addEventListener('click', closeAIGuide);
   $('aiGuideX').addEventListener('click', closeAIGuide);
   $('aiGuideScrim').addEventListener('click', closeAIGuide);
@@ -6862,7 +6874,7 @@ function init(){
     if(e.target&&e.target.classList&&e.target.classList.contains('aiOpenImport')){showTab('pgExp');setTimeout(function(){showImport();},80);return;}
   });
   $('fab').addEventListener('click', function(){
-    if($('pgExp').classList.contains('on')) openExp(null); else openAddActionSheet();
+    if($('pgExp').classList.contains('on')) openExp(null); else if($('pgTasks').classList.contains('on')) openTaskSheet(null); else openAddActionSheet();
   });
 
   $('actionSheet').addEventListener('click', function(e){
@@ -8527,111 +8539,5 @@ if(nat && nat.getLaunchAction){
 })();
 </script>
 
-<div id="taskModal" class="taskModal" aria-hidden="true">
- <div class="taskModalCard" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
-  <div class="taskModalHead"><div><h2 id="taskModalTitle">Add task</h2><div class="setS">Set a deadline, reminders and links.</div></div><button class="iconBtn taskModalClose" id="taskModalClose" type="button" aria-label="Close">✕</button></div>
-  <div class="taskFormGrid">
-   <div class="taskFormFull"><label for="taskTitleInput">Task</label><input id="taskTitleInput" class="inp" placeholder="e.g. Submit project report" autocomplete="off"></div>
-   <div><label for="taskDueInput">Expected completion</label><input id="taskDueInput" class="inp" type="date"></div>
-   <div><label for="taskPriorityInput">Priority</label><select id="taskPriorityInput" class="inp"><option value="normal">Normal</option><option value="high">High</option><option value="low">Low</option></select></div>
-   <div class="taskFormFull"><label for="taskCategoryInput">Category</label><input id="taskCategoryInput" class="inp" placeholder="Work, Personal, Health…" autocomplete="off"></div>
-   <div class="taskFormFull"><label>Link task</label><div class="taskLinkGrid"><button type="button" class="taskLinkBtn" data-link="habit">✓ Habit</button><button type="button" class="taskLinkBtn" data-link="workout">🏋 Workout</button><button type="button" class="taskLinkBtn" data-link="expense">₹ Expense</button></div></div>
-   <div class="taskFormFull taskReminderBox"><label class="taskCheckLabel"><input id="taskReminderEnabled" type="checkbox"><span>Enable reminder</span></label><div id="taskReminderFields" class="taskSubFields">
-    <div class="taskFormGrid"><div><label for="taskReminderOffset">Reminder</label><select id="taskReminderOffset" class="inp"><option value="1">1 day before</option><option value="2">2 days before</option><option value="custom">Custom date</option></select></div><div><label for="taskReminderTime">Time</label><input id="taskReminderTime" class="inp" type="time" value="09:00"></div><div id="taskCustomReminderWrap" class="taskFormFull" style="display:none"><label for="taskCustomReminderDate">Custom reminder date</label><input id="taskCustomReminderDate" class="inp" type="date"></div></div>
-    <div class="taskRepeatRow"><label for="taskRepeatDays">Repeat reminder</label><div><span>Every</span><input id="taskRepeatDays" class="inp taskNumber" type="number" min="1" value="1"><span>day(s) until deadline</span></div></div>
-   </div></div>
-   <div class="taskFormFull"><label class="taskCheckLabel"><input id="taskRecurring" type="checkbox"><span>Make this a recurring task</span></label></div>
-   <div id="taskRecurringFields" class="taskFormFull taskReminderBox" style="display:none"><label>Repeat task</label><div class="taskRepeatRow"><div><span>Every</span><input id="taskRecurringDays" class="inp taskNumber" type="number" min="1" value="7"><span>day(s) until expected completion</span></div></div></div>
-  </div>
-  <div class="taskModalActions"><button class="sbtn" id="taskCancelBtn" type="button">Cancel</button><button class="sbtn acc" id="taskSaveBtn" type="button">Save task</button></div>
- </div>
-</div>
-
-<script>
-/* TASKS_V3_MODULE */
-(function(){
- const KEY='habittracker_tasks_v3'; let filter='today',editingId=null;
- const $=id=>document.getElementById(id);
- const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){return[]}};
- const save=a=>localStorage.setItem(KEY,JSON.stringify(a));
- const today=()=>new Date().toISOString().slice(0,10);
- const addDays=(d,n)=>{let x=new Date(d+'T12:00:00');x.setDate(x.getDate()+Number(n||0));return x.toISOString().slice(0,10)};
- const fmt=d=>d?new Date(d+'T12:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}):'No date';
- const uid=()=>`t_${Date.now().toString(36)}_${Math.random().toString(36).slice(2,7)}`;
- const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
- function status(t){if(t.archived)return'archived';if(t.completed)return'completed';if(t.due&&t.due<today())return'overdue';if(t.due===today())return'today';return'upcoming'}
- function openModal(t){
-   editingId=t?.id||null;$('taskModal').setAttribute('aria-hidden','false');
-   const v=(id,x)=>$(id).value=x??'';
-   v('taskTitleInput',t?.title||'');v('taskDueInput',t?.due||today());v('taskPriorityInput',t?.priority||'normal');
-   v('taskCategoryInput',t?.category||'');v('taskReminderTime',t?.reminder?.time||'09:00');
-   v('taskRepeatDays',t?.reminder?.repeatDays||1);v('taskCustomReminderDate',t?.reminder?.customDate||'');v('taskRecurringDays',t?.recurringDays||7);
-   $('taskReminderEnabled').checked=!!t?.reminder?.enabled;$('taskRecurring').checked=!!t?.recurring;
-   $('taskReminderOffset').value=t?.reminder?.offset||'1';
-   document.querySelectorAll('.taskLinkBtn').forEach(b=>b.classList.toggle('active',b.dataset.link===(t?.linkType||'')));
-   toggleFields();
- }
- function closeModal(){$('taskModal').setAttribute('aria-hidden','true');editingId=null}
- function toggleFields(){
-   $('taskReminderFields').style.display=$('taskReminderEnabled').checked?'block':'none';
-   $('taskRecurringFields').style.display=$('taskRecurring').checked?'block':'none';
-   $('taskCustomReminderWrap').style.display=$('taskReminderOffset').value==='custom'?'block':'none';
- }
- function saveTask(){
-   const title=$('taskTitleInput').value.trim();if(!title){alert('Please enter a task.');return}
-   const a=load(),old=a.find(x=>x.id===editingId),t=old||{id:uid(),createdAt:new Date().toISOString(),completed:false,archived:false};
-   t.title=title;t.due=$('taskDueInput').value;t.priority=$('taskPriorityInput').value;t.category=$('taskCategoryInput').value.trim()||'General';
-   t.linkType=document.querySelector('.taskLinkBtn.active')?.dataset.link||'';
-   t.recurring=$('taskRecurring').checked;t.recurringDays=Math.max(1,Number($('taskRecurringDays').value||7));
-   t.reminder={enabled:$('taskReminderEnabled').checked,offset:$('taskReminderOffset').value,customDate:$('taskCustomReminderDate').value,time:$('taskReminderTime').value||'09:00',repeatDays:Math.max(1,Number($('taskRepeatDays').value||1))};
-   if(!old)a.push(t);save(a);closeModal();render();
- }
- function matches(t){
-   const q=($('taskSearch')?.value||'').trim().toLowerCase();
-   const text=(t.title+' '+(t.category||'')+' '+(t.linkType||'')).toLowerCase();
-   return (!q||text.includes(q))&&(filter==='all'||status(t)===filter);
- }
- function render(){
-   const root=$('taskSections');if(!root)return;const a=load().filter(matches);root.innerHTML='';
-   const groups={};a.forEach(t=>(groups[status(t)]??=[]).push(t));
-   const order=filter==='all'?['today','upcoming','overdue','completed','archived']:[filter];
-   order.forEach(g=>{
-     const sec=document.createElement('div');sec.className='taskSection full';sec.innerHTML='<h3>'+g[0].toUpperCase()+g.slice(1)+'</h3>';
-     const arr=groups[g]||[];
-     if(!arr.length)sec.innerHTML+='<div class="taskEmpty">No tasks here.</div>';
-     arr.sort((x,y)=>(x.due||'9999').localeCompare(y.due||'9999')).forEach(t=>{
-       const r=document.createElement('div');r.className='taskRow';const st=status(t);
-       r.innerHTML=`<input class="taskCheck" type="checkbox" ${t.completed?'checked':''} data-check="${t.id}">
-       <div><div class="taskTitle ${st==='overdue'?'taskOverdue':''}">${esc(t.title)}</div>
-       <div class="taskMeta"><span class="taskBadge">${esc(t.category||'General')}</span><span>${st==='overdue'?'Overdue • ':''}${fmt(t.due)}</span>
-       ${t.priority!=='normal'?'<span>'+esc(t.priority)+' priority</span>':''}${t.reminder?.enabled?'🔔 reminder':''}${t.recurring?'🔁 recurring':''}${t.linkType?'🔗 '+esc(t.linkType):''}</div></div>
-       <div class="taskActions"><button class="taskMini" data-edit="${t.id}">Edit</button><button class="taskMini" data-archive="${t.id}">${t.archived?'Restore':'Archive'}</button></div>`;
-       sec.appendChild(r);
-     });root.appendChild(sec);
-   });
-   stats(load());calendar(load());patterns(load());ai(load());
- }
- function stats(a){let active=a.filter(x=>!x.archived),done=active.filter(x=>x.completed);$('taskTodayCount').textContent=a.filter(x=>status(x)==='today').length;$('taskOverdueCount').textContent=a.filter(x=>status(x)==='overdue').length;$('taskCompletionRate').textContent=(active.length?Math.round(done.length/active.length*100):0)+'%'}
- function calendar(a){
-   const grid=$('taskCalendarGrid');if(!grid)return;let d=new Date(),y=d.getFullYear(),m=d.getMonth(),start=new Date(y,m,1).getDay(),days=new Date(y,m+1,0).getDate();grid.innerHTML='';
-   for(let i=0;i<start;i++)grid.innerHTML+='<div class="calCell"></div>';
-   for(let n=1;n<=days;n++){let ds=new Date(y,m,n).toISOString().slice(0,10),ts=a.filter(t=>t.due===ds&&!t.archived);grid.innerHTML+=`<div class="calCell"><div class="calDate">${n}</div>${ts.map(t=>'<div class="calTask">'+esc(t.title)+'</div>').join('')}</div>`}
- }
- function patterns(a){let done=a.filter(x=>x.completed&&!x.archived),days={};done.forEach(x=>{let d=(x.completedAt||'').slice(0,10);if(d)days[d]=(days[d]||0)+1});let best=Object.entries(days).sort((a,b)=>b[1]-a[1])[0];$('taskPatternText').innerHTML=done.length?`You have completed <b>${done.length}</b> task(s). ${best?`Your strongest completion day so far is <b>${best[0]}</b> with <b>${best[1]}</b> completion(s).`:''}`:'Complete a few tasks to see patterns.'}
- function ai(a){let overdue=a.filter(x=>status(x)==='overdue').length,rec=a.filter(x=>x.recurring&&!x.archived).length,repeat={};a.forEach(x=>{let k=x.title.trim().toLowerCase();repeat[k]=(repeat[k]||0)+1});let repeated=Object.entries(repeat).filter(x=>x[1]>=2);$('taskAISuggestions').innerHTML=(overdue?`🚨 <b>${overdue}</b> overdue task(s): consider rescheduling them.<br><br>`:'')+(repeated.length?`🔁 Repeated tasks detected: <b>${esc(repeated[0][0])}</b>. Consider making it recurring.<br><br>`:'')+(rec?`You already have <b>${rec}</b> recurring task(s).`:'More task history will improve suggestions.')}
- function natural(){let x=prompt('Tell me what you need to do, e.g. "Submit report tomorrow at 5 PM".');if(!x)return;let due=today();if(/tomorrow/i.test(x))due=addDays(today(),1);let tm=x.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i),time=tm?`${String((Number(tm[1])%12)+(tm[3].toLowerCase()==='pm'?12:0)).padStart(2,'0')}:${tm[2]||'00'}`:'';let title=x.replace(/\btomorrow\b|\btoday\b/ig,'').replace(/\bat\s+\d{1,2}(?::\d{2})?\s*(?:am|pm)/ig,'').trim();let a=load();a.push({id:uid(),title:title||x,due,priority:'normal',category:'General',completed:false,archived:false,recurring:false,reminder:{enabled:false},naturalTime:time});save(a);render()}
- function init(){
-   $('taskAddBtn')?.addEventListener('click',()=>openModal());$('taskModalClose')?.addEventListener('click',closeModal);$('taskCancelBtn')?.addEventListener('click',closeModal);$('taskSaveBtn')?.addEventListener('click',saveTask);
-   $('taskReminderEnabled')?.addEventListener('change',toggleFields);$('taskRecurring')?.addEventListener('change',toggleFields);$('taskReminderOffset')?.addEventListener('change',toggleFields);$('taskSearch')?.addEventListener('input',render);$('taskNaturalBtn')?.addEventListener('click',natural);
-   $('taskCalendarBtn')?.addEventListener('click',()=>{$('taskCalendar').style.display=$('taskCalendar').style.display==='none'?'block':'none'});$('taskPatternsBtn')?.addEventListener('click',()=>{$('taskPatterns').style.display=$('taskPatterns').style.display==='none'?'block':'none'});$('taskAIBtn')?.addEventListener('click',()=>{$('taskAI').style.display=$('taskAI').style.display==='none'?'block':'none'});
-   document.querySelectorAll('.taskFilter').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.taskFilter').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()}));
-   document.querySelectorAll('.taskLinkBtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.taskLinkBtn').forEach(x=>x.classList.remove('active'));b.classList.add('active')}));
-   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('taskModal')?.getAttribute('aria-hidden')==='false')closeModal()}); $('taskModal')?.addEventListener('click',e=>{if(e.target===$('taskModal'))closeModal()});
-   $('taskSections')?.addEventListener('click',e=>{let c=e.target.closest('[data-check]'),ed=e.target.closest('[data-edit]'),ar=e.target.closest('[data-archive]');if(c){let a=load(),t=a.find(x=>x.id===c.dataset.check);if(t){t.completed=c.checked;t.completedAt=c.checked?new Date().toISOString():null;save(a);render()}}if(ed){let t=load().find(x=>x.id===ed.dataset.edit);if(t)openModal(t)}if(ar){let a=load(),t=a.find(x=>x.id===ar.dataset.archive);if(t){t.archived=!t.archived;save(a);render()}}});
-   render();
- }
- if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-})();
-</script>
 </body>
 </html>
