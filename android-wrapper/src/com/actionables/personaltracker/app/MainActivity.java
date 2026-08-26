@@ -418,6 +418,14 @@ public class MainActivity extends Activity {
         }
     }
 
+    void stopSpeech() {
+        if (pendingSpeechId != null) {
+            String id = pendingSpeechId;
+            pendingSpeechId = null;
+            js("window._speechResult&&window._speechResult("+JSONObject.quote(id)+",'', 'cancelled')");
+        }
+    }
+
     void toast(String s){ runOnUiThread(()->Toast.makeText(this,s,Toast.LENGTH_SHORT).show()); }
 
     public class Bridge {
