@@ -1213,6 +1213,22 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
  .mnavLabel{font-size:7px!important}.mnavIcon{font-size:18px!important}
 }
 </style>
+<style id="tasks-ui-fix-v2">
+#pgTasks{width:100%;max-width:920px;margin:0 auto;box-sizing:border-box;overflow-x:hidden}
+#pgTasks .taskPageHeader{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin-bottom:18px}.taskPageCopy{min-width:0}.taskAddBtn{flex:0 0 auto;white-space:nowrap}
+#pgTasks .taskInsights{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.taskInsight{min-height:0!important}
+#pgTasks .taskToolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}.taskSearch{width:100%;min-width:0;box-sizing:border-box}.taskToolbar .sbtn{white-space:nowrap}
+#pgTasks .taskFilters{scrollbar-width:none}.taskFilters::-webkit-scrollbar{display:none}
+.taskModal{display:none;position:fixed;inset:0;z-index:10000;align-items:center;justify-content:center;background:rgba(0,0,0,.68);padding:18px;box-sizing:border-box}.taskModal[aria-hidden="false"]{display:flex}
+.taskModalCard{width:min(680px,100%);max-height:min(90vh,820px);overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:24px;padding:22px;box-sizing:border-box;box-shadow:0 24px 80px rgba(0,0,0,.5)}
+.taskModalHead{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:20px}.taskModalHead h2{margin:0 0 4px;font-size:24px}.taskModalClose{flex:0 0 auto}
+.taskModal .taskFormGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.taskModal .taskFormFull{grid-column:1/-1}.taskModal label{display:block;font-size:12px;color:var(--mut);margin:0 0 6px}.taskModal input.inp,.taskModal select.inp{width:100%;box-sizing:border-box;min-width:0}
+.taskLinkGrid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.taskLinkBtn{width:100%;min-height:46px}.taskLinkBtn.active{border-color:var(--acc)!important;color:var(--txt)!important;background:color-mix(in srgb,var(--acc) 10%,var(--card2))!important}
+.taskReminderBox{border:1px solid var(--line);border-radius:16px;padding:14px;box-sizing:border-box}.taskCheckLabel{display:flex!important;align-items:center;gap:8px;color:var(--txt)!important;font-size:13px!important}.taskCheckLabel input{margin:0;width:17px;height:17px}.taskSubFields{margin-top:12px}.taskRepeatRow{margin-top:12px}.taskRepeatRow>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.taskNumber{width:84px!important;flex:0 0 84px}.taskModalActions{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+@media(max-width:700px){#pgTasks{padding-left:14px;padding-right:14px}.taskPageHeader{align-items:flex-start!important}.taskInsights{grid-template-columns:repeat(3,minmax(0,1fr))!important}.taskInsight{padding:11px 10px!important}.taskInsight span{font-size:10px!important}.taskInsight b{font-size:20px!important}.taskToolbar{grid-template-columns:minmax(0,1fr) auto!important}.taskToolbar .sbtn{padding:10px 12px!important}.taskModal{padding:10px}.taskModalCard{padding:18px;border-radius:20px;max-height:calc(100vh - 20px)}.taskModal .taskFormGrid{grid-template-columns:1fr}.taskModal .taskFormFull{grid-column:auto}.taskLinkGrid{grid-template-columns:1fr 1fr 1fr!important}.taskModalActions .sbtn{flex:1}.taskSections{grid-template-columns:1fr!important}}
+@media(max-width:480px){#pgTasks .taskPageHeader{display:block;margin-bottom:14px}.taskAddBtn{margin-top:10px;width:100%}.taskInsights{gap:7px!important}.taskInsight{border-radius:14px!important}.taskToolbar{gap:7px!important}.taskToolbar .sbtn{font-size:11px!important}.taskFilters{gap:6px!important}.taskFilter{padding:8px 11px!important}.taskLinkBtn{font-size:11px;padding:7px 4px!important}.taskModalHead h2{font-size:21px}.taskModalActions{position:sticky;bottom:0;background:var(--card);margin-left:-18px;margin-right:-18px;padding:14px 18px 0}}
+@media(min-width:701px){#pgTasks .taskToolbar{grid-template-columns:minmax(0,1fr) auto auto auto auto}#pgTasks .taskSearch{min-width:220px}}
+</style>
 </head>
 <body>
 
@@ -1594,9 +1610,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ AI PAGE ============ -->
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <section id="pgTasks" class="page">
-  <div class="pageHeader" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-    <div><div class="eyebrow">ACTION CENTER</div><h1>Tasks</h1><div class="setS">Plan, track and finish what matters.</div></div>
-    <button class="sbtn acc" id="taskAddBtn">+ Add task</button>
+  <div class="taskPageHeader">
+    <div class="taskPageCopy"><div class="eyebrow">ACTION CENTER</div><h1>Tasks</h1><div class="setS">Plan, track and finish what matters.</div></div>
+    <button class="sbtn acc taskAddBtn" id="taskAddBtn">+ Add task</button>
   </div>
 
   <div class="taskInsights">
@@ -1606,7 +1622,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   </div>
 
   <div class="taskToolbar">
-    <input id="taskSearch" class="taskSearch" placeholder="Search tasks…">
+    <input id="taskSearch" class="inp taskSearch" placeholder="Search tasks…" autocomplete="off">
     <button class="sbtn" id="taskCalendarBtn">📅 Calendar</button>
     <button class="sbtn" id="taskPatternsBtn">📊 Patterns</button>
     <button class="sbtn" id="taskAIBtn">🧠 AI suggestions</button>
@@ -8511,32 +8527,26 @@ if(nat && nat.getLaunchAction){
 })();
 </script>
 
-<div id="taskModal" class="modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.58);padding:18px">
- <div class="card" style="width:min(680px,100%);max-height:90vh;overflow:auto;padding:20px">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-   <div><h2 id="taskModalTitle" style="margin:0">Add task</h2><div class="setS">Deadline, reminders and links</div></div>
-   <button class="iconBtn" id="taskModalClose">✕</button>
-  </div>
+<div id="taskModal" class="taskModal" aria-hidden="true">
+ <div class="taskModalCard" role="dialog" aria-modal="true" aria-labelledby="taskModalTitle">
+  <div class="taskModalHead"><div><h2 id="taskModalTitle">Add task</h2><div class="setS">Set a deadline, reminders and links.</div></div><button class="iconBtn taskModalClose" id="taskModalClose" type="button" aria-label="Close">✕</button></div>
   <div class="taskFormGrid">
-   <div class="taskFormFull"><label>Task</label><input id="taskTitleInput" placeholder="e.g. Submit project report"></div>
-   <div><label>Expected completion</label><input id="taskDueInput" type="date"></div>
-   <div><label>Priority</label><select id="taskPriorityInput"><option value="normal">Normal</option><option value="high">High</option><option value="low">Low</option></select></div>
-   <div class="taskFormFull"><label>Category</label><input id="taskCategoryInput" placeholder="Work, Personal, Health…"></div>
-   <div class="taskFormFull"><label>Link task</label><div class="taskLinkGrid">
-    <button type="button" class="taskLinkBtn" data-link="habit">✓ Habit</button>
-    <button type="button" class="taskLinkBtn" data-link="workout">🏋 Workout</button>
-    <button type="button" class="taskLinkBtn" data-link="expense">₹ Expense</button>
+   <div class="taskFormFull"><label for="taskTitleInput">Task</label><input id="taskTitleInput" class="inp" placeholder="e.g. Submit project report" autocomplete="off"></div>
+   <div><label for="taskDueInput">Expected completion</label><input id="taskDueInput" class="inp" type="date"></div>
+   <div><label for="taskPriorityInput">Priority</label><select id="taskPriorityInput" class="inp"><option value="normal">Normal</option><option value="high">High</option><option value="low">Low</option></select></div>
+   <div class="taskFormFull"><label for="taskCategoryInput">Category</label><input id="taskCategoryInput" class="inp" placeholder="Work, Personal, Health…" autocomplete="off"></div>
+   <div class="taskFormFull"><label>Link task</label><div class="taskLinkGrid"><button type="button" class="taskLinkBtn" data-link="habit">✓ Habit</button><button type="button" class="taskLinkBtn" data-link="workout">🏋 Workout</button><button type="button" class="taskLinkBtn" data-link="expense">₹ Expense</button></div></div>
+   <div class="taskFormFull taskReminderBox"><label class="taskCheckLabel"><input id="taskReminderEnabled" type="checkbox"><span>Enable reminder</span></label><div id="taskReminderFields" class="taskSubFields">
+    <div class="taskFormGrid"><div><label for="taskReminderOffset">Reminder</label><select id="taskReminderOffset" class="inp"><option value="1">1 day before</option><option value="2">2 days before</option><option value="custom">Custom date</option></select></div><div><label for="taskReminderTime">Time</label><input id="taskReminderTime" class="inp" type="time" value="09:00"></div><div id="taskCustomReminderWrap" class="taskFormFull" style="display:none"><label for="taskCustomReminderDate">Custom reminder date</label><input id="taskCustomReminderDate" class="inp" type="date"></div></div>
+    <div class="taskRepeatRow"><label for="taskRepeatDays">Repeat reminder</label><div><span>Every</span><input id="taskRepeatDays" class="inp taskNumber" type="number" min="1" value="1"><span>day(s) until deadline</span></div></div>
    </div></div>
-   <div class="taskFormFull" style="padding:12px;border:1px solid var(--line);border-radius:14px">
-    <label><input id="taskReminderEnabled" type="checkbox"> Enable reminder</label>
-    <div id="taskReminderFields" style="margin-top:10px">
-     <div class="taskFormGrid">
-      <div><label>Reminder</label><select id="taskReminderOffset"><option value="1">1 day before</option><option value="2">2 days before</option><option value="custom">Custom date</option></select></div>
-      <div><label>Time</label><input id="taskReminderTime" type="time" value="09:00"></div>
-      <div id="taskCustomReminderWrap" class="taskFormFull" style="display:none"><label>Custom reminder date</label><input id="taskCustomReminderDate" type="date"></div>
-     </div>
-     <div style="margin-top:10px"><label>Repeat reminder</label><div class="taskRecurrence"><span>Every</span><input id="taskRepeatDays" type="number" min="1" value="1" style="width:80px"><span>day(s) until deadline</span></div></div>
-    </div>
+   <div class="taskFormFull"><label class="taskCheckLabel"><input id="taskRecurring" type="checkbox"><span>Make this a recurring task</span></label></div>
+   <div id="taskRecurringFields" class="taskFormFull taskReminderBox" style="display:none"><label>Repeat task</label><div class="taskRepeatRow"><div><span>Every</span><input id="taskRecurringDays" class="inp taskNumber" type="number" min="1" value="7"><span>day(s) until expected completion</span></div></div></div>
+  </div>
+  <div class="taskModalActions"><button class="sbtn" id="taskCancelBtn" type="button">Cancel</button><button class="sbtn acc" id="taskSaveBtn" type="button">Save task</button></div>
+ </div>
+</div>
+
 <script>
 /* TASKS_V3_MODULE */
 (function(){
@@ -8551,7 +8561,7 @@ if(nat && nat.getLaunchAction){
  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
  function status(t){if(t.archived)return'archived';if(t.completed)return'completed';if(t.due&&t.due<today())return'overdue';if(t.due===today())return'today';return'upcoming'}
  function openModal(t){
-   editingId=t?.id||null;$('taskModal').style.display='flex';
+   editingId=t?.id||null;$('taskModal').setAttribute('aria-hidden','false');
    const v=(id,x)=>$(id).value=x??'';
    v('taskTitleInput',t?.title||'');v('taskDueInput',t?.due||today());v('taskPriorityInput',t?.priority||'normal');
    v('taskCategoryInput',t?.category||'');v('taskReminderTime',t?.reminder?.time||'09:00');
@@ -8561,7 +8571,7 @@ if(nat && nat.getLaunchAction){
    document.querySelectorAll('.taskLinkBtn').forEach(b=>b.classList.toggle('active',b.dataset.link===(t?.linkType||'')));
    toggleFields();
  }
- function closeModal(){$('taskModal').style.display='none';editingId=null}
+ function closeModal(){$('taskModal').setAttribute('aria-hidden','true');editingId=null}
  function toggleFields(){
    $('taskReminderFields').style.display=$('taskReminderEnabled').checked?'block':'none';
    $('taskRecurringFields').style.display=$('taskRecurring').checked?'block':'none';
@@ -8616,6 +8626,7 @@ if(nat && nat.getLaunchAction){
    $('taskCalendarBtn')?.addEventListener('click',()=>{$('taskCalendar').style.display=$('taskCalendar').style.display==='none'?'block':'none'});$('taskPatternsBtn')?.addEventListener('click',()=>{$('taskPatterns').style.display=$('taskPatterns').style.display==='none'?'block':'none'});$('taskAIBtn')?.addEventListener('click',()=>{$('taskAI').style.display=$('taskAI').style.display==='none'?'block':'none'});
    document.querySelectorAll('.taskFilter').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.taskFilter').forEach(x=>x.classList.remove('active'));b.classList.add('active');filter=b.dataset.filter;render()}));
    document.querySelectorAll('.taskLinkBtn').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.taskLinkBtn').forEach(x=>x.classList.remove('active'));b.classList.add('active')}));
+   document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('taskModal')?.getAttribute('aria-hidden')==='false')closeModal()}); $('taskModal')?.addEventListener('click',e=>{if(e.target===$('taskModal'))closeModal()});
    $('taskSections')?.addEventListener('click',e=>{let c=e.target.closest('[data-check]'),ed=e.target.closest('[data-edit]'),ar=e.target.closest('[data-archive]');if(c){let a=load(),t=a.find(x=>x.id===c.dataset.check);if(t){t.completed=c.checked;t.completedAt=c.checked?new Date().toISOString():null;save(a);render()}}if(ed){let t=load().find(x=>x.id===ed.dataset.edit);if(t)openModal(t)}if(ar){let a=load(),t=a.find(x=>x.id===ar.dataset.archive);if(t){t.archived=!t.archived;save(a);render()}}});
    render();
  }
