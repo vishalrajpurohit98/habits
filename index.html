@@ -1132,13 +1132,13 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @media(max-width:480px){.taskSummary{grid-template-columns:repeat(2,1fr)}.taskSearchRow{align-items:stretch;flex-direction:column}.taskSearchRow .sbtn{width:100%}}
 
 /* GLOBAL NAVIGATION INTERACTION SAFETY — final patch */
-#tabbar.materialNav{z-index:10000 !important;pointer-events:auto !important;}
+#tabbar.materialNav{z-index:50 !important;pointer-events:auto !important;}
 #tabbar .materialNavScroll{pointer-events:auto !important;}
 #tabbar .mnavItem{pointer-events:auto !important;touch-action:manipulation !important;position:relative;z-index:1;}
 #tabbar .mnavItem::before{z-index:-1;pointer-events:none;}
-#scrim{z-index:9000;}
+#scrim{z-index:62;}
 .sheet:not(.open){pointer-events:none !important;}
-#fab{z-index:10001 !important;}
+#fab{z-index:70 !important;}
 .page{padding-bottom:230px !important;}
 
 </style>
@@ -1321,7 +1321,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 <div class="page" id="pgExp">
     <div class="eyebrow" id="expMonthLbl"></div>
     <div class="h1row"><h1>Money</h1>
-      <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <div style="display:flex;gap:8px;align-items:center"><button class="emptyCtaBtn" id="expAddTop" type="button" style="margin:0;padding:8px 12px;font-size:12px">+ Add expense</button>
+      <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button></div>
     </div>
     <div style="height:12px"></div>
 
@@ -2457,6 +2458,8 @@ function load(){
   return normState({});
 }
 var state = load();
+// Safety: this is referenced by persist/pushAlarms before the notification block is evaluated.
+var webTimers = (typeof webTimers !== 'undefined' && Array.isArray(webTimers)) ? webTimers : [];
 var lastAlarmsJson = '';
 function persist(){
   state.mtime = Date.now();
@@ -3908,6 +3911,9 @@ function openSheet(id){
   sheetOpen = id;
   $(id).classList.add('open');
   $('scrim').classList.add('on');
+  var nav=$('tabbar'), fab=$('fab');
+  if(nav) nav.style.pointerEvents='none';
+  if(fab) fab.style.pointerEvents='none';
   try{ history.pushState({s:1},''); }catch(e){}
 }
 function closeSheet(fromPop){
@@ -3915,6 +3921,9 @@ function closeSheet(fromPop){
   $(sheetOpen).classList.remove('open');
   $('scrim').classList.remove('on');
   sheetOpen = null;
+  var nav=$('tabbar'), fab=$('fab');
+  if(nav) nav.style.pointerEvents='auto';
+  if(fab) fab.style.pointerEvents='auto';
   resetDelBtn(); resetJrDel(); selMiss = null;
   if(!fromPop){ popGuard = true; try{ history.back(); }catch(e){ popGuard=false; } }
 }
@@ -4946,7 +4955,7 @@ function webSave(name, mime, b64){
     return true;
   }catch(e){ return false; }
 }
-var webTimers = [];
+webTimers = webTimers || [];
 function webNotifSupported(){ return !nat && 'Notification' in window; }
 function clearWebTimers(){ for(var i=0;i<webTimers.length;i++) clearTimeout(webTimers[i]); webTimers = []; }
 function scheduleWebNotifs(){
@@ -5962,7 +5971,7 @@ function paintRecur(){var bs=$('recurFreqGrid').children;for(var i=0;i<bs.length
 function saveRecur(){var n=$('recurName').value.trim(),amt=parseFloat($('recurAmt').value);if(!n){$('recurName').focus();toastN('Enter a name');return;}if(!amt||amt<=0){$('recurAmt').focus();toastN('Enter an amount');return;}if(!recurAcct){toastN('Pick an account');return;}recurEd.name=n;recurEd.amt=amt;recurEd.freq=recurFreq;recurEd.day=Math.min(28,Math.max(1,+$('recurDay').value||1));recurEd.weekday=recurWeekday;recurEd.month=Math.min(12,Math.max(1,+$('recurMonth').value||1));recurEd.yearDay=Math.min(28,Math.max(1,+$('recurYearDay').value||1));recurEd.cat=recurCat||'Other';recurEd.acct=recurAcct;recurEd.start=$('recurStart').value||today();recurEd.active=$('recurActive').classList.contains('on');if(recurEd._edit){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===recurEd._edit){delete recurEd._edit;state.recur[i]=recurEd;break;}}else{delete recurEd._edit;recurEd.id='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);state.recur.push(recurEd);}persist();closeSheet();renderExp();toastN('Recurring expense saved');}
 /* ---- expense sheet ---- */
 var expEd = null, expKindSel='exp', expCatSel='', expSubSel='', expAcctSel='', expToSel='';
-function activeAccts(){ return state.accts.filter(function(a){return a.active;}); }
+function activeAccts(){ var a=state.accts.filter(function(x){return x.active;}); if(!a.length && state.accts.length){state.accts[0].active=true; a=[state.accts[0]]; persist();} return a; }
 function renderExpReceipt(){var box=$('expReceiptPreview'),rem=$('expReceiptRemove');if(!box||!rem)return;var src='';if(expEd&&expEd.receiptData)src=expEd.receiptData;else if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)src='data:image/jpeg;base64,'+b;}catch(e){}}if(src)box.innerHTML='<img class="receiptThumb" src="'+src+'" alt="Receipt"><div class="receiptName">'+esc(expEd.receipt||'Uploaded receipt')+'</div>';else if(expEd&&expEd.receipt)box.innerHTML='<div class="receiptName">'+esc(expEd.receipt)+'</div>';else box.innerHTML='<div class="setS">No receipt attached.</div>';if(expEd&&expEd.receiptMeta){var rm=expEd.receiptMeta,items=Array.isArray(rm.items)?rm.items:[];box.innerHTML+='<div class="featurePanel" style="margin-top:8px"><b>AI extraction review</b><br><small>'+((rm.currency?esc(rm.currency)+' · ':'')+(rm.tax?'Tax '+inr(rm.tax)+' · ':'')+(items.length?items.length+' item'+(items.length===1?'':'s'):'No item lines detected'))+'</small></div>';}rem.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';var sc=$('expReceiptScan');if(sc)sc.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';}
 function clearExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}if(expEd){expEd.receipt='';expEd.receiptData='';}renderExpReceipt();}
 function resizeReceipt(file,cb){var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var max=1600,scale=Math.min(1,max/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*scale)),h=Math.max(1,Math.round(im.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(im,0,0,w,h);cb(c.toDataURL('image/jpeg',.78));};im.onerror=function(){cb(fr.result);};im.src=fr.result;};fr.readAsDataURL(file);}
@@ -5988,7 +5997,11 @@ function addExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd
 function openExp(id){
   var x = id ? null : null;
   if(id){ for(var i=0;i<state.tx.length;i++) if(state.tx[i].id===id) x=state.tx[i]; }
-  if(!state.accts.length){ toastN('Add an account first'); expView='acct'; renderExp(); syncSeg(); openAcct(null); return; }
+  if(!state.accts.length){
+    var defaultAcct={id:'a'+Date.now().toString(36),name:'Cash',type:'cash',open:0,active:true};
+    state.accts.push(defaultAcct);
+    toastN('Cash account created — add your expense');
+  }
   expEd = x ? JSON.parse(JSON.stringify(x)) : {id:'', kind:'exp', amt:0, acct:activeAccts()[0].id, to:'', cat:'', sub:'', payee:'', method:'', note:'', tags:'', receipt:'', receiptData:'', receiptMeta:null, d:today(), created:Date.now()};
   expEd._edit = id||'';
   expKindSel = expEd.kind; expCatSel = expEd.cat; expSubSel = expEd.sub;
@@ -8668,8 +8681,19 @@ if(nat && nat.getLaunchAction){
       },false);
     }
     // Money must remain usable even on a brand-new profile with no account.
+    var expAddTop=el('expAddTop');
+    if(expAddTop && !expAddTop.__finalBound){expAddTop.__finalBound=true;expAddTop.addEventListener('click',function(ev){ev.stopPropagation();safe(function(){openExp(null);});},false);expAddTop.addEventListener('touchend',function(ev){ev.preventDefault();ev.stopPropagation();safe(function(){openExp(null);});},{passive:false});}
     var expCta=el('expCta');
     if(expCta && !expCta.__finalBound){expCta.__finalBound=true;expCta.addEventListener('click',function(){safe(function(){openExp(null);});});}
+    var expSheet=el('expSheet');
+    if(expSheet && !expSheet.__finalSheetBound){expSheet.__finalSheetBound=true;expSheet.addEventListener('click',function(ev){
+      var k=ev.target.closest && ev.target.closest('#expKind button');
+      if(k){ev.stopPropagation();safe(function(){expKindSel=k.getAttribute('data-k');paintKind();paintExpPickers();});return;}
+      var c=ev.target.closest && ev.target.closest('[data-ec]');
+      if(c){ev.stopPropagation();safe(function(){expCatSel=c.getAttribute('data-ec');expSubSel='';paintExpPickers();});return;}
+      var a=ev.target.closest && ev.target.closest('[data-ea]');
+      if(a){ev.stopPropagation();safe(function(){expAcctSel=a.getAttribute('data-ea');paintExpPickers();});return;}
+    },false);}
     var expSave=el('expSave');
     if(expSave && !expSave.__finalBound){expSave.__finalBound=true;expSave.addEventListener('click',function(){safe(function(){saveExp();});});}
     var expPrev=el('expPrev');
