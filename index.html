@@ -1158,7 +1158,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   });
 }
 </script>
-
 <style id="tasks-v3">
 #pgTasks .taskToolbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:14px 0}
 #pgTasks .taskSearch{flex:1 1 260px;min-width:180px}
@@ -1203,12 +1202,15 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 }
 </style>
 
-<style id="tasks-nav-fix">
+<style id="tasks-nav-final">
 @media(max-width:899px){
-  .materialNav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
-  .mnavItem{min-width:0!important;padding-left:2px!important;padding-right:2px!important}
-  .mnavLabel{font-size:8px!important;white-space:nowrap!important}
-  .mnavIcon{font-size:21px!important}
+ .materialNav{grid-template-columns:repeat(6,minmax(0,1fr))!important;width:calc(100vw - 12px)!important;max-width:none!important;padding:5px 4px!important}
+ .mnavItem{min-width:0!important;padding:0 1px!important}
+ .mnavIcon{font-size:20px!important}
+ .mnavLabel{font-size:8px!important;white-space:nowrap!important}
+}
+@media(max-width:420px){
+ .mnavLabel{font-size:7px!important}.mnavIcon{font-size:18px!important}
 }
 </style>
 </head>
@@ -1591,7 +1593,50 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ SETTINGS ============ -->
   <!-- ============ AI PAGE ============ -->
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
-  <div class="page" id="pgAI">
+  <section id="pgTasks" class="page">
+  <div class="pageHeader" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
+    <div><div class="eyebrow">ACTION CENTER</div><h1>Tasks</h1><div class="setS">Plan, track and finish what matters.</div></div>
+    <button class="sbtn acc" id="taskAddBtn">+ Add task</button>
+  </div>
+
+  <div class="taskInsights">
+    <div class="taskInsight"><span>Today</span><b id="taskTodayCount">0</b></div>
+    <div class="taskInsight"><span>Completion rate</span><b id="taskCompletionRate">0%</b></div>
+    <div class="taskInsight"><span>Overdue</span><b id="taskOverdueCount">0</b></div>
+  </div>
+
+  <div class="taskToolbar">
+    <input id="taskSearch" class="taskSearch" placeholder="Search tasks…">
+    <button class="sbtn" id="taskCalendarBtn">📅 Calendar</button>
+    <button class="sbtn" id="taskPatternsBtn">📊 Patterns</button>
+    <button class="sbtn" id="taskAIBtn">🧠 AI suggestions</button>
+    <button class="sbtn" id="taskNaturalBtn">📥 Just tell me</button>
+  </div>
+
+  <div class="taskFilters">
+    <button class="taskFilter active" data-filter="today">Today</button>
+    <button class="taskFilter" data-filter="upcoming">Upcoming</button>
+    <button class="taskFilter" data-filter="overdue">Overdue</button>
+    <button class="taskFilter" data-filter="completed">Completed</button>
+    <button class="taskFilter" data-filter="archived">Archived</button>
+    <button class="taskFilter" data-filter="all">All</button>
+  </div>
+
+  <div id="taskCalendar" class="taskSection full" style="display:none;margin-top:14px">
+    <h3>Calendar</h3><div id="taskCalendarGrid" class="calGrid"></div>
+  </div>
+
+  <div id="taskPatterns" class="taskSection full" style="display:none;margin-top:14px">
+    <h3>Task completion patterns</h3><div id="taskPatternText" class="taskEmpty">Complete a few tasks to see patterns.</div>
+  </div>
+
+  <div id="taskAI" class="taskSection full" style="display:none;margin-top:14px">
+    <h3>AI task suggestions</h3><div id="taskAISuggestions" class="taskEmpty"></div>
+  </div>
+
+  <div id="taskSections" class="taskSections" style="margin-top:14px"></div>
+</section>
+<div class="page" id="pgAI">
     <div class="aiTopBar">
   <div><div class="eyebrow">Personal command center</div><h1>AI Assistant</h1></div>
   <button class="sbtn aiClearBtn" id="aiClearChat">🗑 Clear chat</button>
@@ -8466,51 +8511,6 @@ if(nat && nat.getLaunchAction){
 })();
 </script>
 
-
-<section id="pgTasks" class="page" style="display:none">
-  <div class="pageHeader" style="display:flex;align-items:center;justify-content:space-between;gap:12px">
-    <div><div class="eyebrow">ACTION CENTER</div><h1>Tasks</h1><div class="setS">Plan, track and finish what matters.</div></div>
-    <button class="sbtn acc" id="taskAddBtn">+ Add task</button>
-  </div>
-
-  <div class="taskInsights">
-    <div class="taskInsight"><span>Today</span><b id="taskTodayCount">0</b></div>
-    <div class="taskInsight"><span>Completion rate</span><b id="taskCompletionRate">0%</b></div>
-    <div class="taskInsight"><span>Overdue</span><b id="taskOverdueCount">0</b></div>
-  </div>
-
-  <div class="taskToolbar">
-    <input id="taskSearch" class="taskSearch" placeholder="Search tasks…">
-    <button class="sbtn" id="taskCalendarBtn">📅 Calendar</button>
-    <button class="sbtn" id="taskPatternsBtn">📊 Patterns</button>
-    <button class="sbtn" id="taskAIBtn">🧠 AI suggestions</button>
-    <button class="sbtn" id="taskNaturalBtn">📥 Just tell me</button>
-  </div>
-
-  <div class="taskFilters">
-    <button class="taskFilter active" data-filter="today">Today</button>
-    <button class="taskFilter" data-filter="upcoming">Upcoming</button>
-    <button class="taskFilter" data-filter="overdue">Overdue</button>
-    <button class="taskFilter" data-filter="completed">Completed</button>
-    <button class="taskFilter" data-filter="archived">Archived</button>
-    <button class="taskFilter" data-filter="all">All</button>
-  </div>
-
-  <div id="taskCalendar" class="taskSection full" style="display:none;margin-top:14px">
-    <h3>Calendar</h3><div id="taskCalendarGrid" class="calGrid"></div>
-  </div>
-
-  <div id="taskPatterns" class="taskSection full" style="display:none;margin-top:14px">
-    <h3>Task completion patterns</h3><div id="taskPatternText" class="taskEmpty">Complete a few tasks to see patterns.</div>
-  </div>
-
-  <div id="taskAI" class="taskSection full" style="display:none;margin-top:14px">
-    <h3>AI task suggestions</h3><div id="taskAISuggestions" class="taskEmpty"></div>
-  </div>
-
-  <div id="taskSections" class="taskSections" style="margin-top:14px"></div>
-</section>
-
 <div id="taskModal" class="modal" style="display:none;position:fixed;inset:0;z-index:9999;align-items:center;justify-content:center;background:rgba(0,0,0,.58);padding:18px">
  <div class="card" style="width:min(680px,100%);max-height:90vh;overflow:auto;padding:20px">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
@@ -8537,16 +8537,6 @@ if(nat && nat.getLaunchAction){
      </div>
      <div style="margin-top:10px"><label>Repeat reminder</label><div class="taskRecurrence"><span>Every</span><input id="taskRepeatDays" type="number" min="1" value="1" style="width:80px"><span>day(s) until deadline</span></div></div>
     </div>
-   </div>
-   <div class="taskFormFull"><label><input id="taskRecurring" type="checkbox"> Make this a recurring task</label></div>
-   <div id="taskRecurringFields" class="taskFormFull" style="display:none;padding:12px;border:1px solid var(--line);border-radius:14px">
-    <label>Repeat task every</label><div class="taskRecurrence"><input id="taskRecurringDays" type="number" min="1" value="7" style="width:80px"><span>day(s) until expected completion</span></div>
-   </div>
-  </div>
-  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:18px"><button class="sbtn" id="taskCancelBtn">Cancel</button><button class="sbtn acc" id="taskSaveBtn">Save task</button></div>
- </div>
-</div>
-
 <script>
 /* TASKS_V3_MODULE */
 (function(){
