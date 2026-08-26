@@ -22,3 +22,10 @@ service cloud.firestore {
   }
 }
 ```
+
+
+## Compatibility mode
+
+If an older Firebase project still has rules that allow access to `/users/{uid}` but not `/users/{uid}/records/{recordId}`, the app automatically falls back to a compatibility sync using the existing user document. This keeps sync working while the included record-level rules are being published.
+
+After publishing the included `firestore.rules`, sign out/in or press **Sync now**; the app will use record-level sync when the `records` collection is permitted.
