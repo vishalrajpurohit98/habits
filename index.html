@@ -1080,7 +1080,7 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 .aiFeatureHead{display:flex;align-items:center;gap:8px;margin-bottom:5px}.aiFeatureHead span{font-size:18px}.aiFeatureHead b{font-size:13px;flex:1}
 .aiGuideBtn{border:1px solid var(--line);background:var(--card2);color:var(--mut);border-radius:9px;width:30px;height:30px;font-weight:700}
 .aiFeatureCard .aiQuickCard,.aiFeatureCard .aiSmartCard{box-shadow:none;border:0;padding:8px 0;margin:0;background:transparent}
-.dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.dashTile{padding:14px 15px}.dashIco{font-size:18px;margin-bottom:5px}.dashVal{font-family:var(--fDisp);font-size:20px;font-weight:800;margin-top:4px}.dashActions{display:flex;gap:8px;margin:14px 0}.dashActions .sbtn{flex:1}
+.dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.dashTile{padding:14px 15px}.dashIco{font-size:18px;margin-bottom:5px}.dashVal{font-family:var(--fDisp);font-size:20px;font-weight:800;margin-top:4px}.dashActions{display:flex;gap:8px;margin:14px 0}.dashActions .sbtn{flex:1}.dashTaskCard{padding:14px}.dashTaskTop{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:11px}.dashTaskStat{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:9px 7px}.dashTaskStat b{display:block;font-size:17px}.dashTaskStat span{font-size:9px;color:var(--mut)}.dashTaskStat.over b{color:#ff5a4b}.dashTaskRows{border-top:1px solid var(--line);padding-top:9px}.dashTaskRow{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--line)}.dashTaskRow:last-child{border-bottom:0}.dashTaskDot{width:8px;height:8px;border-radius:50%;background:var(--primary);flex:0 0 auto}.dashTaskDot.high{background:#ff5a4b}.dashTaskRow b{font-size:11px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.dashTaskRow span{font-size:9px;color:var(--mut)}.dashTaskMore{margin-top:8px;font-size:10px;color:var(--primary);text-align:right;cursor:pointer}
 .aiGuideSheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:min(560px,100%);max-height:78vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:22px 22px 0 0;z-index:10001;padding:18px 18px 24px;box-shadow:0 -16px 40px rgba(0,0,0,.28);transition:transform .22s ease}
 .aiGuideSheet.on{transform:translate(-50%,0)}.aiGuideExample{margin:10px 0;padding:11px 12px;border-radius:12px;background:var(--card2);font-size:12px;line-height:1.5}.aiGuideSteps{padding-left:20px;line-height:1.6;font-size:12px}
 @media(max-width:480px){.aiFeatureGrid{grid-template-columns:1fr}.dashActions{flex-wrap:wrap}}
@@ -1175,6 +1175,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="setCard dashTile"><div class="dashIco">💰</div><div class="setT">Money</div><div class="dashVal" id="dashMoney">—</div><div class="setS">today</div></div>
   </div>
   <div class="lbl">Today at a glance</div><div class="setCard" id="dashGlance"></div>
+  <div class="lbl">Actionables</div>
+  <div class="setCard dashTaskCard" id="dashTasksCard"></div>
   <div class="lbl">Patterns</div><div id="dashPatterns"></div>
   <div class="dashActions"><button class="sbtn acc" data-go-tab="pgToday">Habits</button><button class="sbtn" data-go-tab="pgWorkout">Workout</button><button class="sbtn" data-go-tab="pgAI">AI</button></div>
 </div>
@@ -1187,7 +1189,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="taskHeroTop"><div><h2 id="taskOpenTitle">Today's focus</h2><p id="taskSummary">Loading actionables…</p></div><button class="taskIconBtn acc" id="taskAddBtn">＋</button></div>
     <div class="taskProgress"><i id="taskOverallProgress" style="width:0%"></i></div>
   </div>
-  <div class="taskSearchRow"><input id="taskSearch" class="inp taskSearch" placeholder="Search tasks…" autocomplete="off"><button class="taskIconBtn" id="taskClearSearch" aria-label="Clear search">×</button></div>
+  <div class="taskSearchRow"><input id="taskSearch" class="inp taskSearch" type="search" name="taskSearch" placeholder="Search tasks…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" inputmode="search"><button class="taskIconBtn" id="taskClearSearch" aria-label="Clear search">×</button></div>
   <div class="taskVoiceHint">Say: <b>“Add task: Finish API testing tomorrow, high priority, repeat weekly.”</b></div>
   <div class="taskFilters" id="taskFilters">
     <button class="chip sel" data-task-filter="all">All</button><button class="chip" data-task-filter="overdue">Overdue</button><button class="chip" data-task-filter="today">Today</button><button class="chip" data-task-filter="upcoming">Upcoming</button><button class="chip" data-task-filter="completed">Completed</button>
@@ -2189,8 +2191,12 @@ function taskIsHabitSatisfied(h, d){
   return isDone(h,ds)||isFroz(h,ds);
 }
 function habitTaskOccurrence(h, d){
-  var ds=fmt(d); if(!dueOn(h,d)||taskIsHabitSatisfied(h,ds)) return null;
-  return normTask({id:'habit_'+h.id+'_'+ds,title:h.name,desc:'Linked habit · '+habitScheduleLabel(h),due:ds,time:(h.rem&&h.rem.times&&h.rem.times[0])||'18:00',priority:'Medium',reminder:'none',repeat:'habit',status:'open',habitId:h.id,source:'habit',subtasks:[]});
+  var ds=fmt(d);
+  if(!dueOn(h,d)) return null;
+  var satisfied=taskIsHabitSatisfied(h,ds);
+  // Keep today's completed linked habit visible so it can be seen under Completed; suppress completed historical/future occurrences.
+  if(satisfied && ds!==today()) return null;
+  return normTask({id:'habit_'+h.id+'_'+ds,title:h.name,desc:'Linked habit · '+habitScheduleLabel(h),due:ds,time:(h.rem&&h.rem.times&&h.rem.times[0])||'18:00',priority:'Medium',reminder:'none',repeat:'habit',status:satisfied?'completed':'open',habitId:h.id,source:'habit',subtasks:[]});
 }
 function habitScheduleLabel(h){
   var k=h.sched&&h.sched.kind;
@@ -2210,7 +2216,7 @@ function taskOccurrenceForDate(t, d){
   return null;
 }
 function taskVirtual(t,ds){var x={};for(var k in t)x[k]=t[k];x.id=t.id+'@'+ds;x.due=ds;x.baseId=t.id;x.status=(t.completedDates||[]).indexOf(ds)>=0?'completed':'open';return x;}
-function taskOccurrences(days){
+function taskOccurrences(days, includeHabitRange){
   var out=[], start=addDays(new Date(),-30), end=addDays(new Date(),days||30);
   // manual tasks + recurring occurrences
   for(var i=0;i<state.tasks.length;i++){
@@ -2218,10 +2224,14 @@ function taskOccurrences(days){
     if(t.repeat==='none'){if(t.due<=fmt(end)&&t.due>=fmt(start))out.push(t);}
     else{var d=new Date(start.getTime());for(;d<=end;d=addDays(d,1)){var o=taskOccurrenceForDate(t,d);if(o)out.push(o);}}
   }
-  // linked habits: show only genuinely due, incomplete occurrences. Weekly/monthly quotas naturally suppress after quota is met.
+  // Linked habits are today's actionables on the Tasks surface. Reports can explicitly request a range.
   for(var hi=0;hi<state.habits.length;hi++){
     var h=state.habits[hi];if(h.arch)continue;
-    var hd=new Date(start.getTime());for(;hd<=end;hd=addDays(hd,1)){var ho=habitTaskOccurrence(h,hd);if(ho)out.push(ho);}
+    if(includeHabitRange){
+      var hd=new Date(start.getTime());for(;hd<=end;hd=addDays(hd,1)){var ho=habitTaskOccurrence(h,hd);if(ho)out.push(ho);}
+    }else{
+      var hoToday=habitTaskOccurrence(h,new Date());if(hoToday)out.push(hoToday);
+    }
   }
   out.sort(function(a,b){var ao=taskOverdue(a)?0:1,bo=taskOverdue(b)?0:1;if(ao!==bo)return ao-bo;var ap=a.priority==='High'?0:a.priority==='Medium'?1:2,bp=b.priority==='High'?0:b.priority==='Medium'?1:2;if(ap!==bp)return ap-bp;return a.due.localeCompare(b.due);});
   return out;
@@ -3692,6 +3702,14 @@ function renderDashboard(){
   var spend=state.tx.filter(function(x){return x.d===ts&&x.kind==='exp';}).reduce(function(a,x){return a+(x.amt||0);},0);
   if($('dashMoney'))$('dashMoney').textContent=inr(spend);
   if($('dashGlance'))$('dashGlance').innerHTML='<div class="featureRow"><div class="grow"><b>Habits</b><br><small>'+done.length+' completed today</small></div></div><div class="featureRow"><div class="grow"><b>Sleep</b><br><small>'+((state.sleep.find(function(x){return x.d===ts;})||{}).mins?fmtDur((state.sleep.find(function(x){return x.d===ts;})||{}).mins):'Not logged')+'</small></div></div><div class="featureRow"><div class="grow"><b>Money</b><br><small>'+inr(spend)+' spent today</small></div></div>';
+  if($('dashTasksCard')){
+    var allTaskToday=taskOccurrences(1,false).filter(function(t){return t.due===ts;}), openTaskToday=allTaskToday.filter(function(t){return !taskIsDone(t);}), doneTaskToday=allTaskToday.filter(taskIsDone);
+    var overdueTaskAll=taskOccurrences(30,false).filter(taskOverdue);
+    var upcomingTaskAll=taskOccurrences(30,false).filter(function(t){return t.due>ts&&!taskIsDone(t);});
+    var top=openTaskToday.slice(0,3);
+    var rows=top.length?top.map(function(t){return '<div class="dashTaskRow"><i class="dashTaskDot '+(t.priority==='High'?'high':'')+'"></i><b>'+esc(t.title)+'</b><span>'+taskDateText(t.due)+'</span></div>';}).join(''):'<div class="setS" style="padding:7px 0">No open tasks for today.</div>';
+    $('dashTasksCard').innerHTML='<div class="dashTaskTop"><div class="dashTaskStat"><b>'+openTaskToday.length+'</b><span>Today</span></div><div class="dashTaskStat over"><b>'+overdueTaskAll.length+'</b><span>Overdue</span></div><div class="dashTaskStat"><b>'+upcomingTaskAll.length+'</b><span>Upcoming</span></div><div class="dashTaskStat"><b>'+doneTaskToday.length+'</b><span>Done today</span></div></div><div class="dashTaskRows">'+rows+'</div><div class="dashTaskMore" data-go-tab="pgTasks">View all actionables →</div>';
+  }
   renderPatternCard('dashPatterns',3);
 }
 function renderWorkoutPage(){
@@ -3868,38 +3886,23 @@ function renderToday(){
   $('stackBox').innerHTML = sb;
 
   var html = '';
-  if(filterOn){
-    var found = 0;
-    for(var f=0; f<state.habits.length; f++){
-      var fh = state.habits[f];
-      if(srchCat !== 'all' && fh.cat !== srchCat) continue;
-      if(srchQ && fh.name.toLowerCase().indexOf(srchQ) < 0) continue;
-      found++;
-      if(fh.arch) html += miniCard(fh, 'Archived \u00B7 tap to view');
-      else if(dueOn(fh, now)) html += cardHTML(fh);
-      else html += miniCard(fh, restLabel(fh));
-    }
-    if(!found) html = '<div class="setS" style="text-align:center;padding:24px 0">No habits match.</div>';
-  } else {
+  // The Check-in surface is strictly TODAY. Historical and future occurrences are not rendered here.
+  var todays = due.filter(function(h){
+    if(h.arch) return false;
+    if(srchCat !== 'all' && h.cat !== srchCat) return false;
+    if(srchQ && h.name.toLowerCase().indexOf(srchQ) < 0) return false;
+    return true;
+  });
+  if(todays.length){
     for(var s2=0;s2<SECTIONS.length;s2++){
       var sec = SECTIONS[s2][0], items = [];
-      for(var q=0;q<due.length;q++) if((due[q].section||'any') === sec) items.push(due[q]);
+      for(var q=0;q<todays.length;q++) if((todays[q].section||'any') === sec) items.push(todays[q]);
       if(!items.length) continue;
       html += '<div class="secH">'+SECTIONS[s2][1]+'</div>';
       for(var w=0;w<items.length;w++) html += cardHTML(items[w]);
     }
-    var rest = [];
-    if(!onVacation(ts)){
-      for(var z=0;z<state.habits.length;z++){
-        var hz = state.habits[z];
-        if(hz.arch) continue;
-        if(!dueOn(hz, now)) rest.push(hz);
-      }
-    }
-    if(rest.length){
-      html += '<div class="secH">Not today</div>';
-      for(var y=0;y<rest.length;y++) html += miniCard(rest[y], restLabel(rest[y]));
-    }
+  } else {
+    html = '<div class="setS" style="text-align:center;padding:24px 0">No habits to check in today.</div>';
   }
   $('list').innerHTML = html;
   renderInsights();
@@ -6770,11 +6773,14 @@ function taskVisible(t){
 }
 function renderTasks(){
   if(!$('pgTasks'))return;
-  var q=(($('taskSearch')&&$('taskSearch').value)||'').toLowerCase().trim();
+  var rawQ=(($('taskSearch')&&$('taskSearch').value)||'').trim();
+  if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(rawQ)){ $('taskSearch').value=''; rawQ=''; }
+  var q=rawQ.toLowerCase();
   var all=taskOccurrences(30).filter(taskVisible).filter(function(t){return !q||t.title.toLowerCase().indexOf(q)>=0||String(t.description||'').toLowerCase().indexOf(q)>=0||(t.subtasks||[]).some(function(x){return String(x.title||'').toLowerCase().indexOf(q)>=0;});});
   var overdue=all.filter(taskOverdue), rest=all.filter(function(t){return !taskOverdue(t);});
   $('taskDateLine').textContent=new Date().toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'});
-  var open=taskOccurrences(1).filter(function(t){return !taskIsDone(t);}).length, done=taskOccurrences(1).filter(taskIsDone).length;
+  var todayTaskSet=taskOccurrences(1,false).filter(function(t){return t.due===today();});
+  var open=todayTaskSet.filter(function(t){return !taskIsDone(t);}).length, done=todayTaskSet.filter(taskIsDone).length;
   $('taskSummary').textContent=open+' open today · '+overdue.length+' overdue · habits are linked automatically';
   $('taskOverallProgress').style.width=(open+done?Math.round(done/(open+done)*100):0)+'%';
   $('taskOverdueCount').textContent=overdue.length?overdue.length+' item'+(overdue.length===1?'':'s'):'';
@@ -6822,7 +6828,7 @@ function taskMenuAction(id){
 }
 function taskExportData(){
   var range=$('taskExportRange').value,start=range==='today'?today():($('taskExportFrom').value||today()),end=range==='today'?today():(range==='7'?fmt(addDays(new Date(),7)):range==='30'?fmt(addDays(new Date(),30)):($('taskExportTo').value||fmt(addDays(new Date(),30))));
-  return taskOccurrences(60).filter(function(t){return t.due>=start&&t.due<=end;}).map(function(t){return{Task:t.title,Description:t.description||'',DueDate:t.due,DueTime:t.time||'',Priority:t.priority,Status:taskIsDone(t)?'Completed':taskOverdue(t)?'Overdue':'Open',Repeat:t.repeat==='none'?'':t.repeat,Reminder:t.reminder==='none'?'':t.reminder,Subtasks:(t.subtasks||[]).map(function(x){return (x.done?'✓ ':'')+x.title;}).join(' | '),Habit:t.habitId?(linkedHabitForTask(t)||{}).name||'':''};});
+  return taskOccurrences(60,true).filter(function(t){return t.due>=start&&t.due<=end;}).map(function(t){return{Task:t.title,Description:t.description||'',DueDate:t.due,DueTime:t.time||'',Priority:t.priority,Status:taskIsDone(t)?'Completed':taskOverdue(t)?'Overdue':'Open',Repeat:t.repeat==='none'?'':t.repeat,Reminder:t.reminder==='none'?'':t.reminder,Subtasks:(t.subtasks||[]).map(function(x){return (x.done?'✓ ':'')+x.title;}).join(' | '),Habit:t.habitId?(linkedHabitForTask(t)||{}).name||'':''};});
 }
 function exportTasksExcel(){var rows=taskExportData();if(!rows.length){toastN('No tasks in this range');return;}if(typeof XLSX==='undefined'){toastN('Excel export library unavailable');return;}var ws=XLSX.utils.json_to_sheet(rows),wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Actionables');XLSX.writeFile(wb,'Actionables_'+today()+'.xlsx');}
 function exportTasksPdf(){var rows=taskExportData();if(!rows.length){toastN('No tasks in this range');return;}var w=window.open('','_blank');if(!w){toastN('Allow pop-ups to create PDF');return;}var body=rows.map(function(r){return '<tr><td>'+esc(r.Task)+'</td><td>'+esc(r.DueDate+' '+r.DueTime)+'</td><td>'+esc(r.Priority)+'</td><td>'+esc(r.Status)+'</td><td>'+esc(r.Habit)+'</td></tr>';}).join('');w.document.write('<!doctype html><html><head><title>Actionables</title><style>body{font-family:Arial;padding:28px;color:#222}h1{font-size:22px}table{width:100%;border-collapse:collapse}th,td{border:1px solid #ddd;padding:8px;text-align:left;font-size:11px}th{background:#f3f3f3}</style></head><body><h1>Actionables report</h1><p>'+today()+'</p><table><thead><tr><th>Task</th><th>Due</th><th>Priority</th><th>Status</th><th>Habit</th></tr></thead><tbody>'+body+'</tbody></table></body></html>');w.document.close();w.focus();setTimeout(function(){w.print();},250);}
@@ -6848,7 +6854,12 @@ function init(){
   if($('taskAddSub')) $('taskAddSub').addEventListener('click',function(){addTaskSubInput('');});
   if($('taskSaveBtn')) $('taskSaveBtn').addEventListener('click',saveTaskSheet);
   if($('taskCancelBtn')) $('taskCancelBtn').addEventListener('click',function(){closeSheet();});
-  if($('taskSearch')) $('taskSearch').addEventListener('input',renderTasks);
+  if($('taskSearch')) {
+    $('taskSearch').value='';
+    $('taskSearch').setAttribute('autocomplete','off');
+    $('taskSearch').setAttribute('data-lpignore','true');
+    $('taskSearch').addEventListener('input',function(){ if(/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value.trim())) this.value=''; renderTasks(); });
+  }
   if($('taskClearSearch')) $('taskClearSearch').addEventListener('click',function(){$('taskSearch').value='';renderTasks();});
   if($('taskFilters')) $('taskFilters').addEventListener('click',function(e){var b=climb(e.target,this,'data-task-filter');if(!b)return;taskFilter=b.getAttribute('data-task-filter');this.querySelectorAll('.chip').forEach(function(x){x.classList.remove('sel');});b.classList.add('sel');renderTasks();});
   if($('taskRepeatRow')) $('taskRepeatRow').addEventListener('click',function(e){var b=climb(e.target,this,'data-repeat');if(!b)return;taskRepeat=b.getAttribute('data-repeat');renderTaskRepeat();});
