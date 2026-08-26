@@ -1054,39 +1054,6 @@ html.amoled{--surface1:#050505;--surface2:#0E0D0B}
 
 
 /* FEATURE PACK: finance + planning enhancements v1 */
-.aiQuickCard{margin:10px 0;padding:13px 15px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
-.aiQuickRow{display:flex;gap:8px;margin-top:10px}.aiQuickRow .inp{flex:1}.aiQuickRow .sbtn{flex:0 0 auto}
-.aiQuickDone{margin-top:8px;padding:8px 10px;border-radius:12px;background:var(--card2);font-size:11px;line-height:1.45}
-
-
-.workoutStatGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:10px 0}
-.workoutStat{padding:13px 14px}.workoutHero{border:1px solid var(--line)}
-.wkRow{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
-.wkRow:last-child{border-bottom:0}.wkMain{flex:1;min-width:0}.wkMain b{font-size:13px}.wkMain small{font-size:11px;color:var(--mut)}
-.wkBadge{font-size:10px;padding:4px 7px;border-radius:999px;background:var(--card2);color:var(--mut)}
-@media(max-width:480px){.workoutStatGrid{grid-template-columns:1fr 1fr}.workoutStat:last-child{grid-column:1/-1}}
-
-.page{padding-bottom:96px}
-.materialNav{position:fixed;left:50%;bottom:12px;transform:translateX(-50%);z-index:9000;width:min(620px,calc(100% - 24px));height:76px;display:grid;grid-template-columns:repeat(5,1fr);align-items:center;padding:7px 8px;background:color-mix(in srgb,var(--card) 94%,transparent);border:1px solid var(--line);border-radius:24px;box-shadow:0 8px 30px rgba(0,0,0,.28);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
-.mnavItem{position:relative;height:62px;border:0;background:transparent;color:var(--mut);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:18px;font:inherit;cursor:pointer;min-width:0}
-.mnavItem::before{content:"";position:absolute;top:5px;left:50%;transform:translateX(-50%);width:64px;height:32px;border-radius:18px;background:transparent;z-index:-1;transition:.18s ease}
-.mnavItem.on{color:var(--txt);font-weight:700}.mnavItem.on::before{background:color-mix(in srgb,var(--acc) 18%,transparent)}
-.mnavIcon{height:24px;min-width:24px;display:flex;align-items:center;justify-content:center;font-size:19px;line-height:1}
-.mnavLabel{font-size:10px;line-height:12px;white-space:nowrap}
-.materialMoreBtn{position:fixed;right:14px;top:14px;z-index:8999;border:1px solid var(--line);background:var(--card);color:var(--txt);border-radius:14px;padding:9px 12px;font:600 12px/1 var(--f);box-shadow:var(--shadow)}
-@media(max-width:480px){.materialNav{bottom:8px;width:calc(100% - 16px);height:70px;border-radius:22px}.mnavItem{height:58px}.mnavIcon{font-size:18px}.mnavLabel{font-size:9px}.materialMoreBtn{right:10px;top:10px;padding:8px 10px}.materialMoreBtn span{display:none}}
-.aiFeatureGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
-.aiFeatureCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px 14px;min-width:0}
-.aiFeatureHead{display:flex;align-items:center;gap:8px;margin-bottom:5px}.aiFeatureHead span{font-size:18px}.aiFeatureHead b{font-size:13px;flex:1}
-.aiGuideBtn{border:1px solid var(--line);background:var(--card2);color:var(--mut);border-radius:9px;width:30px;height:30px;font-weight:700}
-.aiFeatureCard .aiQuickCard,.aiFeatureCard .aiSmartCard{box-shadow:none;border:0;padding:8px 0;margin:0;background:transparent}
-.dashGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:12px 0}.dashTile{padding:14px 15px}.dashIco{font-size:18px;margin-bottom:5px}.dashVal{font-family:var(--fDisp);font-size:20px;font-weight:800;margin-top:4px}.dashActions{display:flex;gap:8px;margin:14px 0}.dashActions .sbtn{flex:1}
-.aiGuideSheet{position:fixed;left:50%;bottom:0;transform:translate(-50%,105%);width:min(560px,100%);max-height:78vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:22px 22px 0 0;z-index:10001;padding:18px 18px 24px;box-shadow:0 -16px 40px rgba(0,0,0,.28);transition:transform .22s ease}
-.aiGuideSheet.on{transform:translate(-50%,0)}.aiGuideExample{margin:10px 0;padding:11px 12px;border-radius:12px;background:var(--card2);font-size:12px;line-height:1.5}.aiGuideSteps{padding-left:20px;line-height:1.6;font-size:12px}
-@media(max-width:480px){.aiFeatureGrid{grid-template-columns:1fr}.dashActions{flex-wrap:wrap}}
-.aiSmartCard{margin:10px 0;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);box-shadow:var(--shadow)}
-.aiSmartHead{display:flex;align-items:center;gap:9px}.aiSmartHead b{font-size:14px}.aiSmartBody{margin-top:8px;font-size:12px;line-height:1.55;color:var(--text)}
-.aiSmartMeta{margin-top:5px;color:var(--mut);font-size:11px}.aiSmartActions{display:flex;gap:8px;margin-top:10px}.aiSmartActions button{flex:0 0 auto}
 .featureTag{white-space:nowrap}.featureRow .grow b{line-height:1.35}
 .financialToolsLauncher{width:100%;display:flex;align-items:center;gap:12px;padding:15px 16px;border:1px solid var(--line);border-radius:16px;background:var(--card);color:var(--text);text-align:left;box-shadow:var(--shadow);cursor:pointer}
 .financialToolsLauncher:active{transform:scale(.995)}
@@ -1132,27 +1099,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   });
 }
 </script>
-
-<style id="ai-cleanup-style">
-/* AI-only cleanup: no navigation/layout redesign */
-.ai-chat-clear-btn{border:1px solid rgba(255,255,255,.16);background:transparent;color:inherit;border-radius:10px;padding:7px 10px;font-size:11px;font-weight:800;cursor:pointer}
-.ai-top-input{display:flex;gap:8px;align-items:center;position:relative;z-index:20}
-.ai-top-input .ai-existing-input{flex:1;min-width:0}
-.ai-top-tools{display:flex;justify-content:flex-end;gap:7px;margin:7px 0;position:relative;z-index:21}
-.ai-card-action{cursor:pointer}
-.ai-disabled-card{display:none!important}
-</style>
-<style id="stable-interaction-fix">
-.materialNav.scrollableNav{display:flex!important;justify-content:flex-start!important;align-items:center!important;gap:4px;overflow-x:auto!important;overflow-y:hidden!important;-webkit-overflow-scrolling:touch;touch-action:pan-x;overscroll-behavior-x:contain;scrollbar-width:none;z-index:9000!important}
-.materialNav.scrollableNav::-webkit-scrollbar{display:none}
-.materialNav.scrollableNav .mnavItem{flex:0 0 88px!important;min-width:88px!important;height:62px;padding:5px 4px}
-.materialNav.scrollableNav .mnavIcon{font-size:27px!important;line-height:29px!important}
-.materialNav.scrollableNav .mnavLabel{font-size:10px!important;white-space:nowrap}
-body{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}
-</style>
-<script id="stable-nav-touch-guard">
-(function(){function bind(){var nav=document.getElementById('tabbar');if(!nav||nav.__tg)return;nav.__tg=true;var sx=0,sy=0,moved=false;nav.addEventListener('pointerdown',function(e){if(e.pointerType==='mouse')return;sx=e.clientX;sy=e.clientY;moved=false},{passive:true});nav.addEventListener('pointermove',function(e){if(e.pointerType==='mouse')return;if(Math.abs(e.clientX-sx)>8||Math.abs(e.clientY-sy)>8)moved=true},{passive:true});nav.addEventListener('click',function(e){if(moved){e.preventDefault();e.stopImmediatePropagation();moved=false;return}var b=e.target.closest('.mnavItem');if(b)b.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'})},true)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind()})();
-</script>
 </head>
 <body>
 
@@ -1182,22 +1128,7 @@ body{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}
 <div id="app">
 
   <!-- ============ TODAY ============ -->
-  <div class="page on" id="pgDashboard">
-  <div class="eyebrow" id="dashDateLine"></div>
-  <div class="h1row"><h1>Dashboard</h1></div>
-  <div id="dashSummary"></div>
-  <div class="dashGrid">
-    <div class="setCard dashTile"><div class="dashIco">✓</div><div class="setT">Habits</div><div class="dashVal" id="dashHabits">—</div><div class="setS">today</div></div>
-    <div class="setCard dashTile"><div class="dashIco">🏋️</div><div class="setT">Workout</div><div class="dashVal" id="dashWorkout">—</div><div class="setS">recent</div></div>
-    <div class="setCard dashTile"><div class="dashIco">😊</div><div class="setT">Mood</div><div class="dashVal" id="dashMood">—</div><div class="setS">today</div></div>
-    <div class="setCard dashTile"><div class="dashIco">💰</div><div class="setT">Money</div><div class="dashVal" id="dashMoney">—</div><div class="setS">today</div></div>
-  </div>
-  <div class="lbl">Today at a glance</div><div class="setCard" id="dashGlance"></div>
-  <div class="lbl">Patterns</div><div id="dashPatterns"></div>
-  <div class="dashActions"><button class="sbtn acc" data-go-tab="pgToday">Habits</button><button class="sbtn" data-go-tab="pgWorkout">Workout</button><button class="sbtn" data-go-tab="pgAI">AI</button></div>
-</div>
-
-<div class="page on" id="pgToday">
+  <div class="page on" id="pgToday">
     <div class="eyebrow" id="dateLine"></div>
     <div class="h1row">
       <h1 id="greet">Today</h1>
@@ -1239,9 +1170,10 @@ body{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}
     </div>
     <div class="restCard" id="restBox" style="display:none"></div>
     <div class="wkRow" id="wkdots"></div>
-    
+    <div class="wkCard" id="wkCard" style="display:none"></div>
     <div class="qod" id="qod"></div>
     <div class="nextRem" id="nextRem"></div>
+    <div id="aiInsights"></div>
     <div id="recoverBox"></div>
     <div id="stackBox"></div>
     <div id="list"></div>
@@ -1259,38 +1191,7 @@ body{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}
 
   <!-- ============ STATS ============ -->
   <!-- ============ EXPENSES ============ -->
-  <div class="page" id="pgWorkout">
-  <div class="eyebrow">Log movement</div>
-  <div class="h1row"><h1>Workout</h1></div>
-
-  <div class="setCard workoutHero" style="padding:16px">
-    <div class="setT">⚡ Quick Log</div>
-    <div class="setS" style="margin:4px 0 10px">Describe what you did. You can log one or several exercises.</div>
-    <div id="workoutPageQuickLog"></div>
-    <button class="primary" id="openWorkoutSessionBtn">Open workout session</button>
-  </div>
-
-  <div class="lbl">Today's Workout</div>
-  <div class="setCard" id="workoutToday"></div>
-
-  <div class="workoutStatGrid">
-    <div class="setCard workoutStat"><div class="dashIco">🏋️</div><div class="setT">This month</div><div class="dashVal" id="wkMonthCount">0</div><div class="setS">sessions</div></div>
-    <div class="setCard workoutStat"><div class="dashIco">🔥</div><div class="setT">Consistency</div><div class="dashVal" id="wkConsistency">0%</div><div class="setS">last 30 days</div></div>
-    <div class="setCard workoutStat"><div class="dashIco">⏱</div><div class="setT">Time logged</div><div class="dashVal" id="wkTimeLogged">0m</div><div class="setS">this month</div></div>
-  </div>
-
-  <div class="lbl">🏆 Personal Records</div>
-  <div class="setCard" id="workoutRecords"></div>
-
-  <div class="lbl">🧠 Patterns</div>
-  <div id="workoutPagePatterns"></div>
-
-  <div class="lbl">🕘 Recent Workouts</div>
-  <div class="setCard" id="workoutRecent"></div>
-</div>
-
-
-<div class="page" id="pgExp">
+  <div class="page" id="pgExp">
     <div class="eyebrow" id="expMonthLbl"></div>
     <div class="h1row"><h1>Money</h1>
       <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
@@ -1515,19 +1416,7 @@ body{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
-<div class="aiFeatureCard"><div class="aiFeatureHead"><span>💡</span><b>Smart Insights</b><button class="aiGuideBtn" data-ai-guide="insights">ⓘ</button></div><div class="setS">Pattern-based insights from your tracker.</div><div id="aiInsights"></div></div>
-<div class="aiFeatureGrid">
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎤</span><b>Just Tell the App</b><button class="aiGuideBtn" data-ai-guide="tell">ⓘ</button></div><div class="setS">Speak naturally and log several things.</div><div id="justTellApp"></div></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>📸</span><b>AI Receipt Scanner</b><button class="aiGuideBtn" data-ai-guide="receipt">ⓘ</button></div><div class="setS">Extract receipt details before saving.</div><button class="sbtn acc aiOpenReceipt">Open scanner</button></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧾</span><b>AI Bank Statement</b><button class="aiGuideBtn" data-ai-guide="bank">ⓘ</button></div><div class="setS">Clean and categorise imported transactions.</div><button class="sbtn aiOpenImport">Open import</button></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧠</span><b>Your Week in 30 Seconds</b><button class="aiGuideBtn" data-ai-guide="week">ⓘ</button></div><div id="aiWeekSummary"></div></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🔍</span><b>Why Was Today Different?</b><button class="aiGuideBtn" data-ai-guide="why">ⓘ</button></div><div id="aiTodayWhy"></div></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🚨</span><b>Anomaly Detection</b><button class="aiGuideBtn" data-ai-guide="anomaly">ⓘ</button></div><div id="aiAnomalies"></div></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎯</span><b>AI Habit Coach</b><button class="aiGuideBtn" data-ai-guide="habit">ⓘ</button></div><div id="aiHabitCoach"></div></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🏋️</span><b>Workout Quick Log</b><button class="aiGuideBtn" data-ai-guide="workout">ⓘ</button></div><div id="workoutQuickLog"></div></div>
-</div>
-
-    <div style="display:flex;justify-content:flex-end;margin:8px 0"><button class="aiGuideBtn" data-ai-guide="assistant">ⓘ How to use AI Assistant</button></div><div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
+    <div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
     <div class="aiRecentTitle">Recent</div><div id="aiRecent"></div>
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
@@ -1892,15 +1781,15 @@ body{padding-bottom:calc(104px + env(safe-area-inset-bottom,0px))!important}
   <button class="danger" id="sleepDel" style="display:none">Clear this night</button>
 </div>
 
-<div id="aiGuideScrim" class="scrim"></div>
-<div class="aiGuideSheet" id="aiGuideSheet">
-  <div class="grab"></div>
-  <div class="h1row"><h2 id="aiGuideTitle" style="margin:0"></h2><button class="calDayClose" id="aiGuideX">✕</button></div>
-  <div id="aiGuideBody"></div>
-  <button class="primary" id="aiGuideClose" style="margin-top:12px">Done</button>
+<div class="dock" id="tabbar">
+  <div class="navBrand"><span class="navLogo">✦</span>Personal Tracker</div>
+  <button class="tab on" data-tab="pgToday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5.5"/></svg>Today</button>
+  <button class="tab" data-tab="pgMood"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.6 14.4c.9 1.1 2.1 1.7 3.4 1.7s2.5-.6 3.4-1.7M9 9.7h.01M15 9.7h.01"/></svg>Mood</button>
+  <button class="tab" data-tab="pgExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3z"/><path d="M3 10h18M7 15h4"/></svg>Money</button>
+  <button class="tab" data-tab="pgStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+  <button class="tab" data-tab="pgAI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>AI</button>
+  <button class="tab" data-tab="pgSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 00-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 002 1.2l.4 2.7h4l.4-2.7a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
 </div>
-
-
 
 <div id="scrim"></div>
 
@@ -3352,14 +3241,6 @@ function buildDataContext(){
   var ms=ts.slice(0,8)+'01',mExp=0,mInc=0,cats=[];
   state.tx.forEach(function(t){if(t.d>=ms&&t.d<=ts){if(t.kind==='exp')mExp+=t.amt||0;else if(t.kind==='inc')mInc+=t.amt||0;}});
   lines.push('MONEY this month: income='+mInc+' expenses='+mExp+' net='+(mInc-mExp));
-  var weekFrom=fmt(addDays(now,-6)),wExp=0,wInc=0,wCat={};
-  state.tx.forEach(function(t){if(t.d>=weekFrom&&t.d<=ts){if(t.kind==='exp'){wExp+=t.amt||0;var wc=t.cat||'Other';wCat[wc]=(wCat[wc]||0)+(t.amt||0);}else if(t.kind==='inc')wInc+=t.amt||0;}});
-  lines.push('MONEY last 7 days: income='+wInc+' expenses='+wExp+' net='+(wInc-wExp));
-  Object.keys(wCat).forEach(function(c){lines.push('  7d category '+c+'='+wCat[c]);});
-  if(Array.isArray(state.jr)){
-    lines.push('JOURNAL last 7 days:');
-    state.jr.filter(function(j){return j.d>=weekFrom&&j.d<=ts;}).slice(-10).forEach(function(j){lines.push('  '+j.d+': '+String(j.text||j.body||'').slice(0,180));});
-  }
   if(state.cats)for(var ck in state.cats)cats.push(ck);
   if(cats.length)lines.push('CATEGORIES: '+cats.join(', '));
   if(state.accts)state.accts.forEach(function(a){if(a.active!==false)lines.push('ACCOUNT: "'+a.name+'" id='+a.id+' bal='+acctBalance(a.id));});
@@ -3380,13 +3261,12 @@ function uaiPrompt(text){
   +'set_mood: {mood(0=Excellent,1=Happy,2=Calm,3=Neutral,4=Tired,5=Sad,6=Stressed),date,note}\n'
   +'delete_mood: {date}\n'
   +'set_sleep: {date,bed("HH:MM" 24h),wake("HH:MM" 24h),mins(total)}\n'
-  +'log_workout: {exercise,sets:[numbers],date} — use one value for simple entries such as "25 push-ups"\n'
   +'delete_sleep: {date}\n'
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
   +'query: {} message=answer the question from app data\n'
   +'clarify: {} message=ask for missing info\n\n'
   +'RULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
-  +'For natural language logging: "I spent 850 on dinner yesterday" -> add_expense; "I slept at 12 and woke up at 7" -> set_sleep; "I did 25 push-ups today" -> log_workout when a matching exercise exists. For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n\n'
+  +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n\n'
   +'User: '+text;
 }
 function executeAction(r){
@@ -3426,16 +3306,6 @@ function executeAction(r){
       persist();return{ok:1,msg:msg,detail:MOODS[mi].e+' '+MOODS[mi].l+' \u00b7 '+d};
     }
     if(a==='delete_mood'){var prev=state.mood[d];delete state.mood[d];persist();return{ok:1,msg:msg,undo:function(){if(prev!==undefined)state.mood[d]=prev;persist();}};}
-    if(a==='log_workout'){
-      var exName=String(p.exercise||p.name||'').toLowerCase(), exFound=null;
-      for(var ei=0;ei<state.exs.length;ei++){var exx=state.exs[ei];if(exx.active&&exx.name.toLowerCase().indexOf(exName)>=0){exFound=exx;break;}}
-      if(!exFound)return{ok:0,msg:'Exercise "'+(p.exercise||p.name||'')+'" not found. Add it in Workout first.'};
-      var sets=Array.isArray(p.sets)?p.sets.map(function(v){return Math.max(0,+v||0);}):[];
-      if(!sets.length&&p.value!=null)sets=[Math.max(0,+p.value||0)];
-      if(!sets.length)return{ok:0,msg:'Tell me the workout value, for example "25 push-ups"'};
-      setExVal(exFound.id,sets,p.date||today());
-      return{ok:1,msg:msg,detail:exFound.name+' · '+sets.join(' / ')+' · '+(p.date||today())};
-    }
     if(a==='set_sleep'){
       var si=state.sleep.findIndex(function(s){return s.d===d;}),entry={d:d,bed:p.bed||'23:00',wake:p.wake||'06:00',mins:p.mins||420,note:''};
       if(si>=0)state.sleep[si]=entry;else state.sleep.push(entry);persist();
@@ -3493,179 +3363,6 @@ function getHabitCoaching(h){
   return gemCall(prompt,120);
 }
 
-
-function renderAIWeeklySummary(){
-  var box=$('aiWeekSummary');if(!box)return;
-  var cached=localStorage.getItem('ai_weekly_narr')||'',day=localStorage.getItem('ai_weekly_narr_day')||'';
-  var configured=!!getAiKey();
-  if(!cached&&!configured){box.innerHTML='';return;}
-  var html='<div class="aiSmartCard">';
-  if(cached&&day===today())html+='<div class="aiSmartBody">'+cached+'</div>';
-  else html+='<div class="aiSmartBody">Generate a short summary across habits, expenses, mood, sleep, workouts and journal.</div>';
-  html+='<div class="aiSmartActions"><button class="sbtn acc" id="aiWeekRefresh">'+(cached&&day===today()?'Refresh':'Generate summary')+'</button></div></div>';
-  box.innerHTML=html;
-}
-function generateAIWeekSummary(){
-  var key=getAiKey();if(!key){toastN('Configure AI first');return;}
-  var ctx=buildDataContext();
-  var prompt='You are the Personal Tracker AI. Write a concise "Your week in 30 seconds" summary using only the supplied data. Cover habits, expenses, mood, sleep, workouts and journal when data exists. Mention concrete percentages, amounts, durations or counts. Identify one meaningful connection across areas only when supported by the data. Do not claim causation. Do not invent missing data. Use 3-5 short sentences, plain language, no headings, no generic motivation.\n\nDATA:\n'+ctx;
-  toastN('Generating your weekly summary…');
-  gemCall(prompt,260).then(function(r){localStorage.setItem('ai_weekly_narr',r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));localStorage.setItem('ai_weekly_narr_day',today());renderAIWeeklySummary();toastN('Weekly AI summary updated');}).catch(function(e){toastN('AI summary failed: '+e.message);});
-}
-function renderAIHabitCoach(){
-  var box=$('aiHabitCoach');if(!box)return;
-  var weak=null,now=new Date();
-  for(var i=0;i<state.habits.length;i++){var h=state.habits[i];if(h.arch)continue;var r=periodRate(h,30);if(!weak||r<weak.rate)weak={h:h,rate:r};}
-  if(!weak||weak.rate>=.65){box.innerHTML='';return;}
-  var cached=localStorage.getItem('ai_habit_tip_'+weak.h.id)||'';
-  var html='<div class="aiSmartCard"><div class="aiSmartHead"><span>🎯</span><b>AI Habit Coach</b><span class="featureTag" style="margin-left:auto">'+Math.round(weak.rate*100)+'% · 30d</span></div><div class="aiSmartBody"><b>'+esc(weak.h.name)+'</b> is your weakest recent habit. Ask AI for one practical change based on your actual pattern.</div>';
-  if(cached)html+='<div class="aiSmartMeta">'+cached+'</div>';
-  html+='<div class="aiSmartActions"><button class="sbtn acc" data-ai-coach="'+esc(weak.h.id)+'">'+(cached?'Get another tip':'Get AI tip')+'</button></div></div>';
-  box.innerHTML=html;
-}
-function generateAIHabitTip(hid){
-  var h=findHabit(hid);if(!h)return;var key=getAiKey();if(!key){toastN('Configure AI first');return;}
-  var ctx='Habit: '+h.name+'\n30-day completion: '+Math.round(periodRate(h,30)*100)+'%\nCurrent streak: '+streak(h)+' days\nSchedule: '+(h.sched&&h.sched.kind||'daily')+'\nRecent detected patterns: '+detectedPatterns().filter(function(p){return p.type==='habit'&&p.title.indexOf(h.name)>=0;}).map(function(p){return p.detail;}).join('; ');
-  var prompt='You are a practical habit coach. Based only on this data, give ONE small, realistic change that could improve this habit. If there is a weekday weakness, use it. Keep it to 1-2 sentences and do not invent reasons.\n\n'+ctx;
-  toastN('Thinking about '+h.name+'…');gemCall(prompt,150).then(function(r){localStorage.setItem('ai_habit_tip_'+h.id,r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));renderAIHabitCoach();toastN('AI habit tip updated');}).catch(function(e){toastN('AI coach failed: '+e.message);});
-}
-
-function renderJustTellApp(){
-  var b=$('justTellApp');if(!b)return;
-  b.innerHTML='<div class="aiQuickCard"><div class="aiSmartBody">Say: “Spent ₹850 on dinner, skipped workout and felt tired.”</div><div class="aiQuickRow"><input id="justTellInput" class="inp" placeholder="Type or use microphone…" autocomplete="off"><button class="sbtn acc" id="justTellMic">🎙</button><button class="sbtn" id="justTellDone" style="display:none">Done</button></div></div>';
-}
-function processJustTell(text){
-  text=String(text||'').trim();if(!text)return;var key=getAiKey();if(!key){toastN('Configure AI first');return;}
-  var prompt='Return ONLY JSON array of clearly supported tracker actions. Supported: {action:\"add_expense\",amount,payee,category,date,note}; {action:\"set_sleep\",date,bed,wake,mins}; {action:\"log_workout\",exercise,sets,date}; {action:\"add_mood\",date,score,note}; {action:\"check_habit\",habit,date}. Do not invent values. Text: '+JSON.stringify(text);
-  toastN('Understanding…');gemCall(prompt,350).then(function(raw){var arr=JSON.parse(raw.replace(/```json|```/g,'').trim());if(!Array.isArray(arr)||!arr.length){toastN('No clear log found');return;}var preview=arr.map(function(a){return (a.action||'action')+' '+(a.payee||a.exercise||a.habit||a.amount||a.score||'');}).join('\\n');if(!confirm('I found:\\n\\n'+preview+'\\n\\nLog these items?'))return;arr.forEach(function(a){var act=a.action,p={};if(act==='add_expense'){p.amount=a.amount;p.payee=a.payee;p.category=a.category;p.date=a.date||today();p.note=a.note||'';}else if(act==='set_sleep'){p.date=a.date||today();p.bed=a.bed;p.wake=a.wake;p.mins=a.mins;}else if(act==='log_workout'){p.exercise=a.exercise;p.sets=a.sets;p.date=a.date||today();}else if(act==='add_mood'){p.date=a.date||today();p.score=a.score;p.note=a.note||'';}else if(act==='check_habit'){p.habit=a.habit;p.date=a.date||today();}else return;executeAction(act,p);});persist();renderToday();renderExp();toastN('Logged '+arr.length+' item'+(arr.length===1?'':'s'));}).catch(function(e){toastN('AI could not process that: '+e.message);});
-}
-function renderWorkoutQuickLog(){
-  var make=function(prefix){return '<div class="aiQuickCard"><div class="aiSmartBody">Log without opening a detailed session.</div><div class="aiQuickRow"><input id="'+prefix+'Text" class="inp" placeholder="e.g. 25 push-ups, 40 squats" autocomplete="off"><button class="sbtn acc" id="'+prefix+'Save">Save</button></div></div>';};
-  var a=$('workoutQuickLog');if(a)a.innerHTML=make('quickWorkoutAI');
-  var b=$('workoutPageQuickLog');if(b)b.innerHTML=make('quickWorkoutPage');
-}
-function processQuickWorkout(text){
-  text=String(text||'').trim();if(!text)return;
-  var key=getAiKey();
-  if(!key){
-    toastN('Configure AI to use natural-language workout logging');
-    return;
-  }
-  var prompt='Extract workout logs. Return ONLY JSON array of {exercise,sets,date,mins}. One numeric value per exercise where applicable. Do not invent. Text: '+JSON.stringify(text);
-  gemCall(prompt,220).then(function(raw){
-    var arr=JSON.parse(raw.replace(/```json|```/g,'').trim());
-    if(!Array.isArray(arr)||!arr.length)throw new Error('No workout found');
-    var msg=arr.map(function(a){return a.exercise+(a.sets?' '+a.sets.join(' / '):'')+(a.mins?' '+a.mins+' min':'');}).join('\n');
-    if(!confirm('Review workout log:\n\n'+msg+'\n\nSave?'))return;
-    arr.forEach(function(a){
-      executeAction('log_workout',{exercise:a.exercise,sets:a.sets,date:a.date||today(),mins:a.mins||0});
-    });
-    persist();renderFitStats();renderWorkoutPage();toastN('Workout logged');
-  }).catch(function(e){toastN('Could not read workout: '+e.message);});
-}
-
-function renderTodayAIExplainers(){
-  var why=$('aiTodayWhy'),an=$('aiAnomalies');if(!why||!an)return;var ps=detectedPatterns(),sp=ps.filter(function(p){return p.type==='spike'||p.type==='sleep';}).slice(0,2);
-  an.innerHTML=sp.length?'<div class="aiQuickCard"><div class="aiSmartHead"><span>🚨</span><b>Anomalies detected</b></div>'+sp.map(function(p){return '<div class="aiQuickDone"><b>'+p.title+'</b><br>'+p.text+'<br><small>'+p.detail+'</small></div>';}).join('')+'</div>':'';
-  if(!getAiKey()){why.innerHTML='';return;}why.innerHTML='<div class="aiQuickCard"><div class="aiSmartBody">Compare today with your normal patterns.</div><div class="aiQuickRow"><button class="sbtn acc" id="aiWhyTodayBtn">Explain today</button></div><div id="aiWhyTodayResult"></div></div>';
-}
-function explainWhyToday(){
-  var b=$('aiWhyTodayResult');if(b)b.innerHTML='<small>Analysing…</small>';
-  var prompt='Explain why today may be different from the user normal baseline. Compare habits, expense, mood, sleep, workout and journal when available. Mention 1-3 strongest differences only. Do not claim causation. Under 80 words. DATA:\\n'+buildDataContext();
-  gemCall(prompt,180).then(function(r){if(b)b.innerHTML='<div class="aiQuickDone">'+esc(r)+'</div>';}).catch(function(e){if(b)b.innerHTML='<small>'+esc(e.message)+'</small>';});
-}
-
-function renderDashboard(){
-  var d=new Date(),ts=today(),due=state.habits.filter(function(h){return !h.arch&&dueOn(h,d);}),done=due.filter(function(h){return isDone(h,ts);});
-  if($('dashDateLine'))$('dashDateLine').textContent=niceDate(ts);
-  if($('dashHabits'))$('dashHabits').textContent=done.length+' / '+due.length;
-  var wl=(state.wlog||[]).filter(function(x){return x.d>=fmt(addDays(d,-6));});
-  if($('dashWorkout'))$('dashWorkout').textContent=wl.length+' session'+(wl.length===1?'':'s');
-  var mv=state.mood&&state.mood[ts];if($('dashMood'))$('dashMood').textContent=typeof mv==='number'&&MOODS[mv]?MOODS[mv].e+' '+MOODS[mv].n:'Not logged';
-  var spend=state.tx.filter(function(x){return x.d===ts&&x.kind==='exp';}).reduce(function(a,x){return a+(x.amt||0);},0);
-  if($('dashMoney'))$('dashMoney').textContent=inr(spend);
-  if($('dashGlance'))$('dashGlance').innerHTML='<div class="featureRow"><div class="grow"><b>Habits</b><br><small>'+done.length+' completed today</small></div></div><div class="featureRow"><div class="grow"><b>Sleep</b><br><small>'+((state.sleep.find(function(x){return x.d===ts;})||{}).mins?fmtDur((state.sleep.find(function(x){return x.d===ts;})||{}).mins):'Not logged')+'</small></div></div><div class="featureRow"><div class="grow"><b>Money</b><br><small>'+inr(spend)+' spent today</small></div></div>';
-  renderPatternCard('dashPatterns',3);
-}
-function renderWorkoutPage(){
-  renderWorkoutQuickLog();
-  var logs=(state.wlog||[]).slice().sort(function(a,b){return a.d>b.d?-1:1;});
-  var now=new Date(), month=fmt(addDays(now,-29)), todayD=today();
-  var monthLogs=logs.filter(function(x){return x.d>=month&&x.d<=todayD;});
-  var todayLogs=logs.filter(function(x){return x.d===todayD;});
-
-  if($('wkMonthCount'))$('wkMonthCount').textContent=monthLogs.length;
-  var activeDays={};monthLogs.forEach(function(x){activeDays[x.d]=1;});
-  if($('wkConsistency'))$('wkConsistency').textContent=Math.round(Object.keys(activeDays).length/30*100)+'%';
-
-  var mins=0;
-  monthLogs.forEach(function(x){
-    if(x.mins)mins+=Number(x.mins)||0;
-    else if(x.duration)mins+=Number(x.duration)||0;
-  });
-  if($('wkTimeLogged'))$('wkTimeLogged').textContent=mins>=60?Math.floor(mins/60)+'h '+(mins%60)+'m':mins+'m';
-
-  var todayBox=$('workoutToday');
-  if(todayBox){
-    todayBox.innerHTML=todayLogs.length?todayLogs.map(function(x){
-      var name=x.name||x.exercise||x.type||'Workout';
-      var val='';
-      if(Array.isArray(x.sets)&&x.sets.length)val=x.sets.join(' / ');
-      else if(x.mins)val=x.mins+' min';
-      else if(x.duration)val=x.duration+' min';
-      else if(x.value)val=x.value;
-      return '<div class="wkRow"><div class="wkMain"><b>'+esc(name)+'</b><br><small>'+esc(val||'Logged today')+'</small></div><span class="wkBadge">'+esc(x.d||todayD)+'</span></div>';
-    }).join(''):'<div class="setS">Nothing logged today. Use Quick Log above.</div>';
-  }
-
-  // Detect simple numeric exercise records from the existing workout log.
-  var prs={}, prLabels=[];
-  logs.forEach(function(x){
-    var name=String(x.name||x.exercise||'').trim();
-    if(!name)return;
-    var nums=[];
-    if(Array.isArray(x.sets)) nums=x.sets.map(Number).filter(function(n){return isFinite(n);});
-    else if(isFinite(Number(x.value))) nums=[Number(x.value)];
-    if(!nums.length)return;
-    var mx=Math.max.apply(null,nums);
-    if(!prs[name]||mx>prs[name].value)prs[name]={value:mx,date:x.d};
-  });
-  Object.keys(prs).slice(0,6).forEach(function(k){prLabels.push('<div class="wkRow"><div class="wkMain"><b>'+esc(k)+'</b><br><small>Best logged value</small></div><span class="wkBadge">🏆 '+fmtV(prs[k].value)+'</span></div>');});
-  if($('workoutRecords'))$('workoutRecords').innerHTML=prLabels.length?prLabels.join(''):'<div class="setS">Personal records will appear as you log measurable workouts.</div>';
-
-  renderPatternCard('workoutPagePatterns',4);
-
-  if($('workoutRecent')){
-    var recent=logs.slice(0,8);
-    $('workoutRecent').innerHTML=recent.length?recent.map(function(x){
-      var name=x.name||x.exercise||x.type||'Workout';
-      var detail=Array.isArray(x.sets)&&x.sets.length?x.sets.join(' / '):(x.mins?x.mins+' min':'Logged');
-      return '<div class="wkRow"><div class="wkMain"><b>'+esc(name)+'</b><br><small>'+esc(detail)+'</small></div><span class="wkBadge">'+esc(x.d)+'</span></div>';
-    }).join(''):'<div class="setS">No workout logs yet.</div>';
-  }
-}
-
-function guideData(k){
-  var m={
-    tell:{t:'Just Tell the App',i:'Speak naturally and log several things from one statement.',s:['Tap the microphone.','Pause whenever you need; the transcript is kept and new speech is appended.','Tap Done when finished.','Review detected actions before saving.'],e:'“I spent ₹850 on dinner, skipped my workout and felt tired.”'},
-    receipt:{t:'AI Receipt Scanner',i:'Extract receipt details so you do not type everything manually.',s:['Open Money → Add Expense → Scan receipt.','Take or upload a clear receipt.','Review merchant, date, total, tax, currency, payment method, category, subcategory and items.','Edit if needed, then save.'],e:'“Starbucks · ₹420 · 25 Aug · Food · Coffee”'},
-    bank:{t:'AI Bank Statement',i:'Clean merchant names and categories before importing.',s:['Open Money → Import.','Choose Bank statement or Transactions.','Select CSV/XLS/XLSX.','Tap AI categorise & clean.','Review changes and confirm import.'],e:'“AMZN MKTPLACE” → “Amazon” → “Shopping”'},
-    week:{t:'Your Week in 30 Seconds',i:'A short summary across your tracked areas.',s:['Open AI.','Tap Generate summary or Refresh.','The AI uses available habits, expenses, mood, sleep, workouts and journal data.'],e:'“Habits improved, sleep fell by 40 minutes and food spending rose 18%.”'},
-    why:{t:'Why Was Today Different?',i:'Compare today with your normal baseline.',s:['Open AI → Why Was Today Different?','Tap Explain today.','Review the strongest differences; the AI avoids claiming causation.'],e:'“Sleep was below normal and spending was above your recent average.”'},
-    anomaly:{t:'Anomaly Detection',i:'Finds behaviour that is unusually high, low or inconsistent.',s:['Open AI → Anomaly Detection.','Review the supporting numbers.','Use the result as a signal to investigate, not as a diagnosis.'],e:'“Food spending is 2× your recent weekly pace.”'},
-    habit:{t:'AI Habit Coach',i:'Uses your habit history and patterns to suggest one practical improvement.',s:['Open AI → AI Habit Coach.','Tap Get AI tip.','Review the suggestion and decide whether it fits.'],e:'“You miss this habit most often on Monday. Try moving it to Tuesday.”'},
-    workout:{t:'Workout Quick Log',i:'Log simple workouts without opening a detailed session.',s:['Enter a phrase such as “25 push-ups, 40 squats”.','Tap Save.','Review the detected exercises and values.','Confirm the logs.'],e:'“30 push-ups and a 60-second plank.”'},
-    insights:{t:'Smart Insights',i:'Shows useful patterns and changes found in your tracker data.',s:['Open AI → Smart Insights.','Read the supporting numbers and pattern details.','Use the insight as a prompt for action, not as a certainty.'],e:'“Your food spending is above your recent weekly pace.”'},assistant:{t:'AI Assistant',i:'Ask questions or give direct instructions in normal language.',s:['Type or speak what you want.','Use clear amounts and dates when possible.','Review any action before it changes your data.'],e:'“How much did I spend on food this month?”'}
-  };return m[k]||m.assistant;
-}
-function openAIGuide(k){
-  var g=guideData(k),sh=$('aiGuideSheet');if(!sh)return;
-  $('aiGuideTitle').textContent=g.t;
-  $('aiGuideBody').innerHTML='<p class="setS">'+g.i+'</p><ol class="aiGuideSteps">'+g.s.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ol><div class="aiGuideExample"><b>Example</b><br>'+g.e+'</div>';
-  sh.classList.add('on');$('aiGuideScrim').classList.add('on');
-}
-function closeAIGuide(){$('aiGuideSheet').classList.remove('on');$('aiGuideScrim').classList.remove('on');}
-function renderAIPageFeatures(){renderInsights();renderJustTellApp();renderAIWeeklySummary();renderAIHabitCoach();renderTodayAIExplainers();renderWorkoutQuickLog();}
 function renderToday(){
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
@@ -3720,10 +3417,8 @@ function renderToday(){
   }
   $('wkdots').style.display = liveCnt ? '' : 'none';
   $('wkdots').innerHTML = wd;
-
+  renderWkCard();
   renderDailyInsightToday();
-
-
 
   var rb = '';
   if(onVacation(ts)){
@@ -5401,208 +5096,7 @@ function exportExLogPdf(ex){
     +'<div><b>'+fmtExVal(ex,exToday(ex.id))+'</b><span>Today</span></div></div>'
     +'<h2>Session log</h2>'
     +'<table><tr><th>Date</th><th style="text-align:right">Value</th><th>Sets</th><th style="text-align:center">Goal</th></tr>'+body+'</table>'
-    +'
-<style id="tmStyles">
-#pgTasks .h1row{display:flex;align-items:center;justify-content:space-between;gap:10px}
-#pgTasks .btn,.sheet .btn{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:12px;padding:9px 12px;font-weight:800}
-#pgTasks .primary,.sheet .primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-#pgTasks .tmTask{border:1px solid var(--line);background:var(--card);border-radius:16px;padding:12px;margin:9px 0}
-#pgTasks .tmTask.overdue{border-left:4px solid #c83d32}
-#pgTasks .tmTask.high .tmPriority{color:#c83d32;background:#fbe8e5}
-#pgTasks .tmTaskName{font-weight:850}
-#pgTasks .tmTaskName.done{text-decoration:line-through;opacity:.6}
-#pgTasks .tmMeta{font-size:10px;color:var(--mut);margin-top:4px}
-#pgTasks .tmPriority{font-size:9px;font-weight:850;border-radius:8px;padding:4px 6px;background:var(--card2)}
-#pgTasks .tmSub{display:flex;gap:7px;align-items:center;font-size:11px;margin-top:6px}
-#pgTasks .tmTaskActions{display:flex;gap:6px;margin-top:9px}
-#tmSheet{z-index:10002;max-height:88vh;overflow:auto}
-#tmSheet .sheetActions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
-#tmSubs .tmSubInput{display:flex;gap:6px;margin:6px 0}
-#tmSubs input{flex:1}
-@media(max-width:700px){
- #tabbar.dock{overflow-x:auto;justify-content:flex-start;scrollbar-width:none}
- #tabbar.dock::-webkit-scrollbar{display:none}
- #tabbar .mnavItem{flex:0 0 82px;min-width:82px}
- #tabbar .mnavIcon{font-size:27px;line-height:29px}
- #tabbar .mnavLabel{font-size:10px}
- body{padding-bottom:110px!important}
-}
-</style>
-
-<script id="tmScript">
-(function(){
- const D=()=>new Date().toISOString().slice(0,10);
- let tasks=[
-  {id:1,name:'Finish API testing',desc:'Complete remaining API test cases.',date:D(),time:'17:00',priority:'High',reminder:'1 & 2 days before',repeat:'None',done:false,subs:['Review cases','Run tests']},
-  {id:2,name:'Workout',desc:'Linked from Workout habit.',date:D(),time:'19:00',priority:'Medium',reminder:'None',repeat:'None',done:false,subs:[],habit:true},
-  {id:3,name:'Weekly project update',desc:'Prepare and share the weekly update.',date:new Date(Date.now()+3*86400000).toISOString().slice(0,10),time:'12:00',priority:'Medium',reminder:'2 days before',repeat:'Weekly',done:false,subs:['Collect updates','Draft summary']}
- ];
- let filter='all', priority='Medium', reminder='1 & 2 days before', repeat='None';
- function q(id){return document.getElementById(id)}
- function toast(s){if(window.showToast) return window.showToast(s); const t=document.createElement('div');t.textContent=s;t.style='position:fixed;left:50%;bottom:100px;transform:translateX(-50%);z-index:11000;background:#222;color:#fff;padding:10px 14px;border-radius:12px;font-size:12px';document.body.appendChild(t);setTimeout(()=>t.remove(),1400)}
- function open(){q('tmSheet').classList.add('open');q('tmName').focus()}
- function close(){q('tmSheet').classList.remove('open')}
- function addSub(){const w=q('tmSubs'),d=document.createElement('div');d.className='tmSubInput';d.innerHTML='<input class="inp" placeholder="Subtask"><button class="btn" type="button">×</button>';d.querySelector('button').onclick=()=>d.remove();w.appendChild(d)}
- function selected(id){return q(id).querySelector('.chip.sel')?.dataset.v}
- function render(){
-  const search=(q('tmSearch')?.value||'').toLowerCase(), td=D();
-  const overdue=t=>!t.done&&t.date<td;
-  let list=tasks.filter(t=>(!search||(t.name+' '+t.desc+' '+t.subs.join(' ')).toLowerCase().includes(search)));
-  list=list.filter(t=>filter==='all'||filter==='overdue'&&overdue(t)||filter==='today'&&t.date===td&&!t.done||filter==='upcoming'&&t.date>td&&!t.done||filter==='completed'&&t.done);
-  list.sort((a,b)=>Number(overdue(b))-Number(overdue(a))||({High:0,Medium:1,Low:2}[a.priority]-({High:0,Medium:1,Low:2}[b.priority])));
-  q('tmList').innerHTML=list.length?list.map(t=>`<div class="tmTask ${overdue(t)?'overdue':''} ${t.priority==='High'?'high':''}">
-   <div style="display:flex;gap:9px"><input type="checkbox" ${t.done?'checked':''} data-done="${t.id}">
-   <div style="flex:1"><div class="tmTaskName ${t.done?'done':''}">${esc(t.name)}</div><div class="tmMeta">${esc(t.desc||'')}</div>
-   <div class="tmMeta">${t.date}${t.time?' · '+t.time:''} · ${esc(t.repeat)} · Reminder: ${esc(t.reminder)}</div>
-   <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px"><span class="tmPriority">${t.priority}</span>${overdue(t)?'<span class="tmPriority">OVERDUE</span>':''}${t.habit?'<span class="tmPriority">↔ Habit</span>':''}</div>
-   ${t.subs.map(s=>`<label class="tmSub"><input type="checkbox"> ${esc(s)}</label>`).join('')}
-   </div></div><div class="tmTaskActions"><button class="btn" data-delete="${t.id}">Delete</button></div></div>`).join(''):'<div class="setCard">No tasks found.</div>';
-  q('tmList').querySelectorAll('[data-done]').forEach(el=>el.onchange=()=>{const t=tasks.find(x=>x.id==el.dataset.done);t.done=el.checked;toast(t.done?'Task completed':'Task reopened');render()});
-  q('tmList').querySelectorAll('[data-delete]').forEach(el=>el.onclick=()=>{tasks=tasks.filter(x=>x.id!=el.dataset.delete);toast('Task deleted');render()});
- }
- function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
- window.TM={open,render,export(type){toast(type.toUpperCase()+' export ready')}}
- document.addEventListener('DOMContentLoaded',()=>{
-  q('tmDate').value=D();q('tmAddTop').onclick=open;q('tmAddSub').onclick=addSub;q('tmCancel').onclick=close;
-  q('tmSave').onclick=()=>{const name=q('tmName').value.trim();if(!name)return toast('Enter a task name');tasks.push({id:Date.now(),name,desc:q('tmDesc').value.trim(),date:q('tmDate').value||D(),time:q('tmTime').value,priority:selected('tmPriority')||priority,reminder:selected('tmReminder')||reminder,repeat:selected('tmRepeat')||repeat,done:false,subs:[...document.querySelectorAll('#tmSubs input')].map(x=>x.value.trim()).filter(Boolean)});q('tmName').value='';q('tmDesc').value='';q('tmSubs').innerHTML='';close();render();toast('Task added')};
-  ['tmPriority','tmReminder','tmRepeat'].forEach(id=>q(id).querySelectorAll('.chip').forEach(c=>c.onclick=()=>{q(id).querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel')}));
-  q('tmFilters').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{q('tmFilters').querySelectorAll('.chip').forEach(x=>x.classList.remove('sel'));c.classList.add('sel');filter=c.dataset.f;render()});
-  q('tmSearch').oninput=render;
-  render();
- });
-})();
-</script>
-<script>
-document.addEventListener('DOMContentLoaded',function(){
-  const nav=document.getElementById('tabbar');
-  if(nav){
-    nav.style.overflowX='auto';nav.style.justifyContent='flex-start';nav.style.scrollbarWidth='none';
-    nav.querySelectorAll('.mnavItem').forEach(b=>{b.style.flex='0 0 82px';b.style.minWidth='82px';b.style.cursor='pointer';b.onclick=function(){
-      if(this.dataset.tab==='pgTasks'){
-        document.querySelectorAll('#app .page').forEach(p=>p.classList.remove('on'));
-        const p=document.getElementById('pgTasks'); if(p)p.classList.add('on');
-        nav.querySelectorAll('.mnavItem').forEach(x=>x.classList.remove('on'));this.classList.add('on');
-        if(window.TM)TM.render(); this.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
-      }
-    }});
-  }
-  // Habit page: make its + action habit-only by changing the existing sheet title when opened from Habits.
-  const habitPage=document.getElementById('pgToday');
-  if(habitPage){
-    const observer=new MutationObserver(()=>{});
-    // Existing stable build's add sheet remains the single habit form; no task actions are introduced there.
-    observer.observe(habitPage,{subtree:true,attributes:true});
-  }
-});
-</script>
-
-<script id="ai-cleanup-script">
-(function(){
-  function norm(s){return (s||'').replace(/\s+/g,' ').trim().toLowerCase();}
-  function allText(el){return norm(el.innerText||el.textContent);}
-  function findCards(term){
-    const nodes=[...document.querySelectorAll('section,article,.card,.feature-card,.ai-card,.tool-card,.panel,div')];
-    return nodes.filter(n=>{
-      const t=allText(n);
-      return t.includes(term) && t.length<1400;
-    }).sort((a,b)=>a.children.length-b.children.length);
-  }
-  function hideByTerm(term){
-    const n=findCards(term)[0];
-    if(n) n.classList.add('ai-disabled-card');
-  }
-  function cleanupAI(){
-    const ai=document.querySelector('#ai, [data-page="AI"], .ai-page, .page-ai');
-    if(!ai) return;
-    hideByTerm('ai receipt scanner');
-    hideByTerm('ai bank statement');
-    hideByTerm('workout quick log');
-
-    const coaches=findCards('ai habit coach');
-    if(coaches.length>1){
-      coaches.slice(1).forEach(n=>n.classList.add('ai-disabled-card'));
-    }
-
-    // Clear chat button, without replacing the existing microphone/done input.
-    let clear=document.getElementById('ai-clear-chat');
-    if(!clear){
-      clear=document.createElement('button');
-      clear.id='ai-clear-chat';
-      clear.className='ai-chat-clear-btn';
-      clear.textContent='Clear chat';
-      clear.type='button';
-      clear.onclick=function(){
-        const candidates=[...document.querySelectorAll('input,textarea')].filter(x=>/ask|message|chat|ai/i.test((x.placeholder||'')+' '+(x.name||'')+' '+(x.id||'')));
-        candidates.forEach(x=>{x.value='';x.dispatchEvent(new Event('input',{bubbles:true}));});
-        const messages=document.querySelectorAll('.chat-message,.message,.ai-message,.conversation-message');
-        messages.forEach((m,i)=>{if(i>0)m.remove();});
-      };
-      const aiInput=[...document.querySelectorAll('input,textarea')].find(x=>/ask|message|chat/i.test((x.placeholder||'')+' '+(x.name||'')+' '+(x.id||'')));
-      if(aiInput){
-        const wrap=document.createElement('div'); wrap.className='ai-top-tools';
-        aiInput.parentElement.insertBefore(wrap,aiInput);
-        wrap.appendChild(clear);
-      }
-    }
-
-    // Keep "Your Week in 30 Seconds" action local to AI and provide a visible error if generation fails.
-    const week=findCards('your week in 30 seconds')[0];
-    if(week && !week.querySelector('[data-ai-week-bound]')){
-      const buttons=[...week.querySelectorAll('button')];
-      buttons.forEach(b=>{
-        if(/summar|generate|create|30 seconds/i.test(allText(b))){
-          b.dataset.aiWeekBound='1';
-          b.addEventListener('click',function(){
-            const output=week.querySelector('.summary,.result,.output,[data-result]')||document.createElement('div');
-            if(!output.parentElement) week.appendChild(output);
-            output.textContent='Summary could not be generated. Please check the AI connection and try again.';
-            output.style.marginTop='10px'; output.style.fontSize='11px';
-          },true);
-        }
-      });
-    }
-
-    // "Why Was Today Different?" Explain must produce feedback instead of doing nothing.
-    const why=findCards('why was today different?')[0];
-    if(why && !why.querySelector('[data-ai-why-bound]')){
-      why.querySelectorAll('button').forEach(b=>{
-        if(/explain|why/i.test(allText(b))){
-          b.dataset.aiWhyBound='1';
-          b.addEventListener('click',function(){
-            const output=why.querySelector('.result,.explanation,.output,[data-result]')||document.createElement('div');
-            if(!output.parentElement) why.appendChild(output);
-            output.textContent='AI explanation is not available yet. Check your AI connection and try again.';
-            output.style.marginTop='10px'; output.style.fontSize='11px';
-          },true);
-        }
-      });
-    }
-
-    // AI Habit Coach: make Ask AI visibly responsive without changing the existing AI provider logic.
-    const coach=findCards('ai habit coach')[0];
-    if(coach){
-      coach.querySelectorAll('button').forEach(b=>{
-        if(/ask ai/i.test(allText(b)) && !b.dataset.aiCoachBound){
-          b.dataset.aiCoachBound='1';
-          b.addEventListener('click',function(){
-            const input=[...document.querySelectorAll('input,textarea')].find(x=>/ask|message|chat/i.test((x.placeholder||'')+' '+(x.name||'')+' '+(x.id||'')));
-            if(input){input.focus(); input.value=input.value||'Help me improve my habits.'; input.dispatchEvent(new Event('input',{bubbles:true}));}
-            else alert('AI chat input is not available.');
-          },true);
-        }
-      });
-    }
-  }
-  document.addEventListener('DOMContentLoaded',cleanupAI);
-  window.addEventListener('load',cleanupAI);
-  setTimeout(cleanupAI,500);
-  setTimeout(cleanupAI,1500);
-})();
-</script>
-<script id="habit-only-add-guard">
-(function(){function bind(){var fab=document.getElementById('fab');if(!fab||fab.__hg)return;fab.__hg=true;fab.addEventListener('click',function(e){var pg=document.getElementById('pgToday');if(pg&&pg.classList.contains('on')){e.preventDefault();e.stopImmediatePropagation();if(typeof openEdit==='function')openEdit(null)}},true)}if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind()})();
-</script>
-</body></html>';
+    +'</body></html>';
   var w2=window.open('','_blank');
   if(w2){ w2.document.write(doc2); w2.document.close(); setTimeout(function(){ w2.print(); },400); }
   else toastN('Allow pop-ups to export PDF');
@@ -6051,7 +5545,7 @@ function saveRecur(){var n=$('recurName').value.trim(),amt=parseFloat($('recurAm
 /* ---- expense sheet ---- */
 var expEd = null, expKindSel='exp', expCatSel='', expSubSel='', expAcctSel='', expToSel='';
 function activeAccts(){ return state.accts.filter(function(a){return a.active;}); }
-function renderExpReceipt(){var box=$('expReceiptPreview'),rem=$('expReceiptRemove');if(!box||!rem)return;var src='';if(expEd&&expEd.receiptData)src=expEd.receiptData;else if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)src='data:image/jpeg;base64,'+b;}catch(e){}}if(src)box.innerHTML='<img class="receiptThumb" src="'+src+'" alt="Receipt"><div class="receiptName">'+esc(expEd.receipt||'Uploaded receipt')+'</div>';else if(expEd&&expEd.receipt)box.innerHTML='<div class="receiptName">'+esc(expEd.receipt)+'</div>';else box.innerHTML='<div class="setS">No receipt attached.</div>';if(expEd&&expEd.receiptMeta){var rm=expEd.receiptMeta,items=Array.isArray(rm.items)?rm.items:[];box.innerHTML+='<div class="featurePanel" style="margin-top:8px"><b>AI extraction review</b><br><small>'+((rm.currency?esc(rm.currency)+' · ':'')+(rm.tax?'Tax '+inr(rm.tax)+' · ':'')+(items.length?items.length+' item'+(items.length===1?'':'s'):'No item lines detected'))+'</small></div>';}rem.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';var sc=$('expReceiptScan');if(sc)sc.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';}
+function renderExpReceipt(){var box=$('expReceiptPreview'),rem=$('expReceiptRemove');if(!box||!rem)return;var src='';if(expEd&&expEd.receiptData)src=expEd.receiptData;else if(expEd&&expEd.receipt&&nat&&nat.readPhoto){try{var b=nat.readPhoto(expEd.receipt)||'';if(b)src='data:image/jpeg;base64,'+b;}catch(e){}}if(src)box.innerHTML='<img class="receiptThumb" src="'+src+'" alt="Receipt"><div class="receiptName">'+esc(expEd.receipt||'Uploaded receipt')+'</div>';else if(expEd&&expEd.receipt)box.innerHTML='<div class="receiptName">'+esc(expEd.receipt)+'</div>';else box.innerHTML='<div class="setS">No receipt attached.</div>';rem.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';var sc=$('expReceiptScan');if(sc)sc.style.display=(expEd&&(expEd.receipt||expEd.receiptData))?'':'none';}
 function clearExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}if(expEd){expEd.receipt='';expEd.receiptData='';}renderExpReceipt();}
 function resizeReceipt(file,cb){var fr=new FileReader();fr.onload=function(){var im=new Image();im.onload=function(){var max=1600,scale=Math.min(1,max/Math.max(im.width,im.height)),w=Math.max(1,Math.round(im.width*scale)),h=Math.max(1,Math.round(im.height*scale)),c=document.createElement('canvas');c.width=w;c.height=h;var ctx=c.getContext('2d');ctx.drawImage(im,0,0,w,h);cb(c.toDataURL('image/jpeg',.78));};im.onerror=function(){cb(fr.result);};im.src=fr.result;};fr.readAsDataURL(file);}
 function receiptDataForScan(){
@@ -6064,11 +5558,11 @@ function scanReceiptWithAi(){
   var key=getAiKey(); if(!key){toastN('Add your Gemini API key in AI settings to extract receipt details');return;}
   if(getAiProvider()!=='gemini'){toastN('Receipt scan currently uses Gemini vision');return;}
   var model=getAiModel(), parts=data.split(','), mime=(parts[0].match(/^data:(.*?);base64$/)||[])[1]||'image/jpeg', b64=parts[1]||'';
-  var prompt='Read this receipt and return ONLY valid JSON with keys amount, merchant, date, tax, currency, payment_method, category, subcategory, items, note. amount and tax must be numbers or null. currency must be a 3-letter code such as INR, USD, GBP or empty. date must be YYYY-MM-DD or empty. items must be an array of {name,quantity,amount}. category and subcategory should use the closest available app category only when clear. Never invent missing values. Do not include extra text.';
+  var prompt='Read this receipt and return ONLY valid JSON with keys amount, merchant, date, category, payment_method, note. amount must be a number. date must be YYYY-MM-DD or empty. category should be one of the common categories if clear. Do not invent missing values. Do not include extra text.';
   toastN('Scanning receipt…');
   fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime,data:b64}}]}],generationConfig:{maxOutputTokens:220}})})
     .then(function(r){if(!r.ok)throw new Error('API '+r.status);return r.json();})
-    .then(function(d){var txt=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;if(!txt)throw new Error('Empty response');txt=txt.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();var o=JSON.parse(txt);if(o.amount>0)$('expAmt').value=fmtV(o.amount);if(o.merchant)$('expPayee').value=String(o.merchant).slice(0,60);if(/^\d{4}-\d{2}-\d{2}$/.test(o.date||'')){expEd.d=o.date;$('expDateTxt').textContent=o.date===today()?'Today':niceDate(o.date);}if(o.payment_method)$('expMethod').value=String(o.payment_method).slice(0,24);if(o.note)$('expNote').value=String(o.note).slice(0,200);var cats=Object.keys(state.cats),want=String(o.category||'').toLowerCase(),best='';for(var i=0;i<cats.length;i++)if(cats[i].toLowerCase()===want){best=cats[i];break;}if(best){expCatSel=best;expSubSel='';var subs=state.cats[best]||[];var sw=String(o.subcategory||'').toLowerCase();for(var si=0;si<subs.length;si++)if(String(subs[si]).toLowerCase()===sw){expSubSel=subs[si];break;}paintExpPickers();}expEd.receiptMeta={tax:o.tax>0?+o.tax:0,currency:String(o.currency||'').slice(0,3).toUpperCase(),items:Array.isArray(o.items)?o.items.slice(0,30):[]};renderExpReceipt();toastN('Receipt scanned — review before saving');})
+    .then(function(d){var txt=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;if(!txt)throw new Error('Empty response');txt=txt.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();var o=JSON.parse(txt);if(o.amount>0)$('expAmt').value=fmtV(o.amount);if(o.merchant)$('expPayee').value=String(o.merchant).slice(0,60);if(/^\d{4}-\d{2}-\d{2}$/.test(o.date||'')){expEd.d=o.date;$('expDateTxt').textContent=o.date===today()?'Today':niceDate(o.date);}if(o.payment_method)$('expMethod').value=String(o.payment_method).slice(0,24);if(o.note)$('expNote').value=String(o.note).slice(0,200);var cats=Object.keys(state.cats), want=String(o.category||'').toLowerCase(), best='';for(var i=0;i<cats.length;i++)if(cats[i].toLowerCase()===want){best=cats[i];break;}if(best){expCatSel=best;paintExpPickers();}toastN('Receipt scanned — review before saving');})
     .catch(function(e){toastN('Receipt scan failed: '+e.message);});
 }
 function addExpReceipt(){if(expEd&&expEd.receipt&&nat){try{nat.deletePhoto(expEd.receipt);}catch(e){}}if(nat&&nat.pickPhoto){try{window.pendingPhotoTarget='expense';nat.pickPhoto();return;}catch(e){}}$('expReceiptFile').click();}
@@ -6077,7 +5571,7 @@ function openExp(id){
   var x = id ? null : null;
   if(id){ for(var i=0;i<state.tx.length;i++) if(state.tx[i].id===id) x=state.tx[i]; }
   if(!state.accts.length){ toastN('Add an account first'); expView='acct'; renderExp(); syncSeg(); openAcct(null); return; }
-  expEd = x ? JSON.parse(JSON.stringify(x)) : {id:'', kind:'exp', amt:0, acct:activeAccts()[0].id, to:'', cat:'', sub:'', payee:'', method:'', note:'', tags:'', receipt:'', receiptData:'', receiptMeta:null, d:today(), created:Date.now()};
+  expEd = x ? JSON.parse(JSON.stringify(x)) : {id:'', kind:'exp', amt:0, acct:activeAccts()[0].id, to:'', cat:'', sub:'', payee:'', method:'', note:'', tags:'', receipt:'', receiptData:'', d:today(), created:Date.now()};
   expEd._edit = id||'';
   expKindSel = expEd.kind; expCatSel = expEd.cat; expSubSel = expEd.sub;
   expAcctSel = expEd.acct || (activeAccts()[0]&&activeAccts()[0].id) || '';
@@ -6800,19 +6294,16 @@ function handleAddAction(kind){
 
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
-  var pgs = ['pgDashboard','pgTasks','pgToday','pgWorkout','pgMood','pgExp','pgStats','pgAI','pgSet'];
+  var pgs = ['pgToday','pgMood','pgExp','pgStats','pgAI','pgSet'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
-  if(id==='pgDashboard') renderDashboard();
-  if(id==='pgTasks' && window.TM) TM.render();
   if(id==='pgStats') renderStats();
   if(id==='pgMood') renderMood();
   if(id==='pgExp') renderExp();
-  if(id==='pgWorkout') renderWorkoutPage();
   if(id==='pgSet') renderSet();
-  if(id==='pgAI'){ renderAI(); renderAIPageFeatures(); }
+  if(id==='pgAI') renderAI();
   $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
   $('app').scrollTop = 0;
 }
@@ -6826,27 +6317,11 @@ function climb(el, root, attr){
 
 /* ================= init & wiring ================= */
 function init(){
-  document.querySelectorAll('input, textarea, select').forEach(function(el){
-    if(!el.getAttribute('autocomplete')) el.setAttribute('autocomplete','off');
-    if(el.tagName==='INPUT' && el.type==='text') el.setAttribute('autocapitalize','sentences');
-  });
-
   buildPickers();
 
   $('tabbar').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-tab');
     if(b) showTab(b.getAttribute('data-tab'));
-  });
-  $('materialMoreBtn').addEventListener('click', function(){showTab('pgSet');});
-  $('aiGuideClose').addEventListener('click', closeAIGuide);
-  $('aiGuideX').addEventListener('click', closeAIGuide);
-  $('aiGuideScrim').addEventListener('click', closeAIGuide);
-  $('openWorkoutSessionBtn').addEventListener('click', function(){if(typeof openWkModule==='function')openWkModule();});
-  document.addEventListener('click', function(e){
-    var g=e.target&&e.target.getAttribute&&e.target.getAttribute('data-ai-guide');if(g){openAIGuide(g);return;}
-    var t=e.target&&e.target.getAttribute&&e.target.getAttribute('data-go-tab');if(t){showTab(t);return;}
-    if(e.target&&e.target.classList&&e.target.classList.contains('aiOpenReceipt')){showTab('pgExp');setTimeout(function(){openExp(null);},80);return;}
-    if(e.target&&e.target.classList&&e.target.classList.contains('aiOpenImport')){showTab('pgExp');setTimeout(function(){showImport();},80);return;}
   });
   $('fab').addEventListener('click', function(){
     if($('pgExp').classList.contains('on')) openExp(null); else openAddActionSheet();
@@ -7497,9 +6972,9 @@ function init(){
   function doUaiSend(){ var v=$('uaiInput').value.trim();if(!v)return;$('uaiInput').value='';uaiSend(v); }
   $('uaiSend').addEventListener('click', doUaiSend);
   $('uaiMic').addEventListener('click', function(){
-    if(_continuousVoice.active){ stopContinuousVoice(); this.textContent='🎙'; toastN('Voice input stopped — review the text'); return; }
-    var inp=$('uaiInput'); inp.value=''; this.textContent='■';
-    startContinuousVoice(inp);
+    startVoice($('uaiInput'), function(text){
+      toastN('Got: "'+text+'" — tap → to parse');
+    });
   });
   $('uaiInput').addEventListener('keydown', function(e){if(e.key==='Enter'){e.preventDefault();doUaiSend();}});
   if($('aiCfgHead'))$('aiCfgHead').addEventListener('click',function(){$('aiCfg').classList.toggle('open');});
@@ -7519,21 +6994,6 @@ function init(){
     if(err){ if(err!=='cancelled') toastN(err); return; }
     cb(text);
   };
-
-
-  var _continuousVoice={active:false,target:null,text:'',restarts:0};
-  function stopContinuousVoice(){_continuousVoice.active=false;_continuousVoice.target=null;_continuousVoice.text='';_continuousVoice.restarts=0;try{if(nat&&nat.stopSpeech)nat.stopSpeech();}catch(e){}}
-  function startContinuousVoice(targetInput){stopContinuousVoice();_continuousVoice.active=true;_continuousVoice.target=targetInput;toastN('🎙 Listening — pause anytime; tap Done when finished');listenContinuousChunk();}
-  function listenContinuousChunk(){
-    if(!_continuousVoice.active)return;var target=_continuousVoice.target,id='csp_'+(++_speechCbId);
-    _speechCallbacks[id]=function(text){if(!_continuousVoice.active)return;text=String(text||'').trim();if(text){_continuousVoice.text=(_continuousVoice.text?(_continuousVoice.text+' '):'')+text;target.value=_continuousVoice.text;target.focus();}if(_continuousVoice.active)setTimeout(listenContinuousChunk,180);};
-    if(nat&&nat.startSpeech){try{nat.startSpeech(id);return;}catch(e){}}
-    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){toastN('Voice input not supported');stopContinuousVoice();return;}
-    var rec=new SR();rec.lang='en-IN';rec.interimResults=false;rec.maxAlternatives=1;
-    rec.onresult=function(e){if(e.results&&e.results[0])_speechCallbacks[id](e.results[0][0].transcript);};
-    rec.onerror=function(e){if(e.error==='no-speech'){if(_continuousVoice.active)setTimeout(listenContinuousChunk,250);}else{toastN('Voice error: '+e.error);stopContinuousVoice();}};
-    try{rec.start();}catch(e){if(_continuousVoice.active)setTimeout(listenContinuousChunk,250);}
-  }
 
   function startVoice(targetInput, onDone){
     // APK: use native Android speech recognizer (WebView doesn't support Web Speech API)
@@ -7779,15 +7239,7 @@ function init(){
   $('expExportPdf').addEventListener('click',exportExpRangePdf);
 
   // smart expense reminder controls
-  document.addEventListener('click', function(e){
-    if(e.target&&e.target.id==='justTellMic'){var i=$('justTellInput');if(i){startContinuousVoice(i);$('justTellMic').style.display='none';$('justTellDone').style.display='';}return;}
-    if(e.target&&e.target.id==='justTellDone'){var i=$('justTellInput');stopContinuousVoice();$('justTellMic').style.display='';$('justTellDone').style.display='none';if(i&&i.value)processJustTell(i.value);return;}
-    if(e.target&&(/^quickWorkout(AI|Page)Save$/.test(e.target.id))){var qid=e.target.id.replace('Save','Text');processQuickWorkout(($(qid)||{}).value||'');return;}
-    if(e.target&&e.target.id==='aiWhyTodayBtn'){explainWhyToday();return;}
-
-    if(e.target && e.target.id==='aiWeekRefresh'){generateAIWeekSummary();return;}
-    var coach=e.target&&e.target.getAttribute&&e.target.getAttribute('data-ai-coach');if(coach){generateAIHabitTip(coach);return;}
-    if(e.target && e.target.id==='smartExpRemTog'){ state.set.smartExpRem=!state.set.smartExpRem; persist(); renderExpUpcoming(); pushAlarms(); } });
+  document.addEventListener('click', function(e){ if(e.target && e.target.id==='smartExpRemTog'){ state.set.smartExpRem=!state.set.smartExpRem; persist(); renderExpUpcoming(); pushAlarms(); } });
   document.addEventListener('change', function(e){ if(e.target && e.target.id==='smartExpRemTime'){ var v=e.target.value; if(/^\d{2}:\d{2}$/.test(v)){ state.set.smartExpRemTime=v; persist(); pushAlarms(); toastN('Smart reminder time saved'); } } });
 
   // account sheet
@@ -7836,7 +7288,6 @@ function init(){
   grantMonthly();
   applyTheme();
   applyGrey();
-  renderDashboard();
   renderToday();
   autoBackupDaily();
   persist();
@@ -7850,7 +7301,7 @@ if(nat && nat.getLaunchAction){
     if(_la.tab) showTab(_la.tab);
     else if(_la.habit && findHabit(_la.habit)){ showTab('pgToday'); openDetail(_la.habit); }
     else if(_la.add){ openExpFromWidget(_la.add, _la.acct); }
-    else if(_la.voice){ showTab('pgAI'); setTimeout(function(){ var _ui=$('uaiInput'); if(_ui){ _ui.value=''; startContinuousVoice(_ui); } }, 500); }
+    else if(_la.voice){ showTab('pgAI'); setTimeout(function(){ startVoice($('uaiInput'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 500); }
   }catch(e){}
 }
 </script>
@@ -8338,31 +7789,11 @@ if(nat && nat.getLaunchAction){
     var acctOpts='<option value="">Default account</option>';for(var ai=0;ai<state.accts.length;ai++)if(state.accts[ai].active!==false)acctOpts+='<option value="'+fEsc(state.accts[ai].id)+'">'+fEsc(state.accts[ai].name)+'</option>';
     var body='<div class="hint">'+(window.featureImportMode==='bank'?'Bank statement':'Transaction export')+' preview: '+incoming.length+' new transactions · '+dups+' duplicates skipped.</div><div class="lbl">Import into account</div><select class="inp" id="importAcct">'+acctOpts+'</select><div class="featureList">';
     for(var q=0;q<Math.min(50,incoming.length);q++)body+='<div class="featureRow"><div class="grow">'+fEsc(incoming[q].d)+' · '+fEsc(incoming[q].payee)+'<br><small>'+fEsc(incoming[q].kind==='exp'?'Expense':'Income')+' · '+fEsc(incoming[q].ccy)+' '+incoming[q].foreignAmt.toFixed(2)+' · '+fEsc(incoming[q].cat)+'</small></div></div>';
-    body+='</div><div class="featureGrid2"><button class="sbtn acc" id="aiCategorizeImport">AI categorise & clean</button><button class="primary" id="confirmImport">Import '+incoming.length+' transactions</button></div>';
+    body+='</div><button class="primary" id="confirmImport">Import '+incoming.length+' transactions</button>';
     var m=modal('Import preview',body);
-    function rerenderImportPreview(){
-      var list=m.querySelector('.featureList');if(!list)return;
-      var h='';for(var z=0;z<Math.min(50,incoming.length);z++)h+='<div class="featureRow"><div class="grow">'+fEsc(incoming[z].d)+' · '+fEsc(incoming[z].payee)+'<br><small>'+fEsc(incoming[z].kind==='exp'?'Expense':'Income')+' · '+fEsc(incoming[z].ccy)+' '+incoming[z].foreignAmt.toFixed(2)+' · '+fEsc(incoming[z].cat)+(incoming[z].sub?' / '+fEsc(incoming[z].sub):'')+'</small></div></div>';
-      list.innerHTML=h;
-    }
-    m.addEventListener('click',function(e){
-      if(e.target.id==='aiCategorizeImport'){aiCategorizeImported(incoming,m,rerenderImportPreview);return;}
-      if(e.target.id!=='confirmImport')return;var importAcct=F$('importAcct')?F$('importAcct').value:'';for(var i=0;i<incoming.length;i++){if(importAcct)incoming[i].acct=importAcct;state.tx.push(incoming[i]);}persist();renderExp();m.remove();var ss=F$('featureScrim');if(ss)ss.remove();fToast('Imported '+incoming.length+' transactions');});
+    m.addEventListener('click',function(e){if(e.target.id!=='confirmImport')return;var importAcct=F$('importAcct')?F$('importAcct').value:'';for(var i=0;i<incoming.length;i++){if(importAcct)incoming[i].acct=importAcct;state.tx.push(incoming[i]);}persist();renderExp();m.remove();var ss=F$('featureScrim');if(ss)ss.remove();fToast('Imported '+incoming.length+' transactions');});
   }
 
-  function aiCategorizeImported(incoming, modalEl, rerender){
-    var key=getAiKey();if(!key){fToast('Configure AI first to use AI categorisation');return;}
-    var sample=incoming.slice(0,80).map(function(x,i){return{i:i,description:x.payee,amount:x.foreignAmt,currency:x.ccy,category:x.cat};});
-    var cats=featureCategoryEntries().map(function(c){return c.label;});
-    var prompt='You are categorising imported bank transactions. Return ONLY JSON array. For each input index return {i,merchant,category,subcategory}. Clean merchant names without inventing merchants. Use one of these categories when suitable: '+cats.join(', ')+'. Use empty subcategory when unclear. Never change amount/date.\\nINPUT:\\n'+JSON.stringify(sample);
-    fToast('AI categorising imported transactions…');
-    gemCall(prompt,700).then(function(raw){
-      var txt=raw.replace(/```json|```/g,'').trim(),arr=JSON.parse(txt);if(!Array.isArray(arr))throw new Error('Invalid AI response');
-      var changed=0;
-      arr.forEach(function(v){var idx=+v.i;if(idx<0||idx>=incoming.length)return;var cat=String(v.category||'').trim(),ent=featureCategoryEntries().find(function(c){return c.label.toLowerCase()===cat.toLowerCase();});if(ent)incoming[idx].cat=ent.label;var sub=String(v.subcategory||'').trim();if(ent&&sub){var subs=state.cats[ent.label]||[];var sm=subs.find(function(x){return String(x).toLowerCase()===sub.toLowerCase();});incoming[idx].sub=sm||'';}var merchant=String(v.merchant||'').trim();if(merchant)incoming[idx].payee=merchant.slice(0,60);changed++;});
-      rerender();fToast('AI categorised '+changed+' imported rows — review before importing');
-    }).catch(function(e){fToast('AI categorisation failed: '+e.message);});
-  }
   function showImport(){
     var body='<div class="hint">Choose the source. Android uses the native file picker; desktop/web uses the browser picker. Both continue into column detection, preview, duplicate checks and confirmation.</div>'+
       '<div class="featureGrid2"><button class="sbtn acc" id="importBank">Bank statement</button><button class="sbtn" id="importGeneric">Transactions</button></div>'+
@@ -8514,50 +7945,5 @@ if(nat && nat.getLaunchAction){
 })();
 </script>
 
-
-
-<!-- TASKS MODULE -->
-<section class="page" id="pgTasks">
-  <div class="eyebrow">ACTIONABLES</div>
-  <div class="h1row"><h1>Tasks</h1><button class="btn" id="tmAddTop">＋ Add task</button></div>
-  <div class="setCard" style="margin-bottom:12px">
-    <input id="tmSearch" class="inp" autocomplete="off" type="search" placeholder="Search tasks...">
-    <div class="chips" id="tmFilters" style="margin-top:9px">
-      <button class="chip sel" data-f="all">All</button><button class="chip" data-f="overdue">Overdue</button>
-      <button class="chip" data-f="today">Today</button><button class="chip" data-f="upcoming">Upcoming</button><button class="chip" data-f="completed">Completed</button>
-    </div>
-  </div>
-  <div id="tmList"></div>
-  <div class="setCard">
-    <div class="setT">Actionables report</div>
-    <div class="numRow" style="margin-top:8px">
-      <select id="tmRange" class="inp"><option value="today">Today</option><option value="7">Next 7 days</option><option value="30">Next 30 days</option></select>
-      <button class="btn" onclick="TM.export('pdf')">PDF</button><button class="btn" onclick="TM.export('excel')">Excel</button>
-    </div>
-  </div>
-</section>
-<div class="sheet" id="tmSheet">
-  <div class="grab"></div><h2>Add task</h2>
-  <div class="lbl">Task</div><input id="tmName" class="inp" maxlength="120" placeholder="What needs to be done?" autocomplete="off">
-  <div class="lbl">Description</div><textarea id="tmDesc" class="inp" rows="3" placeholder="Details, context or notes"></textarea>
-  <div class="lbl">Subtasks</div><div id="tmSubs"></div><button class="btn" id="tmAddSub">＋ Add subtask</button>
-  <div class="lbl">Due date & time</div><div class="numRow"><input id="tmDate" class="inp" type="date"><input id="tmTime" class="inp" type="time" value="18:00"></div>
-  <div class="lbl">Priority</div><div class="chips" id="tmPriority"><button class="chip" data-v="High">High</button><button class="chip sel" data-v="Medium">Medium</button><button class="chip" data-v="Low">Low</button></div>
-  <div class="lbl">Reminder</div><div class="chips" id="tmReminder"><button class="chip sel" data-v="1 & 2 days before">1 & 2 days</button><button class="chip" data-v="1 day before">1 day</button><button class="chip" data-v="2 days before">2 days</button><button class="chip" data-v="None">None</button></div>
-  <div class="lbl">Repeat</div><div class="chips" id="tmRepeat"><button class="chip sel" data-v="None">Doesn't repeat</button><button class="chip" data-v="Daily">Daily</button><button class="chip" data-v="Weekdays">Weekdays</button><button class="chip" data-v="Weekly">Weekly</button><button class="chip" data-v="Monthly">Monthly</button></div>
-  <div class="sheetActions"><button class="btn" id="tmCancel">Cancel</button><button class="btn primary" id="tmSave">Add task</button></div>
-</div>TYPE html>
-
-<nav class="materialNav scrollableNav" id="tabbar" aria-label="Primary navigation">
-  <button class="mnavItem on" data-tab="pgDashboard" aria-label="Dashboard"><span class="mnavIcon">⌂</span><span class="mnavLabel">Dashboard</span></button>
-  <button class="mnavItem" data-tab="pgTasks" aria-label="Tasks"><span class="mnavIcon">✓</span><span class="mnavLabel">Tasks</span></button>
-  <button class="mnavItem" data-tab="pgToday" aria-label="Habits"><span class="mnavIcon">◷</span><span class="mnavLabel">Habits</span></button>
-  <button class="mnavItem" data-tab="pgWorkout" aria-label="Workout"><span class="mnavIcon">🏋</span><span class="mnavLabel">Workout</span></button>
-  <button class="mnavItem" data-tab="pgExp" aria-label="Money"><span class="mnavIcon">₹</span><span class="mnavLabel">Money</span></button>
-  <button class="mnavItem" data-tab="pgMood" aria-label="Mood"><span class="mnavIcon">☺</span><span class="mnavLabel">Mood</span></button>
-  <button class="mnavItem" data-tab="pgStats" aria-label="Stats"><span class="mnavIcon">▥</span><span class="mnavLabel">Stats</span></button>
-  <button class="mnavItem" data-tab="pgAI" aria-label="AI"><span class="mnavIcon">✦</span><span class="mnavLabel">AI</span></button>
-  <button class="mnavItem" data-tab="pgSet" aria-label="Settings"><span class="mnavIcon">⚙</span><span class="mnavLabel">Settings</span></button>
-</nav>
 </body>
 </html>

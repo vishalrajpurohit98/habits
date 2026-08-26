@@ -445,7 +445,6 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void pickImport(String mode){MainActivity.this.importFile(mode);}
         @JavascriptInterface public void pickPhoto(){MainActivity.this.pickPhoto();}
         @JavascriptInterface public void capturePhoto(){MainActivity.this.capturePhoto();}
-        @JavascriptInterface public void stopSpeech(){MainActivity.this.stopSpeech();}
         @JavascriptInterface public String readPhoto(String name){try{File f=new File(new File(getFilesDir(),pendingPhotoDir),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public void deletePhoto(String name){try{new File(new File(getFilesDir(),pendingPhotoDir),name).delete();}catch(Exception ignored){}}
         @JavascriptInterface public void saveFile(String name,String mime,String b64)throws Exception{MainActivity.this.saveFile(name,mime,b64);}
