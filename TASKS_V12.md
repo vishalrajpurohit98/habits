@@ -13,3 +13,10 @@
 ## Limitation
 - Comments can be added after the task is first saved. This avoids creating orphan comment records for an unsaved task.
 - Browser/Android AI rephrase uses the existing AI configuration; no second AI input or provider was introduced.
+
+
+## v13 startup/persistence fixes
+- Native Android saveFile now returns the saved path so the web UI no longer reports false `Save failed` after successful MediaStore writes.
+- Fresh/blank WebView startup no longer persists an empty state before Firebase hydration.
+- Native state restoration prefers meaningful native data when the WebView starts empty, even if the WebView has a newer empty mtime.
+- This preserves existing data on APK update and allows a signed-in fresh install to hydrate from Firestore without first queuing a blank local state.

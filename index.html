@@ -2387,6 +2387,10 @@ function persist(){
   if(nat){try{nat.saveState(JSON.stringify(stored));}catch(e){}}
   pushAlarms(); if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}} if(typeof scheduleSyncPush==='function')scheduleSyncPush();
 }
+function hasMeaningfulData(s){
+  s=s||{};
+  return !!((s.habits&&s.habits.length)||(s.tx&&s.tx.length)||(s.accts&&s.accts.length)||(s.exs&&s.exs.length)||(s.wlog&&s.wlog.length)||(s.sleep&&s.sleep.length)||(s.jr&&s.jr.length)||(s.tasks&&s.tasks.length)||(s.goals&&s.goals.length)||(s.mood&&Object.keys(s.mood).length)||(s.hlog&&Object.keys(s.hlog).length)||(s.closed&&Object.keys(s.closed).length));
+}
 function findHabit(id){
   for(var i=0;i<state.habits.length;i++) if(state.habits[i].id === id) return state.habits[i];
   return null;
@@ -5989,7 +5993,7 @@ var DEFAULT_SYNC_CFG = {
 };
 var FIRESTORE_SDK_URL = 'https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore-compat.js';
 var fbApp=null, fbAuth=null, fbFS=null, fbDoc=null, fbRecords=null, fbUser=null, fbUnsub=null;
-var syncBusy=false, syncApplying=false, syncPushT=null, syncLastAt=0, syncCfg=null, syncState='', syncLegacyMode=false;
+var syncBusy=false, syncApplying=false, syncPushT=null, syncLastAt=0, syncCfg=null, syncState='', syncLegacyMode=false, syncInitialHydration=true;
 var deviceId = (function(){ try{ var k='hb_device_id'; var v=localStorage.getItem(k); if(v) return v; v='d_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); localStorage.setItem(k,v); return v; }catch(e){ return 'd_'+Date.now(); } })();
 
 function loadSyncCfg(){
@@ -6077,9 +6081,65 @@ function pushLegacySync(force){if(!fbDoc||!fbUser)return Promise.resolve();if(!i
 function pushRecordSync(force){if(syncLegacyMode)return pushLegacySync(force);if(!fbRecords||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}queueChangedSyncRecords();var keys=Object.keys(syncPendingRecords);if(!keys.length){setSyncState('synced');return Promise.resolve();}setSyncState('syncing');var jobs=[];for(var b=0;b<keys.length;b+=400){(function(keys2){var batch=fbFS.batch();keys2.forEach(function(k){var m=syncPendingRecords[k],ref=fbRecords.doc(k.replace(/[^A-Za-z0-9_-]/g,'_')),pl={key:k,deleted:!!m.deleted,updatedAtMs:m.at,deviceId:deviceId,schemaVersion:2};if(!m.deleted)pl.data=m.data;batch.set(ref,pl,{merge:true});});jobs.push(batch.commit());})(keys.slice(b,b+400));}return Promise.all(jobs).then(function(){keys.forEach(function(k){delete syncPendingRecords[k];});try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}syncLastAt=Date.now();setSyncState('synced');syncMsg('',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
 function applyRemoteRecords(docs){var changed=false;docs.forEach(function(doc){var v=doc.data()||{},key=v.key||doc.id,at=Number(v.updatedAtMs||0),local=syncRecordShadow[key],pending=syncPendingRecords[key],lat=Math.max(local&&local.at||0,pending&&pending.at||0);if(at<=lat)return;applySyncRecord(key,v.data,v.deleted);delete syncPendingRecords[key];syncRecordShadow[key]={hash:v.deleted?'__deleted__':syncHash(v.data),at:at,deleted:!!v.deleted};changed=true;});try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}if(changed){state=normState(state);var stored=stateForStorage();try{localStorage.setItem(KEY,JSON.stringify(stored));}catch(e){}if(nat){try{nat.saveState(JSON.stringify(stored));}catch(e){}}applyTheme();applyGrey();reRenderCurrent();}return changed;}
 function enableLegacySync(reason){syncLegacyMode=true;if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;setSyncState('syncing');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);syncReconcile().catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);});}
-function attachFirestoreSync(u){detachFirestoreSync();if(!fbFS)return;fbDoc=fbFS.collection('users').doc(u.uid);fbRecords=fbDoc.collection('records');syncLegacyMode=false;setSyncState('syncing');fbUnsub=fbRecords.onSnapshot({includeMetadataChanges:true},function(snap){if(syncApplying)return;var docs=[];snap.docChanges().forEach(function(ch){if(ch.type==='added'||ch.type==='modified')docs.push(ch.doc);});if(docs.length)applyRemoteRecords(docs);setSyncState(snap.metadata.fromCache?'cached':'synced');},function(e){if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');return;}setSyncState('error');syncMsg(prettySyncErr(e),true);});syncReconcile();}
+function attachFirestoreSync(u){
+  detachFirestoreSync();
+  if(!fbFS)return;
+  fbDoc=fbFS.collection('users').doc(u.uid);
+  fbRecords=fbDoc.collection('records');
+  syncLegacyMode=false;
+  syncInitialHydration=true;
+  setSyncState('syncing');
+  fbUnsub=fbRecords.onSnapshot({includeMetadataChanges:true},function(snap){
+    if(syncApplying)return;
+    var docs=[];
+    snap.docChanges().forEach(function(ch){if(ch.type==='added'||ch.type==='modified')docs.push(ch.doc);});
+    if(docs.length)applyRemoteRecords(docs);
+    if(!syncInitialHydration)setSyncState(snap.metadata.fromCache?'cached':'synced');
+  },function(e){
+    if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');return;}
+    setSyncState('error');syncMsg(prettySyncErr(e),true);
+  });
+  syncReconcile().then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(){});
+}
 function detachFirestoreSync(){if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;fbDoc=null;syncLegacyMode=false;}
-function syncReconcile(){if(!fbDoc||!fbUser)return Promise.resolve();if(syncLegacyMode){setSyncState('syncing');return fbDoc.get({source:'default'}).then(function(legacy){var d=legacy.exists?legacy.data()||{}:{};if(d.data){var remoteAt=Number(d.version||d.updatedAtMs||0),localAt=Number(state.mtime||0);if(remoteAt>localAt){try{state=normState(typeof d.data==='string'?JSON.parse(d.data):d.data);state.mtime=remoteAt;var stored=stateForStorage();localStorage.setItem(KEY,JSON.stringify(stored));if(nat)nat.saveState(JSON.stringify(stored));}catch(e){}}}return pushLegacySync(true);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}if(!fbRecords)return Promise.resolve();setSyncState('syncing');return fbRecords.get({source:'default'}).then(function(snap){if(snap.size){syncApplying=true;try{applyRemoteRecords(snap.docs);}finally{setTimeout(function(){syncApplying=false;},50);}return pushRecordSync(false);}return fbDoc.get({source:'default'}).then(function(legacy){var d=legacy.exists?legacy.data()||{}:{};if(d.data){var remoteAt=Number(d.version||0),localAt=Number(state.mtime||0);if(remoteAt>localAt){try{state=normState(typeof d.data==='string'?JSON.parse(d.data):d.data);state.mtime=remoteAt;var stored=stateForStorage();localStorage.setItem(KEY,JSON.stringify(stored));if(nat)nat.saveState(JSON.stringify(stored));}catch(e){}}}return pushRecordSync(true);});}).catch(function(e){if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');return Promise.resolve();}setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
+function syncReconcile(){
+  if(!fbDoc||!fbUser)return Promise.resolve();
+  if(syncLegacyMode){
+    setSyncState('syncing');
+    return fbDoc.get({source:'default'}).then(function(legacy){
+      var d=legacy.exists?legacy.data()||{}:{};
+      if(d.data){
+        var remoteAt=Number(d.version||d.updatedAtMs||0),localAt=Number(state.mtime||0);
+        if(!hasMeaningfulData(state) || remoteAt>localAt){
+          try{state=normState(typeof d.data==='string'?JSON.parse(d.data):d.data);state.mtime=remoteAt||Date.now();var stored=stateForStorage();localStorage.setItem(KEY,JSON.stringify(stored));if(nat)nat.saveState(JSON.stringify(stored));}catch(e){}
+        }
+      }
+      return pushLegacySync(true);
+    }).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});
+  }
+  if(!fbRecords)return Promise.resolve();
+  setSyncState('syncing');
+  return fbRecords.get({source:'default'}).then(function(snap){
+    if(snap.size){
+      syncApplying=true;
+      try{applyRemoteRecords(snap.docs);}finally{setTimeout(function(){syncApplying=false;},50);}
+      return pushRecordSync(false);
+    }
+    return fbDoc.get({source:'default'}).then(function(legacy){
+      var d=legacy.exists?legacy.data()||{}:{};
+      if(d.data){
+        var remoteAt=Number(d.version||d.updatedAtMs||0),localAt=Number(state.mtime||0);
+        if(!hasMeaningfulData(state) || remoteAt>localAt){
+          try{state=normState(typeof d.data==='string'?JSON.parse(d.data):d.data);state.mtime=remoteAt||Date.now();var stored=stateForStorage();localStorage.setItem(KEY,JSON.stringify(stored));if(nat)nat.saveState(JSON.stringify(stored));}catch(e){}
+        }
+      }
+      return pushRecordSync(true);
+    });
+  }).catch(function(e){
+    if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');return Promise.resolve();}
+    setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;
+  });
+}
 function scheduleSyncPush(){if((!fbDoc||!fbUser)||syncApplying)return;if(syncPushT)clearTimeout(syncPushT);syncPushT=setTimeout(function(){pushRecordSync(false).catch(function(){});},700);}
 function pushNow(force){return pushRecordSync(!!force);}
 function CloudPush(){return pushNow(false);}window.Cloud=window.Cloud||{};window.Cloud.push=CloudPush;
@@ -6281,18 +6341,22 @@ function pushAlarms(){
   if(j !== lastAlarmsJson){ lastAlarmsJson = j; try{ nat.setAlarms(j); }catch(e){} }
 }
 function syncFromNative(){
-  if(!nat) return;
+  if(!nat) return false;
   try{
     var s = nat.getState();
-    if(!s){ nat.saveState(JSON.stringify(stateForStorage())); return; }
+    if(!s) return false;
     var o = JSON.parse(s);
-    if((o.mtime||0) > (state.mtime||0)){
+    var nativeHasData=hasMeaningfulData(o), localHasData=hasMeaningfulData(state);
+    if(nativeHasData && (!localHasData || (o.mtime||0) > (state.mtime||0))){
       state = normState(o);
       try{ localStorage.setItem(KEY, JSON.stringify(stateForStorage())); }catch(e){}
-    } else if((o.mtime||0) < (state.mtime||0)){
+      return true;
+    }
+    if((o.mtime||0) < (state.mtime||0) && localHasData){
       nat.saveState(JSON.stringify(stateForStorage()));
     }
   }catch(e){}
+  return false;
 }
 window.onNativeResume = function(){
   syncFromNative();
@@ -7478,7 +7542,9 @@ function init(){
   applyGrey();
   renderToday();
   autoBackupDaily();
-  persist();
+  // Do not persist an empty startup state before Firebase has had a chance to hydrate a fresh install.
+  // This prevents a blank WebView from being treated as newer local data and overwriting cloud data.
+  if(hasMeaningfulData(state)) { try{ localStorage.setItem(KEY, JSON.stringify(stateForStorage())); }catch(e){} }
   if(typeof initSync==='function') initSync();
   if(state.set.pin) showLock('unlock');
 }

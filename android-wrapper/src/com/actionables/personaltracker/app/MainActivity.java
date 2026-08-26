@@ -365,7 +365,7 @@ public class MainActivity extends Activity {
         byte[] x=new byte[8192]; int n; while((n=in.read(x))>0)b.write(x,0,n); in.close(); return b.toByteArray();
     }
 
-    void saveFile(String name, String mime, String b64) throws Exception {
+    String saveFile(String name, String mime, String b64) throws Exception {
         byte[] bytes = Base64.decode(b64, Base64.DEFAULT);
         if (Build.VERSION.SDK_INT >= 29) {
             ContentValues v=new ContentValues();
@@ -375,14 +375,20 @@ public class MainActivity extends Activity {
             v.put(MediaStore.Downloads.IS_PENDING,1);
             Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);
             if(u==null) throw new IOException("MediaStore insert failed");
-            try(OutputStream out=getContentResolver().openOutputStream(u)){out.write(bytes);}
+            try(OutputStream out=getContentResolver().openOutputStream(u)){
+                if(out==null) throw new IOException("Could not open Downloads output stream");
+                out.write(bytes);
+            }
             v.clear(); v.put(MediaStore.Downloads.IS_PENDING,0); getContentResolver().update(u,v,null,null);
             toast("Saved to Downloads/"+name);
+            return "Downloads/"+name;
         } else {
             File dir=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if(!dir.exists())dir.mkdirs(); File f=new File(dir,name);
+            if(!dir.exists() && !dir.mkdirs()) throw new IOException("Could not create Downloads directory");
+            File f=new File(dir,name);
             try(FileOutputStream out=new FileOutputStream(f)){out.write(bytes);}
             toast("Saved to "+f.getAbsolutePath());
+            return f.getAbsolutePath();
         }
     }
 
@@ -430,7 +436,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void reqExact(){requestExact();}
         @JavascriptInterface public void openChannelSettings(){try{Intent i=new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);i.putExtra(Settings.EXTRA_APP_PACKAGE,getPackageName());i.putExtra(Settings.EXTRA_CHANNEL_ID,NativeAlarms.CHANNEL_ID);startActivity(i);}catch(Exception e){}}
         @JavascriptInterface public void setBars(String color, boolean light){try{getWindow().setStatusBarColor(Color.parseColor(color));getWindow().setNavigationBarColor(Color.parseColor(color));if(Build.VERSION.SDK_INT>=23){int f=getWindow().getDecorView().getSystemUiVisibility();if(light)f|=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;else f&=~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;getWindow().getDecorView().setSystemUiVisibility(f);}}catch(Exception ignored){}}
-        @JavascriptInterface public String appVer(){return "1.0";}
+        @JavascriptInterface public String appVer(){return "1.2";}
         @JavascriptInterface public void toast(String s){MainActivity.this.toast(s);}
         @JavascriptInterface public void testReminder(){NativeAlarms.test(MainActivity.this);}
         @JavascriptInterface public String fsCheck(){return "{\"need\":false}";}
@@ -447,7 +453,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void capturePhoto(){MainActivity.this.capturePhoto();}
         @JavascriptInterface public String readPhoto(String name){try{File f=new File(new File(getFilesDir(),pendingPhotoDir),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public void deletePhoto(String name){try{new File(new File(getFilesDir(),pendingPhotoDir),name).delete();}catch(Exception ignored){}}
-        @JavascriptInterface public void saveFile(String name,String mime,String b64)throws Exception{MainActivity.this.saveFile(name,mime,b64);}
+        @JavascriptInterface public String saveFile(String name,String mime,String b64)throws Exception{return MainActivity.this.saveFile(name,mime,b64);}
         @JavascriptInterface public void shareFile(String name,String mime,String b64)throws Exception{MainActivity.this.shareFile(name,mime,b64);}
         @JavascriptInterface public void startSpeech(String id){MainActivity.this.startSpeech(id);}
     }
