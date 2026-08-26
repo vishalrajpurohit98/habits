@@ -1130,6 +1130,17 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 .taskSearchRow{display:flex;gap:8px;align-items:center}.taskSearchRow .inp{flex:1;min-width:0}.taskFilters{overflow:auto;flex-wrap:nowrap;padding-bottom:3px;margin:10px 0}.taskSectionHead{display:flex;align-items:center;justify-content:space-between;margin:18px 2px 8px}.taskSectionHead h3{margin:0;font-size:12px;letter-spacing:1.6px;text-transform:uppercase}.taskSectionHead span{font-size:10px;color:var(--mut)}
 .taskCard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:13px;margin:8px 0;box-shadow:var(--shadow)}.taskCard.overdue{border-color:rgba(255,107,94,.42);background:linear-gradient(135deg,var(--card),rgba(255,107,94,.035))}.taskCard.high{border-left:4px solid var(--coral)}.taskTop{display:flex;gap:10px;align-items:flex-start}.taskCheck{width:24px;height:24px;border:2px solid var(--mut);border-radius:8px;display:grid;place-items:center;flex:0 0 auto;cursor:pointer;color:#06101A;background:transparent}.taskCheck.done{background:var(--primary);border-color:var(--primary)}.taskBody{flex:1;min-width:0}.taskTitle{font-size:14px;font-weight:800;line-height:1.35}.taskTitle.done{text-decoration:line-through;color:var(--mut)}.taskDesc{font-size:11px;color:var(--mut);line-height:1.45;margin-top:4px}.taskMeta{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:8px}.taskBadge{font-size:9px;font-weight:800;padding:4px 7px;border-radius:999px;background:var(--card2);color:var(--mut)}.taskBadge.high{background:rgba(255,107,94,.12);color:var(--coral)}.taskBadge.medium{background:rgba(255,174,31,.12);color:var(--amber)}.taskBadge.low{background:rgba(47,198,160,.12);color:var(--green)}.taskBadge.overdue{background:rgba(255,107,94,.18);color:var(--coral)}.taskBadge.habit{background:var(--primarySoft);color:var(--primary)}.taskMenu{border:0;background:transparent;color:var(--mut);font-size:20px;cursor:pointer;padding:0 3px}.taskSubtasks{margin:10px 0 0 34px;padding-left:11px;border-left:2px solid var(--line)}.taskSub{display:flex;gap:7px;align-items:center;font-size:11px;margin:7px 0;color:var(--mut)}.taskSub input{accent-color:var(--primary)}.taskReminder{font-size:10px;color:var(--amber);margin-top:8px}.taskExportCard{display:flex;align-items:center;gap:10px;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:17px;padding:13px;margin-top:16px}.taskExportCard b{display:block;font-size:13px}.taskExportCard small{display:block;color:var(--mut);font-size:10px;margin-top:3px}.taskExportBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:15px}.taskSheet{max-height:88vh;overflow:auto}.taskSheetActions{display:flex;gap:8px;margin-top:14px}.taskSheetActions button{flex:1}.taskSheetActions #taskDeleteBtn{flex:0 0 110px;color:var(--coral);border-color:rgba(255,107,94,.3)}.taskSubInput{display:flex;gap:7px;margin:7px 0}.taskSubInput input{flex:1}.taskSubInput button{width:40px}.taskVoiceOn{color:var(--coral)!important;border-color:var(--coral)!important;background:rgba(255,107,94,.08)!important}
 @media(max-width:480px){.taskSummary{grid-template-columns:repeat(2,1fr)}.taskSearchRow{align-items:stretch;flex-direction:column}.taskSearchRow .sbtn{width:100%}}
+
+/* GLOBAL NAVIGATION INTERACTION SAFETY — final patch */
+#tabbar.materialNav{z-index:10000 !important;pointer-events:auto !important;}
+#tabbar .materialNavScroll{pointer-events:auto !important;}
+#tabbar .mnavItem{pointer-events:auto !important;touch-action:manipulation !important;position:relative;z-index:1;}
+#tabbar .mnavItem::before{z-index:-1;pointer-events:none;}
+#scrim{z-index:9000;}
+.sheet:not(.open){pointer-events:none !important;}
+#fab{z-index:10001 !important;}
+.page{padding-bottom:230px !important;}
+
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -8590,6 +8601,95 @@ if(nat && nat.getLaunchAction){
   }
   window.openTaskSheet=openTaskSheet;window.renderTasks=renderTasks;window.taskAggregate=taskAggregate;
   setTimeout(function(){taskInit();if(typeof renderDashboard==='function')renderDashboard();},0);
+})();
+</script>
+
+
+<script>
+/* FINAL INTERACTION SAFETY PATCH
+   Keeps the existing UI unchanged while making navigation + Money/Mood resilient
+   if an earlier optional renderer/listener throws. */
+(function(){
+  'use strict';
+  function el(id){return document.getElementById(id);}
+  function safe(fn){try{return fn&&fn();}catch(e){
+    try{if(typeof toastN==='function') toastN('Something went wrong — please try again');}catch(_e){}
+    return null;
+  }}
+  function activate(id){
+    var ids=['pgDashboard','pgTasks','pgToday','pgWorkout','pgExp','pgMood','pgStats','pgAI','pgSet'];
+    for(var i=0;i<ids.length;i++){var p=el(ids[i]);if(p)p.classList.toggle('on',ids[i]===id);}
+    document.querySelectorAll('#tabbar .mnavItem').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-tab')===id);});
+    var b=document.querySelector('#tabbar .mnavItem[data-tab="'+id+'"]');
+    if(b&&b.scrollIntoView){try{b.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});}catch(e){b.scrollIntoView(false);}}
+    var lbl=el('fabLbl'); if(lbl) lbl.textContent=(id==='pgExp'||id==='pgTasks')?'Add':(id==='pgToday'?'Add habit':'Add anything');
+    var fab=el('fab'); if(fab){fab.style.display=(id==='pgDashboard'||id==='pgToday'||id==='pgExp'||id==='pgTasks')?'':'none';fab.setAttribute('aria-label',id==='pgExp'?'Add expense':id==='pgTasks'?'Add task':id==='pgToday'?'Add habit':'Add anything');}
+    if(id==='pgDashboard')safe(function(){renderDashboard();});
+    else if(id==='pgTasks')safe(function(){renderTasks();});
+    else if(id==='pgToday')safe(function(){renderToday();});
+    else if(id==='pgWorkout')safe(function(){renderWorkoutPage();});
+    else if(id==='pgExp')safe(function(){renderExp();});
+    else if(id==='pgMood')safe(function(){renderMood();});
+    else if(id==='pgStats')safe(function(){renderStats();});
+    else if(id==='pgAI')safe(function(){renderAI();renderAIPageFeatures();});
+    else if(id==='pgSet')safe(function(){renderSet();});
+    var app=el('app');if(app)app.scrollTop=0;
+  }
+  function bind(){
+    var nav=el('tabbar');
+    if(nav && !nav.__finalNavBound){
+      nav.__finalNavBound=true;
+      var buttons=nav.querySelectorAll('.mnavItem');
+      buttons.forEach(function(btn){
+        var go=function(ev){
+          if(ev) ev.stopPropagation();
+          activate(btn.getAttribute('data-tab'));
+        };
+        btn.addEventListener('click',go,false);
+        btn.addEventListener('pointerup',function(ev){
+          if(ev.pointerType==='touch') go(ev);
+        },false);
+        btn.addEventListener('touchend',function(ev){
+          go(ev);
+        },{passive:true});
+      });
+    }
+    var fab=el('fab');
+    if(fab && !fab.__finalFabBound){
+      fab.__finalFabBound=true;
+      fab.addEventListener('click',function(){
+        var active=document.querySelector('.page.on');var id=active?active.id:'pgDashboard';
+        safe(function(){
+          if(id==='pgToday') return openEdit(null);
+          if(id==='pgExp') return openExp(null);
+          if(id==='pgTasks') return openTaskSheet(null);
+          if(id==='pgDashboard') return openAddActionSheet();
+        });
+      },false);
+    }
+    // Money must remain usable even on a brand-new profile with no account.
+    var expCta=el('expCta');
+    if(expCta && !expCta.__finalBound){expCta.__finalBound=true;expCta.addEventListener('click',function(){safe(function(){openExp(null);});});}
+    var expSave=el('expSave');
+    if(expSave && !expSave.__finalBound){expSave.__finalBound=true;expSave.addEventListener('click',function(){safe(function(){saveExp();});});}
+    var expPrev=el('expPrev');
+    if(expPrev && !expPrev.__finalBound){expPrev.__finalBound=true;expPrev.addEventListener('click',function(){safe(function(){expM--;if(expM<0){expM=11;expY--;}renderExp();});});}
+    var expNext=el('expNext');
+    if(expNext && !expNext.__finalBound){expNext.__finalBound=true;expNext.addEventListener('click',function(){safe(function(){expM++;if(expM>11){expM=0;expY++;}renderExp();});});}
+    var moRemSave=el('moRemSave');
+    if(moRemSave && !moRemSave.__finalBound){moRemSave.__finalBound=true;moRemSave.addEventListener('click',function(){safe(function(){var t=today();state.moodNotes[t]=el('moRem').value.trim();persist();renderMood();toastN('Remark saved');});});}
+    var moGrid=el('moGrid');
+    if(moGrid && !moGrid.__finalBound){
+      moGrid.__finalBound=true;
+      moGrid.addEventListener('click',function(e){
+        var b=e.target.closest('[data-mi]'); if(!b)return;
+        safe(function(){var i=+b.getAttribute('data-mi'),t=today();setMood(t,moodOf(t)===i?-1:i);renderMood();});
+      });
+    }
+  }
+  // Run after all existing scripts. If init() had an earlier exception, this still restores navigation.
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind); else bind();
+  window.__finalNavigate=activate;
 })();
 </script>
 
