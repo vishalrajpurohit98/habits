@@ -9,12 +9,14 @@ import android.net.Uri;
 public class NotifReceiver extends BroadcastReceiver {
     @Override public void onReceive(Context c, Intent in) {
         String habit=in.getStringExtra("habit");
+        String task=in.getStringExtra("task");
         String name=in.getStringExtra("name");
         String emoji=in.getStringExtra("emoji");
         String id=in.getStringExtra("id");
         String body=in.getStringExtra("body");
         Intent open=new Intent(c,MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
         if(habit!=null)open.putExtra("habit",habit);
+        if(task!=null && !task.isEmpty())open.putExtra("task",task);
         PendingIntent pi=PendingIntent.getActivity(c,Math.abs((id==null?"n":id).hashCode()),open,
                 PendingIntent.FLAG_UPDATE_CURRENT|(Build.VERSION.SDK_INT>=23?PendingIntent.FLAG_IMMUTABLE:0));
         Notification.Builder b=Build.VERSION.SDK_INT>=26
