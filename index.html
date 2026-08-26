@@ -1551,20 +1551,16 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
-<div class="aiFeatureCard"><div class="aiFeatureHead"><span>💡</span><b>Smart Insights</b><button class="aiGuideBtn" data-ai-guide="insights">ⓘ</button></div><div class="setS">Pattern-based insights from your tracker.</div><div id="aiInsights"></div></div>
+<div style="display:flex;justify-content:flex-end;margin:8px 0"><button class="aiGuideBtn" data-ai-guide="assistant">ⓘ How to use AI Assistant</button></div>
+    <div class="aiFeatureCard" style="margin-bottom:12px"><div class="aiFeatureHead"><span>🎤</span><b>Just Tell the App</b><button class="aiGuideBtn" data-ai-guide="tell">ⓘ</button></div><div class="setS">Type or speak naturally. Tap Done when you finish speaking to submit the request.</div><div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Done">Done</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div></div>
+    <div class="aiFeatureCard"><div class="aiFeatureHead"><span>💡</span><b>Smart Insights</b><button class="aiGuideBtn" data-ai-guide="insights">ⓘ</button></div><div class="setS">Pattern-based insights from your tracker.</div><div id="aiInsights"></div></div>
 <div class="aiFeatureGrid">
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎤</span><b>Just Tell the App</b><button class="aiGuideBtn" data-ai-guide="tell">ⓘ</button></div><div class="setS">Speak naturally and log several things.</div><div id="justTellApp"></div></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>📸</span><b>AI Receipt Scanner</b><button class="aiGuideBtn" data-ai-guide="receipt">ⓘ</button></div><div class="setS">Extract receipt details before saving.</div><button class="sbtn acc aiOpenReceipt">Open scanner</button></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧾</span><b>AI Bank Statement</b><button class="aiGuideBtn" data-ai-guide="bank">ⓘ</button></div><div class="setS">Clean and categorise imported transactions.</div><button class="sbtn aiOpenImport">Open import</button></div>
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🧠</span><b>Your Week in 30 Seconds</b><button class="aiGuideBtn" data-ai-guide="week">ⓘ</button></div><div id="aiWeekSummary"></div></div>
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🔍</span><b>Why Was Today Different?</b><button class="aiGuideBtn" data-ai-guide="why">ⓘ</button></div><div id="aiTodayWhy"></div></div>
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🚨</span><b>Anomaly Detection</b><button class="aiGuideBtn" data-ai-guide="anomaly">ⓘ</button></div><div id="aiAnomalies"></div></div>
   <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🎯</span><b>AI Habit Coach</b><button class="aiGuideBtn" data-ai-guide="habit">ⓘ</button></div><div id="aiHabitCoach"></div></div>
-  <div class="aiFeatureCard"><div class="aiFeatureHead"><span>🏋️</span><b>Workout Quick Log</b><button class="aiGuideBtn" data-ai-guide="workout">ⓘ</button></div><div id="workoutQuickLog"></div></div>
 </div>
-
-    <div style="display:flex;justify-content:flex-end;margin:8px 0"><button class="aiGuideBtn" data-ai-guide="assistant">ⓘ How to use AI Assistant</button></div><div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
-    <div class="aiRecentTitle">Recent</div><div id="aiRecent"></div>
+    <div class="aiRecentTitle" style="display:flex;align-items:center;justify-content:space-between">Recent <button class="sbtn" id="aiClearChat" style="padding:7px 10px;font-size:11px">Clear chat</button></div><div id="aiRecent"></div>
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
       <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS" id="aiModelHint">Select a provider first</div></div></div><select class="inp" id="aiModel" style="margin:6px 0 10px;padding:12px 14px"></select><div class="setRow"><div class="setInfo"><div class="setT">API key</div><div class="setS" id="aiKeyHint">Paste your key</div></div></div><input class="inp" id="aiApiKey" type="password" placeholder="Paste your API key" style="margin:6px 0 8px"><div class="half"><button class="sbtn acc" id="btnAiSave">Save</button><button class="sbtn" id="btnAiClear">Remove</button><button class="sbtn" id="btnAiFetch">↻ Models</button></div><div id="aiStatus" class="aiStatusLine"></div>
@@ -3610,7 +3606,7 @@ function renderAIWeeklySummary(){
   var box=$('aiWeekSummary');if(!box)return;
   var cached=localStorage.getItem('ai_weekly_narr')||'',day=localStorage.getItem('ai_weekly_narr_day')||'';
   var configured=!!getAiKey();
-  if(!cached&&!configured){box.innerHTML='';return;}
+  if(!cached&&!configured){box.innerHTML='<div class="aiSmartBody">AI is not configured yet. Add an API key below to generate your weekly summary.</div><div class="aiSmartActions"><button class="sbtn acc" id="aiWeekRefresh">Generate summary</button></div>';return;}
   var html='<div class="aiSmartCard">';
   if(cached&&day===today())html+='<div class="aiSmartBody">'+cached+'</div>';
   else html+='<div class="aiSmartBody">Generate a short summary across habits, expenses, mood, sleep, workouts and journal.</div>';
@@ -3630,9 +3626,9 @@ function renderAIHabitCoach(){
   for(var i=0;i<state.habits.length;i++){var h=state.habits[i];if(h.arch)continue;var r=periodRate(h,30);if(!weak||r<weak.rate)weak={h:h,rate:r};}
   if(!weak||weak.rate>=.65){box.innerHTML='';return;}
   var cached=localStorage.getItem('ai_habit_tip_'+weak.h.id)||'';
-  var html='<div class="aiSmartCard"><div class="aiSmartHead"><span>🎯</span><b>AI Habit Coach</b><span class="featureTag" style="margin-left:auto">'+Math.round(weak.rate*100)+'% · 30d</span></div><div class="aiSmartBody"><b>'+esc(weak.h.name)+'</b> is your weakest recent habit. Ask AI for one practical change based on your actual pattern.</div>';
+  var html='<div class="aiSmartCard"><div class="aiSmartHead"><span>30d completion</span><span class="featureTag" style="margin-left:auto">'+Math.round(weak.rate*100)+'%</span></div><div class="aiSmartBody"><b>'+esc(weak.h.name)+'</b> is your weakest recent habit. Ask AI for one practical change based on your actual pattern.</div>';
   if(cached)html+='<div class="aiSmartMeta">'+cached+'</div>';
-  html+='<div class="aiSmartActions"><button class="sbtn acc" data-ai-coach="'+esc(weak.h.id)+'">'+(cached?'Get another tip':'Get AI tip')+'</button></div></div>';
+  html+='<div class="aiSmartActions"><button class="sbtn acc" data-ai-coach="'+esc(weak.h.id)+'">'+'Ask AI'+'</button></div></div>';
   box.innerHTML=html;
 }
 function generateAIHabitTip(hid){
@@ -3679,10 +3675,10 @@ function processQuickWorkout(text){
 function renderTodayAIExplainers(){
   var why=$('aiTodayWhy'),an=$('aiAnomalies');if(!why||!an)return;var ps=detectedPatterns(),sp=ps.filter(function(p){return p.type==='spike'||p.type==='sleep';}).slice(0,2);
   an.innerHTML=sp.length?'<div class="aiQuickCard"><div class="aiSmartHead"><span>🚨</span><b>Anomalies detected</b></div>'+sp.map(function(p){return '<div class="aiQuickDone"><b>'+p.title+'</b><br>'+p.text+'<br><small>'+p.detail+'</small></div>';}).join('')+'</div>':'';
-  if(!getAiKey()){why.innerHTML='';return;}why.innerHTML='<div class="aiQuickCard"><div class="aiSmartBody">Compare today with your normal patterns.</div><div class="aiQuickRow"><button class="sbtn acc" id="aiWhyTodayBtn">Explain today</button></div><div id="aiWhyTodayResult"></div></div>';
+  if(!getAiKey()){why.innerHTML='<div class="aiQuickCard"><div class="aiSmartBody">AI is not configured yet. Add an API key below to explain today.</div><div class="aiQuickRow"><button class="sbtn acc" id="aiWhyTodayBtn">Explain today</button></div><div id="aiWhyTodayResult"></div></div>';return;}why.innerHTML='<div class="aiQuickCard"><div class="aiSmartBody">Compare today with your normal patterns.</div><div class="aiQuickRow"><button class="sbtn acc" id="aiWhyTodayBtn">Explain today</button></div><div id="aiWhyTodayResult"></div></div>';
 }
 function explainWhyToday(){
-  var b=$('aiWhyTodayResult');if(b)b.innerHTML='<small>Analysing…</small>';
+  var b=$('aiWhyTodayResult');if(!getAiKey()){if(b)b.innerHTML='<small>Configure AI first, then tap Explain today.</small>';toastN('Configure AI first');return;}if(b)b.innerHTML='<small>Analysing…</small>';
   var prompt='Explain why today may be different from the user normal baseline. Compare habits, expense, mood, sleep, workout and journal when available. Mention 1-3 strongest differences only. Do not claim causation. Under 80 words. DATA:\\n'+buildDataContext();
   gemCall(prompt,180).then(function(r){if(b)b.innerHTML='<div class="aiQuickDone">'+esc(r)+'</div>';}).catch(function(e){if(b)b.innerHTML='<small>'+esc(e.message)+'</small>';});
 }
@@ -3778,7 +3774,7 @@ function openAIGuide(k){
   sh.classList.add('on');$('aiGuideScrim').classList.add('on');
 }
 function closeAIGuide(){$('aiGuideSheet').classList.remove('on');$('aiGuideScrim').classList.remove('on');}
-function renderAIPageFeatures(){renderInsights();renderJustTellApp();renderAIWeeklySummary();renderAIHabitCoach();renderTodayAIExplainers();renderWorkoutQuickLog();}
+function renderAIPageFeatures(){renderInsights();renderAIWeeklySummary();renderAIHabitCoach();renderTodayAIExplainers();if(window.__bindAIFeatures)setTimeout(window.__bindAIFeatures,0);}
 function renderToday(){
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
@@ -8728,6 +8724,26 @@ if(nat && nat.getLaunchAction){
 
 
 <script>
+/* AI DYNAMIC FEATURE BINDING */
+(function(){
+  'use strict';
+  function byId(id){return document.getElementById(id);}
+  function bind(){
+    var page=byId('pgAI'); if(!page)return;
+    var send=byId('uaiSend'), input=byId('uaiInput'), mic=byId('uaiMic');
+    if(send&&!send.__aiDoneBound){send.__aiDoneBound=true;send.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();var v=input&&input.value.trim();if(!v)return;input.value='';try{uaiSend(v);}catch(err){console.error(err);if(typeof toastN==='function')toastN('AI request failed: '+(err.message||'Unknown error'));}},{passive:false});}
+    if(input&&!input.__aiDoneKeyBound){input.__aiDoneKeyBound=true;input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();if(send)send.click();}});}
+    if(mic&&!mic.__aiVoiceBound){mic.__aiVoiceBound=true;mic.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();try{if(typeof _continuousVoice!=='undefined'&&_continuousVoice.active){stopContinuousVoice();mic.textContent='🎙';toastN('Voice input stopped — tap Done to submit');}else{if(input)input.value='';mic.textContent='■';startContinuousVoice(input);}}catch(err){console.error(err);toastN('Voice input unavailable');}},{passive:false});}
+    var clr=byId('aiClearChat');if(clr&&!clr.__aiClearBound){clr.__aiClearBound=true;clr.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(byId('uaiLog'))byId('uaiLog').innerHTML='';localStorage.removeItem('ai_recent');renderAIRecent();toastN('AI chat cleared');},{passive:false});}
+    var week=byId('aiWeekRefresh');if(week&&!week.__aiWeekBound){week.__aiWeekBound=true;week.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();generateAIWeekSummary();},{passive:false});}
+    var why=byId('aiWhyTodayBtn');if(why&&!why.__aiWhyBound){why.__aiWhyBound=true;why.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();explainWhyToday();},{passive:false});}
+    page.querySelectorAll('[data-ai-coach]').forEach(function(el){if(el.__aiCoachBound)return;el.__aiCoachBound=true;el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();generateAIHabitTip(el.getAttribute('data-ai-coach'));},{passive:false});});
+    page.querySelectorAll('[data-ai-guide]').forEach(function(el){if(el.__aiGuideBound)return;el.__aiGuideBound=true;el.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();openAIGuide(el.getAttribute('data-ai-guide'));},{passive:false});});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',function(){bind();setTimeout(bind,100);setTimeout(bind,300);});else{bind();setTimeout(bind,100);setTimeout(bind,300);}
+  window.__bindAIFeatures=bind;
+})();
+
 /* AI + NAVIGATION INTERACTION HARDENING v2 */
 (function(){
   'use strict';
