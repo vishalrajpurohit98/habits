@@ -5317,11 +5317,17 @@ function renderExp(){
   $('expMonNav').style.display = (expView==='tx'||expView==='budg'||expView==='ins')?'':'none';
   ['expTx','expUpcoming','expBudg','expAcct','expIns'].forEach(function(id){ $(id).style.display='none'; });
   $('expEmpty').hidden = true;
-  if(expView==='tx') renderExpTx();
-  else if(expView==='upcoming') renderExpUpcoming();
-  else if(expView==='budg') renderExpBudg();
-  else if(expView==='acct') renderExpAcct();
-  else if(expView==='ins') renderExpIns();
+  try{
+    if(expView==='tx') renderExpTx();
+    else if(expView==='upcoming') renderExpUpcoming();
+    else if(expView==='budg') renderExpBudg();
+    else if(expView==='acct') renderExpAcct();
+    else if(expView==='ins') renderExpIns();
+  }catch(e){
+    console.error('Money view render failed',e);
+    var target=$(expView==='upcoming'?'expUpcoming':expView==='budg'?'expBudg':expView==='acct'?'expAcct':expView==='ins'?'expIns':'expTx');
+    if(target)target.innerHTML='<div class="setS" style="padding:24px;text-align:center">This section could not be loaded. Your data is safe. Try opening it again.</div>';
+  }
 }
 
 function renderExpTx(){
@@ -5550,20 +5556,24 @@ function runRecur(){
   var t=today(),changed=false;
   for(var i=0;i<state.recur.length;i++){
     var r=state.recur[i];
-    if(!r.active||r.start>t)continue;
-    if(r.end&&r.end<t)continue;
+    if(!r||!r.active||!r.start||r.start>t)continue;
     var acct=acctById(r.acct);
-    if(!acct||acct.active===false){ if(r.active!==false){r.active=false;changed=true;} continue; }
-    var cursor=r.last||addDays(toDate(r.start||t),-1),next=nextRecurringDateFrom(r,cursor),latest=null,guard=0;
-    while(fmt(next)<=t&&(!r.end||fmt(next)<=r.end)&&guard<500){latest=next;next=recurringNextDate(r,next);guard++;}
-    if(!latest)continue;
-    var ds=fmt(latest),exists=state.tx.some(function(x){return x.recurId===r.id&&x.recurDate===ds;});
+    if(!acct||acct.active===false){r.active=false;changed=true;continue;}
+    if(r.end&&r.end<t)continue;
+    /* Only post an occurrence when it is due today. Never backfill old dates. */
+    var cursor=r.last||addDays(toDate(r.start),-1),next=nextRecurringDateFrom(r,cursor),guard=0;
+    while(next<t&&guard<500){next=recurringNextDate(r,next);guard++;}
+    if(next!==t)continue;
+    if(r.end&&next>r.end)continue;
+    var ds=fmt(next);
     if(r.skipNext){r.skipNext=false;r.last=ds;changed=true;continue;}
-    if(!exists){state.tx.push(normTx({kind:r.kind||'exp',amt:r.amt,acct:r.acct,cat:r.cat,d:ds,payee:r.name,note:'Recurring',created:Date.now(),recurId:r.id,recurDate:ds}));changed=true;}
+    var exists=state.tx.some(function(x){return x.recurId===r.id&&x.recurDate===ds;});
+    if(!exists){state.tx.push(normTx({kind:r.kind||'exp',amt:r.amt,acct:r.acct,cat:r.cat||'Other',d:ds,payee:r.name,note:'Recurring',created:Date.now(),recurId:r.id,recurDate:ds,ccy:state.set.baseCurr||state.set.curr||'₹',fxToBase:1,foreignAmt:r.amt}));changed=true;}
     if(r.last!==ds){r.last=ds;changed=true;}
   }
   if(changed)persist();
 }
+
 function normTx(x){ x.id='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,7); return x; }
 
 /* ---- recurring expense sheet ---- */
@@ -5571,8 +5581,29 @@ var recurEd=null,recurFreq='monthly',recurWeekday=1,recurCat='',recurAcct='';
 function openRecur(id){var r=null;if(id){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===id){r=state.recur[i];break;}}if(!activeAccts().length){toastN('Add an account first');expView='acct';syncSeg();renderExp();openAcct(null);return;}recurEd=r?JSON.parse(JSON.stringify(r)):{id:'',name:'',amt:0,kind:'exp',freq:'monthly',day:1,weekday:1,month:1,yearDay:1,acct:activeAccts()[0].id,cat:'Other',start:today(),active:true,last:''};recurEd._edit=id||'';recurFreq=recurEd.freq||'monthly';recurWeekday=+recurEd.weekday||1;recurCat=recurEd.cat||'Other';recurAcct=recurEd.acct||activeAccts()[0].id;$('recurSheetT').textContent=id?'Edit recurring transaction':'Add recurring transaction';$('recurName').value=recurEd.name||'';$('recurAmt').value=recurEd.amt||'';$('recurDay').value=recurEd.day||1;$('recurMonth').value=recurEd.month||1;$('recurYearDay').value=recurEd.yearDay||recurEd.day||1;$('recurStart').value=recurEd.start||today();$('recurActive').classList.toggle('on',recurEd.active!==false);var kb=$('recurKindGrid').children;for(var q=0;q<kb.length;q++)kb[q].classList.toggle('sel',kb[q].getAttribute('data-rkind')===(recurEd.kind||'exp'));$('recurDel').style.display=id?'':'none';paintRecur();openSheet('recurSheet');}
 
 function paintRecur(){var bs=$('recurFreqGrid').children;for(var i=0;i<bs.length;i++)bs[i].classList.toggle('sel',bs[i].getAttribute('data-rf')===recurFreq);$('recurMonthlyFields').style.display=recurFreq==='monthly'?'':'none';$('recurWeeklyFields').style.display=recurFreq==='weekly'?'':'none';$('recurYearlyFields').style.display=recurFreq==='yearly'?'':'none';var wb=$('recurWeekGrid').children;for(var j=0;j<wb.length;j++)wb[j].classList.toggle('sel',+wb[j].getAttribute('data-rw')===recurWeekday);var cats=Object.keys(state.cats),cg='';for(var k=0;k<cats.length;k++)cg+=chip(cats[k],cats[k]===recurCat,'data-rc',cats[k]);$('recurCatGrid').innerHTML=cg;var acs=activeAccts(),ag='';for(var m=0;m<acs.length;m++)ag+=chip(acs[m].name,acs[m].id===recurAcct,'data-ra',acs[m].id);$('recurAcctGrid').innerHTML=ag;}
-function saveRecur(){var n=$('recurName').value.trim(),amt=parseFloat($('recurAmt').value);if(!n){$('recurName').focus();toastN('Enter a name');return;}if(!amt||amt<=0){$('recurAmt').focus();toastN('Enter an amount');return;}if(!recurAcct){toastN('Pick an account');return;}var old=recurEd._edit?state.recur.find(function(x){return x.id===recurEd._edit;}):null;var oldKey=old?[old.kind,old.freq,old.day,old.weekday,old.month,old.yearDay,old.acct,old.start].join('|'):'';recurEd.kind=recurEd.kind||'exp';recurEd.name=n;recurEd.amt=amt;recurEd.freq=recurFreq;recurEd.day=Math.min(31,Math.max(1,+$('recurDay').value||1));recurEd.weekday=recurWeekday;recurEd.month=Math.min(12,Math.max(1,+$('recurMonth').value||1));recurEd.yearDay=Math.min(31,Math.max(1,+$('recurYearDay').value||1));recurEd.cat=recurCat||'Other';recurEd.acct=recurAcct;recurEd.start=$('recurStart').value||today();recurEd.active=$('recurActive').classList.contains('on');var newKey=[recurEd.kind,recurEd.freq,recurEd.day,recurEd.weekday,recurEd.month,recurEd.yearDay,recurEd.acct,recurEd.start].join('|');if(old&&oldKey!==newKey)recurEd.last='';if(recurEd._edit){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===recurEd._edit){delete recurEd._edit;state.recur[i]=recurEd;break;}}else{delete recurEd._edit;recurEd.id='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);state.recur.push(recurEd);}persist();closeSheet();renderExp();toastN((recurEd.kind==='inc'?'Recurring income':'Recurring expense')+' saved');}
-
+function saveRecur(){
+  var n=$('recurName').value.trim(),amt=parseFloat($('recurAmt').value),start=$('recurStart').value||today();
+  if(!n){$('recurName').focus();toastN('Enter a name');return;}
+  if(!isFinite(amt)||amt<=0){$('recurAmt').focus();toastN('Enter a valid amount');return;}
+  if(!recurAcct){toastN('Pick an account');return;}
+  var account=acctById(recurAcct);if(!account||account.active===false){toastN('Pick an active account');return;}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(start)){toastN('Pick a valid start date');return;}
+  var old=recurEd._edit?state.recur.find(function(x){return x.id===recurEd._edit;}):null;
+  var oldKey=old?[old.kind,old.freq,old.day,old.weekday,old.month,old.yearDay,old.acct,old.start].join('|'):'';
+  recurEd.kind=recurEd.kind||'exp';recurEd.name=n;recurEd.amt=amt;recurEd.freq=recurFreq;
+  recurEd.day=Math.min(31,Math.max(1,+$('recurDay').value||1));recurEd.weekday=recurWeekday;
+  recurEd.month=Math.min(12,Math.max(1,+$('recurMonth').value||1));recurEd.yearDay=Math.min(31,Math.max(1,+$('recurYearDay').value||1));
+  recurEd.cat=recurCat||'Other';recurEd.acct=recurAcct;recurEd.start=start;recurEd.active=$('recurActive').classList.contains('on');
+  var newKey=[recurEd.kind,recurEd.freq,recurEd.day,recurEd.weekday,recurEd.month,recurEd.yearDay,recurEd.acct,recurEd.start].join('|');
+  if(old&&oldKey!==newKey)recurEd.last='';
+  if(recurEd._edit){for(var i=0;i<state.recur.length;i++)if(state.recur[i].id===recurEd._edit){delete recurEd._edit;state.recur[i]=recurEd;break;}}
+  else{delete recurEd._edit;recurEd.id='r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);recurEd.last='';state.recur.push(recurEd);}
+  persist();closeSheet();
+  expView='upcoming';syncSeg();
+  try{runRecur();}catch(e){console.error('Recurring post failed',e);}
+  renderExp();renderInsights();
+  toastN((recurEd.kind==='inc'?'Recurring income':'Recurring expense')+' saved · shown in Upcoming');
+}
 /* ---- expense sheet ---- */
 var expEd = null, expKindSel='exp', expCatSel='', expSubSel='', expAcctSel='', expToSel='';
 function activeAccts(){ return state.accts.filter(function(a){return a.active;}); }
@@ -7265,7 +7296,7 @@ function init(){
   $('recurAcctGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-ra');if(!b)return;recurAcct=b.getAttribute('data-ra');paintRecur();});
   $('recurActive').addEventListener('click',function(){this.classList.toggle('on');});
   $('recurSave').addEventListener('click',saveRecur);
-  $('recurDel').addEventListener('click',function(){if(!recurEd||!recurEd._edit)return;if(!confirm('Delete this recurring expense? Existing posted transactions will remain.'))return;state.recur=state.recur.filter(function(r){return r.id!==recurEd._edit;});persist();closeSheet();renderExp();toastN('Recurring expense deleted');});
+  $('recurDel').addEventListener('click',function(){if(!recurEd||!recurEd._edit)return;if(!confirm('Delete this recurring transaction? Existing posted transactions will remain.'))return;state.recur=state.recur.filter(function(r){return r.id!==recurEd._edit;});persist();closeSheet();renderExp();toastN('Recurring expense deleted');});
   $('expExportXlsx').addEventListener('click',exportExpRangeXlsx);
   $('expExportPdf').addEventListener('click',exportExpRangePdf);
 
@@ -7626,9 +7657,9 @@ if(nat && nat.getLaunchAction){
     for(var i=0;i<state.recur.length;i++){
       var r=state.recur[i];
       body+='<div class="featurePanel"><div class="featureRow"><div class="grow"><b>'+fEsc(r.name)+'</b><br><small>'+fEsc(fBase())+' '+fNum(r.amt).toFixed(2)+' · '+fEsc(r.freq)+'</small></div><button class="sbtn" data-rpause="'+fEsc(r.id)+'">'+(r.active===false?'Resume':'Pause')+'</button><button class="sbtn" data-rskip="'+fEsc(r.id)+'">Skip</button></div>'+
-      '<div class="featureRow"><div class="grow"><small>Next control</small></div><input class="inp" data-rend="'+fEsc(r.id)+'" type="date" value="'+fEsc(r.end||'')+'"><button class="sbtn" data-rendbtn="'+fEsc(r.id)+'">End</button></div></div>';
+      '<div class="featureRow"><div class="grow"><small>End date</small></div><input class="inp" data-rend="'+fEsc(r.id)+'" type="date" value="'+fEsc(r.end||'')+'"><button class="sbtn" data-rendbtn="'+fEsc(r.id)+'">End</button></div></div>';
     }
-    var m=modal('Recurring expense controls',body);
+    var m=modal('Recurring transaction controls',body);
     m.addEventListener('click',function(e){
       var p=e.target.closest('[data-rpause]'); if(p){var r=state.recur.find(function(x){return x.id===p.getAttribute('data-rpause');});if(r){r.active=r.active===false;persist();showRecurControls();renderExp();}return;}
       var sk=e.target.closest('[data-rskip]');if(sk){var r2=state.recur.find(function(x){return x.id===sk.getAttribute('data-rskip');});if(r2){r2.skipNext=true;persist();fToast('Next occurrence skipped');showRecurControls();}return;}
