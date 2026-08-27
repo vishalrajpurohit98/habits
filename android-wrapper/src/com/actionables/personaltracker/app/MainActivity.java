@@ -434,18 +434,50 @@ public class MainActivity extends Activity {
         if (i == null || web == null || !webReady) return;
         final String type = i.getStringExtra("quick_add");
         if (type == null || type.length() == 0) return;
+
         web.postDelayed(() -> {
-            String jsCode = "(function(){try{" +
+            String jsCode =
+                    "(function(){" +
+                    "try{" +
                     "var t=" + JSONObject.quote(type) + ";" +
-                    "if(t==='expense'&&window.openExp){showTab('pgExp');setTimeout(function(){openExp(null);},100);}" +
-                    "else if(t==='task'&&window.TM&&TM.open){showTab('pgTasks');setTimeout(function(){TM.open();},100);}" +
-                    "else if(t==='habit'&&window.openEdit){showTab('pgToday');setTimeout(function(){openEdit(null);},100);}" +
-                    "else if(t==='sleep'&&window.openSleep){showTab('pgMood');setTimeout(function(){openSleep(today());},100);}" +
-                    "else if(t==='mood'){showTab('pgMood');setTimeout(function(){var g=document.getElementById('moGrid');if(g)g.scrollIntoView({behavior:'smooth',block:'center'});},100);}" +
-                    "else if(t==='workout'&&window.openWkModule){showTab('pgWorkout');setTimeout(function(){openWkModule();},100);}" +
-                    "}catch(e){}})();";
+                    "var go=function(tab,fn){try{showTab(tab);setTimeout(fn,180);}catch(e){}};" +
+                    "if(t==='expense'){" +
+                        "go('pgExp',function(){" +
+                            "if(window.openExpFromWidget){window.openExpFromWidget('exp',null);}" +
+                            "else if(window.openExp){window.openExp(null);}" +
+                        "});" +
+                    "}else if(t==='task'){" +
+                        "go('pgTasks',function(){" +
+                            "if(window.TM&&typeof window.TM.open==='function'){window.TM.open();}" +
+                            "else if(window.TM&&typeof window.TM.openTask==='function'){window.TM.openTask();}" +
+                            "else {var b=document.getElementById('tmAddTop');if(b)b.click();}" +
+                        "});" +
+                    "}else if(t==='habit'){" +
+                        "go('pgToday',function(){" +
+                            "if(window.openEdit)window.openEdit(null);" +
+                        "});" +
+                    "}else if(t==='sleep'){" +
+                        "go('pgDashboard',function(){" +
+                            "if(window.openSleep)window.openSleep(window.today?window.today():new Date().toISOString().slice(0,10));" +
+                        "});" +
+                    "}else if(t==='mood'){" +
+                        "go('pgMood',function(){" +
+                            "var g=document.getElementById('moGrid');" +
+                            "if(g){g.scrollIntoView({behavior:'smooth',block:'center'});}" +
+                        "});" +
+                    "}else if(t==='workout'){" +
+                        "go('pgWorkout',function(){" +
+                            "if(window.openWkModule)window.openWkModule();" +
+                        "});" +
+                    "}" +
+                    "}catch(e){" +
+                        "try{if(window.toastN)window.toastN('Could not open quick log: '+e.message);}catch(_e){}" +
+                    "}" +
+                    "})();";
+
             web.evaluateJavascript(jsCode, null);
-            i.removeExtra("quick_add"); setIntent(i);
+            i.removeExtra("quick_add");
+            setIntent(i);
         }, Math.max(0, delayMs));
     }
 
