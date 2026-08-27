@@ -5520,4 +5520,45 @@ document.addEventListener('DOMContentLoaded',function(){
   <div class="sheetActions"><button class="btn" id="tmCancel">Cancel</button><button class="btn primary" id="tmSave">Add task</button></div>
 </div>
 
+
+<script id="quick-log-ai-voice">
+(function(){
+  function install(){
+    if(window.__quickLogVoiceInstalled)return;
+    window.__quickLogVoiceInstalled=true;
+
+    window.addEventListener('nativeVoiceResult',function(e){
+      var text=e && e.detail ? e.detail.text : '';
+      if(!text)return;
+
+      // Feed the spoken command into the existing AI input so the current
+      // "Add Anything" natural-language flow remains the single parser.
+      var input=[...document.querySelectorAll('input,textarea')].find(function(x){
+        var s=((x.id||'')+' '+(x.name||'')+' '+(x.placeholder||'')).toLowerCase();
+        return s.includes('ai') || s.includes('ask') || s.includes('message') || s.includes('command');
+      });
+      if(input){
+        input.value=text;
+        input.dispatchEvent(new Event('input',{bubbles:true}));
+        input.focus();
+      }
+    });
+
+    // Expose a single callable action for the native/widget integration.
+    window.startQuickLogVoice=function(){
+      if(window.Android && typeof window.Android.startVoiceInput==='function'){
+        window.Android.startVoiceInput();
+        return true;
+      }
+      if(window.NativeBridge && typeof window.NativeBridge.startVoiceInput==='function'){
+        window.NativeBridge.startVoiceInput();
+        return true;
+      }
+      alert('Voice input is not available on this device.');
+      return false;
+    };
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install);else install();
+})();
+</script>
 </body></html>
