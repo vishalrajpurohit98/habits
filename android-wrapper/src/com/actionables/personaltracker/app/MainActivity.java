@@ -361,6 +361,22 @@ public class MainActivity extends Activity {
             } else js("window._speechResult&&window._speechResult("+JSONObject.quote(pendingSpeechId)+",'','cancelled')");
             pendingSpeechId=null;
         }
+    
+        if (req == 7001 && result == RESULT_OK && data != null && web != null) {
+            try {
+                java.util.ArrayList<String> results =
+                        data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                if (results != null && !results.isEmpty()) {
+                    String spoken = results.get(0);
+                    web.evaluateJavascript(
+                            "window.dispatchEvent(new CustomEvent('nativeVoiceResult',{detail:{text:"
+                                    + JSONObject.quote(spoken) + "}}));",
+                            null
+                    );
+                }
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     static byte[] readAll(InputStream in) throws IOException {
@@ -526,17 +542,6 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void startSpeech(String id){MainActivity.this.startSpeech(id);}
     }
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode != 7001 || resultCode != RESULT_OK || data == null || web == null) return;
-        java.util.ArrayList<String> results =
-                data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-        if (results == null || results.isEmpty()) return;
-        String spoken = results.get(0);
-        String js = "window.dispatchEvent(new CustomEvent('nativeVoiceResult',{detail:{text:"
-                + JSONObject.quote(spoken) + "}}));";
-        web.evaluateJavascript(js, null);
-    }
+    
 
 }
