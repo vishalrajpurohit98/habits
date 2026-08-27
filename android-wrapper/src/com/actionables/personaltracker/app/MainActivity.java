@@ -42,6 +42,7 @@ public class MainActivity extends Activity {
     String pendingPhotoDir = "photos";
     Uri pendingCameraUri = null;
     boolean pendingCameraPermission = false;
+    boolean webReady = false;
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
@@ -53,6 +54,7 @@ public class MainActivity extends Activity {
         setContentView(web);
         web.addJavascriptInterface(new Bridge(), "Bridge");
         web.loadUrl("https://"+APP_HOST+"/index.html");
+        handleQuickLogIntent(700);
     }
 
     void configureWindow() {
@@ -78,6 +80,7 @@ public class MainActivity extends Activity {
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
         if (Build.VERSION.SDK_INT >= 26) s.setSafeBrowsingEnabled(true);
         w.setWebViewClient(new WebViewClient() {
+            @Override public void onPageFinished(WebView view, String url) { super.onPageFinished(view, url); webReady = true; handleQuickLogIntent(120); }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 Uri u=request.getUrl();
                 if (APP_HOST.equalsIgnoreCase(u.getHost())) {
@@ -152,7 +155,7 @@ public class MainActivity extends Activity {
 
     ValueCallback<Uri[]> fileChooserCallback;
 
-    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); }
+    @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); handleQuickLogIntent(80); }
 
     @Override public void onResume() {
         super.onResume();
@@ -365,7 +368,7 @@ public class MainActivity extends Activity {
         byte[] x=new byte[8192]; int n; while((n=in.read(x))>0)b.write(x,0,n); in.close(); return b.toByteArray();
     }
 
-    String saveFile(String name, String mime, String b64) throws Exception {
+    void saveFile(String name, String mime, String b64) throws Exception {
         byte[] bytes = Base64.decode(b64, Base64.DEFAULT);
         if (Build.VERSION.SDK_INT >= 29) {
             ContentValues v=new ContentValues();
@@ -375,20 +378,14 @@ public class MainActivity extends Activity {
             v.put(MediaStore.Downloads.IS_PENDING,1);
             Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);
             if(u==null) throw new IOException("MediaStore insert failed");
-            try(OutputStream out=getContentResolver().openOutputStream(u)){
-                if(out==null) throw new IOException("Could not open Downloads output stream");
-                out.write(bytes);
-            }
+            try(OutputStream out=getContentResolver().openOutputStream(u)){out.write(bytes);}
             v.clear(); v.put(MediaStore.Downloads.IS_PENDING,0); getContentResolver().update(u,v,null,null);
             toast("Saved to Downloads/"+name);
-            return "Downloads/"+name;
         } else {
             File dir=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
-            if(!dir.exists() && !dir.mkdirs()) throw new IOException("Could not create Downloads directory");
-            File f=new File(dir,name);
+            if(!dir.exists())dir.mkdirs(); File f=new File(dir,name);
             try(FileOutputStream out=new FileOutputStream(f)){out.write(bytes);}
             toast("Saved to "+f.getAbsolutePath());
-            return f.getAbsolutePath();
         }
     }
 
@@ -424,11 +421,31 @@ public class MainActivity extends Activity {
         }
     }
 
+    void handleQuickLogIntent(long delayMs) {
+        Intent i = getIntent();
+        if (i == null || web == null || !webReady) return;
+        final String type = i.getStringExtra("quick_add");
+        if (type == null || type.length() == 0) return;
+        web.postDelayed(() -> {
+            String jsCode = "(function(){try{" +
+                    "var t=" + JSONObject.quote(type) + ";" +
+                    "if(t==='expense'&&window.openExp){showTab('pgExp');setTimeout(function(){openExp(null);},100);}" +
+                    "else if(t==='task'&&window.TM&&TM.open){showTab('pgTasks');setTimeout(function(){TM.open();},100);}" +
+                    "else if(t==='habit'&&window.openEdit){showTab('pgToday');setTimeout(function(){openEdit(null);},100);}" +
+                    "else if(t==='sleep'&&window.openSleep){showTab('pgMood');setTimeout(function(){openSleep(today());},100);}" +
+                    "else if(t==='mood'){showTab('pgMood');setTimeout(function(){var g=document.getElementById('moGrid');if(g)g.scrollIntoView({behavior:'smooth',block:'center'});},100);}" +
+                    "else if(t==='workout'&&window.openWkModule){showTab('pgWorkout');setTimeout(function(){openWkModule();},100);}" +
+                    "}catch(e){}})();";
+            web.evaluateJavascript(jsCode, null);
+            i.removeExtra("quick_add"); setIntent(i);
+        }, Math.max(0, delayMs));
+    }
+
     void toast(String s){ runOnUiThread(()->Toast.makeText(this,s,Toast.LENGTH_SHORT).show()); }
 
     public class Bridge {
         @JavascriptInterface public String getState(){return prefs.getString("state","");}
-        @JavascriptInterface public void saveState(String s){if(s!=null)prefs.edit().putString("state",s).apply();}
+        @JavascriptInterface public void saveState(String s){if(s!=null){prefs.edit().putString("state",s).apply(); QuickLogWidgetProvider.updateAll(MainActivity.this);}}
         @JavascriptInterface public void setAlarms(String json){NativeAlarms.schedule(MainActivity.this,json);}
         @JavascriptInterface public boolean notifGranted(){return Build.VERSION.SDK_INT<33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED;}
         @JavascriptInterface public boolean canExact(){if(Build.VERSION.SDK_INT<31)return true;return ((AlarmManager)getSystemService(ALARM_SERVICE)).canScheduleExactAlarms();}
@@ -436,13 +453,13 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void reqExact(){requestExact();}
         @JavascriptInterface public void openChannelSettings(){try{Intent i=new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);i.putExtra(Settings.EXTRA_APP_PACKAGE,getPackageName());i.putExtra(Settings.EXTRA_CHANNEL_ID,NativeAlarms.CHANNEL_ID);startActivity(i);}catch(Exception e){}}
         @JavascriptInterface public void setBars(String color, boolean light){try{getWindow().setStatusBarColor(Color.parseColor(color));getWindow().setNavigationBarColor(Color.parseColor(color));if(Build.VERSION.SDK_INT>=23){int f=getWindow().getDecorView().getSystemUiVisibility();if(light)f|=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;else f&=~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;getWindow().getDecorView().setSystemUiVisibility(f);}}catch(Exception ignored){}}
-        @JavascriptInterface public String appVer(){return "1.2";}
+        @JavascriptInterface public String appVer(){return "1.0";}
         @JavascriptInterface public void toast(String s){MainActivity.this.toast(s);}
         @JavascriptInterface public void testReminder(){NativeAlarms.test(MainActivity.this);}
         @JavascriptInterface public String fsCheck(){return "{\"need\":false}";}
         @JavascriptInterface public void fsOpen(){}
         @JavascriptInterface public String autoBackup(String name,String state){try{saveFile(name,"application/json",Base64.encodeToString(state.getBytes(StandardCharsets.UTF_8),Base64.NO_WRAP));return "Downloads/"+name;}catch(Exception e){return "";}}
-        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){if(i.getStringExtra("habit")!=null)o.put("habit",i.getStringExtra("habit")); if(i.getStringExtra("task")!=null)o.put("task",i.getStringExtra("task")); if(i.getStringExtra("tab")!=null)o.put("tab",i.getStringExtra("tab"));}}catch(Exception ignored){}return o.toString();}
+        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){if(i.getStringExtra("habit")!=null)o.put("habit",i.getStringExtra("habit")); if(i.getStringExtra("tab")!=null)o.put("tab",i.getStringExtra("tab")); if(i.getStringExtra("quick_add")!=null)o.put("quick_add",i.getStringExtra("quick_add"));}}catch(Exception ignored){}return o.toString();}
         @JavascriptInterface public boolean bioAvail(){return false;}
         @JavascriptInterface public void bio(){}
         @JavascriptInterface public void pickDate(int y,int m,int d){MainActivity.this.pickDate(y,m,d);}
@@ -451,9 +468,10 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void pickImport(String mode){MainActivity.this.importFile(mode);}
         @JavascriptInterface public void pickPhoto(){MainActivity.this.pickPhoto();}
         @JavascriptInterface public void capturePhoto(){MainActivity.this.capturePhoto();}
+        @JavascriptInterface public void stopSpeech(){MainActivity.this.stopSpeech();}
         @JavascriptInterface public String readPhoto(String name){try{File f=new File(new File(getFilesDir(),pendingPhotoDir),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public void deletePhoto(String name){try{new File(new File(getFilesDir(),pendingPhotoDir),name).delete();}catch(Exception ignored){}}
-        @JavascriptInterface public String saveFile(String name,String mime,String b64)throws Exception{return MainActivity.this.saveFile(name,mime,b64);}
+        @JavascriptInterface public void saveFile(String name,String mime,String b64)throws Exception{MainActivity.this.saveFile(name,mime,b64);}
         @JavascriptInterface public void shareFile(String name,String mime,String b64)throws Exception{MainActivity.this.shareFile(name,mime,b64);}
         @JavascriptInterface public void startSpeech(String id){MainActivity.this.startSpeech(id);}
     }
