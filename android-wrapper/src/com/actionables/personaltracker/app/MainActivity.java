@@ -406,6 +406,14 @@ public class MainActivity extends Activity {
         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); startActivity(Intent.createChooser(i,"Share file"));
     }
 
+    void stopSpeech() {
+        String id = pendingSpeechId;
+        pendingSpeechId = null;
+        if (id != null) {
+            js("window._speechResult&&window._speechResult("+JSONObject.quote(id)+",'',"+JSONObject.quote("cancelled")+")");
+        }
+    }
+
     void startSpeech(String id) {
         pendingSpeechId=id;
         if (Build.VERSION.SDK_INT >= 23 &&
