@@ -20,27 +20,62 @@ public final class WidgetHub {
 
     public static final String WIDGET_PREFS = "widget_prefs";
 
-    /** Every widget provider in the app. */
-    @SuppressWarnings("rawtypes")
-    static final Class[] PROVIDERS = {
-            QuickLogWidget.class, TasksWidget.class, HabitsWidget.class, MoneyWidget.class,
-            WorkoutWidget.class, MoodWidget.class, SleepWidget.class
+    /** One stateless renderer per widget type (perf: reused, no broadcasts needed). */
+    static final BaseWidget[] RENDERERS = {
+            new QuickLogWidget(), new TasksWidget(), new HabitsWidget(), new MoneyWidget(),
+            new WorkoutWidget(), new MoodWidget(), new SleepWidget()
     };
 
-    /** Refresh every instance of every widget. Safe to call from any thread. */
-    public static void refreshAll(Context ctx) {
+    /* perf: refreshes are coalesced on the main thread so a burst of saves
+       (e.g. cloud sync applying records, or several quick edits) produces ONE
+       state parse + ONE render pass instead of 7 broadcasts per save. */
+    private static final android.os.Handler UI = new android.os.Handler(android.os.Looper.getMainLooper());
+    private static final Runnable REFRESH = new Runnable() {
+        @Override public void run() { synchronized (UI) { sPendingAt = 0; } doRefreshNow(sAppCtx); }
+    };
+    private static volatile Context sAppCtx;
+    private static long sPendingAt;
+
+    /** Near-immediate coalesced refresh (direct widget taps, popup saves). */
+    public static void refreshAll(Context ctx) { schedule(ctx, 60); }
+
+    /** Debounced refresh for high-frequency sources (every web-app persist). */
+    public static void refreshAllDebounced(Context ctx) { schedule(ctx, 350); }
+
+    private static void schedule(Context ctx, long delayMs) {
         try {
-            Context app = ctx.getApplicationContext();
-            AppWidgetManager mgr = AppWidgetManager.getInstance(app);
-            if (mgr == null) return;
-            for (Class<?> p : PROVIDERS) {
-                int[] ids = mgr.getAppWidgetIds(new ComponentName(app, p));
-                if (ids == null || ids.length == 0) continue;
-                Intent i = new Intent(app, p).setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-                i.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-                app.sendBroadcast(i);
+            sAppCtx = ctx.getApplicationContext();
+            long at = android.os.SystemClock.uptimeMillis() + delayMs;
+            synchronized (UI) {
+                if (sPendingAt != 0 && sPendingAt <= at) return; // a sooner refresh is already queued
+                UI.removeCallbacks(REFRESH);
+                sPendingAt = at;
+                UI.postAtTime(REFRESH, at);
             }
         } catch (Exception ignored) { /* never break the caller (e.g. the WebView bridge) */ }
+    }
+
+    /** Render every placed widget from a single parsed state snapshot. */
+    static void doRefreshNow(Context app) {
+        if (app == null) return;
+        try {
+            AppWidgetManager mgr = AppWidgetManager.getInstance(app);
+            if (mgr == null) return;
+            WidgetStore st = null;
+            for (BaseWidget r : RENDERERS) {
+                int[] ids;
+                try { ids = mgr.getAppWidgetIds(new ComponentName(app, r.getClass())); }
+                catch (Exception e) { continue; }
+                if (ids == null || ids.length == 0) continue;
+                if (st == null) st = WidgetStore.load(app); // parse once, only if widgets exist
+                for (int id : ids) {
+                    try {
+                        android.widget.RemoteViews rv = r.render(app, st, id, bucket(mgr, id));
+                        if (rv != null) mgr.updateAppWidget(id, rv);
+                    } catch (Exception ignored) { }
+                }
+            }
+        } catch (Exception ignored) { }
     }
 
     /* ==================== size buckets ==================== */

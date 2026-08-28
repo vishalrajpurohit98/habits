@@ -286,9 +286,12 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 #fab svg{width:22px;height:22px}
 .dock{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));
   background:var(--dockBg);border:1px solid var(--line);border-radius:22px;display:flex;z-index:15;
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:var(--shadow);padding:4px}
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--shadow);padding:4px}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 6px;
-  color:var(--mut);font-size:11px;font-weight:600;letter-spacing:.3px;border-radius:16px;transition:all .22s}
+  color:var(--mut);font-size:11px;font-weight:600;letter-spacing:.3px;border-radius:16px;transition:background .2s,color .2s}
+.tab:active{transform:scale(.95)}
+.sbtn:active,.chip:active,.ebtn:active{transform:scale(.96)}
+.primary:active{transform:scale(.985)}
 .tab svg{width:23px;height:23px}
 .navBrand{display:none}
 .tab.on{color:var(--amberDeep);background:var(--amberSoft)}
@@ -976,7 +979,7 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 .qchip span{font-size:9px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
 .glass{background:linear-gradient(150deg,var(--sYellowSoft),rgba(255,212,59,.03));
   border:1px solid var(--sYellow);border-radius:16px;padding:16px;margin-bottom:16px;
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);box-shadow:var(--shadow)}
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:var(--shadow)}
 .badges{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:12px}
 .badge{aspect-ratio:1;border-radius:50%;display:flex;align-items:center;justify-content:center;
   font-family:var(--fDisp);font-size:11px;font-weight:700;
@@ -2055,9 +2058,22 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
 <!-- Natural language expense bar (in Money tab, injected by JS) -->
 
-<script src="xlsx.min.js"></script>
+<!-- perf: xlsx.min.js (860KB) is lazy-loaded on first export via ensureXlsx() instead of blocking startup -->
 <script>
 'use strict';
+
+/* perf: load the Excel library only when an export actually needs it */
+function ensureXlsx(cb){
+  if(window.XLSX){ cb(); return; }
+  if(ensureXlsx._p){ ensureXlsx._p.then(cb,function(){}); return; }
+  if(typeof toastN==='function') toastN('Preparing Excel\u2026');
+  ensureXlsx._p=new Promise(function(res,rej){
+    var sc=document.createElement('script'); sc.src='xlsx.min.js'; sc.async=true;
+    sc.onload=function(){res();}; sc.onerror=function(){ensureXlsx._p=null;rej(new Error('xlsx-load-failed'));};
+    document.head.appendChild(sc);
+  });
+  ensureXlsx._p.then(cb,function(){ if(typeof toastN==='function') toastN('Excel module failed to load'); });
+}
 
 /* ================= constants ================= */
 var KEY = 'habits_v2';
@@ -2381,10 +2397,18 @@ function stateForStorage(){
   if(out&&out.tx instanceof Array)out.tx.forEach(function(x){if(x)x.receiptData='';});
   return out;
 }
+/* perf: one serialization pass per save (was: deep-clone + 2x stringify).
+   The replacer blanks tx receipt payloads exactly like stateForStorage(). */
+function stateJson(){
+  try{ return JSON.stringify(state, function(k,v){ return k==='receiptData' ? '' : v; }); }
+  catch(e){ try{ return JSON.stringify(stateForStorage()); }catch(e2){ return null; } }
+}
 function persist(){
-  state.mtime=Date.now(); var stored=stateForStorage();
-  try{localStorage.setItem(KEY,JSON.stringify(stored));}catch(e){}
-  if(nat){try{nat.saveState(JSON.stringify(stored));}catch(e){}}
+  state.mtime=Date.now(); var json=stateJson();
+  if(json){
+    try{localStorage.setItem(KEY,json);}catch(e){}
+    if(nat){try{nat.saveState(json);}catch(e){}}
+  }
   pushAlarms(); if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}} if(typeof scheduleSyncPush==='function')scheduleSyncPush();
 }
 function hasMeaningfulData(s){
@@ -5197,7 +5221,7 @@ function exportExLogCsv(ex){
   webSave(name,'text/csv',b64); toastN('Downloading CSV\u2026');
 }
 function exportExLogXlsx(ex){
-  if(typeof XLSX==='undefined'){ toastN('Excel unavailable'); return; }
+  if(typeof XLSX==='undefined'){ ensureXlsx(function(){ exportExLogXlsx(ex); }); return; }
   var wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(exLogRows(ex)), 'Log');
   var mt=MTYPES[ex.mtype]||MTYPES.reps;
@@ -5388,7 +5412,7 @@ function setExVal(exId, sets, forDate){
 
 /* ================= expense tracker ================= */
 var expY = new Date().getFullYear(), expM = new Date().getMonth();
-var expView = 'tx', expQ = '', expFilter = 'all';
+var expView = 'tx', expQ = '', expFilter = 'all', expShowN = 60; /* perf: incremental tx list window */
 var ACCT_ICON = {bank:'\uD83C\uDFE6', cash:'\uD83D\uDCB5', credit:'\uD83D\uDCB3', debit:'\uD83D\uDCB3', upi:'\uD83D\uDCF1', wallet:'\uD83D\uDC5B', other:'\uD83D\uDCB0'};
 var CAT_ICON = {'Food':'\uD83C\uDF74','Transport':'\uD83D\uDE97','Shopping':'\uD83D\uDECD\uFE0F','Bills & Utilities':'\uD83D\uDCA1','Entertainment':'\uD83C\uDFAC','Health':'\uD83D\uDC8A','Other':'\uD83D\uDCCC','Income':'\uD83D\uDCB0'};
 
@@ -5449,6 +5473,9 @@ function renderExpTx(){
   if(expQ){ var q=expQ.toLowerCase(); list = list.filter(function(x){
     return (x.payee+' '+x.note+' '+x.cat+' '+x.sub+' '+x.tags).toLowerCase().indexOf(q)>=0; }); }
   list.sort(function(a,b){ if(a.d!==b.d) return a.d<b.d?1:-1; return (b.created||0)-(a.created||0); });
+  /* perf: render the transaction history incrementally instead of all rows at once */
+  var expTotalRows=list.length, expCapped=expTotalRows>expShowN+20;
+  if(expCapped) list=list.slice(0,expShowN);
   var box=$('expTx'); box.style.display='';
   if(!state.tx.length){ $('expEmpty').hidden=false; box.innerHTML=''; return; }
   if(!list.length){ box.innerHTML='<div class="setS" style="text-align:center;padding:26px 0">No transactions match.</div>'; return; }
@@ -5469,6 +5496,7 @@ function renderExpTx(){
       + '<div class="txAmt '+cls+'">'+sign+inr(x.amt)+'</div></div>';
   }
   box.innerHTML=html;
+  if(expCapped) box.insertAdjacentHTML('beforeend','<button class="sbtn" id="expShowMore" style="width:100%;margin-top:10px">Show more ('+(expTotalRows-list.length)+' older)</button>');
   box.insertAdjacentHTML('beforeend','<div style="display:flex;gap:8px;margin:12px 0 4px"><button class="sbtn" id="expRangeExport">Export date range</button></div>');
 }
 function smartExpensePredictions(daysAhead){ return []; }
@@ -5591,7 +5619,7 @@ function exportExpCsv(){
   webSave(name,'text/csv',b64); toastN('Downloading CSV\u2026');
 }
 function exportExpXlsx(){
-  if(typeof XLSX==='undefined'){ toastN('Excel unavailable'); return; }
+  if(typeof XLSX==='undefined'){ ensureXlsx(function(){ exportExpXlsx(); }); return; }
   var wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expRows()), 'Transactions');
   var mt=monthTotals(expY,expM), ct=catTotals(expY,expM);
@@ -5647,7 +5675,7 @@ function expRowsRange(from,to){
   for(var i=0;i<list.length;i++){var x=list[i],af=acctById(x.acct),at=acctById(x.to);rows.push([x.id,x.d,x.kind,x.payee||'',af?af.name:'',at?at.name:'',x.cat||'',x.sub||'',x.amt,x.method||'',x.note||'',x.tags||'',x.receipt||(x.receiptData?'Uploaded image':''),x.recurId||'',x.created?new Date(x.created).toISOString():'']);}return rows;
 }
 function openExpRangeExport(){var end=today(),start=fmt(addDays(toDate(end),-30));$('expExportFrom').value=start;$('expExportTo').value=end;openSheet('expExportSheet');}
-function exportExpRangeXlsx(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}if(typeof XLSX==='undefined'){toastN('Excel unavailable');return;}var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(expRowsRange(from,to)),'Expenses');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='expenses-'+from+'-to-'+to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);closeSheet();toastN('Saved Excel');return;}catch(e){}}if(webSave(name,XMIME,out)){closeSheet();toastN('Downloading Excel…');}else toastN('Export failed');}
+function exportExpRangeXlsx(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}if(typeof XLSX==='undefined'){ensureXlsx(function(){exportExpRangeXlsx();});return;}var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(expRowsRange(from,to)),'Expenses');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='expenses-'+from+'-to-'+to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);closeSheet();toastN('Saved Excel');return;}catch(e){}}if(webSave(name,XMIME,out)){closeSheet();toastN('Downloading Excel…');}else toastN('Export failed');}
 function exportExpRangePdf(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}var rows=expRowsRange(from,to),title='Expense Data — '+niceDate(from)+' to '+niceDate(to),th='',body='';for(var i=0;i<rows[0].length;i++)th+='<th>'+esc(rows[0][i])+'</th>';for(var r=1;r<rows.length;r++){body+='<tr>';for(var c=0;c<rows[r].length;c++)body+='<td>'+esc(rows[r][c])+'</td>';body+='</tr>';}var doc='<html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;padding:10px;color:#111;font-size:8px}h1{font-size:16px}table{width:100%;border-collapse:collapse;table-layout:auto}th,td{padding:4px 5px;border:1px solid #ddd;vertical-align:top;white-space:nowrap}th{background:#f3f3f3;font-weight:700}</style></head><body><h1>'+esc(title)+'</h1><table><thead><tr>'+th+'</tr></thead><tbody>'+body+'</tbody></table></body></html>';var w=window.open('','_blank');if(w){w.document.write(doc);w.document.close();setTimeout(function(){w.print();},400);}else toastN('Allow pop-ups to export PDF');}
 function openRecurList(){ fToast('Recurring transactions have been removed from this build'); }
 function recurringStateInit(r){if(!r)return;r.status=r.active===false?'paused':(r.status||'active');if(!r.nextDate){var base=r.last||addDays(toDate(r.start||today()),-1),n=recurringNextDate(r,base),guard=0;while(fmt(n)<today()&&guard++<500)n=recurringNextDate(r,n);r.nextDate=fmt(n);}if(r.end&&(r.nextDate||r.start)>r.end)r.status='ended';if(r.skipNext===undefined)r.skipNext=false;}
@@ -6079,7 +6107,7 @@ function queueChangedSyncRecords(){var cur=syncRecordEntries(),now=Date.now(),me
 function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){arrSet(state.sleep,value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
 function pushLegacySync(force){if(!fbDoc||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}setSyncState('syncing');var payload={data:JSON.stringify(stateForStorage()),version:Number(state.mtime||Date.now()),schemaVersion:2,updatedAtMs:Date.now(),syncMode:'compatibility'};return fbDoc.set(payload,{merge:true}).then(function(){syncLastAt=Date.now();setSyncState('synced');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
 function pushRecordSync(force){if(syncLegacyMode)return pushLegacySync(force);if(!fbRecords||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}queueChangedSyncRecords();var keys=Object.keys(syncPendingRecords);if(!keys.length){setSyncState('synced');return Promise.resolve();}setSyncState('syncing');var jobs=[];for(var b=0;b<keys.length;b+=400){(function(keys2){var batch=fbFS.batch();keys2.forEach(function(k){var m=syncPendingRecords[k],ref=fbRecords.doc(k.replace(/[^A-Za-z0-9_-]/g,'_')),pl={key:k,deleted:!!m.deleted,updatedAtMs:m.at,deviceId:deviceId,schemaVersion:2};if(!m.deleted)pl.data=m.data;batch.set(ref,pl,{merge:true});});jobs.push(batch.commit());})(keys.slice(b,b+400));}return Promise.all(jobs).then(function(){keys.forEach(function(k){delete syncPendingRecords[k];});try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}syncLastAt=Date.now();setSyncState('synced');syncMsg('',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
-function applyRemoteRecords(docs){var changed=false;docs.forEach(function(doc){var v=doc.data()||{},key=v.key||doc.id,at=Number(v.updatedAtMs||0),local=syncRecordShadow[key],pending=syncPendingRecords[key],lat=Math.max(local&&local.at||0,pending&&pending.at||0);if(at<=lat)return;applySyncRecord(key,v.data,v.deleted);delete syncPendingRecords[key];syncRecordShadow[key]={hash:v.deleted?'__deleted__':syncHash(v.data),at:at,deleted:!!v.deleted};changed=true;});try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}if(changed){state=normState(state);var stored=stateForStorage();try{localStorage.setItem(KEY,JSON.stringify(stored));}catch(e){}if(nat){try{nat.saveState(JSON.stringify(stored));}catch(e){}}applyTheme();applyGrey();reRenderCurrent();}return changed;}
+function applyRemoteRecords(docs){var changed=false;docs.forEach(function(doc){var v=doc.data()||{},key=v.key||doc.id,at=Number(v.updatedAtMs||0),local=syncRecordShadow[key],pending=syncPendingRecords[key],lat=Math.max(local&&local.at||0,pending&&pending.at||0);if(at<=lat)return;applySyncRecord(key,v.data,v.deleted);delete syncPendingRecords[key];syncRecordShadow[key]={hash:v.deleted?'__deleted__':syncHash(v.data),at:at,deleted:!!v.deleted};changed=true;});try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}if(changed){state=normState(state);var json=stateJson();if(json){try{localStorage.setItem(KEY,json);}catch(e){}if(nat){try{nat.saveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}return changed;}
 function enableLegacySync(reason){syncLegacyMode=true;if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;setSyncState('syncing');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);syncReconcile().catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);});}
 function attachFirestoreSync(u){
   detachFirestoreSync();
@@ -6431,7 +6459,7 @@ function climb(el, root, attr){
 
 
 /* ================= TASK MANAGEMENT ================= */
-var taskSearchQ='',taskFilter='all',taskExportMode='today',taskEd=null;
+var taskSearchQ='',taskFilter='all',taskExportMode='today',taskEd=null,taskShowAllDone=false; /* perf: completed list capped until expanded */
 function taskCommentTime(ts){try{return new Date(ts).toLocaleString(undefined,{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return '';}}
 function renderTaskComments(){
   var wrap=$('taskComments'),list=$('taskCommentList'),count=$('taskCommentCount');
@@ -6490,7 +6518,7 @@ function toggleTaskComplete(id){var t=state.tasks.find(function(x){return x.id==
 function toggleHabitTask(id){var p=String(id).split(':');if(p.length<3)return;var h=findHabit(p[1]),ds=p[2];if(!h)return;if(isDone(h,ds))setVal(h.id,ds,0);else if(dueOn(h,toDate(ds)))setVal(h.id,ds,targ(h));renderTasks();}
 function taskFilterMatch(t){var st=taskEffectiveStatus(t);if(taskFilter==='overdue')return st==='overdue';if(taskFilter==='today')return t.dueDate===today()&&st!=='completed';if(taskFilter==='upcoming')return !!t.dueDate&&t.dueDate>today()&&st!=='completed';if(taskFilter==='completed')return st==='completed';return true;}
 function renderTaskCard(t){var st=taskEffectiveStatus(t),sp=taskSubProgress(t),over=st==='overdue',virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';return '<div class="taskCard '+(over?'overdue':'')+'" data-task-id="'+esc(t.id)+'"><div class="taskTop"><button class="taskCheck '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><div class="taskBody"><div class="taskTitle '+(check?'done':'')+'">'+(t.priority==='high'?'🔴 ':'')+esc(t.title)+'</div>'+(t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+'<div class="taskMeta"><span class="taskPri '+t.priority+'">'+t.priority.toUpperCase()+'</span><span class="taskStatus">'+(st==='inprogress'?'In Progress':st.charAt(0).toUpperCase()+st.slice(1))+'</span><span>'+esc(taskDateLabel(t))+'</span>'+(t.recurrence&&t.recurrence.freq!=='none'?'<span class="taskSeries">↻ '+t.recurrence.freq+'</span>':'')+(virtual?'<span class="taskSeries">Habit</span>':'')+'</div>'+(sp.total?'<div class="taskSubProgress">'+sp.done+' / '+sp.total+' subtasks<div class="taskSubBar"><i style="width:'+Math.round(sp.done/sp.total*100)+'%"></i></div></div>':'')+((t.comments&&t.comments.length)?'<div class="taskMeta"><span>💬 '+t.comments.length+' comment'+(t.comments.length===1?'':'s')+'</span></div>':'')+'</div></div></div>';}
-function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;sections.push('<div class="taskSectionTitle">'+pair[1]+'</div>'+a.map(renderTaskCard).join(''));});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStat over"><b>'+over+'</b><span>Overdue</span></div><div class="taskStat today"><b>'+tn+'</b><span>Today</span></div><div class="taskStat up"><b>'+up+'</b><span>Upcoming</span></div><div class="taskStat done"><b>'+done+'</b><span>Completed</span></div>';}
+function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle">'+pair[1]+'</div>'+a.map(renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStat over"><b>'+over+'</b><span>Overdue</span></div><div class="taskStat today"><b>'+tn+'</b><span>Today</span></div><div class="taskStat up"><b>'+up+'</b><span>Upcoming</span></div><div class="taskStat done"><b>'+done+'</b><span>Completed</span></div>';}
 function exportTaskRows(from,to){var rows=[['Task','Description','Due date','Due time','Priority','Status','Subtasks','Comments']];state.tasks.filter(function(t){return t.dueDate&&t.dueDate>=from&&t.dueDate<=to;}).sort(function(a,b){return taskDueMs(a)-taskDueMs(b);}).forEach(function(t){var sp=taskSubProgress(t);rows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),sp.done+'/'+sp.total]);});return rows;}
 function taskExportBounds(){if(taskExportMode==='custom')return{from:$('taskExportFrom').value,to:$('taskExportTo').value};return taskRangeBounds(taskExportMode);}
 function taskPdfSafe(v){return String(v==null?'':v).replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
@@ -6499,7 +6527,7 @@ function exportTasks(kind){
   var b=taskExportBounds();if(!b.from||!b.to||b.from>b.to){toastN('Select a valid date range');return;}
   var tasks=state.tasks.filter(function(t){return t.dueDate&&t.dueDate>=b.from&&t.dueDate<=b.to;}).sort(function(a,b){return taskDueMs(a)-taskDueMs(b);});
   if(kind==='xlsx'){
-    if(typeof XLSX==='undefined'){toastN('Excel unavailable');return;}
+    if(typeof XLSX==='undefined'){ensureXlsx(function(){exportTasks('xlsx');});return;}
     var rows=[['Task','Description','Due date','Due time','Priority','Status','Subtasks','Comments']];
     tasks.forEach(function(t){var sp=taskSubProgress(t);rows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),sp.done+'/'+sp.total,(t.comments||[]).map(function(c){return c.text;}).join(' || ')]);});
     var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Tasks');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='tasks-'+b.from+'-to-'+b.to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);toastN('Tasks Excel saved');return;}catch(e){}}if(webSave(name,XMIME,out))toastN('Downloading Excel…');else toastN('Export failed');return;
@@ -6558,9 +6586,9 @@ function init(){
 
   $('taskAddTop').addEventListener('click',function(){openTask(null);});
   $('taskEmptyCta').addEventListener('click',function(){openTask(null);});
-  $('taskSearch').addEventListener('input',function(){taskSearchQ=this.value;renderTasks();});
+  var taskSrchT=null;$('taskSearch').addEventListener('input',function(){taskSearchQ=this.value;if(taskSrchT)clearTimeout(taskSrchT);taskSrchT=setTimeout(function(){taskSrchT=null;renderTasks();},180);});
   $('taskFilters').addEventListener('click',function(e){var b=climb(e.target,this,'data-tf');if(!b)return;taskFilter=b.getAttribute('data-tf');selChip('taskFilters','data-tf',taskFilter);renderTasks();});
-  $('taskList').addEventListener('click',function(e){var cb=climb(e.target,this,'data-task-check');if(cb){toggleTaskComplete(cb.getAttribute('data-task-check'));return;}var hb=climb(e.target,this,'data-habit-task');if(hb){toggleHabitTask(hb.getAttribute('data-habit-task'));return;}var b=climb(e.target,this,'data-task-id');if(b)openTask(b.getAttribute('data-task-id'));});
+  $('taskList').addEventListener('click',function(e){var sd=climb(e.target,this,'data-task-showdone');if(sd){taskShowAllDone=true;renderTasks();return;}var cb=climb(e.target,this,'data-task-check');if(cb){toggleTaskComplete(cb.getAttribute('data-task-check'));return;}var hb=climb(e.target,this,'data-habit-task');if(hb){toggleHabitTask(hb.getAttribute('data-habit-task'));return;}var b=climb(e.target,this,'data-task-id');if(b)openTask(b.getAttribute('data-task-id'));});
   $('taskExportRange').addEventListener('click',function(e){var b=climb(e.target,this,'data-ter');if(!b)return;taskExportMode=b.getAttribute('data-ter');selChip('taskExportRange','data-ter',taskExportMode);$('taskExportCustom').style.display=taskExportMode==='custom'?'':'none';});
   $('taskExportXlsx').addEventListener('click',function(){exportTasks('xlsx');});
   $('taskExportPdf').addEventListener('click',function(){exportTasks('pdf');});
@@ -6601,9 +6629,11 @@ function init(){
       renderToday();
     }
   });
+  var srchT=null;
   $('srch').addEventListener('input', function(){
     srchQ = this.value.toLowerCase().replace(/^\s+/,'');
-    renderToday();
+    if(srchT)clearTimeout(srchT);
+    srchT=setTimeout(function(){srchT=null;renderToday();},180);
   });
   $('catFil').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-cf'); if(!b) return;
@@ -6780,6 +6810,7 @@ function init(){
   $('btnPin').addEventListener('click', function(){ showLock(state.set.pin ? 'ver' : 'new1'); });
   $('btnPinOff').addEventListener('click', function(){ showLock('off'); });
   $('btnXlsx').addEventListener('click', function(){
+    if(typeof XLSX==='undefined'){ ensureXlsx(function(){ $('btnXlsx').click(); }); return; }
     if(!nat){
       toastN(webSave('habits-' + today() + '.xlsx', XMIME, buildXlsx()) ? 'Downloading\u2026' : 'Export failed');
       return;
@@ -6789,6 +6820,7 @@ function init(){
   });
   $('btnXlsxShare').addEventListener('click', function(){
     if(!nat) return;
+    if(typeof XLSX==='undefined'){ ensureXlsx(function(){ $('btnXlsxShare').click(); }); return; }
     try{ nat.shareFile('habits-' + today() + '.xlsx', XMIME, buildXlsx()); }catch(e){ toastN('Export failed'); }
   });
 
@@ -7426,12 +7458,12 @@ function init(){
   $('expNext').addEventListener('click', function(){ expM++; if(expM>11){expM=0;expY++;} renderExp(); });
   $('expSrchBtn').addEventListener('click', function(){
     var w=$('expSrchWrap'), on=!w.classList.contains('on'); w.classList.toggle('on',on); this.classList.toggle('on',on);
-    if(on) setTimeout(function(){$('expSrch').focus();},80); else { expQ=''; expFilter='all'; $('expSrch').value=''; syncFilterChips(); renderExp(); }
+    if(on) setTimeout(function(){$('expSrch').focus();},80); else { expQ=''; expFilter='all'; expShowN=60; $('expSrch').value=''; syncFilterChips(); renderExp(); }
   });
-  $('expSrch').addEventListener('input', function(){ expQ=this.value; renderExp(); });
+  var expSrchT=null;$('expSrch').addEventListener('input', function(){ expQ=this.value; expShowN=60; if(expSrchT)clearTimeout(expSrchT); expSrchT=setTimeout(function(){expSrchT=null;renderExp();},180); });
   function syncFilterChips(){ var bs=$('expFilterRow').children; for(var i=0;i<bs.length;i++) bs[i].classList.toggle('sel', bs[i].getAttribute('data-xf')===expFilter); }
-  $('expFilterRow').addEventListener('click', function(e){ var b=climb(e.target,this,'data-xf'); if(!b) return; expFilter=b.getAttribute('data-xf'); syncFilterChips(); renderExp(); });
-  $('expTx').addEventListener('click', function(e){ var b=climb(e.target,this,'data-tx'); if(b) openExp(b.getAttribute('data-tx')); if(e.target&&e.target.id==='expRangeExport') openExpRangeExport(); });
+  $('expFilterRow').addEventListener('click', function(e){ var b=climb(e.target,this,'data-xf'); if(!b) return; expFilter=b.getAttribute('data-xf'); expShowN=60; syncFilterChips(); renderExp(); });
+  $('expTx').addEventListener('click', function(e){ if(e.target&&e.target.id==='expShowMore'){ expShowN+=150; renderExpTx(); return; } var b=climb(e.target,this,'data-tx'); if(b) openExp(b.getAttribute('data-tx')); if(e.target&&e.target.id==='expRangeExport') openExpRangeExport(); });
   $('expAcct').addEventListener('click', function(e){
     if(e.target && e.target.id==='acctAdd'){ openAcct(null); return; }
     if(e.target && e.target.id==='xferBtn'){ openXfer(); return; }
@@ -7544,8 +7576,9 @@ function init(){
   autoBackupDaily();
   // Do not persist an empty startup state before Firebase has had a chance to hydrate a fresh install.
   // This prevents a blank WebView from being treated as newer local data and overwriting cloud data.
-  if(hasMeaningfulData(state)) { try{ localStorage.setItem(KEY, JSON.stringify(stateForStorage())); }catch(e){} }
-  if(typeof initSync==='function') initSync();
+  if(hasMeaningfulData(state)) { var _bj=stateJson(); if(_bj){ try{ localStorage.setItem(KEY, _bj); }catch(e){} } }
+  /* perf: let the first frame paint before the Firebase SDKs load and parse */
+  if(typeof initSync==='function') setTimeout(initSync, 400);
   if(state.set.pin) showLock('unlock');
 }
 init();

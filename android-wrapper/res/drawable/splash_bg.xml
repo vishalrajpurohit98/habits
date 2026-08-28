@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lightweight launch background (perf: perceived startup). Pure black matches
+     the app's first paint, with the icon centered while the WebView initializes. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@android:color/black"/>
+    <item
+        android:drawable="@drawable/app_icon"
+        android:gravity="center"
+        android:width="96dp"
+        android:height="96dp"/>
+</layer-list>
