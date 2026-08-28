@@ -961,24 +961,6 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 .subChip{display:inline-flex;align-items:center;gap:5px;background:var(--card2);border-radius:14px;padding:5px 10px;font-size:11.5px;font-weight:700;margin:3px 4px 0 0}
 .subChip .x{color:var(--coral);cursor:pointer}
 
-
-/* ============ HOME QUICK ADD ============ */
-.quickAddMic{width:40px;height:40px;border-radius:13px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}.quickAddMic:active{background:var(--card3);transform:scale(.96)}
-.quickAddWidget{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin:0 0 14px;box-shadow:var(--shadow)}
-.quickAddHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
-.quickAddTitle{font-family:var(--fDisp);font-size:15px;font-weight:700;letter-spacing:-.1px}
-.quickAddSub{font-size:10.5px;color:var(--mut);margin-top:3px}
-.quickAddIcon{width:30px;height:30px;border-radius:10px;background:var(--amberSoft);color:var(--amberDeep);display:flex;align-items:center;justify-content:center;font-size:19px;font-weight:700;flex-shrink:0}
-html:not(.light) .quickAddIcon{color:var(--amber)}
-.quickAddGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.quickAddCard{min-height:76px;background:var(--card2);border:1.5px solid var(--line2);border-radius:15px;padding:11px 12px;text-align:left;display:grid;grid-template-columns:30px 1fr auto;grid-template-rows:1fr 1fr;align-items:center;column-gap:8px;transition:transform .14s,border-color .14s,background .14s}
-.quickAddCard:active{transform:scale(.97);border-color:var(--amber);background:var(--amberSoft)}
-.quickAddEmoji{grid-row:1 / span 2;width:30px;height:30px;border-radius:10px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:800;color:var(--amberDeep)}
-html:not(.light) .quickAddEmoji{color:var(--amber)}
-.quickAddName{font-size:12.5px;font-weight:800;align-self:end}
-.quickAddHint{font-size:9.5px;font-weight:700;color:var(--mut);align-self:start;margin-top:2px}
-@media(max-width:360px){.quickAddWidget{padding:13px}.quickAddCard{padding:10px 9px;column-gap:6px}}
-
 /* ============ MOTION & PREMIUM SURFACES ============ */
 @keyframes ringIn{from{opacity:0;transform:rotate(-16deg) scale(.92)}to{opacity:1;transform:none}}
 .ringSvg{animation:ringIn .5s cubic-bezier(.34,1.4,.64,1)}
@@ -1216,29 +1198,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="hero" id="hero"></div>
     </div>
 <div class="taskDash" id="taskDashSummary"></div>
-<div class="quickAddWidget" id="quickAddWidget">
-  <div class="quickAddHead">
-    <div>
-      <div class="quickAddTitle">Quick Add</div>
-      <div class="quickAddSub">Capture something without leaving Today</div>
-    </div>
-    <button class="quickAddMic" id="quickAddMic" type="button" title="Speak to AI" aria-label="Speak to AI">🎙</button>
-  </div>
-  <div class="quickAddGrid">
-    <button class="quickAddCard" type="button" data-quick-add="task">
-      <span class="quickAddEmoji">✓</span><span class="quickAddName">Task</span><span class="quickAddHint">+ Add</span>
-    </button>
-    <button class="quickAddCard" type="button" data-quick-add="habit">
-      <span class="quickAddEmoji">↻</span><span class="quickAddName">Habit</span><span class="quickAddHint">+ Add</span>
-    </button>
-    <button class="quickAddCard" type="button" data-quick-add="expense">
-      <span class="quickAddEmoji">₹</span><span class="quickAddName">Expense</span><span class="quickAddHint">+ Add</span>
-    </button>
-    <button class="quickAddCard" type="button" data-quick-add="mood">
-      <span class="quickAddEmoji">☺</span><span class="quickAddName">Mood</span><span class="quickAddHint">Check-in</span>
-    </button>
-  </div>
-</div>
     <div class="restCard" id="restBox" style="display:none"></div>
     <div class="wkRow" id="wkdots"></div>
     <div class="wkCard" id="wkCard" style="display:none"></div>
@@ -2408,10 +2367,24 @@ function normState(s){
 }
 function load(){
   try{
+    var localObj = null, nativeObj = null;
     var r = localStorage.getItem(KEY);
-    if(r) return normState(JSON.parse(r));
+    if(r) localObj = normState(JSON.parse(r));
     var o = localStorage.getItem(OLDKEY);
-    if(o){ var v1 = JSON.parse(o); return normState({habits:(v1.habits||[])}); }
+    if(!localObj && o){ var v1 = JSON.parse(o); localObj = normState({habits:(v1.habits||[])}); }
+    // Native widgets write to the same state store. Prefer the newer native
+    // snapshot so widget-only logging is reflected when the app is opened.
+    if(nat && nat.getState){
+      try{
+        var nr = nat.getState();
+        if(nr) nativeObj = normState(JSON.parse(nr));
+      }catch(_){}
+    }
+    if(nativeObj && (!localObj || (+nativeObj.mtime||0) >= (+localObj.mtime||0))) {
+      try{ localStorage.setItem(KEY, JSON.stringify(nativeObj)); }catch(_){}
+      return nativeObj;
+    }
+    if(localObj) return localObj;
   }catch(e){}
   return normState({});
 }
@@ -6597,22 +6570,6 @@ function init(){
   });
   $('scrim').addEventListener('click', function(){ closeSheet(); });
 
-  $('quickAddWidget').addEventListener('click',function(e){
-    var b=climb(e.target,this,'data-quick-add');
-    if(b) handleAddAction(b.getAttribute('data-quick-add'));
-  });
-  $('quickAddMic').addEventListener('click',function(e){
-    e.preventDefault(); e.stopPropagation();
-    startVoice($('uaiInput'),function(text){
-      var v=String(text||'').trim();
-      if(!v)return;
-      showTab('pgAI');
-      $('uaiInput').value=v;
-      toastN('🎙 Transcribed — AI is processing…');
-      uaiSend(v);
-    });
-  });
-
   $('taskAddTop').addEventListener('click',function(){openTask(null);});
   $('taskEmptyCta').addEventListener('click',function(){openTask(null);});
   $('taskSearch').addEventListener('input',function(){taskSearchQ=this.value;renderTasks();});
@@ -7285,10 +7242,7 @@ function init(){
   $('uaiSend').addEventListener('click', doUaiSend);
   $('uaiMic').addEventListener('click', function(){
     startVoice($('uaiInput'), function(text){
-      var v=String(text||'').trim();
-      if(!v)return;
-      toastN('🎙 Transcribed — AI is processing…');
-      uaiSend(v);
+      toastN('Got: "'+text+'" — tap → to parse');
     });
   });
   $('uaiInput').addEventListener('keydown', function(e){if(e.key==='Enter'){e.preventDefault();doUaiSend();}});

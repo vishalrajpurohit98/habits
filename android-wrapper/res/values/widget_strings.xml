@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_quick_log">Quick Log</string>
+    <string name="widget_tasks">Today's Actionables</string>
+    <string name="widget_habits">Habit Progress</string>
+    <string name="widget_money">Money Snapshot</string>
+    <string name="widget_workout">Workout</string>
+    <string name="widget_mood">Mood</string>
+    <string name="widget_sleep">Sleep</string>
+</resources>
