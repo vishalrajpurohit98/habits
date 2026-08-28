@@ -56,48 +56,55 @@
             android:exported="false"
             android:grantUriPermissions="true"/>
 
+        <!-- ==================== Home-screen widget system ==================== -->
 
+        <!-- Native popup used by every widget action; never opens MainActivity. -->
         <activity
-            android:name=".WidgetActionActivity"
+            android:name=".WidgetDialogActivity"
             android:exported="false"
             android:theme="@style/WidgetPopupTheme"
             android:excludeFromRecents="true"
-            android:noHistory="true"/>
+            android:taskAffinity="com.actionables.personaltracker.app.widgetpopup"
+            android:launchMode="standard"
+            android:configChanges="orientation|screenSize|keyboardHidden|uiMode"
+            android:windowSoftInputMode="adjustResize"/>
 
-        <receiver android:name=".QuickLogWidgetProvider" android:exported="false">
+        <!-- Direct widget taps (task/habit toggle, one-tap mood) + date rollover refresh. -->
+        <receiver android:name=".WidgetActionReceiver" android:exported="false">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
                 <action android:name="android.intent.action.DATE_CHANGED"/>
-                <action android:name="android.intent.action.TIME_CHANGED"/>
+                <action android:name="android.intent.action.TIME_SET"/>
                 <action android:name="android.intent.action.TIMEZONE_CHANGED"/>
-                <action android:name="com.actionables.personaltracker.app.REFRESH_WIDGETS"/>
             </intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_quick_log_info"/>
         </receiver>
-        <receiver android:name=".TaskWidgetProvider" android:exported="false">
+
+        <receiver android:name=".QuickLogWidget" android:exported="true" android:label="@string/wg_quicklog_label">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_quicklog_info"/>
+        </receiver>
+        <receiver android:name=".TasksWidget" android:exported="true" android:label="@string/wg_tasks_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_tasks_info"/>
         </receiver>
-        <receiver android:name=".HabitWidgetProvider" android:exported="false">
+        <receiver android:name=".HabitsWidget" android:exported="true" android:label="@string/wg_habits_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_habits_info"/>
         </receiver>
-        <receiver android:name=".MoneyWidgetProvider" android:exported="false">
+        <receiver android:name=".MoneyWidget" android:exported="true" android:label="@string/wg_money_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_money_info"/>
         </receiver>
-        <receiver android:name=".WorkoutWidgetProvider" android:exported="false">
+        <receiver android:name=".WorkoutWidget" android:exported="true" android:label="@string/wg_workout_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_workout_info"/>
         </receiver>
-        <receiver android:name=".MoodWidgetProvider" android:exported="false">
+        <receiver android:name=".MoodWidget" android:exported="true" android:label="@string/wg_mood_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_mood_info"/>
         </receiver>
-        <receiver android:name=".SleepWidgetProvider" android:exported="false">
+        <receiver android:name=".SleepWidget" android:exported="true" android:label="@string/wg_sleep_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_sleep_info"/>
         </receiver>
-
     </application>
 </manifest>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Resources for the native home-screen widget system. Kept in a separate
+     file so the pre-existing values files stay untouched. -->
+<resources>
+
+    <!-- ===== Widget palette (mirrors the app's dark "ember" theme) ===== -->
+    <color name="wg_card">#F20E0C08</color>
+    <color name="wg_card_inner">#FF1A160D</color>
+    <color name="wg_ink">#FFFFFFFF</color>
+    <color name="wg_dim">#FF9AA0AC</color>
+    <color name="wg_acc">#FFFFAE1F</color>
+    <color name="wg_acc_ink">#FF221A05</color>
+    <color name="wg_red">#FFFF6B5E</color>
+    <color name="wg_green">#FF7ED957</color>
+    <color name="wg_line">#1FFFFFFF</color>
+
+    <!-- ===== Widget strings ===== -->
+    <string name="wg_quicklog_label">Quick Log</string>
+    <string name="wg_quicklog_desc">Log anything — tasks, habits, money, mood, sleep, workouts — without opening the app.</string>
+    <string name="wg_tasks_label">Today\'s Actionables</string>
+    <string name="wg_tasks_desc">Overdue and today\'s tasks with one-tap complete.</string>
+    <string name="wg_habits_label">Habit Progress</string>
+    <string name="wg_habits_desc">Today\'s habits with one-tap check-in.</string>
+    <string name="wg_money_label">Money Snapshot</string>
+    <string name="wg_money_desc">Account balance and today\'s expenses, with quick add.</string>
+    <string name="wg_workout_label">Workout</string>
+    <string name="wg_workout_desc">Start, log or create workouts from the home screen.</string>
+    <string name="wg_mood_label">Mood</string>
+    <string name="wg_mood_desc">One-tap mood logging.</string>
+    <string name="wg_sleep_label">Sleep</string>
+    <string name="wg_sleep_desc">Last night\'s sleep and quick logging.</string>
+
+    <!-- ===== Native popup theme (dialog-style activity used by widgets) ===== -->
+    <style name="WidgetPopupTheme" parent="@android:style/Theme.Material.Dialog.NoActionBar">
+        <item name="android:windowBackground">@android:color/transparent</item>
+        <item name="android:windowIsTranslucent">true</item>
+        <item name="android:windowNoTitle">true</item>
+        <item name="android:backgroundDimEnabled">true</item>
+        <item name="android:backgroundDimAmount">0.62</item>
+        <item name="android:windowCloseOnTouchOutside">true</item>
+        <item name="android:colorAccent">@color/wg_acc</item>
+        <item name="android:textColorPrimary">@color/wg_ink</item>
+        <item name="android:windowMinWidthMajor">92%</item>
+        <item name="android:windowMinWidthMinor">92%</item>
+    </style>
+
+</resources>

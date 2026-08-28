@@ -428,7 +428,7 @@ public class MainActivity extends Activity {
 
     public class Bridge {
         @JavascriptInterface public String getState(){return prefs.getString("state","");}
-        @JavascriptInterface public void saveState(String s){if(s!=null){prefs.edit().putString("state",s).apply(); sendBroadcast(new Intent("com.actionables.personaltracker.app.REFRESH_WIDGETS"));}}
+        @JavascriptInterface public void saveState(String s){if(s!=null){prefs.edit().putString("state",s).apply();WidgetHub.refreshAll(MainActivity.this);}}
         @JavascriptInterface public void setAlarms(String json){NativeAlarms.schedule(MainActivity.this,json);}
         @JavascriptInterface public boolean notifGranted(){return Build.VERSION.SDK_INT<33 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED;}
         @JavascriptInterface public boolean canExact(){if(Build.VERSION.SDK_INT<31)return true;return ((AlarmManager)getSystemService(ALARM_SERVICE)).canScheduleExactAlarms();}
