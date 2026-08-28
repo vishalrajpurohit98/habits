@@ -8,11 +8,7 @@ import org.json.JSONObject;
 
 import java.util.List;
 
-/**
- * \uD83D\uDCCB Today's Actionables (spec \u00A79): OVERDUE first, then TODAY. Checkbox
- * completes directly; tapping the row opens the native task detail popup;
- * "+" opens the native Add Task popup. The app is never launched for these.
- */
+/** Tasks widget (v2): overdue-first list, one-tap complete, tap a row to edit. */
 public class TasksWidget extends BaseWidget {
 
     static final int[] BOX = {R.id.r1_box, R.id.r2_box, R.id.r3_box, R.id.r4_box, R.id.r5_box, R.id.r6_box};
@@ -22,14 +18,13 @@ public class TasksWidget extends BaseWidget {
 
     @Override protected RemoteViews render(Context ctx, WidgetStore st, int id, int bucket) {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_tasks);
-        v.setOnClickPendingIntent(R.id.mic, WidgetHub.popup(ctx, WidgetDialogActivity.A_AI, id, "scope", "task", "voice", "1"));
         v.setOnClickPendingIntent(R.id.add_btn, WidgetHub.popup(ctx, WidgetDialogActivity.A_ADD_TASK, id));
 
         List<JSONObject> tasks = st.tasksForWidget();
-        int slots = bucket == WidgetHub.LARGE ? 6 : bucket == WidgetHub.MEDIUM ? 3 : 2;
+        int slots = bucket == WidgetHub.LARGE ? 6 : bucket == WidgetHub.MEDIUM ? 4 : 2;
         boolean showMeta = bucket != WidgetHub.SMALL;
-
         int shown = Math.min(slots, tasks.size());
+
         for (int i = 0; i < BOX.length; i++) {
             if (i < shown) {
                 JSONObject t = tasks.get(i);
@@ -38,7 +33,6 @@ public class TasksWidget extends BaseWidget {
                 boolean high = "high".equals(t.optString("priority"));
                 v.setViewVisibility(BOX[i], View.VISIBLE);
                 v.setTextViewText(TIT[i], (high ? "\uD83D\uDD34 " : "") + t.optString("title", "Task"));
-                v.setTextColor(TIT[i], ctx.getColor(R.color.wg_ink));
                 v.setTextViewText(CHK[i], "");
                 v.setInt(CHK[i], "setBackgroundResource", over ? R.drawable.widget_check_red : R.drawable.widget_check_off);
                 String meta = WidgetStore.taskMeta(t);
@@ -47,19 +41,19 @@ public class TasksWidget extends BaseWidget {
                 v.setViewVisibility(MET[i], showMeta && !meta.isEmpty() ? View.VISIBLE : View.GONE);
                 v.setOnClickPendingIntent(CHK[i], WidgetHub.broadcast(ctx, WidgetActionReceiver.TOGGLE_TASK, id, "taskId", tid));
                 v.setOnClickPendingIntent(TIT[i], WidgetHub.popup(ctx, WidgetDialogActivity.A_TASK_DETAIL, id, "taskId", tid));
-            } else {
-                v.setViewVisibility(BOX[i], View.GONE);
-            }
+            } else v.setViewVisibility(BOX[i], View.GONE);
         }
 
         v.setViewVisibility(R.id.empty, tasks.isEmpty() ? View.VISIBLE : View.GONE);
-        int more = tasks.size() - shown;
-        v.setTextViewText(R.id.t_more, more > 0 ? "+" + more + " more \u2197" : "");
-        if (more > 0) // explicit request for the full app experience
-            v.setOnClickPendingIntent(R.id.t_more, WidgetHub.openApp(ctx, "pgTasks"));
-
         int[] c = st.todayTaskCounts();
-        v.setTextViewText(R.id.t_count, c[1] > 0 ? c[0] + " / " + c[1] + " completed" : "");
+        String cnt = c[1] > 0 ? c[0] + "/" + c[1] : "";
+        if (c[2] > 0) cnt += (cnt.isEmpty() ? "" : "  \u00B7  ") + c[2] + " OVERDUE";
+        v.setTextViewText(R.id.t_count, cnt);
+        v.setTextColor(R.id.t_count, ctx.getColor(c[2] > 0 ? R.color.wg_red : R.color.wg_dim));
+
+        int more = tasks.size() - shown;
+        v.setTextViewText(R.id.t_more, more > 0 ? "\uFF0B" + more + " more \u2197" : "");
+        if (more > 0) v.setOnClickPendingIntent(R.id.t_more, WidgetHub.openApp(ctx, "pgTasks"));
         return v;
     }
 }

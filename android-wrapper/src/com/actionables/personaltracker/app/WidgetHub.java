@@ -23,7 +23,7 @@ public final class WidgetHub {
     /** One stateless renderer per widget type (perf: reused, no broadcasts needed). */
     static final BaseWidget[] RENDERERS = {
             new QuickLogWidget(), new TasksWidget(), new HabitsWidget(), new MoneyWidget(),
-            new WorkoutWidget(), new MoodWidget(), new SleepWidget()
+            new WorkoutWidget(), new MoodWidget(), new SleepWidget(), new AiWidget()
     };
 
     /* perf: refreshes are coalesced on the main thread so a burst of saves
@@ -83,6 +83,29 @@ public final class WidgetHub {
     public static final int SMALL = 0, MEDIUM = 1, LARGE = 2;
 
     /** Bucket from the launcher-provided dp bounds (approx. cell math). */
+    /** Grid columns for a placed widget (used by size-adaptive renders). */
+    public static int cols(Context ctx, int widgetId) {
+        try {
+            Bundle o = AppWidgetManager.getInstance(ctx).getAppWidgetOptions(widgetId);
+            int w = o == null ? 250 : o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
+            return Math.max(1, (w + 30) / 70);
+        } catch (Exception e) { return 4; }
+    }
+
+    /** Grid rows for a placed widget (portrait-biased, like bucket()). */
+    public static int rows(Context ctx, int widgetId) {
+        try {
+            Bundle o = AppWidgetManager.getInstance(ctx).getAppWidgetOptions(widgetId);
+            int h = 110;
+            if (o != null) {
+                h = o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, h);
+                int minH = o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, h);
+                h = Math.max(minH, Math.min(h, minH * 2));
+            }
+            return Math.max(1, (h + 30) / 70);
+        } catch (Exception e) { return 2; }
+    }
+
     public static int bucket(AppWidgetManager mgr, int widgetId) {
         int w = 250, h = 110;
         try {

@@ -106,5 +106,9 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_sleep_info"/>
         </receiver>
+        <receiver android:name=".AiWidget" android:exported="true" android:label="@string/wg_ai_label">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_ai_info"/>
+        </receiver>
     </application>
 </manifest>

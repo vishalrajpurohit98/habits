@@ -7,10 +7,8 @@ import android.widget.RemoteViews;
 import java.util.List;
 
 /**
- * \uD83C\uDF31 Habit Progress (spec \u00A711, \u00A713): shows ONLY habits applicable today.
- * Quota habits whose weekly/monthly target is already met render as \uD83C\uDFC6 rows
- * instead of lingering as incomplete. Checkbox taps complete the actual
- * habit occurrence (same record as the app) and sync linked tasks.
+ * Habits widget (v2): today's habits only, quota-aware (met targets show as
+ * trophies). Circle completes; tapping the name opens the native habit editor.
  */
 public class HabitsWidget extends BaseWidget {
 
@@ -21,11 +19,10 @@ public class HabitsWidget extends BaseWidget {
 
     @Override protected RemoteViews render(Context ctx, WidgetStore st, int id, int bucket) {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_habits);
-        v.setOnClickPendingIntent(R.id.mic, WidgetHub.popup(ctx, WidgetDialogActivity.A_AI, id, "scope", "habit", "voice", "1"));
         v.setOnClickPendingIntent(R.id.add_btn, WidgetHub.popup(ctx, WidgetDialogActivity.A_ADD_HABIT, id));
 
         List<WidgetStore.HabitRow> rows = st.habitsToday();
-        int slots = bucket == WidgetHub.LARGE ? 6 : bucket == WidgetHub.MEDIUM ? 3 : 2;
+        int slots = bucket == WidgetHub.LARGE ? 6 : bucket == WidgetHub.MEDIUM ? 4 : 2;
         boolean showMeta = bucket != WidgetHub.SMALL;
         int shown = Math.min(slots, rows.size()), done = 0;
         for (WidgetStore.HabitRow r : rows) if (r.done) done++;
@@ -42,17 +39,15 @@ public class HabitsWidget extends BaseWidget {
                 v.setTextViewText(MET[i], meta);
                 v.setViewVisibility(MET[i], showMeta && !meta.isEmpty() ? View.VISIBLE : View.GONE);
                 v.setOnClickPendingIntent(CHK[i], WidgetHub.broadcast(ctx, WidgetActionReceiver.TOGGLE_HABIT, id, "habitId", r.id));
-                v.setOnClickPendingIntent(TIT[i], WidgetHub.broadcast(ctx, WidgetActionReceiver.TOGGLE_HABIT, id, "habitId", r.id));
-            } else {
-                v.setViewVisibility(BOX[i], View.GONE);
-            }
+                v.setOnClickPendingIntent(TIT[i], WidgetHub.popup(ctx, WidgetDialogActivity.A_EDIT_HABIT, id, "habitId", r.id));
+            } else v.setViewVisibility(BOX[i], View.GONE);
         }
 
         v.setViewVisibility(R.id.empty, rows.isEmpty() ? View.VISIBLE : View.GONE);
         int total = rows.size();
+        v.setTextViewText(R.id.hcount, total == 0 ? "" : done + "/" + total
+                + (rows.size() > shown ? "  \u00B7  \uFF0B" + (rows.size() - shown) : ""));
         v.setProgressBar(R.id.hbar, 100, total == 0 ? 0 : Math.round(done * 100f / total), false);
-        v.setTextViewText(R.id.hcount, total == 0 ? "" : done + " / " + total
-                + (rows.size() > shown ? "  \u00B7  +" + (rows.size() - shown) + " more" : ""));
         return v;
     }
 }

@@ -3325,6 +3325,12 @@ function openAIListModels(url, key){
 function getAiProvider(){ return localStorage.getItem('ai_provider')||'gemini'; }
 function getAiModel(){ return localStorage.getItem('ai_model')||AI_PROVIDERS[getAiProvider()].models[0].id; }
 function getAiKey(){ return localStorage.getItem('ai_key')||''; }
+/* Widget AI parity: mirror the AI config into native prefs so the home-screen
+   AI widget can call the exact same provider/model with the same key. */
+function syncAiCfgToNative(){
+  if(!nat||!nat.setAiConfig) return;
+  try{ nat.setAiConfig(JSON.stringify({provider:getAiProvider(),model:getAiModel(),key:getAiKey()})); }catch(e){}
+}
 // backward compat: migrate old gem_api_key
 if(!localStorage.getItem('ai_key')&&localStorage.getItem('gem_api_key')){
   localStorage.setItem('ai_key',localStorage.getItem('gem_api_key'));
@@ -7211,12 +7217,14 @@ function init(){
   $('aiProvider').addEventListener('change', function(){
     var prov=this.value;
     localStorage.setItem('ai_provider',prov);
+    syncAiCfgToNative();
     populateModels(prov);
     $('aiKeyHint').textContent='Get key at '+AI_PROVIDERS[prov].url;
     $('aiStatus').innerHTML='Provider switched to '+AI_PROVIDERS[prov].name;
   });
   $('aiModel').addEventListener('change', function(){
     localStorage.setItem('ai_model',this.value);
+    syncAiCfgToNative();
     if(getAiKey()) $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Model: '+this.value+'</span>';
   });
   $('btnAiSave').addEventListener('click', function(){
@@ -7225,12 +7233,14 @@ function init(){
     localStorage.setItem('ai_key',k);
     localStorage.setItem('ai_provider',$('aiProvider').value);
     localStorage.setItem('ai_model',$('aiModel').value);
+    syncAiCfgToNative();
     $('aiApiKey').value='';
     $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Saved · '+AI_PROVIDERS[$('aiProvider').value].name+' · '+$('aiModel').value+'</span>';
     renderInsights();
   });
   $('btnAiClear').addEventListener('click', function(){
     localStorage.removeItem('ai_key'); localStorage.removeItem('ai_weekly_narr'); localStorage.removeItem('ai_weekly_narr_day');
+    syncAiCfgToNative();
     $('aiStatus').innerHTML='Key removed.';
     renderInsights();
   });
@@ -7569,6 +7579,7 @@ function init(){
   });
 
   syncFromNative();
+  syncAiCfgToNative();
   grantMonthly();
   applyTheme();
   applyGrey();

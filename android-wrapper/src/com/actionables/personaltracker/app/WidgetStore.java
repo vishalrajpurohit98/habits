@@ -950,4 +950,285 @@ public class WidgetStore {
         for (HabitRow r : rows) if (r.done) done++;
         return new int[]{done, rows.size()};
     }
+
+    /* ==================== extensions for the v2 widget set + cloud AI ==================== */
+
+    /** Consecutive-day streak, ported from streak() in index.html. */
+    public int streak(JSONObject h) {
+        Calendar d = Calendar.getInstance();
+        int guard = 0, s = 0;
+        String ds = fmt(d);
+        if (dueOn(h, d) && !isDone(h, ds) && !isFroz(h, ds)) d = addDays(d, -1);
+        String created = h.optString("created", ""), start = h.optString("start", "");
+        while (guard++ < 3000) {
+            ds = fmt(d);
+            if (!created.isEmpty() && ds.compareTo(created) < 0 && ds.compareTo(start) < 0) break;
+            if (!dueOn(h, d)) { d = addDays(d, -1); continue; }
+            if (isDone(h, ds) || isFroz(h, ds)) { s++; d = addDays(d, -1); }
+            else break;
+        }
+        return s;
+    }
+
+    public int maxStreak() {
+        JSONArray hs = state.optJSONArray("habits");
+        int mx = 0;
+        if (hs != null) for (int i = 0; i < hs.length(); i++) {
+            JSONObject h = hs.optJSONObject(i);
+            if (h == null || h.optBoolean("arch", false)) continue;
+            int s = streak(h);
+            if (s > mx) mx = s;
+        }
+        return mx;
+    }
+
+    /** 7-day completion dots ending today: 0=nothing due, 1=missed, 2=partial, 3=all done. */
+    public int[] weekDots() {
+        int[] out = new int[7];
+        Calendar now = Calendar.getInstance();
+        JSONArray hs = state.optJSONArray("habits");
+        for (int wi = 6; wi >= 0; wi--) {
+            Calendar d = addDays(now, -wi);
+            String ds = fmt(d);
+            int due = 0, done = 0;
+            if (hs != null && !onVacation(ds)) for (int i = 0; i < hs.length(); i++) {
+                JSONObject h = hs.optJSONObject(i);
+                if (h == null) continue;
+                if (h.optBoolean("arch", false)) {
+                    String at = h.optString("archAt", "");
+                    if (at.isEmpty() || ds.compareTo(at) >= 0) continue;
+                }
+                if (!dueOn(h, d)) continue;
+                due++;
+                if (isDone(h, ds) || isFroz(h, ds)) done++;
+            }
+            out[6 - wi] = due == 0 ? 0 : (done >= due ? 3 : (done > 0 ? 2 : 1));
+        }
+        return out;
+    }
+
+    /** Date-aware sleep upsert (mirrors the app's set_sleep action). */
+    public JSONObject setSleep(String d, String bed, String wake, String note) throws JSONException {
+        JSONArray sl = arr("sleep");
+        JSONObject e = null;
+        for (int i = 0; i < sl.length(); i++) {
+            JSONObject x = sl.optJSONObject(i);
+            if (x != null && d.equals(x.optString("d"))) { e = x; break; }
+        }
+        if (e == null) { e = new JSONObject(); e.put("d", d); sl.put(e); }
+        e.put("bed", bed == null ? "" : bed);
+        e.put("wake", wake == null ? "" : wake);
+        e.put("mins", sleepMins(bed, wake));
+        e.put("note", note == null ? "" : (note.length() > 160 ? note.substring(0, 160) : note));
+        markDirty();
+        return e;
+    }
+
+    public boolean deleteSleep(String d) {
+        JSONArray sl = state.optJSONArray("sleep");
+        if (sl == null) return false;
+        for (int i = 0; i < sl.length(); i++) {
+            JSONObject x = sl.optJSONObject(i);
+            if (x != null && d.equals(x.optString("d"))) { sl.remove(i); markDirty(); return true; }
+        }
+        return false;
+    }
+
+    public JSONObject sleepOn(String d) {
+        JSONArray sl = state.optJSONArray("sleep");
+        if (sl != null) for (int i = 0; i < sl.length(); i++) {
+            JSONObject x = sl.optJSONObject(i);
+            if (x != null && d.equals(x.optString("d"))) return x;
+        }
+        return null;
+    }
+
+    /** Permanently delete a habit + its hour log (mirrors delete_habit). */
+    public boolean deleteHabit(String id) {
+        JSONArray hs = state.optJSONArray("habits");
+        if (hs == null) return false;
+        for (int i = 0; i < hs.length(); i++) {
+            JSONObject h = hs.optJSONObject(i);
+            if (h != null && id.equals(h.optString("id"))) {
+                hs.remove(i);
+                JSONObject hlog = state.optJSONObject("hlog");
+                if (hlog != null) hlog.remove(id);
+                markDirty();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public JSONObject findTx(String id) {
+        JSONArray tx = state.optJSONArray("tx");
+        if (tx != null) for (int i = 0; i < tx.length(); i++) {
+            JSONObject x = tx.optJSONObject(i);
+            if (x != null && id.equals(x.optString("id"))) return x;
+        }
+        return null;
+    }
+
+    public boolean deleteTx(String id) {
+        JSONArray tx = state.optJSONArray("tx");
+        if (tx == null) return false;
+        for (int i = 0; i < tx.length(); i++) {
+            JSONObject x = tx.optJSONObject(i);
+            if (x != null && id.equals(x.optString("id"))) { tx.remove(i); markDirty(); return true; }
+        }
+        return false;
+    }
+
+    /** Most recent transactions (date desc, then created desc). */
+    public List<JSONObject> recentTx(int n) {
+        List<JSONObject> out = new ArrayList<>();
+        JSONArray tx = state.optJSONArray("tx");
+        if (tx != null) for (int i = 0; i < tx.length(); i++) {
+            JSONObject x = tx.optJSONObject(i);
+            if (x != null) out.add(x);
+        }
+        out.sort((a, b) -> {
+            int c = b.optString("d", "").compareTo(a.optString("d", ""));
+            if (c != 0) return c;
+            return Long.compare(b.optLong("created", 0), a.optLong("created", 0));
+        });
+        return out.size() > n ? out.subList(0, n) : out;
+    }
+
+    /** Resolve an account by id or (case-insensitive) name. */
+    public JSONObject acctResolve(String q) {
+        if (q == null || q.isEmpty()) return null;
+        JSONObject byId = acctById(q);
+        if (byId != null) return byId;
+        String ql = q.trim().toLowerCase(Locale.US);
+        for (JSONObject a : activeAccounts()) {
+            String nm = a.optString("name", "").toLowerCase(Locale.US);
+            if (nm.equals(ql) || nm.contains(ql) || ql.contains(nm)) return a;
+        }
+        return null;
+    }
+
+    /** Unique open-task lookup by title fragment; returns null when 0 or >1 match. */
+    public JSONObject taskByQuery(String q) {
+        if (q == null || q.trim().isEmpty()) return null;
+        String ql = q.trim().toLowerCase(Locale.US);
+        JSONArray ts = state.optJSONArray("tasks");
+        JSONObject hit = null; int n = 0;
+        if (ts != null) for (int i = 0; i < ts.length(); i++) {
+            JSONObject t = ts.optJSONObject(i);
+            if (t == null) continue;
+            String ti = t.optString("title", "").toLowerCase(Locale.US);
+            if (ti.equals(ql)) return t; // exact wins immediately
+            if (ti.contains(ql)) { hit = t; n++; }
+        }
+        return n == 1 ? hit : null;
+    }
+
+    public int[] taskSubProgress(JSONObject t) {
+        JSONArray subs = t.optJSONArray("subtasks");
+        int done = 0, total = 0;
+        if (subs != null) for (int i = 0; i < subs.length(); i++) {
+            JSONObject s = subs.optJSONObject(i);
+            if (s == null) continue;
+            total++;
+            if (s.optBoolean("done", false)) done++;
+        }
+        return new int[]{done, total};
+    }
+
+    /** This month's income/expense totals. */
+    public double[] monthMoney() {
+        String t = today(), ms = t.substring(0, 8) + "01";
+        double inc = 0, exp = 0;
+        JSONArray tx = state.optJSONArray("tx");
+        if (tx != null) for (int i = 0; i < tx.length(); i++) {
+            JSONObject x = tx.optJSONObject(i);
+            if (x == null) continue;
+            String d = x.optString("d", "");
+            if (d.compareTo(ms) < 0 || d.compareTo(t) > 0) continue;
+            if ("exp".equals(x.optString("kind"))) exp += x.optDouble("amt", 0);
+            else if ("inc".equals(x.optString("kind"))) inc += x.optDouble("amt", 0);
+        }
+        return new double[]{inc, exp};
+    }
+
+    public List<String> incomeCategories() {
+        List<String> out = new ArrayList<>();
+        JSONArray a = state.optJSONArray("incCats");
+        if (a != null) for (int i = 0; i < a.length(); i++) {
+            String v = a.optString(i, "");
+            if (!v.isEmpty()) out.add(v);
+        }
+        return out;
+    }
+
+    /** Unit for an exercise's measurement type (mirrors MTYPES). */
+    public static String exUnit(String mtype) {
+        if ("weight".equals(mtype)) return "kg";
+        if ("time".equals(mtype)) return "min";
+        if ("distance".equals(mtype)) return "km";
+        if ("count".equals(mtype)) return "";
+        return "reps";
+    }
+
+    /** Session score for a set list (mirrors setsTotal: weight=max, others=sum). */
+    public static double setsTotal(JSONObject ex, JSONArray sets) {
+        if (sets == null || sets.length() == 0) return 0;
+        boolean max = "weight".equals(ex.optString("mtype"));
+        double v = 0;
+        for (int i = 0; i < sets.length(); i++) {
+            double s = sets.optDouble(i, 0);
+            if (max) { if (s > v) v = s; } else v += s;
+        }
+        return v;
+    }
+
+    public List<JSONObject> activeExercises() {
+        List<JSONObject> out = new ArrayList<>();
+        JSONArray ex = state.optJSONArray("exs");
+        if (ex != null) for (int i = 0; i < ex.length(); i++) {
+            JSONObject e = ex.optJSONObject(i);
+            if (e != null && e.optBoolean("active", true)) out.add(e);
+        }
+        return out;
+    }
+
+    /** "Bench Press · 65kg" style line for the latest logged session, or null. */
+    public String lastWorkoutLine() {
+        JSONArray wl = state.optJSONArray("wlog");
+        JSONObject best = null;
+        if (wl != null) for (int i = 0; i < wl.length(); i++) {
+            JSONObject w = wl.optJSONObject(i);
+            if (w == null) continue;
+            if (best == null) { best = w; continue; }
+            int c = w.optString("d", "").compareTo(best.optString("d", ""));
+            if (c > 0 || (c == 0 && w.optLong("created", 0) >= best.optLong("created", 0))) best = w;
+        }
+        if (best == null) return null;
+        JSONObject ex = findExercise(best.optString("exId"));
+        if (ex == null) return null;
+        double v = setsTotal(ex, best.optJSONArray("sets"));
+        String num = v == Math.floor(v) ? String.valueOf((long) v) : String.valueOf(v);
+        return ex.optString("name") + " \u00B7 " + num + exUnit(ex.optString("mtype"));
+    }
+
+    /** Top expense categories for today, "Food \u2212\u20B9450" style lines. */
+    public List<String> topCategoriesToday(int n) {
+        String t = today();
+        java.util.HashMap<String, Double> sum = new java.util.HashMap<>();
+        JSONArray tx = state.optJSONArray("tx");
+        if (tx != null) for (int i = 0; i < tx.length(); i++) {
+            JSONObject x = tx.optJSONObject(i);
+            if (x == null || !"exp".equals(x.optString("kind")) || !t.equals(x.optString("d"))) continue;
+            String c = x.optString("cat", "Other");
+            Double cur = sum.get(c);
+            sum.put(c, (cur == null ? 0 : cur) + x.optDouble("amt", 0));
+        }
+        java.util.ArrayList<java.util.Map.Entry<String, Double>> es = new java.util.ArrayList<>(sum.entrySet());
+        es.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+        List<String> out = new ArrayList<>();
+        for (int i = 0; i < es.size() && i < n; i++)
+            out.add(es.get(i).getKey() + " \u2212" + inr(es.get(i).getValue()));
+        return out;
+    }
 }

@@ -45,7 +45,8 @@ public class WidgetDialogActivity extends Activity {
 
     public static final String EXTRA_ACTION = "wd_action";
 
-    public static final String A_QUICK_PICK = "QUICK_PICK";
+    public static final String A_EDIT_HABIT = "EDIT_HABIT";
+    public static final String A_EDIT_EXPENSE = "EDIT_EXPENSE";
     public static final String A_ADD_TASK = "ADD_TASK";
     public static final String A_TASK_DETAIL = "TASK_DETAIL";
     public static final String A_ADD_EXPENSE = "ADD_EXPENSE";
@@ -92,19 +93,24 @@ public class WidgetDialogActivity extends Activity {
 
     void dispatch() {
         switch (action) {
-            case A_QUICK_PICK: uiQuickPick(); break;
             case A_ADD_TASK: uiTask(null); break;
             case A_TASK_DETAIL: uiTask(st.findTask(s("taskId"))); break;
             case A_ADD_EXPENSE: uiExpense(s("acctId"), 0, "", ""); break;
+            case A_EDIT_EXPENSE: uiTxEdit(s("txId")); break;
+            case A_EDIT_HABIT: uiHabitEdit(s("habitId")); break;
             case A_PICK_ACCOUNT: uiPickAccount(); break;
             case A_ADD_HABIT: uiHabit(); break;
-            case A_LOG_SLEEP: uiSleep("", ""); break;
+            case A_LOG_SLEEP: {
+                org.json.JSONObject cur = st.sleepOn(WidgetStore.today());
+                uiSleep(cur == null ? "" : cur.optString("bed"), cur == null ? "" : cur.optString("wake"));
+                break;
+            }
             case A_MOOD_DETAIL: uiMood(); break;
             case A_NEW_WORKOUT: uiNewWorkout(null); break;
             case A_START_WORKOUT: uiStartWorkout(); break;
             case A_AI:
                 aiScope = s("scope") == null ? "all" : s("scope");
-                uiAiHome();
+                uiAiInput("", null);
                 if ("1".equals(s("voice"))) startSpeech();
                 break;
             default: finish();
@@ -112,29 +118,6 @@ public class WidgetDialogActivity extends Activity {
     }
 
     String s(String k) { return getIntent().getStringExtra(k); }
-
-    /* =============================================================
-       QUICK LOG: activity chooser (spec \u00A75 dropdown)
-       ============================================================= */
-
-    void uiQuickPick() {
-        title("\u26A1 Quick Log", "What do you want to log?");
-        String[][] opts = {
-                {"sleep", "\uD83D\uDCA4", "Sleep"}, {"habit", "\uD83C\uDF31", "Habit"},
-                {"task", "\u2713", "Task"}, {"mood", "\uD83D\uDE42", "Mood"},
-                {"workout", "\uD83C\uDFCB", "Workout"}, {"exp", st.currency(), "Expense"},
-                {"ai", "\uD83C\uDF99", "Ask AI"}};
-        for (String[] o : opts) {
-            TextView r = listRow(o[1] + "   " + o[2]);
-            r.setOnClickListener(v -> {
-                WidgetHub.setPref(this, "ql_" + widgetId, o[0]);
-                WidgetHub.refreshAll(this);
-                finish();
-            });
-            root.addView(r, rowLp());
-        }
-        root.addView(btnRow(mkBtn("Cancel", false, v -> finish()), null));
-    }
 
     /* =============================================================
        TASKS: add + detail popup (spec \u00A79\u2013\u00A710)
@@ -560,30 +543,274 @@ public class WidgetDialogActivity extends Activity {
        AI: voice \u2192 parse \u2192 confirm \u2192 save (spec \u00A76\u2013\u00A78)
        ============================================================= */
 
-    EditText aiInput;
+    /* =============================================================
+       EDIT HABIT (v2): tap a habit name on the widget to edit it here
+       ============================================================= */
 
-    void uiAiHome() {
-        root.removeAllViews();
-        title("\uD83C\uDF99 AI Quick Log", scopeHint());
-        aiInput = field("Type or speak a command\u2026", "");
-        aiInput.setSingleLine(false); aiInput.setMaxLines(3);
-        TextView ex = text("\u201CI spent 500 on dinner\u201D\n\u201CMark workout completed\u201D\n\u201CI slept from 11:30 to 6:45\u201D", 12, DIM, false);
-        root.addView(ex);
-        root.addView(btnRow(mkBtn("\uD83C\uDF99 Speak", true, v -> startSpeech()),
-                mkBtn("Go", false, v -> runAi(aiInput.getText().toString()))));
-        root.addView(btnRow(mkBtn("Cancel", false, v -> finish()), null));
+    void uiHabitEdit(String hid) {
+        org.json.JSONObject h = null;
+        org.json.JSONArray hs = st.state.optJSONArray("habits");
+        if (hs != null && hid != null) for (int i = 0; i < hs.length(); i++) {
+            org.json.JSONObject x = hs.optJSONObject(i);
+            if (x != null && hid.equals(x.optString("id"))) { h = x; break; }
+        }
+        if (h == null) { toast("Habit not found"); finish(); return; }
+        final org.json.JSONObject hh = h;
+
+        int stk = st.streak(hh);
+        title("\uD83C\uDF31 Edit Habit", stk > 0 ? "\uD83D\uDD25 " + stk + "-day streak" : "Changes apply everywhere");
+        EditText name = field("Habit name", hh.optString("name", ""));
+
+        label("Schedule");
+        org.json.JSONObject sc = hh.optJSONObject("sched");
+        String cur = sc == null ? "daily" : sc.optString("kind", "daily");
+        if (!cur.matches("daily|dow|wquota")) cur = "daily";
+        final String[] kind = {cur};
+        root.addView(chipSelect(new String[]{"daily", "dow", "wquota"},
+                new String[]{"Daily", "Weekdays", "X / week"}, cur, v -> kind[0] = v, false));
+        label("Times per week (for X / week)");
+        EditText quota = field(null, String.valueOf(sc == null ? 3 : Math.max(1, sc.optInt("quota", 3))));
+        quota.setInputType(InputType.TYPE_CLASS_NUMBER);
+
+        root.addView(btnRow(mkBtn("Archive", false, v -> {
+                    try {
+                        hh.put("arch", true);
+                        hh.put("archAt", WidgetStore.today());
+                        st.markDirty();
+                        if (st.commit()) { toast("Archived \u00B7 restore from the app"); finish(); }
+                        else toast("Unable to save");
+                    } catch (Exception e) { toast("Unable to save"); }
+                }),
+                mkBtn("Save", true, v -> {
+                    String nm = name.getText().toString().trim();
+                    if (nm.isEmpty()) { name.setError("Enter a name"); return; }
+                    int q = 3;
+                    try { q = Math.max(1, Integer.parseInt(quota.getText().toString().trim())); } catch (Exception ignored) {}
+                    try {
+                        hh.put("name", nm.length() > 40 ? nm.substring(0, 40) : nm);
+                        org.json.JSONObject ns = hh.optJSONObject("sched");
+                        if (ns == null) { ns = new org.json.JSONObject(); hh.put("sched", ns); }
+                        ns.put("kind", kind[0]);
+                        if ("dow".equals(kind[0])) {
+                            org.json.JSONArray dows = new org.json.JSONArray();
+                            for (int i = 1; i <= 5; i++) dows.put(i);
+                            ns.put("dows", dows);
+                        }
+                        if ("wquota".equals(kind[0])) ns.put("quota", q);
+                        st.markDirty();
+                        if (st.commit()) { toast("\u201C" + nm + "\u201D updated"); finish(); }
+                        else toast("Unable to save");
+                    } catch (Exception e) { toast("Unable to save"); }
+                })));
+        TextView c = text("Cancel", 13, DIM, true);
+        c.setGravity(Gravity.CENTER);
+        c.setPadding(0, dp(12), 0, dp(2));
+        c.setOnClickListener(v -> finish());
+        root.addView(c, rowLp());
     }
 
-    String scopeHint() {
-        switch (aiScope) {
-            case "money": return "Money commands \u00B7 e.g. \u201Cspent 450 on lunch from HDFC\u201D";
-            case "task": return "Task commands \u00B7 e.g. \u201Cadd a task to call the bank tomorrow\u201D";
-            case "habit": return "Habit commands \u00B7 e.g. \u201Ccompleted my reading\u201D";
-            case "workout": return "Workout commands \u00B7 e.g. \u201Cbench press 65 kg for 8 reps\u201D";
-            case "mood": return "Mood commands \u00B7 e.g. \u201CI\u2019m stressed because of work\u201D";
-            case "sleep": return "Sleep commands \u00B7 e.g. \u201Cslept from 11:30 to 6:45\u201D";
-            default: return "One command can hold several actions";
+    /* =============================================================
+       EDIT TRANSACTION (v2): tap a recent transaction on the money
+       widget to fix or remove it without opening the app
+       ============================================================= */
+
+    void uiTxEdit(String txId) {
+        final org.json.JSONObject tx = st.findTx(txId);
+        if (tx == null) { toast("Transaction not found"); finish(); return; }
+        boolean inc = "inc".equals(tx.optString("kind"));
+
+        title(st.currency() + " Edit " + (inc ? "Income" : "Expense"), WidgetStore.niceDate(tx.optString("d", WidgetStore.today())));
+        EditText amt = field("Amount", trimNum(tx.optDouble("amt", 0)));
+        amt.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
+        EditText note = field("Description (optional)", tx.optString("note", ""));
+
+        label("Category");
+        List<String> cats = inc ? st.incomeCategories() : st.expenseCategories();
+        if (cats.isEmpty()) cats = new ArrayList<>(java.util.Collections.singletonList("Other"));
+        String curCat = tx.optString("cat", "Other");
+        if (!cats.contains(curCat)) cats.add(0, curCat);
+        final String[] cat = {curCat};
+        root.addView(chipSelect(cats.toArray(new String[0]), cats.toArray(new String[0]), cat[0], v -> cat[0] = v, false));
+
+        label("Account");
+        List<org.json.JSONObject> accts = st.activeAccounts();
+        final String[] acct = {tx.optString("acct", "")};
+        if (!accts.isEmpty()) {
+            String[] ids = new String[accts.size()], names = new String[accts.size()];
+            for (int i = 0; i < accts.size(); i++) { ids[i] = accts.get(i).optString("id"); names[i] = accts.get(i).optString("name"); }
+            if (acct[0].isEmpty()) acct[0] = ids[0];
+            root.addView(chipSelect(ids, names, acct[0], v -> acct[0] = v, false));
         }
+
+        final boolean[] armed = {false};
+        final TextView del = mkBtn("Delete", false, null);
+        del.setTextColor(RED);
+        del.setOnClickListener(v -> {
+            if (!armed[0]) { armed[0] = true; del.setText("Tap again to delete"); return; }
+            try {
+                st.deleteTx(tx.optString("id"));
+                if (st.commit()) { toast("Deleted \u00B7 " + st.inr(tx.optDouble("amt", 0))); finish(); }
+                else toast("Unable to save");
+            } catch (Exception e) { toast("Unable to save"); }
+        });
+        root.addView(btnRow(del, mkBtn("Save", true, v -> {
+            double a2;
+            try { a2 = Double.parseDouble(amt.getText().toString().trim()); } catch (Exception e) { a2 = 0; }
+            if (a2 <= 0) { amt.setError("Enter an amount"); return; }
+            try {
+                tx.put("amt", a2);
+                tx.put("cat", cat[0]);
+                tx.put("note", note.getText().toString().trim());
+                if (!acct[0].isEmpty()) tx.put("acct", acct[0]);
+                st.markDirty();
+                if (st.commit()) { toast("Updated \u00B7 " + st.inr(a2)); finish(); }
+                else toast("Unable to save");
+            } catch (Exception e) { toast("Unable to save"); }
+        })));
+        TextView c = text("Cancel", 13, DIM, true);
+        c.setGravity(Gravity.CENTER);
+        c.setPadding(0, dp(12), 0, dp(2));
+        c.setOnClickListener(v -> finish());
+        root.addView(c, rowLp());
+    }
+
+    EditText aiInput;
+    volatile boolean aiBusy = false;
+
+    /* =============================================================
+       AI (v2): speech is transcribed into an editable field; Done
+       routes the text to the app's own AI (same provider, model,
+       key, prompt and data context, mirrored via Bridge.setAiConfig).
+       Falls back to the offline parser when no key / no network.
+       ============================================================= */
+
+    void uiAiInput(String prefill, String note) {
+        aiBusy = false;
+        root.removeAllViews();
+        boolean cloud = NativeAi.hasKey(this);
+        title("\uD83C\uDF99 AI", cloud ? "Log, update, or ask anything" : "Quick logging \u00B7 offline");
+        if (note != null && !note.isEmpty()) {
+            TextView n = text(note, 12, DIM, false);
+            n.setBackground(rounded(INNER, 12, 0));
+            n.setPadding(dp(11), dp(9), dp(11), dp(9));
+            root.addView(n, rowLp());
+        }
+        aiInput = field(cloud ? "\u201Ccoffee 40\u201D \u00B7 \u201Cmove gym task to Friday\u201D \u00B7 \u201Chow did I sleep this week?\u201D"
+                : "\u201Ccoffee 40\u201D \u00B7 \u201Cmark reading done\u201D \u00B7 \u201Cslept 11:30 to 6:45\u201D", prefill == null ? "" : prefill);
+        aiInput.setSingleLine(false);
+        aiInput.setMinLines(2);
+        aiInput.setMaxLines(5);
+        root.addView(btnRow(mkBtn("\uD83C\uDF99 Speak", false, v -> startSpeech()),
+                mkBtn("Done", true, v -> processAi(aiInput.getText().toString().trim()))));
+        TextView c = text("Cancel", 13, DIM, true);
+        c.setGravity(Gravity.CENTER);
+        c.setPadding(0, dp(12), 0, dp(2));
+        c.setOnClickListener(v -> finish());
+        root.addView(c, rowLp());
+    }
+
+    void processAi(String text) {
+        if (text == null || text.trim().isEmpty()) { toast("Say or type something first"); return; }
+        if (aiBusy) return;
+        if (NativeAi.hasKey(this)) cloudAi(text.trim());
+        else offlineAi(text.trim(), null);
+    }
+
+    void uiAiThinking(String q) {
+        root.removeAllViews();
+        title("\uD83C\uDF99 AI", "\u201C" + q + "\u201D");
+        TextView t = text("Thinking\u2026", 14, DIM, false);
+        t.setBackground(rounded(INNER, 14, 0));
+        t.setPadding(dp(12), dp(14), dp(12), dp(14));
+        root.addView(t, rowLp());
+        root.addView(btnRow(mkBtn("Cancel", false, v -> { aiBusy = false; uiAiInput(q, null); }), null));
+    }
+
+    void cloudAi(final String q) {
+        aiBusy = true;
+        uiAiThinking(q);
+        final NativeAi.Cfg cfg = NativeAi.cfg(this);
+        new Thread(() -> {
+            try {
+                String raw = NativeAi.call(cfg, NativeAi.prompt(st, q), 500);
+                final NativeAi.Parsed parsed = NativeAi.parse(raw);
+                runOnUiThread(() -> { if (!isFinishing() && aiBusy) { aiBusy = false; routeCloud(q, parsed); } });
+            } catch (Exception e) {
+                final String err = e.getMessage() == null ? "network error" : e.getMessage();
+                runOnUiThread(() -> { if (!isFinishing() && aiBusy) { aiBusy = false; offlineAi(q, err); } });
+            }
+        }).start();
+    }
+
+    void routeCloud(String q, NativeAi.Parsed p) {
+        if (p.action == null) { uiAiAnswer(q, p.freeform == null ? "No response" : p.freeform); return; }
+        org.json.JSONObject r = p.action;
+        String a = r.optString("action", "");
+        boolean instant = a.equals("complete_task") || a.equals("reopen_task")
+                || a.equals("complete_habit") || a.equals("uncomplete_habit");
+        boolean readonly = a.equals("query") || a.equals("clarify");
+        boolean delete = a.startsWith("delete_");
+        if (readonly || instant || delete) {
+            NativeAi.Res res = NativeAi.execute(st, r, false);
+            switch (res.kind) {
+                case NativeAi.R_QUERY: uiAiAnswer(q, res.msg); return;
+                case NativeAi.R_CLARIFY: uiAiInput(q, res.msg); return;
+                case NativeAi.R_CONFIRM: uiCloudConfirm(q, res.msg, "", true, res.pending); return;
+                case NativeAi.R_OK: commitToast(res); return;
+                default: uiAiInput(q, res.msg); return;
+            }
+        }
+        // create / update / setting: preview first, apply only on Confirm
+        uiCloudConfirm(q, r.optString("message", "Apply this change?"), NativeAi.preview(st, r), false, r);
+    }
+
+    void uiCloudConfirm(String q, String head, String body, boolean danger, final org.json.JSONObject pending) {
+        root.removeAllViews();
+        title("\uD83C\uDF99 Confirm", "\u201C" + q + "\u201D");
+        LinearLayout card = new LinearLayout(this);
+        card.setOrientation(LinearLayout.VERTICAL);
+        card.setBackground(rounded(INNER, 14, 0));
+        card.setPadding(dp(12), dp(11), dp(12), dp(11));
+        TextView h = text(head, 14, danger ? RED : INK, true);
+        h.setMaxLines(4);
+        card.addView(h);
+        if (body != null && !body.isEmpty()) {
+            TextView b2 = text(body, 12, DIM, false);
+            b2.setMaxLines(6);
+            b2.setPadding(0, dp(5), 0, 0);
+            card.addView(b2);
+        }
+        root.addView(card, rowLp());
+        root.addView(btnRow(mkBtn("Cancel", false, v -> uiAiInput(q, null)),
+                mkBtn(danger ? "Delete" : "Confirm", true, v -> {
+                    NativeAi.Res res = NativeAi.execute(st, pending, true);
+                    if (res.kind == NativeAi.R_OK) commitToast(res);
+                    else if (res.kind == NativeAi.R_CONFIRM) uiCloudConfirm(q, res.msg, "", true, res.pending);
+                    else uiAiInput(q, res.msg);
+                })));
+    }
+
+    void commitToast(NativeAi.Res res) {
+        if (st.commit()) {
+            toast(res.msg + (res.detail == null || res.detail.isEmpty() ? "" : " \u00B7 " + res.detail));
+            finish();
+        } else toast("Unable to save");
+    }
+
+    /** Offline fallback: deterministic parser. cloudErr != null means the cloud call failed. */
+    void offlineAi(String text, String cloudErr) {
+        AiParser.Result r = AiParser.parse(st, text, aiScope);
+        if (r.answer != null) { uiAiAnswer(text, r.answer); return; }
+        if (r.choices != null) { uiAiChoices(text, r); return; }
+        if (r.error != null || r.actions.isEmpty()) {
+            String note = cloudErr != null
+                    ? "Couldn\u2019t reach your AI (" + cloudErr + "). Check the connection and try again \u2014 simple commands still work offline."
+                    : "I couldn\u2019t parse that offline. For general questions and smarter commands, add an AI key in the app: Settings \u2192 AI.";
+            uiAiInput(text, note);
+            return;
+        }
+        if (r.actions.size() == 1 && r.actions.get(0).immediate) { execAll(r.actions); return; }
+        uiAiConfirm(text, r.actions);
     }
 
     void startSpeech() {
@@ -594,7 +821,7 @@ public class WidgetDialogActivity extends Activity {
         Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-IN");
-        i.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak your command");
+        i.putExtra(RecognizerIntent.EXTRA_PROMPT, "Speak \u2014 I\u2019ll transcribe it");
         try { startActivityForResult(i, REQ_WIDGET_SPEECH); }
         catch (Exception e) { toast("Speech input unavailable on this device"); }
     }
@@ -613,7 +840,7 @@ public class WidgetDialogActivity extends Activity {
                                         Uri.parse("package:" + getPackageName())));
                             } catch (Exception ignored) {}
                         }),
-                        mkBtn("Type instead", false, v -> uiAiHome())));
+                        mkBtn("Type instead", false, v -> uiAiInput("", null))));
             }
         }
     }
@@ -624,29 +851,10 @@ public class WidgetDialogActivity extends Activity {
             if (res == RESULT_OK && data != null) {
                 ArrayList<String> r = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                 String text = r != null && !r.isEmpty() ? r.get(0) : "";
-                if (text.isEmpty()) { toast("Didn\u2019t catch that"); if (root.getChildCount() == 0) uiAiHome(); }
-                else runAi(text);
-            } else if (root.getChildCount() == 0 || aiInput == null) uiAiHome();
+                if (text.isEmpty()) { toast("Didn\u2019t catch that"); uiAiInput(aiInput == null ? "" : aiInput.getText().toString(), null); }
+                else uiAiInput(text, null);
+            } else if (A_AI.equals(action) && root.getChildCount() == 0) uiAiInput("", null);
         }
-    }
-
-    void runAi(String text) {
-        if (text == null || text.trim().isEmpty()) { toast("Say or type a command"); return; }
-        AiParser.Result r = AiParser.parse(st, text, aiScope);
-        if (r.answer != null) { uiAiAnswer(text, r.answer); return; }
-        if (r.choices != null) { uiAiChoices(text, r); return; }
-        if (r.error != null || r.actions.isEmpty()) {
-            toast("AI could not understand the command.");
-            uiAiHome();
-            if (aiInput != null) aiInput.setText(text);
-            return;
-        }
-        // Single clear completion \u2192 execute immediately (spec \u00A78).
-        if (r.actions.size() == 1 && r.actions.get(0).immediate) {
-            execAll(r.actions);
-            return;
-        }
-        uiAiConfirm(text, r.actions);
     }
 
     void uiAiAnswer(String q, String answer) {

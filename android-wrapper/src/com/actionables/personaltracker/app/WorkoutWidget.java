@@ -6,35 +6,35 @@ import android.widget.RemoteViews;
 
 import org.json.JSONObject;
 
-/**
- * \uD83C\uDFCB Workout (spec \u00A717): start/log today's workout or create a NEW workout \u2014
- * all through native popups, never by launching the app.
- */
+/** Workout widget (v2): today's plan, logged state, last session, start/new. */
 public class WorkoutWidget extends BaseWidget {
 
     @Override protected RemoteViews render(Context ctx, WidgetStore st, int id, int bucket) {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_workout);
-        v.setOnClickPendingIntent(R.id.mic, WidgetHub.popup(ctx, WidgetDialogActivity.A_AI, id, "scope", "workout", "voice", "1"));
-
-        JSONObject p = st.latestPlan();
+        JSONObject plan = st.latestPlan();
         boolean logged = st.workoutLoggedToday();
-        v.setTextViewText(R.id.w_name, p != null ? p.optString("name", "Workout") : "No workout yet");
-        v.setTextViewText(R.id.w_status, logged ? "Logged today \u2713" : "Not logged today");
-        v.setTextColor(R.id.w_status, ctx.getColor(logged ? R.color.wg_green : R.color.wg_dim));
 
-        if (p != null) {
-            v.setTextViewText(R.id.btn_start, "\u25B6 Start");
-            v.setOnClickPendingIntent(R.id.btn_start,
-                    WidgetHub.popup(ctx, WidgetDialogActivity.A_START_WORKOUT, id, "planId", p.optString("id")));
+        if (plan != null) {
+            v.setTextViewText(R.id.w_name, plan.optString("name", "Workout"));
+            v.setTextViewText(R.id.w_status, logged ? "Logged \u2713" : "Not logged yet");
+            v.setTextColor(R.id.w_status, ctx.getColor(logged ? R.color.wg_green : R.color.wg_dim));
+            v.setTextViewText(R.id.btn_start, logged ? "\uFF0B Log more" : "\u25B6 Start");
+            v.setOnClickPendingIntent(R.id.btn_start, WidgetHub.popup(ctx, WidgetDialogActivity.A_START_WORKOUT, id, "planId", plan.optString("id")));
+            v.setOnClickPendingIntent(R.id.w_name, WidgetHub.popup(ctx, WidgetDialogActivity.A_START_WORKOUT, id, "planId", plan.optString("id")));
         } else {
-            v.setTextViewText(R.id.btn_start, "+ Create");
+            v.setTextViewText(R.id.w_name, "No plan");
+            v.setTextViewText(R.id.w_status, "Create one to get moving");
+            v.setTextColor(R.id.w_status, ctx.getColor(R.color.wg_dim));
+            v.setTextViewText(R.id.btn_start, "\uFF0B Create");
             v.setOnClickPendingIntent(R.id.btn_start, WidgetHub.popup(ctx, WidgetDialogActivity.A_NEW_WORKOUT, id));
+            v.setOnClickPendingIntent(R.id.w_name, WidgetHub.popup(ctx, WidgetDialogActivity.A_NEW_WORKOUT, id));
         }
         v.setOnClickPendingIntent(R.id.btn_new, WidgetHub.popup(ctx, WidgetDialogActivity.A_NEW_WORKOUT, id));
+        v.setViewVisibility(R.id.btn_new, bucket == WidgetHub.SMALL ? View.GONE : View.VISIBLE);
 
-        boolean small = bucket == WidgetHub.SMALL;
-        v.setViewVisibility(R.id.btn_new, small && p != null ? View.GONE : View.VISIBLE);
-        v.setViewVisibility(R.id.w_sub, small ? View.GONE : View.VISIBLE);
+        String last = st.lastWorkoutLine();
+        v.setTextViewText(R.id.w_last, last == null ? "" : "Last: " + last);
+        v.setViewVisibility(R.id.w_last, last != null && bucket != WidgetHub.SMALL ? View.VISIBLE : View.GONE);
         return v;
     }
 }

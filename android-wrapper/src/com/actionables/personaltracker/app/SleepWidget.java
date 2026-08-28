@@ -6,31 +6,26 @@ import android.widget.RemoteViews;
 
 import org.json.JSONObject;
 
-/**
- * \uD83D\uDCA4 Sleep (spec \u00A722): last night's sleep at a glance + quick logging via a
- * native popup with automatic duration calculation.
- */
+/** Sleep widget (v2): last night at a glance; tapping opens the log/edit popup. */
 public class SleepWidget extends BaseWidget {
 
     @Override protected RemoteViews render(Context ctx, WidgetStore st, int id, int bucket) {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_sleep);
-        v.setOnClickPendingIntent(R.id.mic, WidgetHub.popup(ctx, WidgetDialogActivity.A_AI, id, "scope", "sleep", "voice", "1"));
-        v.setOnClickPendingIntent(R.id.btn_log, WidgetHub.popup(ctx, WidgetDialogActivity.A_LOG_SLEEP, id));
+        JSONObject s = st.lastSleep();
+        String today = WidgetStore.today();
 
-        JSONObject e = st.lastSleep();
-        if (e == null || e.optInt("mins", 0) <= 0) {
-            v.setTextViewText(R.id.s_sub, "LAST NIGHT");
-            v.setTextViewText(R.id.s_dur, "\u2014");
-            v.setTextViewText(R.id.s_range, "Not logged yet");
+        if (s != null && s.optInt("mins", 0) > 0) {
+            int mins = s.optInt("mins");
+            v.setTextViewText(R.id.s_dur, (mins / 60) + "h " + (mins % 60) + "m");
+            v.setTextViewText(R.id.s_range, s.optString("bed", "") + " \u2192 " + s.optString("wake", ""));
+            v.setTextViewText(R.id.s_sub, today.equals(s.optString("d")) ? "" : WidgetStore.niceDate(s.optString("d")).toUpperCase());
         } else {
-            String d = e.optString("d", "");
-            v.setTextViewText(R.id.s_sub, d.equals(WidgetStore.today()) ? "LAST NIGHT" : WidgetStore.niceDate(d).toUpperCase());
-            v.setTextViewText(R.id.s_dur, WidgetStore.durFmt(e.optInt("mins", 0)));
-            String bed = e.optString("bed", ""), wake = e.optString("wake", "");
-            v.setTextViewText(R.id.s_range, !bed.isEmpty() && !wake.isEmpty()
-                    ? WidgetStore.time12(bed) + " \u2013 " + WidgetStore.time12(wake) : "");
+            v.setTextViewText(R.id.s_dur, "\u2014");
+            v.setTextViewText(R.id.s_range, "Tap to log last night");
+            v.setTextViewText(R.id.s_sub, "");
         }
         v.setViewVisibility(R.id.s_range, bucket == WidgetHub.SMALL ? View.GONE : View.VISIBLE);
+        v.setOnClickPendingIntent(R.id.sleep_tap, WidgetHub.popup(ctx, WidgetDialogActivity.A_LOG_SLEEP, id));
         return v;
     }
 }
