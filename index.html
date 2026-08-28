@@ -963,6 +963,7 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 
 
 /* ============ HOME QUICK ADD ============ */
+.quickAddMic{width:40px;height:40px;border-radius:13px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}.quickAddMic:active{background:var(--card3);transform:scale(.96)}
 .quickAddWidget{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;margin:0 0 14px;box-shadow:var(--shadow)}
 .quickAddHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
 .quickAddTitle{font-family:var(--fDisp);font-size:15px;font-weight:700;letter-spacing:-.1px}
@@ -1221,7 +1222,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="quickAddTitle">Quick Add</div>
       <div class="quickAddSub">Capture something without leaving Today</div>
     </div>
-    <div class="quickAddIcon">＋</div>
+    <button class="quickAddMic" id="quickAddMic" type="button" title="Speak to AI" aria-label="Speak to AI">🎙</button>
   </div>
   <div class="quickAddGrid">
     <button class="quickAddCard" type="button" data-quick-add="task">
@@ -6600,6 +6601,17 @@ function init(){
     var b=climb(e.target,this,'data-quick-add');
     if(b) handleAddAction(b.getAttribute('data-quick-add'));
   });
+  $('quickAddMic').addEventListener('click',function(e){
+    e.preventDefault(); e.stopPropagation();
+    startVoice($('uaiInput'),function(text){
+      var v=String(text||'').trim();
+      if(!v)return;
+      showTab('pgAI');
+      $('uaiInput').value=v;
+      toastN('🎙 Transcribed — AI is processing…');
+      uaiSend(v);
+    });
+  });
 
   $('taskAddTop').addEventListener('click',function(){openTask(null);});
   $('taskEmptyCta').addEventListener('click',function(){openTask(null);});
@@ -7273,7 +7285,10 @@ function init(){
   $('uaiSend').addEventListener('click', doUaiSend);
   $('uaiMic').addEventListener('click', function(){
     startVoice($('uaiInput'), function(text){
-      toastN('Got: "'+text+'" — tap → to parse');
+      var v=String(text||'').trim();
+      if(!v)return;
+      toastN('🎙 Transcribed — AI is processing…');
+      uaiSend(v);
     });
   });
   $('uaiInput').addEventListener('keydown', function(e){if(e.key==='Enter'){e.preventDefault();doUaiSend();}});
