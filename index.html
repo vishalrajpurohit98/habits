@@ -2367,10 +2367,24 @@ function normState(s){
 }
 function load(){
   try{
+    var localObj = null, nativeObj = null;
     var r = localStorage.getItem(KEY);
-    if(r) return normState(JSON.parse(r));
+    if(r) localObj = normState(JSON.parse(r));
     var o = localStorage.getItem(OLDKEY);
-    if(o){ var v1 = JSON.parse(o); return normState({habits:(v1.habits||[])}); }
+    if(!localObj && o){ var v1 = JSON.parse(o); localObj = normState({habits:(v1.habits||[])}); }
+    // Native widgets write to the same state store. Prefer the newer native
+    // snapshot so widget-only logging is reflected when the app is opened.
+    if(nat && nat.getState){
+      try{
+        var nr = nat.getState();
+        if(nr) nativeObj = normState(JSON.parse(nr));
+      }catch(_){}
+    }
+    if(nativeObj && (!localObj || (+nativeObj.mtime||0) >= (+localObj.mtime||0))) {
+      try{ localStorage.setItem(KEY, JSON.stringify(nativeObj)); }catch(_){}
+      return nativeObj;
+    }
+    if(localObj) return localObj;
   }catch(e){}
   return normState({});
 }

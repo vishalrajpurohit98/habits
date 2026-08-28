@@ -55,5 +55,49 @@
             android:authorities="com.actionables.personaltracker.app.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true"/>
+
+
+        <activity
+            android:name=".WidgetActionActivity"
+            android:exported="false"
+            android:theme="@style/WidgetPopupTheme"
+            android:excludeFromRecents="true"
+            android:noHistory="true"/>
+
+        <receiver android:name=".QuickLogWidgetProvider" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+                <action android:name="android.intent.action.DATE_CHANGED"/>
+                <action android:name="android.intent.action.TIME_CHANGED"/>
+                <action android:name="android.intent.action.TIMEZONE_CHANGED"/>
+                <action android:name="com.actionables.personaltracker.app.REFRESH_WIDGETS"/>
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_quick_log_info"/>
+        </receiver>
+        <receiver android:name=".TaskWidgetProvider" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_tasks_info"/>
+        </receiver>
+        <receiver android:name=".HabitWidgetProvider" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_habits_info"/>
+        </receiver>
+        <receiver android:name=".MoneyWidgetProvider" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_money_info"/>
+        </receiver>
+        <receiver android:name=".WorkoutWidgetProvider" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_workout_info"/>
+        </receiver>
+        <receiver android:name=".MoodWidgetProvider" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_mood_info"/>
+        </receiver>
+        <receiver android:name=".SleepWidgetProvider" android:exported="false">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_sleep_info"/>
+        </receiver>
+
     </application>
 </manifest>
