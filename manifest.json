@@ -1,7 +1,7 @@
 {
   "name": "Personal Tracker",
   "short_name": "Personal Tracker",
-  "description": "Offline-first habit, mood and journal tracker",
+  "description": "Offline-first habit, task, mood and journal tracker",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#000000",
