@@ -15,20 +15,18 @@
     <color name="wg_line">#1FFFFFFF</color>
 
     <!-- ===== Widget strings ===== -->
-    <string name="wg_quicklog_label">Progress</string>
-    <string name="wg_quicklog_desc">Today at a glance: completion, streak, mood and the last 7 days.</string>
     <string name="wg_tasks_label">Tasks</string>
-    <string name="wg_tasks_desc">One-tap complete; tap a task to edit it right there.</string>
+    <string name="wg_tasks_desc">Today\'s and overdue tasks — scroll, one-tap complete, tap to open the exact task.</string>
     <string name="wg_habits_label">Habits</string>
-    <string name="wg_habits_desc">One-tap check-in; tap a habit to edit it right there.</string>
+    <string name="wg_habits_desc">Today\'s habits with progress — quick check-in, tap to open the exact habit.</string>
     <string name="wg_money_label">Money</string>
-    <string name="wg_money_desc">Balance, today\'s spend, quick add — recent entries editable in place.</string>
+    <string name="wg_money_desc">Today\'s spend and your selected account balance, with quick add.</string>
     <string name="wg_mood_label">Mood</string>
-    <string name="wg_mood_desc">One-tap mood logging.</string>
-    <string name="wg_sleep_label">Sleep</string>
+    <string name="wg_mood_desc">One-tap mood logging with an optional note — no app launch needed.</string>
+    <string name="wg_workout_label">Workout</string>
+    <string name="wg_workout_desc">Your exercises with personal bests — tap to open the exact workout.</string>
     <string name="wg_ai_label">Ask AI</string>
     <string name="wg_ai_desc">Speak or type — log, update, or ask anything using your in-app AI.</string>
-    <string name="wg_sleep_desc">Last night at a glance — tap to log or edit.</string>
 
     <!-- ===== Native popup theme (dialog-style activity used by widgets) ===== -->
     <style name="WidgetPopupTheme" parent="@android:style/Theme.Material.Dialog.NoActionBar">

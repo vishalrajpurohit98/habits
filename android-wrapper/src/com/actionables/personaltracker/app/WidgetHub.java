@@ -22,8 +22,8 @@ public final class WidgetHub {
 
     /** One stateless renderer per widget type (perf: reused, no broadcasts needed). */
     static final BaseWidget[] RENDERERS = {
-            new QuickLogWidget(), new TasksWidget(), new HabitsWidget(), new MoneyWidget(),
-            new MoodWidget(), new SleepWidget(), new AiWidget()
+            new TasksWidget(), new HabitsWidget(), new MoneyWidget(),
+            new MoodWidget(), new WorkoutWidget(), new AiWidget()
     };
 
     /* perf: refreshes are coalesced on the main thread so a burst of saves
@@ -65,13 +65,20 @@ public final class WidgetHub {
     }
 
     /** Render every placed widget from a single parsed state snapshot. */
-    static void doRefreshNow(Context app) {
+    static void doRefreshNow(Context app) { doRefresh(app, null); }
+
+    static void doRefresh(Context app, Class<?>[] only) {
         if (app == null) return;
         try {
             AppWidgetManager mgr = AppWidgetManager.getInstance(app);
             if (mgr == null) return;
             WidgetStore st = null;
             for (BaseWidget r : RENDERERS) {
+                if (only != null) {
+                    boolean hit = false;
+                    for (Class<?> c : only) if (c == r.getClass()) { hit = true; break; }
+                    if (!hit) continue;
+                }
                 int[] ids;
                 try { ids = mgr.getAppWidgetIds(new ComponentName(app, r.getClass())); }
                 catch (Exception e) { continue; }
@@ -81,6 +88,7 @@ public final class WidgetHub {
                     try {
                         android.widget.RemoteViews rv = r.render(app, st, id, bucket(mgr, id));
                         if (rv != null) mgr.updateAppWidget(id, rv);
+                        if (r.hasList()) mgr.notifyAppWidgetViewDataChanged(id, R.id.list);
                     } catch (Exception ignored) { }
                 }
             }
@@ -176,6 +184,46 @@ public final class WidgetHub {
     }
 
     /** Explicit "open the full app" PendingIntent (used only where the user asks for it). */
+    /** Deep-link into the app with arbitrary extras (task id, habit id, add flows...). */
+    public static PendingIntent openAppDeep(Context ctx, String... kv) {
+        Intent i = new Intent(ctx, MainActivity.class);
+        i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        StringBuilder key = new StringBuilder("deep");
+        for (int k = 0; k + 1 < kv.length; k += 2) { i.putExtra(kv[k], kv[k + 1]); key.append('/').append(kv[k]).append('=').append(kv[k + 1]); }
+        i.setData(Uri.parse("hbwidget://" + key));
+        return PendingIntent.getActivity(ctx, req(key.toString()), i, flags());
+    }
+
+    /** Click template for ListView rows; rows supply op/id via fill-in intents.
+        MUST be mutable on API 31+ or fill-ins are dropped. */
+    public static PendingIntent listTemplate(Context ctx, int widgetId) {
+        Intent i = new Intent(ctx, WidgetActionReceiver.class);
+        i.setAction(WidgetActionReceiver.ACTION_PREFIX + WidgetActionReceiver.LIST_CLICK);
+        i.putExtra("widgetId", widgetId);
+        i.setData(Uri.parse("hbwidget://list/" + widgetId));
+        int f = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (android.os.Build.VERSION.SDK_INT >= 31) f |= PendingIntent.FLAG_MUTABLE;
+        return PendingIntent.getBroadcast(ctx, req("list/" + widgetId), i, f);
+    }
+
+    /** Adapter binding intent for WidgetListService; unique data URI defeats intent caching. */
+    public static Intent listService(Context ctx, int widgetId, String kind) {
+        Intent i = new Intent(ctx, WidgetListService.class);
+        i.putExtra("widgetId", widgetId);
+        i.putExtra("kind", kind);
+        i.setData(Uri.parse("hbwidget://svc/" + kind + "/" + widgetId));
+        return i;
+    }
+
+    /** Synchronous refresh of ONLY the given provider classes (null = all). */
+    public static void refreshProviders(Context ctx, Class<?>[] only) {
+        try {
+            sAppCtx = ctx.getApplicationContext();
+            synchronized (UI) { UI.removeCallbacks(REFRESH); sPendingAt = 0; }
+            doRefresh(sAppCtx, only);
+        } catch (Exception ignored) { }
+    }
+
     public static PendingIntent openApp(Context ctx, String tab) {
         Intent i = new Intent(ctx, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);

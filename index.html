@@ -6394,6 +6394,7 @@ function syncFromNative(){
 }
 window.onNativeResume = function(){
   syncFromNative();
+  handleLaunchAction();
   pushAlarms();
   renderToday();
   if($('pgStats').classList.contains('on')) renderStats();
@@ -7593,16 +7594,22 @@ function init(){
   if(state.set.pin) showLock('unlock');
 }
 init();
-if(nat && nat.getLaunchAction){
+/* Widget deep links: runs at boot AND on warm relaunch (onNativeResume). */
+function handleLaunchAction(){
+  if(!(nat && nat.getLaunchAction)) return;
   try{
     var _la = JSON.parse(nat.getLaunchAction() || '{}');
     if(_la.tab) showTab(_la.tab);
     else if(_la.habit && findHabit(_la.habit)){ showTab('pgToday'); openDetail(_la.habit); }
     else if(_la.task){ showTab('pgTasks'); setTimeout(function(){openTask(_la.task);},120); }
+    else if(_la.addTask){ showTab('pgTasks'); setTimeout(function(){openTask();},120); }
+    else if(_la.addHabit){ showTab('pgToday'); setTimeout(function(){openEdit(null);},150); }
+    else if(_la.workout){ showTab('pgStats'); if(_la.workout!=='1') setTimeout(function(){ try{ openEx(_la.workout); }catch(e){} },180); }
     else if(_la.add){ openExpFromWidget(_la.add, _la.acct); }
     else if(_la.voice){ showTab('pgAI'); setTimeout(function(){ startVoice($('uaiInput'), function(text){ toastN('Got: "'+text+'" — tap ✨ to parse'); }); }, 500); }
   }catch(e){}
 }
+handleLaunchAction();
 </script>
 
 <script>

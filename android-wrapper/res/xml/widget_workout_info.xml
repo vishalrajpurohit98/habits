@@ -9,8 +9,8 @@
     android:maxResizeWidth="420dp"
     android:maxResizeHeight="420dp"
     android:updatePeriodMillis="1800000"
-    android:initialLayout="@layout/widget_sleep"
-    android:previewLayout="@layout/widget_sleep"
-    android:description="@string/wg_sleep_desc"
+    android:initialLayout="@layout/widget_workout"
+    android:previewLayout="@layout/widget_workout"
+    android:description="@string/wg_workout_desc"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"/>

@@ -70,6 +70,10 @@
             android:windowSoftInputMode="adjustResize"/>
 
         <!-- Direct widget taps (task/habit toggle, one-tap mood) + date rollover refresh. -->
+        <service android:name=".WidgetListService"
+            android:permission="android.permission.BIND_REMOTEVIEWS"
+            android:exported="false"/>
+
         <receiver android:name=".WidgetActionReceiver" android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.DATE_CHANGED"/>
@@ -78,10 +82,6 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".QuickLogWidget" android:exported="true" android:label="@string/wg_quicklog_label">
-            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_quicklog_info"/>
-        </receiver>
         <receiver android:name=".TasksWidget" android:exported="true" android:label="@string/wg_tasks_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_tasks_info"/>
@@ -98,9 +98,9 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_mood_info"/>
         </receiver>
-        <receiver android:name=".SleepWidget" android:exported="true" android:label="@string/wg_sleep_label">
+        <receiver android:name=".WorkoutWidget" android:exported="true" android:label="@string/wg_workout_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
-            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_sleep_info"/>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_workout_info"/>
         </receiver>
         <receiver android:name=".AiWidget" android:exported="true" android:label="@string/wg_ai_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>

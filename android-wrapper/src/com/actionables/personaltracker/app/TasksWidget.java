@@ -1,59 +1,53 @@
 package com.actionables.personaltracker.app;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.View;
 import android.widget.RemoteViews;
 
-import org.json.JSONObject;
-
-import java.util.List;
-
-/** Tasks widget (v2): overdue-first list, one-tap complete, tap a row to edit. */
+/**
+ * TASKS widget (v4): scrollable list of today's / overdue tasks.
+ * Row circle = one-tap complete (native, instant). Row body = exact task in-app.
+ * Large + = New Task composer in-app. TODAY | OVERDUE filter persists per widget.
+ */
 public class TasksWidget extends BaseWidget {
 
-    static final int[] BOX = {R.id.r1_box, R.id.r2_box, R.id.r3_box, R.id.r4_box, R.id.r5_box, R.id.r6_box};
-    static final int[] CHK = {R.id.r1_chk, R.id.r2_chk, R.id.r3_chk, R.id.r4_chk, R.id.r5_chk, R.id.r6_chk};
-    static final int[] TIT = {R.id.r1_title, R.id.r2_title, R.id.r3_title, R.id.r4_title, R.id.r5_title, R.id.r6_title};
-    static final int[] MET = {R.id.r1_meta, R.id.r2_meta, R.id.r3_meta, R.id.r4_meta, R.id.r5_meta, R.id.r6_meta};
+    @Override protected boolean hasList() { return true; }
 
     @Override protected RemoteViews render(Context ctx, WidgetStore st, int id, int bucket) {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_tasks);
-        v.setOnClickPendingIntent(R.id.add_btn, WidgetHub.popup(ctx, WidgetDialogActivity.A_ADD_TASK, id));
+        v.setOnClickPendingIntent(R.id.add_btn, WidgetHub.openAppDeep(ctx, "addTask", "1"));
 
-        List<JSONObject> tasks = st.tasksForWidget();
-        int slots = bucket == WidgetHub.LARGE ? 6 : bucket == WidgetHub.MEDIUM ? 4 : 2;
-        boolean showMeta = bucket != WidgetHub.SMALL;
-        int shown = Math.min(slots, tasks.size());
+        v.setRemoteAdapter(R.id.list, WidgetHub.listService(ctx, id, "tasks"));
+        v.setEmptyView(R.id.list, R.id.empty);
+        v.setPendingIntentTemplate(R.id.list, WidgetHub.listTemplate(ctx, id));
 
-        for (int i = 0; i < BOX.length; i++) {
-            if (i < shown) {
-                JSONObject t = tasks.get(i);
-                String tid = t.optString("id");
-                boolean over = "overdue".equals(WidgetStore.taskStatus(t));
-                boolean high = "high".equals(t.optString("priority"));
-                v.setViewVisibility(BOX[i], View.VISIBLE);
-                v.setTextViewText(TIT[i], (high ? "\uD83D\uDD34 " : "") + t.optString("title", "Task"));
-                v.setTextViewText(CHK[i], "");
-                v.setInt(CHK[i], "setBackgroundResource", over ? R.drawable.widget_check_red : R.drawable.chk_task_off);
-                String meta = WidgetStore.taskMeta(t);
-                v.setTextViewText(MET[i], showMeta ? meta : "");
-                v.setTextColor(MET[i], ctx.getColor(over ? R.color.wg_red : R.color.wg_dim));
-                v.setViewVisibility(MET[i], showMeta && !meta.isEmpty() ? View.VISIBLE : View.GONE);
-                v.setOnClickPendingIntent(CHK[i], WidgetHub.broadcast(ctx, WidgetActionReceiver.TOGGLE_TASK, id, "taskId", tid));
-                v.setOnClickPendingIntent(TIT[i], WidgetHub.popup(ctx, WidgetDialogActivity.A_TASK_DETAIL, id, "taskId", tid));
-            } else v.setViewVisibility(BOX[i], View.GONE);
-        }
+        String mode = WidgetHub.getPref(ctx, "tf_" + id, "today");
+        boolean over = "overdue".equals(mode);
+        int[] c = st.todayTaskCounts(); // {done, total, overdue, open}
+        int todayLeft = Math.max(0, c[1] - c[0]);
+        v.setTextViewText(R.id.f_today, todayLeft > 0 ? "TODAY \u00B7 " + todayLeft : "TODAY");
+        v.setTextViewText(R.id.f_over, c[2] > 0 ? "OVERDUE \u00B7 " + c[2] : "OVERDUE");
+        v.setInt(R.id.f_today, "setBackgroundResource", over ? R.drawable.widget_chip_dim : R.drawable.chip_active_blue);
+        v.setInt(R.id.f_over, "setBackgroundResource", over ? R.drawable.chip_active_red : R.drawable.widget_chip_dim);
+        v.setTextColor(R.id.f_today, over ? 0xFF9AA0AC : 0xFF0B0D12);
+        v.setTextColor(R.id.f_over, over ? 0xFF0B0D12 : (c[2] > 0 ? 0xFFFF6B5E : 0xFF9AA0AC));
+        v.setOnClickPendingIntent(R.id.f_today, filterIntent(ctx, id, "today"));
+        v.setOnClickPendingIntent(R.id.f_over, filterIntent(ctx, id, "overdue"));
 
-        v.setViewVisibility(R.id.empty, tasks.isEmpty() ? View.VISIBLE : View.GONE);
-        int[] c = st.todayTaskCounts();
-        String cnt = c[1] > 0 ? c[0] + "/" + c[1] : "";
-        if (c[2] > 0) cnt += (cnt.isEmpty() ? "" : "  \u00B7  ") + c[2] + " OVERDUE";
-        v.setTextViewText(R.id.t_count, cnt);
-        v.setTextColor(R.id.t_count, c[2] > 0 ? 0xFFFF6B5E : 0xFF5B9DFF);
-
-        int more = tasks.size() - shown;
-        v.setTextViewText(R.id.t_more, more > 0 ? "\uFF0B" + more + " more \u2197" : "");
-        if (more > 0) v.setOnClickPendingIntent(R.id.t_more, WidgetHub.openApp(ctx, "pgTasks"));
+        v.setViewVisibility(R.id.filters, bucket == WidgetHub.SMALL ? View.GONE : View.VISIBLE);
+        v.setTextViewText(R.id.empty, over ? "Nothing overdue \u2713" : "All clear for today \u2713");
         return v;
+    }
+
+    static android.app.PendingIntent filterIntent(Context ctx, int id, String val) {
+        Intent i = new Intent(ctx, WidgetActionReceiver.class);
+        i.setAction(WidgetActionReceiver.ACTION_PREFIX + WidgetActionReceiver.SET_TFILTER);
+        i.putExtra("widgetId", id);
+        i.putExtra("val", val);
+        i.setData(android.net.Uri.parse("hbwidget://tfilter/" + id + "/" + val));
+        int f = android.app.PendingIntent.FLAG_UPDATE_CURRENT;
+        if (android.os.Build.VERSION.SDK_INT >= 23) f |= android.app.PendingIntent.FLAG_IMMUTABLE;
+        return android.app.PendingIntent.getBroadcast(ctx, ("tfilter/" + id + "/" + val).hashCode(), i, f);
     }
 }

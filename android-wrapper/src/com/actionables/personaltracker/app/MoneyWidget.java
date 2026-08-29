@@ -1,7 +1,6 @@
 package com.actionables.personaltracker.app;
 
 import android.content.Context;
-import android.view.View;
 import android.widget.RemoteViews;
 
 import org.json.JSONObject;
@@ -9,16 +8,12 @@ import org.json.JSONObject;
 import java.util.List;
 
 /**
- * Money widget (v2): balance of the selected account (tap to switch), today's
- * spend, one-tap add, and \u2014 on large sizes \u2014 recent transactions that
- * open directly in the native expense editor.
+ * MONEY widget (v4): today's expense total + one selected account balance.
+ * Body tap \u2192 Money section in-app (with the account id when available).
+ * Large + \u2192 the app's Add Expense screen, account preselected.
+ * \u25BE \u2192 native account picker; the choice persists per widget.
  */
 public class MoneyWidget extends BaseWidget {
-
-    static final int[] XB = {R.id.x1_box, R.id.x2_box, R.id.x3_box};
-    static final int[] XI = {R.id.x1_ico, R.id.x2_ico, R.id.x3_ico};
-    static final int[] XT = {R.id.x1_title, R.id.x2_title, R.id.x3_title};
-    static final int[] XA = {R.id.x1_amt, R.id.x2_amt, R.id.x3_amt};
 
     @Override protected RemoteViews render(Context ctx, WidgetStore st, int id, int bucket) {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_money);
@@ -28,39 +23,19 @@ public class MoneyWidget extends BaseWidget {
         JSONObject acct = st.acctById(acctId);
         if (acct == null && !accts.isEmpty()) { acct = accts.get(0); acctId = acct.optString("id"); }
 
-        v.setTextViewText(R.id.acct_name, acct == null ? "NO ACCOUNT" : acct.optString("name", "Account").toUpperCase());
-        v.setTextViewText(R.id.bal, acct == null ? "\u2014" : st.inr(st.acctBalance(acctId)));
-        v.setOnClickPendingIntent(R.id.acct_row, WidgetHub.popup(ctx, WidgetDialogActivity.A_PICK_ACCOUNT, id));
-        v.setOnClickPendingIntent(R.id.bal, WidgetHub.popup(ctx, WidgetDialogActivity.A_PICK_ACCOUNT, id));
-
         double spent = st.todayExpenseTotal();
-        v.setTextViewText(R.id.exp, spent > 0 ? "\u2212" + st.inr(spent) + " today" : "No spend today");
-        v.setTextColor(R.id.exp, ctx.getColor(spent > 0 ? R.color.wg_red : R.color.wg_dim));
-        v.setOnClickPendingIntent(R.id.exp, WidgetHub.popup(ctx, WidgetDialogActivity.A_ADD_EXPENSE, id, "acctId", acctId));
-        v.setOnClickPendingIntent(R.id.add_btn, WidgetHub.popup(ctx, WidgetDialogActivity.A_ADD_EXPENSE, id, "acctId", acctId));
+        v.setTextViewText(R.id.exp, spent > 0 ? "\u2212" + st.inr(spent) : st.currency() + "0");
+        v.setTextColor(R.id.exp, spent > 0 ? 0xFFFF6B5E : 0xFF9AA0AC);
 
-        boolean large = bucket == WidgetHub.LARGE;
-        v.setViewVisibility(R.id.txbox, large ? View.VISIBLE : View.GONE);
-        if (large) {
-            List<JSONObject> tx = st.recentTx(3);
-            for (int i = 0; i < XB.length; i++) {
-                if (i < tx.size()) {
-                    JSONObject x = tx.get(i);
-                    boolean inc = "inc".equals(x.optString("kind"));
-                    boolean xfer = "xfer".equals(x.optString("kind"));
-                    String title = x.optString("payee", "");
-                    if (title.isEmpty()) title = x.optString("cat", "");
-                    if (title.isEmpty()) title = xfer ? "Transfer" : inc ? "Income" : "Expense";
-                    v.setViewVisibility(XB[i], View.VISIBLE);
-                    v.setTextViewText(XI[i], xfer ? "\u21C4" : inc ? "\uFF0B" : "\u2212");
-                    v.setTextColor(XI[i], ctx.getColor(inc ? R.color.wg_green : xfer ? R.color.wg_dim : R.color.wg_red));
-                    v.setTextViewText(XT[i], title);
-                    v.setTextViewText(XA[i], st.inr(x.optDouble("amt", 0)));
-                    v.setTextColor(XA[i], ctx.getColor(inc ? R.color.wg_green : xfer ? R.color.wg_dim : R.color.wg_red));
-                    v.setOnClickPendingIntent(XB[i], WidgetHub.popup(ctx, WidgetDialogActivity.A_EDIT_EXPENSE, id, "txId", x.optString("id")));
-                } else v.setViewVisibility(XB[i], View.GONE);
-            }
-        }
+        v.setTextViewText(R.id.bal, acct == null ? "\u2014" : st.inr(st.acctBalance(acctId)));
+        v.setTextViewText(R.id.acct_name, acct == null ? "NO ACCOUNT"
+                : acct.optString("name", "Account").toUpperCase() + " ACCOUNT");
+
+        v.setOnClickPendingIntent(R.id.money_body,
+                WidgetHub.openAppDeep(ctx, "tab", "pgExp", "acct", acctId == null ? "" : acctId));
+        v.setOnClickPendingIntent(R.id.add_btn,
+                WidgetHub.openAppDeep(ctx, "add", "exp", "acct", acctId == null ? "" : acctId));
+        v.setOnClickPendingIntent(R.id.acct_row, WidgetHub.popup(ctx, WidgetDialogActivity.A_PICK_ACCOUNT, id));
         return v;
     }
 }

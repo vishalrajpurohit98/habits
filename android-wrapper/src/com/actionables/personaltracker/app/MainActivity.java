@@ -443,7 +443,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String fsCheck(){return "{\"need\":false}";}
         @JavascriptInterface public void fsOpen(){}
         @JavascriptInterface public String autoBackup(String name,String state){try{saveFile(name,"application/json",Base64.encodeToString(state.getBytes(StandardCharsets.UTF_8),Base64.NO_WRAP));return "Downloads/"+name;}catch(Exception e){return "";}}
-        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){if(i.getStringExtra("habit")!=null)o.put("habit",i.getStringExtra("habit")); if(i.getStringExtra("task")!=null)o.put("task",i.getStringExtra("task")); if(i.getStringExtra("tab")!=null)o.put("tab",i.getStringExtra("tab"));}}catch(Exception ignored){}return o.toString();}
+        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){String[] keys={"habit","task","tab","add","acct","voice","addTask","addHabit","workout"};for(String k:keys){String v=i.getStringExtra(k);if(v!=null){o.put(k,v);i.removeExtra(k);}}}}catch(Exception ignored){}return o.toString();}
         @JavascriptInterface public boolean bioAvail(){return false;}
         @JavascriptInterface public void bio(){}
         @JavascriptInterface public void pickDate(int y,int m,int d){MainActivity.this.pickDate(y,m,d);}

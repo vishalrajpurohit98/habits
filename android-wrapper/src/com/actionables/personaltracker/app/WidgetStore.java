@@ -49,13 +49,17 @@ public class WidgetStore {
     }
 
     /** Persist the mutated state (single write per user action) and refresh every widget. */
-    public boolean commit() {
-        if (!dirty) { WidgetHub.refreshAll(ctx); return true; }
+    public boolean commit() { return commit(true); }
+
+    /** commit(false): callers that know exactly which widgets changed refresh
+        those selectively themselves (spec v4 \u00A719). */
+    public boolean commit(boolean refreshAllWidgets) {
+        if (!dirty) { if (refreshAllWidgets) WidgetHub.refreshAll(ctx); return true; }
         try {
             state.put("mtime", System.currentTimeMillis());
             SharedPreferences p = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
             boolean ok = p.edit().putString(KEY, state.toString()).commit();
-            WidgetHub.refreshAll(ctx);
+            if (refreshAllWidgets) WidgetHub.refreshAll(ctx);
             return ok;
         } catch (Exception e) { return false; }
     }
@@ -282,7 +286,8 @@ public class WidgetStore {
 
     /** Row model for the Habit widget. */
     public static class HabitRow {
-        public String id, name, emoji, meta;
+        public String id, name, emoji, meta, unit = "", type = "check";
+        public double val, targ = 1;
         public boolean done, trophy;
     }
 
@@ -312,13 +317,14 @@ public class WidgetStore {
             boolean quotaKind = kind.equals("wquota") || kind.equals("mquota");
             if (due) {
                 r.done = isDone(h, t);
-                if (quotaKind) { int[] qp = quotaProgress(h); r.meta = qp[0] + "/" + qp[1]; }
-                out.add(r);
-            } else if (quotaKind && quotaCountExcl(h, now) >= quota(h)) {
-                r.done = true; r.trophy = true;
-                r.meta = (kind.equals("wquota") ? "Weekly" : "Monthly") + " target met";
+                r.type = h.optString("type", "check");
+                r.targ = Math.max(1, h.optDouble("target", 1));
+                r.unit = h.optString("unit", "");
+                r.val = valOn(h, t);
+                if (quotaKind) { int[] qp = quotaProgress(h); r.meta = qp[0] + "/" + qp[1] + " this week"; }
                 out.add(r);
             }
+            // quota already met and not due today: hidden by design (v4 spec \u00A710)
         }
         return out;
     }
@@ -1229,6 +1235,73 @@ public class WidgetStore {
         List<String> out = new ArrayList<>();
         for (int i = 0; i < es.size() && i < n; i++)
             out.add(es.get(i).getKey() + " \u2212" + inr(es.get(i).getValue()));
+        return out;
+    }
+
+    /** Raw logged value for a habit on a date (0 when unset). */
+    public double valOn(JSONObject h, String ds) {
+        JSONObject done = h.optJSONObject("done");
+        return done == null ? 0 : done.optDouble(ds, 0);
+    }
+
+    /** One-tap widget action: check-habits toggle; count-habits step +1 (wraps to 0 at target). */
+    public boolean bumpHabit(String hid) {
+        JSONObject h = findHabit(hid);
+        if (h == null) return false;
+        String t = today();
+        if ("count".equals(h.optString("type", "check"))) {
+            double targ = Math.max(1, h.optDouble("target", 1));
+            double v = valOn(h, t);
+            double nv = v >= targ ? 0 : Math.min(targ, v + 1);
+            return setHabitVal(hid, t, nv);
+        }
+        return setHabitVal(hid, t, isDone(h, t) ? 0 : targ(h));
+    }
+
+    /** Tasks for the widget list, filtered: "today" (due today, not completed) or "overdue". */
+    public List<JSONObject> tasksFiltered(String mode) {
+        List<JSONObject> out = new ArrayList<>();
+        JSONArray ts = state.optJSONArray("tasks");
+        if (ts == null) return out;
+        String t = today();
+        boolean over = "overdue".equals(mode);
+        for (int i = 0; i < ts.length(); i++) {
+            JSONObject k = ts.optJSONObject(i);
+            if (k == null) continue;
+            String st = taskStatus(k);
+            if (over) { if (st.equals("overdue")) out.add(k); }
+            else if (t.equals(k.optString("dueDate")) && !st.equals("completed")) out.add(k);
+        }
+        out.sort((a, b) -> {
+            int pa = "high".equals(a.optString("priority")) ? 0 : 1;
+            int pb = "high".equals(b.optString("priority")) ? 0 : 1;
+            if (pa != pb) return pa - pb;
+            return Long.compare(taskDueMs(a), taskDueMs(b));
+        });
+        return out;
+    }
+
+    /** Rows for the workout widget: active exercises with a PB / recency subtitle. */
+    public List<String[]> exercisesForWidget() {
+        List<String[]> out = new ArrayList<>();
+        JSONArray wl = state.optJSONArray("wlog");
+        for (JSONObject ex : activeExercises()) {
+            String unit = exUnit(ex.optString("mtype", "reps"));
+            double pb = 0; String lastD = ""; int sessions = 0;
+            if (wl != null) for (int i = 0; i < wl.length(); i++) {
+                JSONObject w = wl.optJSONObject(i);
+                if (w == null || !ex.optString("id").equals(w.optString("exId"))) continue;
+                double v = setsTotal(ex, w.optJSONArray("sets"));
+                if (v <= 0) continue;
+                sessions++;
+                if (v > pb) pb = v;
+                if (w.optString("d", "").compareTo(lastD) > 0) lastD = w.optString("d");
+            }
+            String sub = sessions == 0 ? "Not logged yet"
+                    : "Best " + (pb == Math.floor(pb) ? String.valueOf((long) pb) : String.valueOf(pb)) + unit
+                      + " \u00B7 " + niceDate(lastD);
+            out.add(new String[]{ex.optString("id"), ex.optString("name", "Exercise"), sub});
+        }
         return out;
     }
 }

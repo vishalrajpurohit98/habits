@@ -4,7 +4,10 @@ import android.content.Context;
 import android.view.View;
 import android.widget.RemoteViews;
 
-/** Mood widget (v2): a pure one-tap emoji strip; footer appears with space. */
+/**
+ * MOOD widget (v4): DIRECT logging \u2014 tapping an emoji saves immediately,
+ * no app launch. "Add a note\u2026" opens the small native note popup.
+ */
 public class MoodWidget extends BaseWidget {
 
     static final int[] M = {R.id.m0, R.id.m1, R.id.m2, R.id.m3, R.id.m4, R.id.m5, R.id.m6};
@@ -23,13 +26,11 @@ public class MoodWidget extends BaseWidget {
             v.setOnClickPendingIntent(M[i], WidgetHub.broadcast(ctx, WidgetActionReceiver.SET_MOOD, id, "mood", String.valueOf(i)));
         }
 
-        boolean foot = WidgetHub.rows(ctx, id) >= 2;
-        v.setViewVisibility(R.id.mfoot, foot ? View.VISIBLE : View.GONE);
-        if (foot) {
-            v.setTextViewText(R.id.status, cur >= 0 ? "MOOD \u00B7 " + WidgetStore.MOOD_LABEL[cur] : "MOOD");
-            v.setViewVisibility(R.id.btn_more, cur >= 0 ? View.VISIBLE : View.GONE);
-            v.setOnClickPendingIntent(R.id.btn_more, WidgetHub.popup(ctx, WidgetDialogActivity.A_MOOD_DETAIL, id));
-        }
+        v.setTextViewText(R.id.m_status, cur >= 0 ? WidgetStore.MOOD_LABEL[cur] : "");
+        boolean showNote = WidgetHub.rows(ctx, id) >= 2;
+        v.setViewVisibility(R.id.note_btn, showNote ? View.VISIBLE : View.GONE);
+        v.setTextViewText(R.id.note_btn, cur >= 0 ? "\u270E Add a note\u2026" : "Tap a mood to log it");
+        if (showNote) v.setOnClickPendingIntent(R.id.note_btn, WidgetHub.popup(ctx, WidgetDialogActivity.A_MOOD_DETAIL, id));
         return v;
     }
 }

@@ -15,6 +15,10 @@ public abstract class BaseWidget extends AppWidgetProvider {
     /** Build the RemoteViews for one widget instance at the given size bucket. */
     protected abstract RemoteViews render(Context ctx, WidgetStore st, int widgetId, int bucket);
 
+    /** Widgets backed by a ListView adapter override this so refreshes also
+        invalidate their RemoteViewsFactory data. */
+    protected boolean hasList() { return false; }
+
     @Override public void onUpdate(Context ctx, AppWidgetManager mgr, int[] ids) {
         WidgetStore st = WidgetStore.load(ctx);
         for (int id : ids) push(ctx, mgr, st, id);
