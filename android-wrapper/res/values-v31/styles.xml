@@ -1,5 +1,10 @@
 <resources>
-    <style name="AppTheme" parent="@android:style/Theme.Material.Light.NoActionBar">
+    <!-- Startup flash fix: parent must be the DARK Material theme (the Light parent
+         painted a white window the moment the Android 12+ splash dismissed), and
+         windowBackground keeps the same black+icon surface visible behind the
+         WebView until its first frame. -->
+    <style name="AppTheme" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_bg</item>
         <item name="android:windowSplashScreenBackground">#000000</item>
         <item name="android:windowSplashScreenAnimatedIcon">@drawable/app_icon</item>
         <item name="android:windowLightStatusBar">false</item>

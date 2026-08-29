@@ -49,6 +49,7 @@ public class MainActivity extends Activity {
         createNotificationChannel();
         configureWindow();
         web = new WebView(this);
+        web.setBackgroundColor(Color.BLACK); // startup flash fix: WebView surface is white until first paint
         configureWebView(web);
         setContentView(web);
         web.addJavascriptInterface(new Bridge(), "Bridge");
