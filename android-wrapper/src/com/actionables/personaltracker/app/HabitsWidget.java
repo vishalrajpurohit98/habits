@@ -34,7 +34,7 @@ public class HabitsWidget extends BaseWidget {
                 v.setTextViewText(TIT[i], (r.trophy ? "\uD83C\uDFC6 " : r.emoji + " ") + r.name);
                 v.setTextColor(TIT[i], ctx.getColor(r.done ? R.color.wg_dim : R.color.wg_ink));
                 v.setTextViewText(CHK[i], r.done ? "\u2713" : "");
-                v.setInt(CHK[i], "setBackgroundResource", r.done ? R.drawable.widget_check_on : R.drawable.widget_check_off);
+                v.setInt(CHK[i], "setBackgroundResource", r.done ? R.drawable.chk_habit_on : R.drawable.chk_habit_off);
                 String meta = r.meta == null ? "" : r.meta;
                 v.setTextViewText(MET[i], meta);
                 v.setViewVisibility(MET[i], showMeta && !meta.isEmpty() ? View.VISIBLE : View.GONE);

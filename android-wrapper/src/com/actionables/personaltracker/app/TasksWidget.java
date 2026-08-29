@@ -34,7 +34,7 @@ public class TasksWidget extends BaseWidget {
                 v.setViewVisibility(BOX[i], View.VISIBLE);
                 v.setTextViewText(TIT[i], (high ? "\uD83D\uDD34 " : "") + t.optString("title", "Task"));
                 v.setTextViewText(CHK[i], "");
-                v.setInt(CHK[i], "setBackgroundResource", over ? R.drawable.widget_check_red : R.drawable.widget_check_off);
+                v.setInt(CHK[i], "setBackgroundResource", over ? R.drawable.widget_check_red : R.drawable.chk_task_off);
                 String meta = WidgetStore.taskMeta(t);
                 v.setTextViewText(MET[i], showMeta ? meta : "");
                 v.setTextColor(MET[i], ctx.getColor(over ? R.color.wg_red : R.color.wg_dim));
@@ -49,7 +49,7 @@ public class TasksWidget extends BaseWidget {
         String cnt = c[1] > 0 ? c[0] + "/" + c[1] : "";
         if (c[2] > 0) cnt += (cnt.isEmpty() ? "" : "  \u00B7  ") + c[2] + " OVERDUE";
         v.setTextViewText(R.id.t_count, cnt);
-        v.setTextColor(R.id.t_count, ctx.getColor(c[2] > 0 ? R.color.wg_red : R.color.wg_dim));
+        v.setTextColor(R.id.t_count, c[2] > 0 ? 0xFFFF6B5E : 0xFF5B9DFF);
 
         int more = tasks.size() - shown;
         v.setTextViewText(R.id.t_more, more > 0 ? "\uFF0B" + more + " more \u2197" : "");

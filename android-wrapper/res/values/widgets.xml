@@ -23,8 +23,6 @@
     <string name="wg_habits_desc">One-tap check-in; tap a habit to edit it right there.</string>
     <string name="wg_money_label">Money</string>
     <string name="wg_money_desc">Balance, today\'s spend, quick add — recent entries editable in place.</string>
-    <string name="wg_workout_label">Workout</string>
-    <string name="wg_workout_desc">Today\'s plan with start, log and last session.</string>
     <string name="wg_mood_label">Mood</string>
     <string name="wg_mood_desc">One-tap mood logging.</string>
     <string name="wg_sleep_label">Sleep</string>
@@ -46,4 +44,10 @@
         <item name="android:windowMinWidthMinor">92%</item>
     </style>
 
+    <!-- v3 identity accents: one color per widget so each is recognizable at a glance -->
+    <color name="wg_c_task">#5B9DFF</color>
+    <color name="wg_c_habit">#7ED957</color>
+    <color name="wg_c_money">#4FD8C4</color>
+    <color name="wg_c_mood">#C08BFF</color>
+    <color name="wg_c_sleep">#7B8CFF</color>
 </resources>

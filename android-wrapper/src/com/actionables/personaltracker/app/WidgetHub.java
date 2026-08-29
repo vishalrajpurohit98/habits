@@ -23,7 +23,7 @@ public final class WidgetHub {
     /** One stateless renderer per widget type (perf: reused, no broadcasts needed). */
     static final BaseWidget[] RENDERERS = {
             new QuickLogWidget(), new TasksWidget(), new HabitsWidget(), new MoneyWidget(),
-            new WorkoutWidget(), new MoodWidget(), new SleepWidget(), new AiWidget()
+            new MoodWidget(), new SleepWidget(), new AiWidget()
     };
 
     /* perf: refreshes are coalesced on the main thread so a burst of saves
@@ -36,8 +36,17 @@ public final class WidgetHub {
     private static volatile Context sAppCtx;
     private static long sPendingAt;
 
-    /** Near-immediate coalesced refresh (direct widget taps, popup saves). */
-    public static void refreshAll(Context ctx) { schedule(ctx, 60); }
+    /** SYNCHRONOUS refresh: renders every widget before returning.
+        Must be used from broadcast receivers and popup saves — their process
+        can be killed right after the callback returns, so a posted Handler
+        refresh may never run (this was why widgets went stale). */
+    public static void refreshAll(Context ctx) {
+        try {
+            sAppCtx = ctx.getApplicationContext();
+            synchronized (UI) { UI.removeCallbacks(REFRESH); sPendingAt = 0; }
+            doRefreshNow(sAppCtx);
+        } catch (Exception ignored) { }
+    }
 
     /** Debounced refresh for high-frequency sources (every web-app persist). */
     public static void refreshAllDebounced(Context ctx) { schedule(ctx, 350); }

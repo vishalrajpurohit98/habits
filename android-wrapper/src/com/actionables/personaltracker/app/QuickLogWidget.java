@@ -27,7 +27,7 @@ public class QuickLogWidget extends BaseWidget {
 
         v.setTextViewText(R.id.st_h, "\uD83C\uDF31 " + hc[0] + "/" + hc[1]);
         v.setTextViewText(R.id.st_t, "\u2713 " + tc[0] + "/" + tc[1] + (tc[2] > 0 ? " \u00B7 " + tc[2] + "!" : ""));
-        v.setTextColor(R.id.st_t, ctx.getColor(tc[2] > 0 ? R.color.wg_red : R.color.wg_ink));
+        v.setTextColor(R.id.st_t, tc[2] > 0 ? 0xFFFF6B5E : 0xFF5B9DFF);
         v.setOnClickPendingIntent(R.id.st_h, WidgetHub.popup(ctx, WidgetDialogActivity.A_ADD_HABIT, id));
         v.setOnClickPendingIntent(R.id.st_t, WidgetHub.popup(ctx, WidgetDialogActivity.A_ADD_TASK, id));
 
@@ -43,9 +43,7 @@ public class QuickLogWidget extends BaseWidget {
             v.setTextColor(DOT[i], ctx.getColor(c));
         }
 
-        boolean small = bucket == WidgetHub.SMALL;
-        v.setViewVisibility(R.id.dots, small ? View.GONE : View.VISIBLE);
-        v.setViewVisibility(R.id.streak, small ? View.GONE : View.VISIBLE);
+        v.setViewVisibility(R.id.dots, bucket == WidgetHub.SMALL ? View.GONE : View.VISIBLE);
         return v;
     }
 }

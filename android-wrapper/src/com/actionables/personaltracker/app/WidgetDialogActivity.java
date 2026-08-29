@@ -54,8 +54,6 @@ public class WidgetDialogActivity extends Activity {
     public static final String A_ADD_HABIT = "ADD_HABIT";
     public static final String A_LOG_SLEEP = "LOG_SLEEP";
     public static final String A_MOOD_DETAIL = "MOOD_DETAIL";
-    public static final String A_NEW_WORKOUT = "NEW_WORKOUT";
-    public static final String A_START_WORKOUT = "START_WORKOUT";
     public static final String A_AI = "AI_COMMAND";
 
     static final int REQ_WIDGET_SPEECH = 7101;
@@ -106,8 +104,6 @@ public class WidgetDialogActivity extends Activity {
                 break;
             }
             case A_MOOD_DETAIL: uiMood(); break;
-            case A_NEW_WORKOUT: uiNewWorkout(null); break;
-            case A_START_WORKOUT: uiStartWorkout(); break;
             case A_AI:
                 aiScope = s("scope") == null ? "all" : s("scope");
                 uiAiInput("", null);
@@ -443,105 +439,6 @@ public class WidgetDialogActivity extends Activity {
        ============================================================= */
 
     List<EditText> exInputs = new ArrayList<>();
-
-    void uiNewWorkout(AiParser.Action prefill) {
-        title("\uD83C\uDFCB New Workout", "Creates a real workout, not a placeholder");
-        EditText name = field("Workout name", prefill != null ? prefill.planName : "");
-        label("Exercises");
-        LinearLayout box = new LinearLayout(this); box.setOrientation(LinearLayout.VERTICAL);
-        root.addView(box);
-        exInputs.clear();
-        Runnable add = () -> {
-            EditText e = input("Exercise " + (exInputs.size() + 1), "");
-            exInputs.add(e); box.addView(e, rowLp());
-        };
-        if (prefill != null && !prefill.exercises.isEmpty())
-            for (String ex : prefill.exercises) { add.run(); exInputs.get(exInputs.size() - 1).setText(ex); }
-        else { add.run(); add.run(); }
-        TextView more = pill("+ Add Exercise", false);
-        more.setOnClickListener(v -> { add.run(); exInputs.get(exInputs.size() - 1).requestFocus(); });
-        root.addView(more, rowLp());
-        root.addView(btnRow(mkBtn("Cancel", false, v -> finish()),
-                mkBtn("Create Workout", true, v -> {
-                    String nm = name.getText().toString().trim();
-                    if (nm.isEmpty()) { name.setError("Name required"); return; }
-                    List<String> exs = new ArrayList<>();
-                    for (EditText e : exInputs) {
-                        String x = e.getText().toString().trim();
-                        if (!x.isEmpty()) exs.add(x);
-                    }
-                    try {
-                        st.addPlan(nm, exs);
-                        if (st.commit()) { toast("Workout created: " + nm); finish(); }
-                        else toast("Unable to create workout");
-                    } catch (Exception e) { toast("Unable to create workout"); }
-                })));
-    }
-
-    void uiStartWorkout() {
-        JSONObject plan = null;
-        String pid = s("planId");
-        if (pid != null) {
-            JSONArray ps = st.plans();
-            for (int i = 0; i < ps.length(); i++) {
-                JSONObject p = ps.optJSONObject(i);
-                if (p != null && pid.equals(p.optString("id"))) { plan = p; break; }
-            }
-        }
-        if (plan == null) plan = st.latestPlan();
-        if (plan == null) { uiNewWorkout(null); return; }
-
-        title("\uD83C\uDFCB " + plan.optString("name", "Workout"), "Enter values \u00B7 + adds a set");
-        JSONArray ids = plan.optJSONArray("exIds");
-        final List<Object[]> rows = new ArrayList<>(); // {exId, List<EditText>}
-        if (ids != null) for (int i = 0; i < ids.length(); i++) {
-            JSONObject ex = st.findExercise(ids.optString(i));
-            if (ex == null) continue;
-            String unit = ex.optString("unit", "");
-            String mt = ex.optString("mtype", "reps");
-            label(ex.optString("name") + "  \u00B7  " + (unit.isEmpty() ? mt : unit));
-            LinearLayout setsRow = hRow();
-            List<EditText> sets = new ArrayList<>();
-            java.util.function.Consumer<Void> addSet = x -> {
-                EditText e = new EditText(this);
-                styleInput(e); e.setHint("0");
-                e.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
-                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(64), ViewGroup.LayoutParams.WRAP_CONTENT);
-                lp.rightMargin = dp(6);
-                sets.add(e); setsRow.addView(e, lp);
-            };
-            addSet.accept(null);
-            TextView plus = pill("+", false);
-            plus.setOnClickListener(v -> addSet.accept(null));
-            setsRow.addView(plus);
-            root.addView(setsRow);
-            rows.add(new Object[]{ex.optString("id"), sets});
-        }
-        if (rows.isEmpty()) root.addView(text("This workout has no exercises yet.", 13, DIM, false));
-        root.addView(btnRow(mkBtn("Cancel", false, v -> finish()),
-                mkBtn("Save Workout", true, v -> {
-                    int saved = 0;
-                    try {
-                        for (Object[] r : rows) {
-                            @SuppressWarnings("unchecked") List<EditText> sets = (List<EditText>) r[1];
-                            List<Double> vals = new ArrayList<>();
-                            for (EditText e : sets) {
-                                String tv = e.getText().toString().trim();
-                                if (tv.isEmpty()) continue;
-                                try { double d = Double.parseDouble(tv); if (d > 0) vals.add(d); } catch (Exception ignored) {}
-                            }
-                            if (!vals.isEmpty()) { st.addWorkoutLog((String) r[0], vals); saved++; }
-                        }
-                        if (saved == 0) { toast("Enter at least one set"); return; }
-                        if (st.commit()) { toast("Workout logged \u2713"); finish(); }
-                        else toast("Unable to save workout");
-                    } catch (Exception e) { toast("Unable to save workout"); }
-                })));
-    }
-
-    /* =============================================================
-       AI: voice \u2192 parse \u2192 confirm \u2192 save (spec \u00A76\u2013\u00A78)
-       ============================================================= */
 
     /* =============================================================
        EDIT HABIT (v2): tap a habit name on the widget to edit it here

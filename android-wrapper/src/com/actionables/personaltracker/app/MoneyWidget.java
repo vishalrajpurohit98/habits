@@ -19,7 +19,6 @@ public class MoneyWidget extends BaseWidget {
     static final int[] XI = {R.id.x1_ico, R.id.x2_ico, R.id.x3_ico};
     static final int[] XT = {R.id.x1_title, R.id.x2_title, R.id.x3_title};
     static final int[] XA = {R.id.x1_amt, R.id.x2_amt, R.id.x3_amt};
-    static final int[] CAT = {R.id.cat1, R.id.cat2, R.id.cat3};
 
     @Override protected RemoteViews render(Context ctx, WidgetStore st, int id, int bucket) {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_money);
@@ -41,11 +40,8 @@ public class MoneyWidget extends BaseWidget {
         v.setOnClickPendingIntent(R.id.add_btn, WidgetHub.popup(ctx, WidgetDialogActivity.A_ADD_EXPENSE, id, "acctId", acctId));
 
         boolean large = bucket == WidgetHub.LARGE;
-        v.setViewVisibility(R.id.cats, View.GONE);
         v.setViewVisibility(R.id.txbox, large ? View.VISIBLE : View.GONE);
         if (large) {
-            List<String> cats = st.topCategoriesToday(3);
-            for (int i = 0; i < CAT.length; i++) v.setViewVisibility(CAT[i], View.GONE);
             List<JSONObject> tx = st.recentTx(3);
             for (int i = 0; i < XB.length; i++) {
                 if (i < tx.size()) {

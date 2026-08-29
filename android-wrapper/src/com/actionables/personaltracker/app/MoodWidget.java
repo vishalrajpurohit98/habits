@@ -19,14 +19,14 @@ public class MoodWidget extends BaseWidget {
             v.setViewVisibility(M[i], hide ? View.GONE : View.VISIBLE);
             if (hide) continue;
             v.setTextViewText(M[i], WidgetStore.MOOD_EMOJI[i]);
-            v.setInt(M[i], "setBackgroundResource", i == cur ? R.drawable.widget_inner : 0);
+            v.setInt(M[i], "setBackgroundResource", i == cur ? R.drawable.widget_mood_sel : 0);
             v.setOnClickPendingIntent(M[i], WidgetHub.broadcast(ctx, WidgetActionReceiver.SET_MOOD, id, "mood", String.valueOf(i)));
         }
 
         boolean foot = WidgetHub.rows(ctx, id) >= 2;
         v.setViewVisibility(R.id.mfoot, foot ? View.VISIBLE : View.GONE);
         if (foot) {
-            v.setTextViewText(R.id.status, cur >= 0 ? WidgetStore.MOOD_LABEL[cur] : "How do you feel?");
+            v.setTextViewText(R.id.status, cur >= 0 ? "MOOD \u00B7 " + WidgetStore.MOOD_LABEL[cur] : "MOOD");
             v.setViewVisibility(R.id.btn_more, cur >= 0 ? View.VISIBLE : View.GONE);
             v.setOnClickPendingIntent(R.id.btn_more, WidgetHub.popup(ctx, WidgetDialogActivity.A_MOOD_DETAIL, id));
         }
