@@ -444,7 +444,16 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String fsCheck(){return "{\"need\":false}";}
         @JavascriptInterface public void fsOpen(){}
         @JavascriptInterface public String autoBackup(String name,String state){try{saveFile(name,"application/json",Base64.encodeToString(state.getBytes(StandardCharsets.UTF_8),Base64.NO_WRAP));return "Downloads/"+name;}catch(Exception e){return "";}}
-        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){String[] keys={"habit","task","tab","add","acct","voice","addTask","addHabit","workout"};for(String k:keys){String v=i.getStringExtra(k);if(v!=null){o.put(k,v);i.removeExtra(k);}}}}catch(Exception ignored){}return o.toString();}
+        /** Widget quick-action session finished: reflect the save on the widgets,
+            then return the user to the home screen (never before the save). */
+        @JavascriptInterface public void widgetDone(){
+            runOnUiThread(() -> {
+                try { WidgetHub.refreshAll(MainActivity.this); } catch (Exception ignored) { }
+                try { finishAndRemoveTask(); } catch (Exception ignored) { }
+            });
+        }
+
+        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){String[] keys={"habit","task","tab","add","acct","voice","addTask","addHabit","workout","fromWidget"};for(String k:keys){String v=i.getStringExtra(k);if(v!=null){o.put(k,v);i.removeExtra(k);}}}}catch(Exception ignored){}return o.toString();}
         @JavascriptInterface public boolean bioAvail(){return false;}
         @JavascriptInterface public void bio(){}
         @JavascriptInterface public void pickDate(int y,int m,int d){MainActivity.this.pickDate(y,m,d);}

@@ -29,7 +29,8 @@ public class MoneyWidget extends BaseWidget {
 
         v.setTextViewText(R.id.bal, acct == null ? "\u2014" : st.inr(st.acctBalance(acctId)));
         String nm = acct == null ? null : acct.optString("name", "Account");
-        v.setTextViewText(R.id.acct_line, nm == null ? "NO ACCOUNT SELECTED" : nm.toUpperCase());
+        v.setTextViewText(R.id.acct_line, nm == null ? "NO ACCOUNT SELECTED"
+                : nm.toUpperCase() + " \u2014 BALANCE");
         v.setTextViewText(R.id.acct_name, nm == null ? "Choose account" : nm);
 
         v.setOnClickPendingIntent(R.id.money_body,

@@ -188,6 +188,7 @@ public final class WidgetHub {
     public static PendingIntent openAppDeep(Context ctx, String... kv) {
         Intent i = new Intent(ctx, MainActivity.class);
         i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        i.putExtra("fromWidget", "1");
         StringBuilder key = new StringBuilder("deep");
         for (int k = 0; k + 1 < kv.length; k += 2) { i.putExtra(kv[k], kv[k + 1]); key.append('/').append(kv[k]).append('=').append(kv[k + 1]); }
         i.setData(Uri.parse("hbwidget://" + key));

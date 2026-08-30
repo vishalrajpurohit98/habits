@@ -153,10 +153,20 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .uaiHint{font-size:11.5px;font-weight:600;color:var(--mut);background:var(--card2);
   padding:5px 10px;border-radius:20px;white-space:nowrap}
 .uaiHint:active{background:var(--card3)}
-.uaiMsg{padding:10px 0;border-bottom:1px solid var(--line);animation:cardSlideIn .2s ease-out}
-.uaiMsg:last-child{border-bottom:none}
-.uaiMsg.user{color:var(--ink);font-size:14px;font-weight:600}
-.uaiMsg.bot{color:var(--ink);font-size:13.5px;line-height:1.55}
+.uaiTop{display:flex;align-items:center;justify-content:space-between;padding:12px 14px 8px;border-bottom:1px solid var(--line)}
+.uaiTopT{font-weight:700;font-size:13px;letter-spacing:.02em}
+.uaiClear{font-size:12px;font-weight:700;color:var(--mut);padding:6px 12px;border:1px solid var(--line2);border-radius:10px}
+.uaiClear:active{color:var(--coral);border-color:var(--coral)}
+.uaiMsg{margin:10px 0;animation:cardSlideIn .2s ease-out}
+.uaiMsg::before{display:block;font-size:10px;font-weight:700;letter-spacing:.06em;margin:0 4px 3px}
+.uaiMsg.user{margin-left:14%;text-align:right}
+.uaiMsg.user::before{content:'YOU';color:var(--mut2)}
+.uaiMsg.user{color:var(--onAccent)}
+.uaiMsg.user{font-size:14px;font-weight:600}
+.uaiMsg.user{background:var(--amberSoft);border:1px solid rgba(255,174,31,.3);border-radius:14px 14px 4px 14px;padding:10px 13px}
+.uaiMsg.user{color:var(--ink)}
+.uaiMsg.bot{margin-right:8%;color:var(--ink);font-size:13.5px;line-height:1.55;background:var(--card2);border:1px solid var(--line);border-radius:14px 14px 14px 4px;padding:10px 13px}
+.uaiMsg.bot::before{content:'AI';color:var(--amber)}
 .uaiMsg.bot b{color:var(--amber)}
 .uaiMsg .uaiAction{margin-top:8px;padding:10px 14px;background:var(--card2);border-radius:12px;font-size:13px}
 .uaiMsg .uaiAction .uaiCheck{color:var(--sGreen);font-weight:700;font-size:14px}
@@ -1470,7 +1480,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can read and update your tracker.</div>
-    <div class="uaiBox"><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add task Finish API testing tomorrow, high priority, remind me 1 day before">Add task</span><span class="uaiHint" data-cmd="Close the Finish API testing task">Complete task</span><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
+    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ Actionables AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="e.g. Add ₹400 spent on food" autocomplete="off"><button class="uaiMic" id="uaiMic" title="Voice input">🎙</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add task Finish API testing tomorrow, high priority, remind me 1 day before">Add task</span><span class="uaiHint" data-cmd="Close the Finish API testing task">Complete task</span><span class="uaiHint" data-cmd="Add ₹500 expense for groceries">Add expense</span><span class="uaiHint" data-cmd="Mark Pushups as done">Mark habit</span><span class="uaiHint" data-cmd="How much did I spend this week?">Weekly spend</span><span class="uaiHint" data-cmd="Show my habit progress">Habit progress</span></div></div>
     <div class="aiRecentTitle">Recent</div><div id="aiRecent"></div>
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
@@ -2408,6 +2418,9 @@ function persist(){
   if(json){
     try{localStorage.setItem(KEY,json);}catch(e){}
     if(nat){try{nat.saveState(json);}catch(e){}}
+    /* Widget quick-action sessions: the first save after a widget deep link IS the
+       action completing, so hand control back to the home screen (spec v5.3). */
+    if(window._widgetFlowArmed){window._widgetFlowArmed=false;setTimeout(function(){try{nat&&nat.widgetDone&&nat.widgetDone();}catch(e){}},300);}
   }
   pushAlarms(); if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}} if(typeof scheduleSyncPush==='function')scheduleSyncPush();
 }
@@ -7269,6 +7282,20 @@ function init(){
   // ---- Universal AI Assistant wiring ----
   function doUaiSend(){ var v=$('uaiInput').value.trim();if(!v)return;$('uaiInput').value='';uaiSend(v); }
   $('uaiSend').addEventListener('click', doUaiSend);
+  $('uaiClear').addEventListener('click', function(){
+    var log=$('uaiLog');
+    if(!log || !log.childNodes.length){ return; }
+    if(log.querySelector('.uaiClearAsk')){ return; }
+    var ask=document.createElement('div');
+    ask.className='uaiMsg bot uaiClearAsk';
+    ask.innerHTML='Clear this conversation?<div class="uaiBtns" style="margin-top:8px"><button class="sbtn" data-cc="no">Cancel</button><button class="primary" data-cc="yes">Clear</button></div>';
+    ask.addEventListener('click', function(e){
+      var b=e.target.closest('button'); if(!b) return;
+      if(b.getAttribute('data-cc')==='yes'){ log.innerHTML=''; $('uaiInput').value=''; $('uaiInput').focus(); }
+      else ask.remove();
+    });
+    log.appendChild(ask); log.scrollTop=log.scrollHeight;
+  });
   $('uaiMic').addEventListener('click', function(){
     startVoice($('uaiInput'), function(text){
       toastN('Got: "'+text+'" — tap → to parse');
@@ -7599,6 +7626,7 @@ function handleLaunchAction(){
   if(!(nat && nat.getLaunchAction)) return;
   try{
     var _la = JSON.parse(nat.getLaunchAction() || '{}');
+    window._widgetFlowArmed = _la.fromWidget==='1' && !!(_la.habit||_la.task||_la.addTask||_la.addHabit||_la.workout||_la.add);
     if(_la.tab) showTab(_la.tab);
     else if(_la.habit && findHabit(_la.habit)){ showTab('pgToday'); openDetail(_la.habit); }
     else if(_la.task){ showTab('pgTasks'); setTimeout(function(){openTask(_la.task);},120); }

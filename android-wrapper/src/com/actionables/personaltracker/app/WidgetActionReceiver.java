@@ -109,6 +109,7 @@ public class WidgetActionReceiver extends BroadcastReceiver {
             Intent i = new Intent(ctx, MainActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
             i.putExtra(key, id);
+            i.putExtra("fromWidget", "1");
             ctx.startActivity(i);
         } catch (Exception e) { toast(ctx, "Unable to open the app"); }
     }
