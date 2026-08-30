@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Branded launch surface: shown ONLY for normal app-icon launches (LaunchTheme).
+     Widget deep links go straight to MainActivity, whose theme is plain black. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@android:color/black"/>
+    <item android:gravity="center" android:bottom="46dp">
+        <bitmap android:src="@drawable/app_icon" android:gravity="center"/>
+    </item>
+    <item android:gravity="center" android:top="96dp">
+        <bitmap android:src="@drawable/brand_word" android:gravity="center"/>
+    </item>
+</layer-list>

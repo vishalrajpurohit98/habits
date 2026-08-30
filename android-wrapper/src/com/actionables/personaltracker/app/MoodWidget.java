@@ -27,6 +27,11 @@ public class MoodWidget extends BaseWidget {
         }
 
         v.setTextViewText(R.id.m_status, cur >= 0 ? WidgetStore.MOOD_LABEL[cur] : "");
+        boolean tall = WidgetHub.rows(ctx, id) >= 3;
+        v.setViewVisibility(R.id.m_today, tall ? View.VISIBLE : View.GONE);
+        if (tall) v.setTextViewText(R.id.m_val, cur >= 0
+                ? WidgetStore.MOOD_EMOJI[cur] + "  " + WidgetStore.MOOD_LABEL[cur]
+                : "No mood logged today");
         boolean showNote = WidgetHub.rows(ctx, id) >= 2;
         v.setViewVisibility(R.id.note_btn, showNote ? View.VISIBLE : View.GONE);
         v.setTextViewText(R.id.note_btn, cur >= 0 ? "\u270E Add a note\u2026" : "Tap a mood to log it");

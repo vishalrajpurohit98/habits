@@ -23,21 +23,29 @@ public class TasksWidget extends BaseWidget {
         v.setPendingIntentTemplate(R.id.list, WidgetHub.listTemplate(ctx, id));
 
         String mode = WidgetHub.getPref(ctx, "tf_" + id, "today");
-        boolean over = "overdue".equals(mode);
+        boolean over = "overdue".equals(mode), all = "all".equals(mode);
         int[] c = st.todayTaskCounts(); // {done, total, overdue, open}
         int todayLeft = Math.max(0, c[1] - c[0]);
-        v.setTextViewText(R.id.f_today, todayLeft > 0 ? "TODAY \u00B7 " + todayLeft : "TODAY");
-        v.setTextViewText(R.id.f_over, c[2] > 0 ? "OVERDUE \u00B7 " + c[2] : "OVERDUE");
-        v.setInt(R.id.f_today, "setBackgroundResource", over ? R.drawable.widget_chip_dim : R.drawable.chip_active_blue);
-        v.setInt(R.id.f_over, "setBackgroundResource", over ? R.drawable.chip_active_red : R.drawable.widget_chip_dim);
-        v.setTextColor(R.id.f_today, over ? 0xFF9AA0AC : 0xFF0B0D12);
-        v.setTextColor(R.id.f_over, over ? 0xFF0B0D12 : (c[2] > 0 ? 0xFFFF6B5E : 0xFF9AA0AC));
+        String sub = (todayLeft > 0 ? todayLeft + " today" : "0 today")
+                + (c[2] > 0 ? " \u00B7 " + c[2] + " overdue" : "");
+        v.setTextViewText(R.id.t_sub, sub);
+        v.setViewVisibility(R.id.t_sub, bucket == WidgetHub.SMALL ? View.GONE : View.VISIBLE);
+
+        chip(v, R.id.f_today, !over && !all, R.drawable.chip_active_blue, 0xFF0B0D12);
+        chip(v, R.id.f_over, over, R.drawable.chip_active_red, 0xFF0B0D12);
+        chip(v, R.id.f_all, all, R.drawable.chip_active_ink, 0xFF0B0D12);
         v.setOnClickPendingIntent(R.id.f_today, filterIntent(ctx, id, "today"));
         v.setOnClickPendingIntent(R.id.f_over, filterIntent(ctx, id, "overdue"));
+        v.setOnClickPendingIntent(R.id.f_all, filterIntent(ctx, id, "all"));
 
         v.setViewVisibility(R.id.filters, bucket == WidgetHub.SMALL ? View.GONE : View.VISIBLE);
-        v.setTextViewText(R.id.empty, over ? "Nothing overdue \u2713" : "All clear for today \u2713");
+        v.setTextViewText(R.id.empty, over ? "Nothing overdue \u2713" : (all ? "No open tasks \u2713" : "No tasks today \u2713"));
         return v;
+    }
+
+    static void chip(RemoteViews v, int cid, boolean active, int activeBg, int activeInk) {
+        v.setInt(cid, "setBackgroundResource", active ? activeBg : R.drawable.widget_chip_dim);
+        v.setTextColor(cid, active ? activeInk : 0xFF9AA0AC);
     }
 
     static android.app.PendingIntent filterIntent(Context ctx, int id, String val) {

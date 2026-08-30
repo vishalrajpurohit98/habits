@@ -75,7 +75,8 @@ public class WidgetActionReceiver extends BroadcastReceiver {
                 }
                 case SET_TFILTER: {
                     int wid = in.getIntExtra("widgetId", 0);
-                    String val = "overdue".equals(in.getStringExtra("val")) ? "overdue" : "today";
+                    String val = in.getStringExtra("val");
+                    if (!"overdue".equals(val) && !"all".equals(val)) val = "today";
                     if (wid != 0) {
                         WidgetHub.setPref(ctx, "tf_" + wid, val);
                         WidgetHub.refreshProviders(ctx, new Class<?>[]{TasksWidget.class});

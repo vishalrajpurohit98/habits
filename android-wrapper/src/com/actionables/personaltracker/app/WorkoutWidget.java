@@ -17,6 +17,7 @@ public class WorkoutWidget extends BaseWidget {
         v.setRemoteAdapter(R.id.list, WidgetHub.listService(ctx, id, "workouts"));
         v.setEmptyView(R.id.list, R.id.empty);
         v.setPendingIntentTemplate(R.id.list, WidgetHub.listTemplate(ctx, id));
+        v.setTextViewText(R.id.empty, "No workouts yet");
         return v;
     }
 }

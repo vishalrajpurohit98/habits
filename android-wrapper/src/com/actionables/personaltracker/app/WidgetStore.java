@@ -1265,14 +1265,18 @@ public class WidgetStore {
         if (ts == null) return out;
         String t = today();
         boolean over = "overdue".equals(mode);
+        boolean all = "all".equals(mode);
         for (int i = 0; i < ts.length(); i++) {
             JSONObject k = ts.optJSONObject(i);
             if (k == null) continue;
             String st = taskStatus(k);
-            if (over) { if (st.equals("overdue")) out.add(k); }
-            else if (t.equals(k.optString("dueDate")) && !st.equals("completed")) out.add(k);
+            if (all) { if (!st.equals("completed")) out.add(k); }
+            else if (over) { if (st.equals("overdue")) out.add(k); }
+            else if (t.equals(k.optString("dueDate"))) out.add(k); // today keeps DONE rows visible
         }
         out.sort((a, b) -> {
+            int ga = group(a, t), gb = group(b, t); // overdue, today, upcoming, completed last
+            if (ga != gb) return ga - gb;
             int pa = "high".equals(a.optString("priority")) ? 0 : 1;
             int pb = "high".equals(b.optString("priority")) ? 0 : 1;
             if (pa != pb) return pa - pb;
@@ -1281,27 +1285,47 @@ public class WidgetStore {
         return out;
     }
 
-    /** Rows for the workout widget: active exercises with a PB / recency subtitle. */
+    static int group(JSONObject k, String today) {
+        String st = taskStatus(k);
+        if (st.equals("completed")) return 3;
+        if (st.equals("overdue")) return 0;
+        return today.equals(k.optString("dueDate")) ? 1 : 2;
+    }
+
+    /** Rows for the workout widget \u2014 today-focused (spec v5 Part G):
+        logged today \u2192 "3 \u00D7 15" style summary; otherwise "Not logged yet". */
     public List<String[]> exercisesForWidget() {
         List<String[]> out = new ArrayList<>();
         JSONArray wl = state.optJSONArray("wlog");
+        String t = today();
         for (JSONObject ex : activeExercises()) {
-            String unit = exUnit(ex.optString("mtype", "reps"));
-            double pb = 0; String lastD = ""; int sessions = 0;
-            if (wl != null) for (int i = 0; i < wl.length(); i++) {
+            String sub = "Not logged yet";
+            if (wl != null) for (int i = wl.length() - 1; i >= 0; i--) {
                 JSONObject w = wl.optJSONObject(i);
                 if (w == null || !ex.optString("id").equals(w.optString("exId"))) continue;
-                double v = setsTotal(ex, w.optJSONArray("sets"));
-                if (v <= 0) continue;
-                sessions++;
-                if (v > pb) pb = v;
-                if (w.optString("d", "").compareTo(lastD) > 0) lastD = w.optString("d");
+                if (!t.equals(w.optString("d"))) continue;
+                sub = todayLine(ex, w.optJSONArray("sets"));
+                break;
             }
-            String sub = sessions == 0 ? "Not logged yet"
-                    : "Best " + (pb == Math.floor(pb) ? String.valueOf((long) pb) : String.valueOf(pb)) + unit
-                      + " \u00B7 " + niceDate(lastD);
             out.add(new String[]{ex.optString("id"), ex.optString("name", "Exercise"), sub});
         }
         return out;
+    }
+
+    /** "3 \u00D7 15" (reps), "3 \u00D7 60kg" (weight), "30 min" (time/distance/count). */
+    String todayLine(JSONObject ex, JSONArray sets) {
+        if (sets == null || sets.length() == 0) return "Logged today";
+        String mt = ex.optString("mtype", "reps");
+        double last = 0;
+        for (int i = 0; i < sets.length(); i++) {
+            JSONObject sSet = sets.optJSONObject(i);
+            double v = sSet == null ? sets.optDouble(i, 0) : sSet.optDouble("v", sSet.optDouble("value", 0));
+            if (v > 0) last = v;
+        }
+        String val = last == Math.floor(last) ? String.valueOf((long) last) : String.valueOf(last);
+        String unit = exUnit(mt).trim();
+        if (mt.equals("reps") || mt.equals("weight") || mt.equals("count"))
+            return sets.length() + " \u00D7 " + val + ("reps".equals(mt) ? "" : unit);
+        return val + (unit.isEmpty() ? "" : " " + unit) + " today";
     }
 }

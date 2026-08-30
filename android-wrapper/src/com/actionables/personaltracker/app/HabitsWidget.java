@@ -25,8 +25,12 @@ public class HabitsWidget extends BaseWidget {
         List<WidgetStore.HabitRow> rows = st.habitsToday();
         int done = 0;
         for (WidgetStore.HabitRow r : rows) if (r.done) done++;
-        v.setTextViewText(R.id.hcount, rows.isEmpty() ? "" : done + "/" + rows.size());
-        v.setProgressBar(R.id.hbar, 100, rows.isEmpty() ? 0 : Math.round(done * 100f / rows.size()), false);
+        int pct = rows.isEmpty() ? 0 : Math.round(done * 100f / rows.size());
+        v.setTextViewText(R.id.h_sub, rows.isEmpty() ? "" : done + " / " + rows.size() + " completed");
+        v.setViewVisibility(R.id.h_sub, bucket == WidgetHub.SMALL || rows.isEmpty() ? android.view.View.GONE : android.view.View.VISIBLE);
+        v.setProgressBar(R.id.hbar, 100, pct, false);
+        v.setTextViewText(R.id.h_pct, pct + "%");
+        v.setTextViewText(R.id.empty, "No habits scheduled today");
         return v;
     }
 }

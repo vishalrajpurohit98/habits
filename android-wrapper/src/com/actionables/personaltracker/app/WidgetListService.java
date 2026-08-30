@@ -29,7 +29,8 @@ public class WidgetListService extends RemoteViewsService {
 
     /** Immutable row snapshot so the factory never holds live JSON. */
     static class Row {
-        String id, title, meta;
+        String id, title, meta, tag = "";
+        int tagColor = 0xFF9AA0AC;
         boolean done, high, overdue;
         String chkText = "";
     }
@@ -66,8 +67,11 @@ public class WidgetListService extends RemoteViewsService {
                 r.high = "high".equals(t.optString("priority"));
                 r.overdue = "overdue".equals(WidgetStore.taskStatus(t));
                 r.title = t.optString("title", "Task");
+                r.done = "completed".equals(WidgetStore.taskStatus(t));
                 r.meta = WidgetStore.taskMeta(t);
-                if (r.high) r.meta = (r.meta.isEmpty() ? "" : r.meta + " \u2022 ") + "HIGH";
+                if (r.done) { r.tag = "DONE"; r.tagColor = 0xFF7ED957; r.chkText = "\u2713"; }
+                else if (r.high) { r.tag = "HIGH"; r.tagColor = 0xFFFF6B5E; }
+                else { String p = t.optString("priority", "medium"); r.tag = p.equals("low") ? "LOW" : "MED"; }
                 rows.add(r);
             }
         }
@@ -80,12 +84,13 @@ public class WidgetListService extends RemoteViewsService {
                 r.done = h.done;
                 if ("count".equals(h.type)) {
                     String v = num(h.val), tg = num(h.targ);
-                    r.meta = v + " / " + tg + (h.unit.isEmpty() ? "" : " " + h.unit);
+                    r.tag = h.done ? "DONE" : v + "/" + tg + (h.unit.isEmpty() ? "" : " " + h.unit);
                     r.chkText = h.done ? "\u2713" : (h.val > 0 ? v : "");
                 } else {
-                    r.meta = h.meta != null && !h.meta.isEmpty() ? h.meta : (h.done ? "Done today" : "0 / 1 today");
+                    r.tag = h.done ? "DONE" : (h.meta != null && !h.meta.isEmpty() ? h.meta : "0/1");
                     r.chkText = h.done ? "\u2713" : "";
                 }
+                r.tagColor = h.done ? 0xFF7ED957 : 0xFF9AA0AC;
                 rows.add(r);
             }
         }
@@ -116,14 +121,19 @@ public class WidgetListService extends RemoteViewsService {
             boolean habit = "habits".equals(kind);
             RemoteViews v = new RemoteViews(ctx.getPackageName(),
                     habit ? R.layout.widget_row_habit : R.layout.widget_row_task);
-            v.setTextViewText(R.id.row_title, (r.high ? "\uD83D\uDD34 " : "") + r.title);
+            v.setTextViewText(R.id.row_title, (r.high && !r.done ? "\uD83D\uDD34 " : "") + r.title);
             v.setTextColor(R.id.row_title, r.done ? 0xFF9AA0AC : 0xFFFFFFFF);
-            v.setTextViewText(R.id.row_meta, r.meta == null ? "" : r.meta);
-            v.setTextColor(R.id.row_meta, r.overdue ? 0xFFFF6B5E : 0xFF9AA0AC);
+            if (!habit) {
+                v.setTextViewText(R.id.row_meta, r.meta == null ? "" : r.meta);
+                v.setTextColor(R.id.row_meta, r.overdue ? 0xFFFF6B5E : 0xFF9AA0AC);
+            }
+            v.setTextViewText(R.id.row_tag, r.tag);
+            v.setTextColor(R.id.row_tag, r.tagColor);
             v.setTextViewText(R.id.row_chk, r.chkText);
             v.setInt(R.id.row_chk, "setBackgroundResource",
                     habit ? (r.done ? R.drawable.chk_habit_on : R.drawable.chk_habit_off)
-                          : (r.overdue ? R.drawable.widget_check_red : R.drawable.chk_task_off));
+                          : (r.done ? R.drawable.chk_task_on
+                                    : (r.overdue ? R.drawable.widget_check_red : R.drawable.chk_task_off)));
             Intent open = new Intent();
             open.putExtra("op", habit ? "open_habit" : "open_task");
             open.putExtra("id", r.id);

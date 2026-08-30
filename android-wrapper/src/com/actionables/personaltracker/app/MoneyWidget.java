@@ -28,8 +28,9 @@ public class MoneyWidget extends BaseWidget {
         v.setTextColor(R.id.exp, spent > 0 ? 0xFFFF6B5E : 0xFF9AA0AC);
 
         v.setTextViewText(R.id.bal, acct == null ? "\u2014" : st.inr(st.acctBalance(acctId)));
-        v.setTextViewText(R.id.acct_name, acct == null ? "NO ACCOUNT"
-                : acct.optString("name", "Account").toUpperCase() + " ACCOUNT");
+        String nm = acct == null ? null : acct.optString("name", "Account");
+        v.setTextViewText(R.id.acct_line, nm == null ? "NO ACCOUNT SELECTED" : nm.toUpperCase());
+        v.setTextViewText(R.id.acct_name, nm == null ? "Choose account" : nm);
 
         v.setOnClickPendingIntent(R.id.money_body,
                 WidgetHub.openAppDeep(ctx, "tab", "pgExp", "acct", acctId == null ? "" : acctId));

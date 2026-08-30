@@ -19,6 +19,7 @@ public class AiWidget extends BaseWidget {
         v.setOnClickPendingIntent(R.id.ai_mic, WidgetHub.popup(ctx, WidgetDialogActivity.A_AI, id, "voice", "1"));
         v.setOnClickPendingIntent(R.id.ai_kb, WidgetHub.popup(ctx, WidgetDialogActivity.A_AI, id, "voice", "0"));
         v.setViewVisibility(R.id.ai_hint, WidgetHub.rows(ctx, id) >= 2 ? View.VISIBLE : View.GONE);
+        v.setViewVisibility(R.id.ai_sample, WidgetHub.rows(ctx, id) >= 2 ? View.VISIBLE : View.GONE);
         return v;
     }
 }
