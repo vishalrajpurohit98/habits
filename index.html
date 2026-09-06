@@ -2076,16 +2076,17 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 'use strict';
 
 /* perf: load the Excel library only when an export actually needs it */
-function ensureXlsx(cb){
+function ensureXlsx(cb,errCb){
   if(window.XLSX){ cb(); return; }
-  if(ensureXlsx._p){ ensureXlsx._p.then(cb,function(){}); return; }
+  if(ensureXlsx._p){ ensureXlsx._p.then(cb,function(e){ if(typeof errCb==='function') errCb(e); }); return; }
   if(typeof toastN==='function') toastN('Preparing Excel\u2026');
   ensureXlsx._p=new Promise(function(res,rej){
     var sc=document.createElement('script'); sc.src='xlsx.min.js'; sc.async=true;
-    sc.onload=function(){res();}; sc.onerror=function(){ensureXlsx._p=null;rej(new Error('xlsx-load-failed'));};
+    sc.onload=function(){ if(window.XLSX) res(); else rej(new Error('xlsx-global-missing')); };
+    sc.onerror=function(){ensureXlsx._p=null;rej(new Error('xlsx-load-failed'));};
     document.head.appendChild(sc);
   });
-  ensureXlsx._p.then(cb,function(){ if(typeof toastN==='function') toastN('Excel module failed to load'); });
+  ensureXlsx._p.then(cb,function(e){ if(typeof toastN==='function') toastN('Excel module failed to load'); if(typeof errCb==='function') errCb(e); });
 }
 
 /* ================= constants ================= */
@@ -8193,7 +8194,7 @@ handleLaunchAction();
       var f=F$('featureFile').files&&F$('featureFile').files[0];if(!f)return;
       fToast('Statement selected — preparing automatic analysis…');
       var isExcel=/\.(xlsx|xls)$/i.test(f.name),rd=new FileReader();
-      function processData(data){try{var rows;if(isExcel){if(typeof XLSX==='undefined')throw new Error('Excel module unavailable');var wb=XLSX.read(data,{type:'array'}),sh=wb.Sheets[wb.SheetNames[0]];if(!sh)throw new Error('No worksheet found');rows=XLSX.utils.sheet_to_json(sh,{header:1,defval:'',raw:true});}else rows=parseCSV(String(data));m.remove();var ss=F$('featureScrim');if(ss)ss.remove();importRows(rows);}catch(err){fToast('Could not read file: '+err.message);}}
+      function processData(data){try{if(isExcel&&typeof XLSX==='undefined'){fToast('Loading Excel reader…');ensureXlsx(function(){processData(data);},function(){fToast('Could not load Excel reader. Please retry the file.');});return;}var rows;if(isExcel){var wb=XLSX.read(data,{type:'array'}),sh=wb.Sheets[wb.SheetNames[0]];if(!sh)throw new Error('No worksheet found');rows=XLSX.utils.sheet_to_json(sh,{header:1,defval:'',raw:true});}else rows=parseCSV(String(data));m.remove();var ss=F$('featureScrim');if(ss)ss.remove();importRows(rows);}catch(err){fToast('Could not read file: '+err.message);}}
       rd.onload=function(){processData(rd.result);};
       if(isExcel){fToast('Reading Excel statement…');rd.readAsArrayBuffer(f);}else rd.readAsText(f);
     });
@@ -8208,7 +8209,7 @@ handleLaunchAction();
         else rows=parseCSV(new TextDecoder('utf-8').decode(bytes));
         var mm=F$('featureModal'),ss=F$('featureScrim');if(mm)mm.remove();if(ss)ss.remove();importRows(rows);
       }
-      if(isExcel && typeof XLSX==='undefined'){fToast('Loading Excel reader…');ensureXlsx(processNative);}else processNative();
+      if(isExcel && typeof XLSX==='undefined'){fToast('Loading Excel reader…');ensureXlsx(processNative,function(){fToast('Could not load Excel reader. Please retry the file.');});}else processNative();
     }catch(e){fToast('Could not parse imported file: '+e.message);}
   };
 
