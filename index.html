@@ -6132,10 +6132,10 @@ function initSync(){
   ensureFirebaseReady().then(function(){renderSyncUI();}).catch(function(){setSyncState('error');});
 }
 
-function syncMetaRef(){return fbDoc?fbDoc.collection('meta').doc('syncStatus'):null;}
-function applySyncMeta(d){d=d||{};var at=Number(d.lastSyncAtMs||0);if(at)syncLastAt=at;syncLastDevice=String(d.lastSyncDeviceId||'');syncLastState=String(d.lastSyncState||'');}
-function loadSyncMeta(){var ref=syncMetaRef();if(!ref)return Promise.resolve();syncMetaDoc=ref;return ref.get({source:'default'}).then(function(s){if(s.exists)applySyncMeta(s.data()||{});renderSyncUI();renderTodaySyncUI();}).catch(function(){});}
-function writeSyncMeta(status){var ref=syncMetaRef();if(!ref||!fbUser)return Promise.resolve();var at=Date.now();var payload={lastSyncAtMs:at,lastSyncState:status||'synced',lastSyncDeviceId:deviceId,lastSyncMtime:Number(state.mtime||at),schemaVersion:1};return ref.set(payload,{merge:true}).then(function(){syncLastAt=at;syncLastState=status||'synced';syncLastDevice=deviceId;});}
+function syncMetaRef(){return fbDoc||null;}
+function applySyncMeta(d){d=d||{};var x=d.syncMeta&&typeof d.syncMeta==='object'?d.syncMeta:d;var at=Number(x.lastSyncAtMs||0);if(at)syncLastAt=at;syncLastDevice=String(x.lastSyncDeviceId||'');syncLastState=String(x.lastSyncState||'');}
+function loadSyncMeta(){var ref=syncMetaRef();if(!ref)return Promise.resolve();syncMetaDoc=ref;return ref.get({source:'default'}).then(function(s){if(s.exists){var d=s.data()||{};applySyncMeta(d);renderSyncUI();renderTodaySyncUI();}}).catch(function(){});}
+function writeSyncMeta(status){var ref=syncMetaRef();if(!ref||!fbUser)return Promise.resolve();var at=Date.now();var payload={lastSyncAtMs:at,lastSyncState:status||'synced',lastSyncDeviceId:deviceId,lastSyncMtime:Number(state.mtime||at),schemaVersion:1};syncLastAt=at;syncLastState=status||'synced';syncLastDevice=deviceId;return ref.set({syncMeta:payload},{merge:true}).catch(function(){});}
 
 function syncRecordEntries(){var out={};function addArray(d,a){(a||[]).forEach(function(v){if(v&&v.id)out[d+':'+v.id]=v;});}function addMap(d,o){if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(k){out[d+':'+k]={key:k,value:o[k]};});}addArray('habit',state.habits);addArray('tx',state.tx);addArray('acct',state.accts);addArray('exercise',state.exs);addArray('workout',state.wlog);addArray('sleep',state.sleep);addArray('journal',state.jr);addArray('goal',state.goals);addArray('task',state.tasks);addMap('mood',state.mood);addMap('moodNote',state.moodNotes);addMap('hlog',state.hlog);addMap('closed',state.closed);addMap('budg',state.budg);addMap('budgets',state.budgets);addMap('cats',state.cats);addMap('fxRates',state.fxRates);out['set:all']=state.set;out['incCats:all']=state.incCats;return out;}
 var syncRecordShadow={};var syncPendingRecords={};
@@ -6848,7 +6848,7 @@ function init(){
   $('btnNotif').addEventListener('click', function(){ if(nat){ nat.reqNotif(); setTimeout(renderSet, 900); } });
   $('btnExact').addEventListener('click', function(){ if(nat){ nat.reqExact(); } });
   $('btnSound').addEventListener('click', function(){ if(nat){ nat.openChannelSettings(); } else toastN('Available in the app'); });
-  $('btnCurrency').addEventListener('click', function(){ showCurrency(); });
+  $('btnCurrency').addEventListener('click', function(){ if(window.showCurrency) window.showCurrency(); else toastN('Currency settings are loading — try again'); });
   $('btnPin').addEventListener('click', function(){ showLock(state.set.pin ? 'ver' : 'new1'); });
   $('btnPinOff').addEventListener('click', function(){ showLock('off'); });
   $('btnXlsx').addEventListener('click', function(){
@@ -8029,8 +8029,7 @@ handleLaunchAction();
       }
     });
   }
-
-
+  window.showCurrency = showCurrency;
 
   /* -------- import transactions / bank statement -------- */
   function parseCSV(text){
