@@ -485,8 +485,8 @@ public class MainActivity extends Activity {
             i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
             i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
             i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,1200);
-            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,1800);
-            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,1800);
+            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
+            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
             voiceRecognizer.startListening(i);
             js("window._voiceNativeState&&window._voiceNativeState('starting')");
         } catch(Exception e) {
