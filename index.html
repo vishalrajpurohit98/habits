@@ -6,21 +6,6 @@
 <title>Personal Tracker</title>
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<style id="voice-v9-basic">
-.globalVoiceBtn{position:fixed;right:18px;bottom:154px;width:50px;height:50px;border:1px solid var(--line2);border-radius:50%;z-index:79;background:var(--card2);color:var(--ink);font-size:21px;box-shadow:var(--shadow);cursor:pointer}
-.globalVoiceBtn:active{transform:scale(.97)}
-@media(min-width:1000px){.globalVoiceBtn{right:42px;bottom:104px}}
-</style>
-<style id="voice-v9-basic">
-.globalVoiceBtn{position:fixed;right:18px;bottom:154px;width:50px;height:50px;border:1px solid var(--line2);border-radius:50%;z-index:79;background:var(--card2);color:var(--ink);font-size:21px;box-shadow:var(--shadow);cursor:pointer}
-.globalVoiceBtn:active{transform:scale(.97)}
-@media(min-width:1000px){.globalVoiceBtn{right:42px;bottom:104px}}
-</style>
-<style id="voice-v9-basic">
-.globalVoiceBtn{position:fixed;right:18px;bottom:154px;width:50px;height:50px;border:1px solid var(--line2);border-radius:50%;z-index:79;background:var(--card2);color:var(--ink);font-size:21px;box-shadow:var(--shadow);cursor:pointer}
-.globalVoiceBtn:active{transform:scale(.97)}
-@media(min-width:1000px){.globalVoiceBtn{right:42px;bottom:104px}}
-</style>
 <link rel="manifest" href="manifest.json">
 <style>
 @font-face{
@@ -7357,11 +7342,6 @@ function init(){
     });
     log.appendChild(ask); log.scrollTop=log.scrollHeight;
   });
-  $('uaiMic').addEventListener('click', function(){
-    startVoice($('uaiInput'), function(text){
-      toastN('Got: "'+text+'" — tap → to parse');
-    });
-  });
   $('uaiInput').addEventListener('keydown', function(e){if(e.key==='Enter'){e.preventDefault();doUaiSend();}});
   if($('aiCfgHead'))$('aiCfgHead').addEventListener('click',function(){$('aiCfg').classList.toggle('open');});
   // Quick hint chips
@@ -7372,128 +7352,65 @@ function init(){
   // ---- Natural language expense entry ----
   // Wire the AI page NL expense (nlExpInput2/nlExpSend2)
 
-  // ---- Voice control: rebuilt for reliability ----
-  var _speechCbId = 0, _speechCallbacks = {}, _browserSpeech = null, _speechTimer = null;
-  var _voiceActive = false;
-
-  function voiceStatus(msg, isError){
-    var el=$('uaiVoiceStatus');
-    if(el){ el.textContent=msg||''; el.className='uaiVoiceStatus'+(isError?' err':''); el.style.display=msg?'block':'none'; }
-  }
-  function clearSpeechTimer(){ if(_speechTimer){ clearTimeout(_speechTimer); _speechTimer=null; } }
-  function stopBrowserSpeech(){
-    clearSpeechTimer();
-    if(_browserSpeech){
-      try{ _browserSpeech.onresult=null; _browserSpeech.onerror=null; _browserSpeech.onend=null; _browserSpeech.stop(); }catch(e){}
-      _browserSpeech=null;
-    }
-    _voiceActive=false;
-  }
-  function finishVoice(text,err,onDone){
-    if(!_voiceActive && !err && !text) return;
-    clearSpeechTimer();
-    if(_browserSpeech){try{_browserSpeech.onresult=null;_browserSpeech.onerror=null;_browserSpeech.onend=null;_browserSpeech.stop();}catch(e){} _browserSpeech=null;}
-    _voiceActive=false;
-    if(err){ voiceStatus(err,true); }
-    else if(text){ voiceStatus('Heard: '+text,false); }
-    else { voiceStatus('No speech detected. Tap the microphone and try again.',true); }
-    if(onDone) onDone(String(text||''),err||null);
-  }
-  window._speechResult=function(id,text,err){
-    var cb=_speechCallbacks[id]; if(!cb)return; delete _speechCallbacks[id];
-    finishVoice(text||'',err||null,cb);
-  };
-  window._speechState=function(id,state){
-    if(!_voiceActive)return;
-    if(state==='ready'){voiceStatus('Microphone ready — speak now',false);}
-    else if(state==='begin'){voiceStatus('Listening…',false);}
+  // ---- Voice input: native Android speech on APK, Web Speech API on browser ----
+  // Keep this path intentionally simple and compatible with the earlier working build.
+  var _speechCbId = 0, _speechCallbacks = {};
+  window._speechResult = function(id, text, err){
+    var cb = _speechCallbacks[id]; if(!cb) return; delete _speechCallbacks[id];
+    if(err){ if(err !== 'cancelled') toastN(err); return; }
+    cb(text || '');
   };
 
-  function startBrowserSpeech(targetInput,onDone){
-    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-    if(!SR){ finishVoice('', 'Voice input is not supported in this browser. Use Chrome/Edge or the Android app.', onDone); return; }
-    stopBrowserSpeech();
-    _voiceActive=true;
-    voiceStatus('Starting microphone…',false);
-    var r;
-    try{ r=new SR(); }catch(e){ finishVoice('', 'Could not start voice input: '+(e.message||e), onDone); return; }
-    _browserSpeech=r;
-    r.lang='en-IN';
-    r.continuous=false;
-    r.interimResults=true;
-    r.maxAlternatives=1;
-    var finalText='', interim='';
-    r.onstart=function(){ voiceStatus('Listening… Speak now',false); };
-    r.onaudiostart=function(){ voiceStatus('Listening… Speak now',false); };
-    r.onspeechstart=function(){ voiceStatus('Hearing you…',false); };
-    r.onresult=function(e){
-      interim='';
-      for(var i=e.resultIndex;i<e.results.length;i++){
-        var part=e.results[i][0]&&e.results[i][0].transcript||'';
-        if(e.results[i].isFinal) finalText+=part+' ';
-        else interim+=part;
-      }
-      var shown=(finalText+interim).replace(/\s+/g,' ').trim();
-      if(shown) voiceStatus('“'+shown+'”',false);
-      if(finalText.trim()) finishVoice(finalText.trim(),null,onDone);
-    };
-    r.onerror=function(e){
-      var map={
-        'notallowed':'Microphone permission was denied. Allow microphone access and try again.',
-        'service-not-allowed':'The browser blocked speech recognition. Allow microphone access for this site.',
-        'audio':'The microphone could not be opened.',
-        'network':'Speech recognition needs a network connection.',
-        'no-speech':'No speech detected. Tap the microphone and speak clearly.',
-        'aborted':'Voice input was cancelled.',
-        'language':'English (India) speech recognition is unavailable.'
+  function startVoice(targetInput, onDone){
+    targetInput = targetInput || $('uaiInput');
+    // Android APK: use the standard system speech activity (the previously working path).
+    if(nat && nat.startSpeech){
+      var id = 'sp_' + (++_speechCbId);
+      _speechCallbacks[id] = function(text){
+        if(targetInput){ targetInput.value = text; targetInput.focus(); }
+        toastN('Got: "' + text + '"');
+        if(onDone) onDone(text);
       };
-      finishVoice('',map[e.error]||('Voice recognition error: '+e.error),onDone);
-    };
-    r.onend=function(){
-      _browserSpeech=null; clearSpeechTimer();
-      if(!_voiceActive)return;
-      if(finalText.trim()) finishVoice(finalText.trim(),null,onDone);
-      else finishVoice('', 'Voice recognition ended without hearing speech. Tap the microphone and try again.', onDone);
-    };
-    // Safety timer starts BEFORE start(), so a browser that never fires onstart cannot hang forever.
-    _speechTimer=setTimeout(function(){
-      if(_voiceActive){ try{r.abort();}catch(e){} finishVoice('', 'The microphone did not start. Check browser microphone permission and try again.', onDone); }
-    },8000);
-    try{ r.start(); }
-    catch(e){ finishVoice('', 'Could not start the microphone: '+(e.message||e), onDone); }
-  }
-
-  function startVoice(targetInput,onDone){
-    onDone=onDone||function(){};
-    if(_voiceActive){ stopBrowserSpeech(); try{if(nat&&nat.stopSpeech)nat.stopSpeech();}catch(e){} voiceStatus('Voice input stopped',false); return; }
-    var input=targetInput||$('uaiInput');
-    // Native Android path. The callback returns transcript text to this same function.
-    if(nat && typeof nat.startSpeech==='function'){
-      var id='sp_'+(++_speechCbId);
-      _voiceActive=true;
-      _speechCallbacks[id]=function(text,err){
-        if(!err && text && input){ input.value=text; input.focus(); }
-        finishVoice(text||'',err||null,onDone);
-      };
-      voiceStatus('Starting microphone…',false);
-      try{ nat.startSpeech(id); }
-      catch(e){ delete _speechCallbacks[id]; finishVoice('',e.message||'Could not start Android voice input',onDone); return; }
-      _speechTimer=setTimeout(function(){
-        if(_voiceActive){ try{nat.stopSpeech&&nat.stopSpeech();}catch(e){} var cb=_speechCallbacks[id]; delete _speechCallbacks[id]; finishVoice('', 'The microphone did not respond. Check microphone permission and try again.', onDone); }
-      },12000);
+      try{ nat.startSpeech(id); }catch(e){ delete _speechCallbacks[id]; toastN('Could not start voice input'); }
       return;
     }
-    startBrowserSpeech(input,onDone);
+    // Browser: direct Web Speech API; no getUserMedia pre-flight.
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if(!SR){ toastN('Voice input not supported in this browser'); return; }
+    var rec;
+    try{ rec = new SR(); }catch(e){ toastN('Could not start voice input'); return; }
+    rec.lang = 'en-IN';
+    rec.continuous = false;
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.onresult = function(e){
+      try{
+        var text = e.results[0][0].transcript;
+        if(targetInput){ targetInput.value = text; targetInput.focus(); }
+        if(onDone) onDone(text);
+      }catch(err){ toastN('Could not read the voice result'); }
+    };
+    rec.onerror = function(e){
+      if(e.error === 'not-allowed' || e.error === 'service-not-allowed') toastN('Microphone permission denied — allow microphone access for this site');
+      else if(e.error === 'no-speech') toastN('No speech detected — try again');
+      else if(e.error === 'audio') toastN('Microphone could not be opened');
+      else if(e.error === 'network') toastN('Speech recognition needs a network connection');
+      else toastN('Voice error: ' + (e.error || 'unknown error'));
+    };
+    rec.onstart = function(){ toastN('🎙 Listening…'); };
+    try{ rec.start(); }catch(e){ toastN('Could not start microphone: ' + (e.message || 'try again')); }
   }
 
-  // AI microphone: voice is treated as a command, so recognized text is sent to AI automatically.
+  // Exactly one AI microphone listener. The previous build had two listeners, which caused
+  // the second handler to stop the recognition session started by the first handler.
   $('uaiMic').addEventListener('click', function(){
-    startVoice($('uaiInput'), function(text,err){
-      if(err || !text) return;
-      $('uaiInput').value=text;
+    startVoice($('uaiInput'), function(text){
+      if(!text) return;
+      $('uaiInput').value = text;
       uaiSend(text,{voice:true});
     });
   });
+
   /* simplified stats + mood toggles */
   $('moToggle').addEventListener('click', function(){
     var f = $('moFull'), on = f.style.display === 'none';
@@ -8527,59 +8444,26 @@ window.__HT_PRO__='productivity-suite-v2';
 </script>
 
 
-<!-- V9 simple global voice trigger: no modal, no custom animation -->
-<button id="globalVoiceBtn" class="globalVoiceBtn" aria-label="Voice command" title="Voice command">🎙</button>
-<script>
-(function(){
-  var b=document.getElementById('globalVoiceBtn');
-  if(!b)return;
-  b.addEventListener('click',function(){
-    try{ showTab('pgAI'); }catch(e){}
-    setTimeout(function(){
-      if(typeof startVoice==='function'){
-        startVoice(document.getElementById('uaiInput'),function(text,err){
-          if(!err && text){ var i=document.getElementById('uaiInput'); if(i)i.value=text; if(typeof uaiSend==='function')uaiSend(text,{voice:true}); }
-        });
-      }
-    },80);
-  });
-})();
-</script>
 
-<!-- V9 simple global voice trigger: no modal, no custom animation -->
-<button id="globalVoiceBtn" class="globalVoiceBtn" aria-label="Voice command" title="Voice command">🎙</button>
+<style id="voice-global-v10">
+.globalVoiceBtn{position:fixed;right:18px;bottom:92px;width:52px;height:52px;border:1px solid var(--line2);border-radius:50%;z-index:30;background:var(--card2);color:var(--ink);font-size:22px;box-shadow:var(--shadow);cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.globalVoiceBtn:active{transform:scale(.96)}
+@media(min-width:1000px){.globalVoiceBtn{right:28px;bottom:28px}}
+</style>
+<button id="globalVoiceBtn" class="globalVoiceBtn" type="button" aria-label="Voice command" title="Voice command">🎙</button>
 <script>
 (function(){
   var b=document.getElementById('globalVoiceBtn');
-  if(!b)return;
-  b.addEventListener('click',function(){
-    try{ showTab('pgAI'); }catch(e){}
-    setTimeout(function(){
-      if(typeof startVoice==='function'){
-        startVoice(document.getElementById('uaiInput'),function(text,err){
-          if(!err && text){ var i=document.getElementById('uaiInput'); if(i)i.value=text; if(typeof uaiSend==='function')uaiSend(text,{voice:true}); }
-        });
-      }
-    },80);
-  });
-})();
-</script>
-
-<!-- V9 simple global voice trigger: no modal, no custom animation -->
-<button id="globalVoiceBtn" class="globalVoiceBtn" aria-label="Voice command" title="Voice command">🎙</button>
-<script>
-(function(){
-  var b=document.getElementById('globalVoiceBtn');
-  if(!b)return;
-  b.addEventListener('click',function(){
-    try{ showTab('pgAI'); }catch(e){}
-    setTimeout(function(){
-      if(typeof startVoice==='function'){
-        startVoice(document.getElementById('uaiInput'),function(text,err){
-          if(!err && text){ var i=document.getElementById('uaiInput'); if(i)i.value=text; if(typeof uaiSend==='function')uaiSend(text,{voice:true}); }
-        });
-      }
-    },80);
+  if(!b) return;
+  b.addEventListener('click',function(e){
+    e.preventDefault(); e.stopPropagation();
+    try{showTab('pgAI');}catch(err){}
+    var input=document.getElementById('uaiInput');
+    if(typeof startVoice==='function') startVoice(input,function(text){
+      if(!text) return;
+      if(input) input.value=text;
+      if(typeof uaiSend==='function') uaiSend(text,{voice:true});
+    });
   });
 })();
 </script>

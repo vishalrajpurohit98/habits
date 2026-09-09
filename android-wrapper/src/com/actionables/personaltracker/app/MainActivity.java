@@ -10,7 +10,6 @@ import android.os.*;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
-import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.view.*;
@@ -39,7 +38,6 @@ public class MainActivity extends Activity {
     SharedPreferences prefs;
     String pendingSpeechId = null;
     TextToSpeech tts;
-    SpeechRecognizer speechRecognizer;
     String pendingImportCallback = "importNative";
     String pendingImportMode = "backup";
     String pendingPhotoDir = "photos";
@@ -356,7 +354,19 @@ public class MainActivity extends Activity {
                 js("window.photoResult&&window.photoResult('"+name+"')");
             } catch(Exception e){ toast("Could not save photo"); }
         }
-    }
+     else if (req == REQ_SPEECH) {
+            String current = pendingSpeechId;
+            pendingSpeechId=null;
+            if (current != null) {
+                if (result == RESULT_OK && data != null) {
+                    ArrayList<String> r = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    String text = r != null && !r.isEmpty() ? r.get(0) : "";
+                    js("window._speechResult&&window._speechResult("+JSONObject.quote(current)+","+JSONObject.quote(text)+",null)");
+                } else {
+                    js("window._speechResult&&window._speechResult("+JSONObject.quote(current)+",'',"+JSONObject.quote("cancelled")+")");
+                }
+            }
+        }}
 
     static byte[] readAll(InputStream in) throws IOException {
         if(in==null) return new byte[0]; ByteArrayOutputStream b=new ByteArrayOutputStream();
@@ -408,105 +418,25 @@ public class MainActivity extends Activity {
     }
 
     void startSpeech(String id) {
-        pendingSpeechId = id;
+        pendingSpeechId=id;
         if (Build.VERSION.SDK_INT >= 23 &&
                 checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_SPEECH);
             return;
         }
-        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            finishSpeech(id, "", "Speech recognition is not available on this device");
-            return;
+        Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN");
+        i.putExtra(RecognizerIntent.EXTRA_PROMPT,"Speak");
+        try { startActivityForResult(i,REQ_SPEECH); } catch(Exception e) {
+            js("window._speechResult&&window._speechResult("+JSONObject.quote(id)+",'',"+JSONObject.quote("Speech input unavailable")+")");
+            pendingSpeechId=null;
         }
-        runOnUiThread(() -> {
-            try {
-                if (speechRecognizer != null) {
-                    speechRecognizer.cancel();
-                    speechRecognizer.destroy();
-                }
-                speechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-                speechRecognizer.setRecognitionListener(new android.speech.RecognitionListener() {
-                    @Override public void onReadyForSpeech(android.os.Bundle params) { if (pendingSpeechId != null) js("window._speechState&&window._speechState("+JSONObject.quote(pendingSpeechId)+",'ready')"); }
-                    @Override public void onBeginningOfSpeech() { if (pendingSpeechId != null) js("window._speechState&&window._speechState("+JSONObject.quote(pendingSpeechId)+",'begin')"); }
-                    @Override public void onRmsChanged(float rmsdB) { }
-                    @Override public void onBufferReceived(byte[] buffer) { }
-                    @Override public void onEndOfSpeech() { }
-                    @Override public void onEvent(int eventType, android.os.Bundle params) { }
-                    @Override public void onPartialResults(android.os.Bundle partialResults) {
-                        if (pendingSpeechId == null || partialResults == null) return;
-                        ArrayList<String> r = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                        if (r != null && !r.isEmpty()) js("window._speechState&&window._speechState("+JSONObject.quote(pendingSpeechId)+",'partial',"+JSONObject.quote(r.get(0))+ ")");
-                    }
-                    @Override public void onResults(android.os.Bundle results) {
-                        ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                        String text = r != null && !r.isEmpty() ? r.get(0) : "";
-                        String current = pendingSpeechId;
-                        cleanupSpeechRecognizer();
-                        if (current != null) finishSpeech(current, text, null);
-                    }
-                    @Override public void onError(int error) {
-                        String current = pendingSpeechId;
-                        cleanupSpeechRecognizer();
-                        if (current == null) return;
-                        String msg;
-                        switch(error) {
-                            case SpeechRecognizer.ERROR_AUDIO: msg = "Microphone audio error"; break;
-                            case SpeechRecognizer.ERROR_CLIENT: msg = "Speech input was interrupted"; break;
-                            case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS: msg = "Microphone permission denied"; break;
-                            case SpeechRecognizer.ERROR_NETWORK: msg = "Network error while recognizing speech"; break;
-                            case SpeechRecognizer.ERROR_NETWORK_TIMEOUT: msg = "Speech recognition timed out"; break;
-                            case SpeechRecognizer.ERROR_NO_MATCH: msg = "No speech detected — try again"; break;
-                            case SpeechRecognizer.ERROR_RECOGNIZER_BUSY: msg = "Speech recognizer is busy — try again"; break;
-                            case SpeechRecognizer.ERROR_SERVER: msg = "Speech recognition service error"; break;
-                            case SpeechRecognizer.ERROR_SPEECH_TIMEOUT: msg = "No speech detected — try again"; break;
-                            default: msg = "Could not recognize speech";
-                        }
-                        finishSpeech(current, "", msg);
-                    }
-                });
-                Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, "en-IN");
-                i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, "en-IN");
-                i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
-                i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
-                speechRecognizer.startListening(i);
-                new Handler(Looper.getMainLooper()).postDelayed(() -> {
-                    if (pendingSpeechId != null && pendingSpeechId.equals(id)) {
-                        try { speechRecognizer.stopListening(); } catch (Exception ignored) {}
-                        String current = pendingSpeechId;
-                        cleanupSpeechRecognizer();
-                        finishSpeech(current, "", "Speech recognition timed out. Please try again.");
-                    }
-                }, 12000);
-            } catch (Exception e) {
-                cleanupSpeechRecognizer();
-                finishSpeech(id, "", "Could not start speech recognition");
-            }
-        });
-    }
-
-    void finishSpeech(String id, String text, String err) {
-        if (id == null) return;
-        if (id.equals(pendingSpeechId)) pendingSpeechId = null;
-        js("window._speechResult&&window._speechResult(" + JSONObject.quote(id) + "," + JSONObject.quote(text == null ? "" : text) + "," + (err == null ? "null" : JSONObject.quote(err)) + ")");
-    }
-
-    void stopSpeech() {
-        String current = pendingSpeechId;
-        pendingSpeechId = null;
-        cleanupSpeechRecognizer();
-        if (current != null) js("window._speechResult&&window._speechResult(" + JSONObject.quote(current) + ",\"\",\"cancelled\")");
-    }
-
-    void cleanupSpeechRecognizer() {
-        try { if (speechRecognizer != null) { speechRecognizer.cancel(); speechRecognizer.destroy(); } } catch(Exception ignored) {}
-        speechRecognizer = null;
     }
 
     void speakText(String s){ if(s==null||s.trim().isEmpty()) return; runOnUiThread(() -> { try { if(tts!=null){ tts.setLanguage(Locale.forLanguageTag("en-IN")); tts.speak(s.trim(), TextToSpeech.QUEUE_FLUSH, null, "pt_voice"); } } catch(Exception ignored){} }); }
 
-    @Override protected void onDestroy(){ try{ cleanupSpeechRecognizer(); }catch(Exception ignored){} try{ if(tts!=null){tts.stop();tts.shutdown();} }catch(Exception ignored){} super.onDestroy(); }
+    @Override protected void onDestroy(){ try{ if(tts!=null){tts.stop();tts.shutdown();} }catch(Exception ignored){} super.onDestroy(); }
 
     void toast(String s){ runOnUiThread(()->Toast.makeText(this,s,Toast.LENGTH_SHORT).show()); }
 
@@ -521,7 +451,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void reqExact(){requestExact();}
         @JavascriptInterface public void openChannelSettings(){try{Intent i=new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);i.putExtra(Settings.EXTRA_APP_PACKAGE,getPackageName());i.putExtra(Settings.EXTRA_CHANNEL_ID,NativeAlarms.CHANNEL_ID);startActivity(i);}catch(Exception e){}}
         @JavascriptInterface public void setBars(String color, boolean light){try{getWindow().setStatusBarColor(Color.parseColor(color));getWindow().setNavigationBarColor(Color.parseColor(color));if(Build.VERSION.SDK_INT>=23){int f=getWindow().getDecorView().getSystemUiVisibility();if(light)f|=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;else f&=~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;getWindow().getDecorView().setSystemUiVisibility(f);}}catch(Exception ignored){}}
-        @JavascriptInterface public String appVer(){return "1.1.2";}
+        @JavascriptInterface public String appVer(){return "1.1.4";}
         @JavascriptInterface public void toast(String s){MainActivity.this.toast(s);}
         @JavascriptInterface public void testReminder(){NativeAlarms.test(MainActivity.this);}
         @JavascriptInterface public String fsCheck(){return "{\"need\":false}";}
@@ -550,7 +480,6 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String saveFile(String name,String mime,String b64)throws Exception{return MainActivity.this.saveFile(name,mime,b64);}
         @JavascriptInterface public void shareFile(String name,String mime,String b64)throws Exception{MainActivity.this.shareFile(name,mime,b64);}
         @JavascriptInterface public void startSpeech(String id){MainActivity.this.startSpeech(id);}
-        @JavascriptInterface public void stopSpeech(){MainActivity.this.stopSpeech();}
         @JavascriptInterface public void speak(String text){MainActivity.this.speakText(text);}
     }
 }
