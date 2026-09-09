@@ -8663,7 +8663,7 @@ window.__HT_PRO__='productivity-suite-v2';
 <button id="globalVoiceBtn" class="globalVoiceBtn" type="button" aria-label="Start AI voice mode" title="AI Voice Mode">🎙</button>
 <script>
 (function(){
-  var vm={active:false,speaking:false,muted:false,waiting:false,lastPartial:'',turns:[],live:null,liveReady:false,liveOutputText:'',liveInputText:'',audioCtx:null,micStream:null,micSource:null,processor:null,silentGain:null,playAt:0,playbackTimer:null};
+  var vm={active:false,speaking:false,muted:false,waiting:false,lastPartial:'',turns:[],live:null,liveReady:false,liveOutputText:'',liveInputText:'',audioCtx:null,micStream:null,micSource:null,processor:null,silentGain:null,playAt:0,playbackTimer:null,liveReconnectTimer:null,liveReconnectAttempts:0,liveClosing:false,liveGeneration:0};
   function $(id){return document.getElementById(id);}
   function setVMState(state,hint){var o=$('voiceModeOverlay');if(!o)return;o.classList.remove('listening','thinking','speaking','error');if(state) o.classList.add(state);$('voiceModeState').textContent=state==='listening'?'Listening…':state==='thinking'?'Thinking…':state==='speaking'?'Speaking…':state==='error'?'Voice error':'Ready';$('voiceModeHint').textContent=hint||'';}
   window.setVMState=setVMState;
@@ -8687,16 +8687,24 @@ window.__HT_PRO__='productivity-suite-v2';
   function logVoiceResult(res){try{var log=$('uaiLog');if(!log)return;var msg=(res.msg||'Done')+(res.detail?' '+res.detail:'');log.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(res.ok?'✓ ':'')+esc(msg)+'</div></div></div>';log.scrollTop=log.scrollHeight;}catch(e){}}
   function handleLiveToolCall(msg){var calls=msg.toolCall&&msg.toolCall.functionCalls||[];calls.forEach(function(fc){var a=fc.args||{},action=String(a.action||'clarify'),params=liveParamsFromArgs(a),result;params.confirm=!!a.confirm;result=executeAction({action:action,params:params,confirm:!!a.confirm,message:''});if(result.needConfirm&&result.pending){window._voicePendingConfirmation={pending:result.pending,prompt:result.msg};}else if(result.ok){window._voicePendingConfirmation=null;reRenderCurrent();logVoiceResult(result);}else if(result.isClarify){/* keep live session active */}liveSendToolResponse(fc.id,fc.name,{ok:!!result.ok,message:result.msg||'',detail:result.detail||'',needsConfirmation:!!result.needConfirm,confirmation:result.needConfirm?result.msg:'',pendingAction:result.needConfirm?result.pending:null,appData:buildDataContext()});});}
   function setupLiveAudio(){if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia))return Promise.reject(new Error('Microphone streaming is not supported on this device.'));return navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(function(stream){if(!vm.active){stream.getTracks().forEach(function(t){t.stop();});return;}vm.micStream=stream;var AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw new Error('Audio input is not supported on this device.');vm.audioCtx=new AC();var ctx=vm.audioCtx;return ctx.resume().then(function(){vm.micSource=ctx.createMediaStreamSource(stream);vm.processor=ctx.createScriptProcessor(4096,1,1);vm.silentGain=ctx.createGain();vm.silentGain.gain.value=0;vm.processor.onaudioprocess=function(ev){if(!vm.active||!vm.live||vm.live.readyState!==1)return;var input=ev.inputBuffer.getChannelData(0),pcm=downsample16(input,ctx.sampleRate);if(pcm.length)liveSend({realtimeInput:{audio:{data:floatToPcmB64(pcm),mimeType:'audio/pcm;rate=16000'}}});};vm.micSource.connect(vm.processor);vm.processor.connect(vm.silentGain);vm.silentGain.connect(ctx.destination);});});}
-  function startLiveVoice(){
+  function startLiveVoice(reconnectAttempt){
     var key=getAiKey();
     if(!key||getAiProvider()!=='gemini') return Promise.reject(new Error('Live Voice requires the Google Gemini provider and an API key.'));
+    reconnectAttempt=Number(reconnectAttempt||0);
     stopLegacyVoice();
-    stopLiveVoice();
-    setVMState('thinking','Connecting to Gemini Live…');
+    if(vm.liveReconnectTimer){clearTimeout(vm.liveReconnectTimer);vm.liveReconnectTimer=null;}
+    if(vm.live){try{vm.liveClosing=true;vm.live.close();}catch(e){}vm.live=null;}
+    stopLiveMedia();
+    stopLiveAudio();
+    vm.liveClosing=false;
+    vm.liveGeneration++;
+    var generation=vm.liveGeneration;
+    if(!reconnectAttempt){vm.liveReconnectAttempts=0;setVMState('thinking','Connecting to Gemini Live…');}
+    else setVMState('thinking','Reconnecting live voice…');
     var url='wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key='+encodeURIComponent(key);
     return new Promise(function(resolve,reject){
       var ws;
-      var opened=false, resolved=false, settled=false, connectTimer=null, setupTimer=null;
+      var opened=false, settled=false, connectTimer=null, setupTimer=null, setupCompleteSeen=false;
       function cleanupTimers(){if(connectTimer){clearTimeout(connectTimer);connectTimer=null;}if(setupTimer){clearTimeout(setupTimer);setupTimer=null;}}
       function failLive(message, fallback){
         if(settled)return;
@@ -8719,11 +8727,11 @@ window.__HT_PRO__='productivity-suite-v2';
         var setup={setup:{
           model:'models/gemini-3.1-flash-live-preview',
           generationConfig:{responseModalities:['AUDIO'],thinkingConfig:{thinkingLevel:'minimal'},speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:'Aoede'}}}},
-          inputAudioTranscription:{languageCodes:['en-IN']},
+          inputAudioTranscription:{},
           outputAudioTranscription:{},
           realtimeInputConfig:{automaticActivityDetection:{disabled:false,prefixPaddingMs:500,silenceDurationMs:2000,endOfSpeechSensitivity:'END_SENSITIVITY_LOW'}},
           sessionResumption:(function(){try{var h=localStorage.getItem('gemini_live_session_handle');return h?{handle:String(h)}:{};}catch(e){return {};}})(),
-          contextWindowCompression:{slidingWindow:{targetTokens:60000}},
+          contextWindowCompression:{slidingWindow:{}},
           tools:[{functionDeclarations:[liveToolDeclaration()]}],
           systemInstruction:{parts:[{text:liveSystemPrompt()}]}
         }};
@@ -8743,6 +8751,7 @@ window.__HT_PRO__='productivity-suite-v2';
           }
           if(m.setupComplete){
             if(setupTimer){clearTimeout(setupTimer);setupTimer=null;}
+            setupCompleteSeen=true;
             vm.liveReady=true;settled=true;
             setVMState('thinking','Live connected — opening microphone…');
             setupLiveAudio().then(function(){
@@ -8783,13 +8792,46 @@ window.__HT_PRO__='productivity-suite-v2';
         var code=ev&&ev.code?String(ev.code):'';
         vm.liveReady=false;
         cleanupTimers();
-        if(!settled&&vm.active){settled=true;reject(new Error('Gemini Live closed before setup completed'+(code?' (code '+code+')':'')+(reason?': '+reason:'')));return;}
-        if(vm.active&&!vm.liveClosing)setVMState('error','Live voice connection closed'+(code?' (code '+code+')':'')+(reason?': '+reason:'.'));
+        if(generation!==vm.liveGeneration)return;
+        if(!settled&&vm.active){
+          settled=true;
+          reject(new Error('Gemini Live closed before setup completed'+(code?' (code '+code+')':'')+(reason?': '+reason:'')));
+          return;
+        }
+        if(vm.active&&!vm.liveClosing){
+          var attempt=Number(vm.liveReconnectAttempts||0)+1;
+          vm.liveReconnectAttempts=attempt;
+          if(code==='1000' && attempt<=3){
+            // A clean close is recoverable. Reconnect automatically instead of showing a dead voice session.
+            setVMState('thinking','Live connection ended — reconnecting…');
+            vm.liveReconnectTimer=setTimeout(function(){
+              vm.liveReconnectTimer=null;
+              if(!vm.active)return;
+              startLiveVoice(attempt).then(function(){vm.liveReconnectAttempts=0;}).catch(function(err){
+                if(!vm.active)return;
+                if(attempt<3){setVMState('thinking','Retrying live voice…');}else setVMState('error',err.message||'Gemini Live could not stay connected.');
+              });
+            },Math.min(3000,500*attempt));
+            return;
+          }
+          if((code==='1007'||code==='1008') && attempt<=2){
+            // A stale/invalid resumption handle can cause a clean setup failure. Drop it once and retry fresh.
+            try{localStorage.removeItem('gemini_live_session_handle');}catch(e){}
+            setVMState('thinking','Refreshing Gemini Live session…');
+            vm.liveReconnectTimer=setTimeout(function(){
+              vm.liveReconnectTimer=null;
+              if(!vm.active)return;
+              startLiveVoice(attempt).catch(function(err){if(vm.active)setVMState('error',err.message||'Gemini Live could not reconnect.');});
+            },500);
+            return;
+          }
+          setVMState('error','Live voice connection closed'+(code?' (code '+code+')':'')+(reason?': '+reason:'.'));
+        }
       };
     });
   }
   function addBubbleLiveOutput(text,final){if(!text)return;var c=$('voiceConversation');if(!c)return;var d=c.querySelector('.voiceLiveOutput');if(!d){d=document.createElement('div');d.className='voiceBubble ai voiceLiveOutput';d.innerHTML='<small>AI</small><span></span>';c.appendChild(d);}d.querySelector('span').textContent=vm.liveOutputText||text;c.scrollTop=c.scrollHeight;}
-  function stopLiveVoice(){vm.liveClosing=true;try{if(vm.live)vm.live.close();}catch(e){}vm.live=null;vm.liveReady=false;stopLiveMedia();stopLiveAudio();vm.liveClosing=false;}
+  function stopLiveVoice(){vm.liveClosing=true;vm.liveGeneration++;if(vm.liveReconnectTimer){clearTimeout(vm.liveReconnectTimer);vm.liveReconnectTimer=null;}try{if(vm.live)vm.live.close();}catch(e){}vm.live=null;vm.liveReady=false;stopLiveMedia();stopLiveAudio();vm.liveClosing=false;}
   function browserListen(){/* Legacy fallback retained for non-Gemini web usage. */}
   function nativeListen(){if(vm.live&&vm.live.readyState===1)return;stopLegacyVoice();try{if(window.Bridge&&Bridge.startVoiceMode){Bridge.startVoiceMode();setVMState('listening','Speak naturally — your words appear live below.');return;}}catch(e){}browserListen();}
   function handleVoiceTurn(text){if(!vm.active)return;text=String(text||'').trim();if(!text)return;rememberVoiceTurn('you',text);if(getAiProvider()==='gemini'&&getAiKey()&&vm.live&&vm.live.readyState===1){liveSend({realtimeInput:{text:text}});return;}if(typeof uaiSend==='function')uaiSend(text,{voiceMode:true,voiceContext:voiceContextText()});}
