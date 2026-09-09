@@ -7373,15 +7373,24 @@ function init(){
   // ---- Voice input (SpeechRecognition API) ----
   // ---- Voice input: native Android speech on APK, Web Speech API on browser ----
   var _speechCbId = 0, _speechCallbacks = {};
+  var _browserSpeech = null;
+  var _browserSpeechTimer = null;
   window._speechState = function(id, state){
     var va=document.getElementById('voiceAssistant');
     if(!va || !va.classList.contains('on')) return;
-    if(state==='ready' || state==='begin') { va.setAttribute('data-state','listening'); var vs=document.getElementById('voiceState'); if(vs) vs.textContent='Listening…'; }
+    if(state==='ready' || state==='begin' || state==='audio') {
+      va.setAttribute('data-state','listening');
+      var vs=document.getElementById('voiceState'); if(vs) vs.textContent='Listening…';
+    }
   };
   window._speechResult = function(id, text, err){
     var cb = _speechCallbacks[id]; if(!cb) return; delete _speechCallbacks[id];
     cb(text || '', err || null);
   };
+
+  function clearBrowserSpeechWatchdog(){
+    if(_browserSpeechTimer){ clearTimeout(_browserSpeechTimer); _browserSpeechTimer=null; }
+  }
 
   function voiceSpeak(text){
     text=String(text||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
@@ -7396,35 +7405,97 @@ function init(){
     if(nat && typeof nat.startSpeech==='function'){
       var id = 'sp_' + (++_speechCbId);
       _speechCallbacks[id] = function(text, err){
+        clearBrowserSpeechWatchdog();
         var va=document.getElementById('voiceAssistant');
         if(err){
           if(va&&va.classList.contains('on')){ va.setAttribute('data-state','error'); var vs=document.getElementById('voiceState'); if(vs)vs.textContent='Try again'; var vt=document.getElementById('voiceTranscript'); if(vt)vt.textContent=err; }
           if(err!=='cancelled') toastN(err);
+          onDone('',err);
           return;
         }
         if(!text){
           if(va&&va.classList.contains('on')){ va.setAttribute('data-state','error'); var vs2=document.getElementById('voiceState'); if(vs2)vs2.textContent='No speech detected'; }
+          onDone('','No speech detected — try again');
           return;
         }
         if(va&&va.classList.contains('on'))va.setAttribute('data-state','thinking');
         if(targetInput){ targetInput.value = text; targetInput.focus(); }
-        if(onDone) onDone(text);
+        onDone(text,null);
       };
       try{ nat.startSpeech(id); }catch(e){
         delete _speechCallbacks[id];
-        if(onDone) onDone('',e.message||'Could not start speech recognition');
+        onDone('',e.message||'Could not start speech recognition');
       }
       return;
     }
+
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SR){ toastN('Voice input is not supported in this browser'); if(onDone)onDone('', 'Voice input is not supported in this browser'); return; }
+    if(!SR){
+      var msg='Browser voice recognition is not available. Use Chrome/Edge with microphone permission, or use the Android app.';
+      toastN(msg); onDone('',msg); return;
+    }
+
+    // Prevent a previous recognizer from leaving the UI stuck in Listening.
+    try{ if(_browserSpeech){ _browserSpeech.onend=null; _browserSpeech.onerror=null; _browserSpeech.stop(); } }catch(e){}
+    clearBrowserSpeechWatchdog();
     var rec = new SR();
-    rec.lang = 'en-IN'; rec.interimResults = false; rec.maxAlternatives = 1;
-    rec.onstart = function(){ var va=document.getElementById('voiceAssistant');if(va&&va.classList.contains('on')){va.setAttribute('data-state','listening');var vs=document.getElementById('voiceState');if(vs)vs.textContent='Listening…';} };
-    rec.onresult = function(e){ var text=e.results&&e.results[0]&&e.results[0][0]?e.results[0][0].transcript:''; if(targetInput){targetInput.value=text;targetInput.focus();} if(onDone)onDone(text,null); };
-    rec.onerror = function(e){ var msg=e.error==='not-allowed'?'Microphone permission denied — enable microphone access':e.error==='no-speech'?'No speech detected — try again':'Voice error: '+e.error;toastN(msg);if(onDone)onDone('',msg); };
-    rec.onend = function(){};
-    try{ rec.start(); }catch(e){ toastN('Could not start voice input'); if(onDone)onDone('',e.message||'Could not start voice input'); }
+    _browserSpeech=rec;
+    var gotResult=false, finished=false;
+    rec.lang = 'en-IN';
+    rec.interimResults = false;
+    rec.continuous = false;
+    rec.maxAlternatives = 1;
+    rec.onstart = function(){
+      var va=document.getElementById('voiceAssistant');
+      if(va&&va.classList.contains('on')){va.setAttribute('data-state','listening');var vs=document.getElementById('voiceState');if(vs)vs.textContent='Listening…';}
+      clearBrowserSpeechWatchdog();
+      _browserSpeechTimer=setTimeout(function(){
+        if(!gotResult && !finished){
+          try{rec.stop();}catch(e){}
+          if(!finished){ finished=true; onDone('','No speech detected — check microphone permission and try again'); }
+        }
+      },15000);
+    };
+    rec.onaudiostart = function(){
+      var vs=document.getElementById('voiceState'); if(vs)vs.textContent='Listening…';
+    };
+    rec.onspeechstart = function(){
+      var vt=document.getElementById('voiceTranscript'); if(vt)vt.textContent='Hearing you…';
+    };
+    rec.onresult = function(e){
+      gotResult=true;
+      var text=e.results&&e.results[0]&&e.results[0][0]?String(e.results[0][0].transcript||'').trim():'';
+      if(targetInput){targetInput.value=text;targetInput.focus();}
+      if(!finished){ finished=true; clearBrowserSpeechWatchdog(); if(onDone)onDone(text,text?'': 'No speech detected — try again'); }
+    };
+    rec.onerror = function(e){
+      if(finished) return;
+      finished=true; clearBrowserSpeechWatchdog();
+      var code=e&&e.error||'unknown';
+      var msg=code==='not-allowed'?'Microphone permission denied — allow microphone access for this site':
+              code==='service-not-allowed'?'Browser speech service is blocked — try Chrome/Edge or the Android app':
+              code==='audio-capture'?'No microphone was found — check your microphone':
+              code==='no-speech'?'No speech detected — try again':
+              code==='network'?'Browser speech recognition needs an internet connection':
+              'Voice error: '+code;
+      var va=document.getElementById('voiceAssistant');
+      if(va&&va.classList.contains('on')){va.setAttribute('data-state','error');var vs=document.getElementById('voiceState');if(vs)vs.textContent='Try again';var vt=document.getElementById('voiceTranscript');if(vt)vt.textContent=msg;}
+      toastN(msg); onDone('',msg);
+    };
+    rec.onend = function(){
+      clearBrowserSpeechWatchdog();
+      _browserSpeech=null;
+      if(!finished){
+        finished=true;
+        var msg=gotResult?'':'No speech detected — try again';
+        onDone(gotResult?'': '',msg);
+      }
+    };
+    try{ rec.start(); }catch(e){
+      clearBrowserSpeechWatchdog(); _browserSpeech=null;
+      var msg=e&&e.name==='NotAllowedError'?'Microphone permission denied — allow microphone access for this site':'Could not start voice input: '+(e.message||'unknown error');
+      onDone('',msg);
+    }
   }
 
   /* simplified stats + mood toggles */

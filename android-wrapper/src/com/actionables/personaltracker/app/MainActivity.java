@@ -355,7 +355,7 @@ public class MainActivity extends Activity {
                 }
                 js("window.photoResult&&window.photoResult('"+name+"')");
             } catch(Exception e){ toast("Could not save photo"); }
-
+        }
     }
 
     static byte[] readAll(InputStream in) throws IOException {
