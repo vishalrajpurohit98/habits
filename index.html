@@ -7373,10 +7373,14 @@ function init(){
   // ---- Voice input (SpeechRecognition API) ----
   // ---- Voice input: native Android speech on APK, Web Speech API on browser ----
   var _speechCbId = 0, _speechCallbacks = {};
+  window._speechState = function(id, state){
+    var va=document.getElementById('voiceAssistant');
+    if(!va || !va.classList.contains('on')) return;
+    if(state==='ready' || state==='begin') { va.setAttribute('data-state','listening'); var vs=document.getElementById('voiceState'); if(vs) vs.textContent='Listening…'; }
+  };
   window._speechResult = function(id, text, err){
     var cb = _speechCallbacks[id]; if(!cb) return; delete _speechCallbacks[id];
-    if(err){ if(err!=='cancelled') toastN(err); return; }
-    cb(text);
+    cb(text || '', err || null);
   };
 
   function voiceSpeak(text){
@@ -7388,37 +7392,39 @@ function init(){
   }
 
   function startVoice(targetInput, onDone){
-    // APK: use native Android speech recognizer (WebView doesn't support Web Speech API)
-    if(nat && nat.startSpeech){
+    if(!onDone) onDone=function(){};
+    if(nat && typeof nat.startSpeech==='function'){
       var id = 'sp_' + (++_speechCbId);
-      _speechCallbacks[id] = function(text){
-      var va=document.getElementById('voiceAssistant');if(va&&va.classList.contains('on'))va.setAttribute('data-state','thinking');
+      _speechCallbacks[id] = function(text, err){
+        var va=document.getElementById('voiceAssistant');
+        if(err){
+          if(va&&va.classList.contains('on')){ va.setAttribute('data-state','error'); var vs=document.getElementById('voiceState'); if(vs)vs.textContent='Try again'; var vt=document.getElementById('voiceTranscript'); if(vt)vt.textContent=err; }
+          if(err!=='cancelled') toastN(err);
+          return;
+        }
+        if(!text){
+          if(va&&va.classList.contains('on')){ va.setAttribute('data-state','error'); var vs2=document.getElementById('voiceState'); if(vs2)vs2.textContent='No speech detected'; }
+          return;
+        }
+        if(va&&va.classList.contains('on'))va.setAttribute('data-state','thinking');
         if(targetInput){ targetInput.value = text; targetInput.focus(); }
-        toastN('Got: "' + text + '"');
         if(onDone) onDone(text);
       };
-      nat.startSpeech(id);
+      try{ nat.startSpeech(id); }catch(e){
+        delete _speechCallbacks[id];
+        if(onDone) onDone('',e.message||'Could not start speech recognition');
+      }
       return;
     }
-    // Browser: use Web Speech API
     var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SR){ toastN('Voice input not supported in this browser'); return; }
+    if(!SR){ toastN('Voice input is not supported in this browser'); if(onDone)onDone('', 'Voice input is not supported in this browser'); return; }
     var rec = new SR();
-    rec.lang = 'en-IN';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    rec.onresult = function(e){
-      var text = e.results[0][0].transcript;
-      if(targetInput){ targetInput.value = text; targetInput.focus(); }
-      if(onDone) onDone(text);
-    };
-    rec.onerror = function(e){
-      if(e.error === 'not-allowed') toastN('Microphone permission denied — enable in Settings → App permissions');
-      else if(e.error === 'no-speech') toastN('No speech detected — try again');
-      else toastN('Voice error: ' + e.error);
-    };
-    rec.onstart = function(){ toastN('🎙 Listening…'); };
-    rec.start();
+    rec.lang = 'en-IN'; rec.interimResults = false; rec.maxAlternatives = 1;
+    rec.onstart = function(){ var va=document.getElementById('voiceAssistant');if(va&&va.classList.contains('on')){va.setAttribute('data-state','listening');var vs=document.getElementById('voiceState');if(vs)vs.textContent='Listening…';} };
+    rec.onresult = function(e){ var text=e.results&&e.results[0]&&e.results[0][0]?e.results[0][0].transcript:''; if(targetInput){targetInput.value=text;targetInput.focus();} if(onDone)onDone(text,null); };
+    rec.onerror = function(e){ var msg=e.error==='not-allowed'?'Microphone permission denied — enable microphone access':e.error==='no-speech'?'No speech detected — try again':'Voice error: '+e.error;toastN(msg);if(onDone)onDone('',msg); };
+    rec.onend = function(){};
+    try{ rec.start(); }catch(e){ toastN('Could not start voice input'); if(onDone)onDone('',e.message||'Could not start voice input'); }
   }
 
   /* simplified stats + mood toggles */
@@ -8443,7 +8449,6 @@ function addFeatureMarkup(){
 function bind(){
  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-review-open]');if(b){e.preventDefault();openReview();return;}b=e.target.closest&&e.target.closest('[data-review-close]');if(b){e.preventDefault();closeReview();return;}b=e.target.closest&&e.target.closest('[data-review-save]');if(b){e.preventDefault();saveReview();return;}
  });
- var oldShow=window.showTab; if(typeof oldShow==='function'&&!oldShow.__pro){var order=['pgToday','pgTasks','pgMood','pgExp','pgStats','pgAI','pgSet'];window.showTab=function(id){var prev=order.indexOf(document.querySelector('.page.on')&&document.querySelector('.page.on').id),next=order.indexOf(id);document.documentElement.style.setProperty('--nav-dir',next>=prev?'1':'-1');oldShow(id);var p=$(id);if(p){p.classList.remove('pageMotion');void p.offsetWidth;p.classList.add('pageMotion');setTimeout(function(){p.classList.remove('pageMotion');},520);}};window.showTab.__pro=true;}
  var oldRenderTasks=window.renderTasks;if(typeof oldRenderTasks==='function'&&!oldRenderTasks.__pro){window.renderTasks=function(){oldRenderTasks();renderTaskAgingSummary();setTimeout(enhanceTaskCards,0);};window.renderTasks.__pro=true;}
  var oldRenderToday=window.renderToday;if(typeof oldRenderToday==='function'&&!oldRenderToday.__pro){window.renderToday=function(){oldRenderToday();renderProDashboard();renderReviewCard();addSmartInsights();};window.renderToday.__pro=true;}
 }
@@ -8453,61 +8458,29 @@ window.__HT_PRO__='productivity-suite-v2';
 })();
 
 </script><style id="material-motion-v3">
-/* ===== Material Motion V3 ===== */
-:root{
-  --motion-standard:cubic-bezier(.2,.0,0,1);
-  --motion-emphasized:cubic-bezier(.2,.0,0,1);
-  --motion-decelerate:cubic-bezier(0,0,.2,1);
-  --motion-accelerate:cubic-bezier(.4,0,1,1);
-  --motion-spring:cubic-bezier(.22,1,.36,1);
-}
-#app{contain:layout paint;}
+/* ===== Material Motion V3.1: one navigation system, no nested transitions ===== */
+:root{--motion-standard:cubic-bezier(.2,0,0,1);--motion-decelerate:cubic-bezier(0,0,.2,1);--motion-accelerate:cubic-bezier(.4,0,1,1);--motion-spring:cubic-bezier(.22,1,.36,1)}
 .page{display:none;will-change:transform,opacity;transform:translateZ(0)}
 .page.on{display:block}
-.page.pageMotion{animation:pageEnterV3 .46s var(--motion-emphasized) both}
-@keyframes pageEnterV3{
-  from{opacity:0;transform:translate3d(calc(var(--nav-dir,1)*28px),6px,0) scale(.985)}
-  45%{opacity:1}
-  to{opacity:1;transform:translate3d(0,0,0) scale(1)}
-}
-/* Avoid re-running content animations on every data refresh. Only the active navigation transition animates the first-level content. */
-.page.pageMotion > *{animation:contentRiseV3 .42s var(--motion-decelerate) both}
-.page.pageMotion > *:nth-child(1){animation-delay:20ms}
-.page.pageMotion > *:nth-child(2){animation-delay:35ms}
-.page.pageMotion > *:nth-child(3){animation-delay:50ms}
-.page.pageMotion > *:nth-child(4){animation-delay:65ms}
-.page.pageMotion > *:nth-child(5){animation-delay:80ms}
-@keyframes contentRiseV3{from{opacity:.15;transform:translateY(10px)}to{opacity:1;transform:none}}
-/* Material bottom navigation: animated active indicator instead of an abrupt background swap. */
-#tabbar .tab{position:relative;overflow:hidden;transition:color .28s var(--motion-standard),background .28s var(--motion-standard),transform .16s var(--motion-standard)}
-#tabbar .tab::before{content:'';position:absolute;left:50%;top:3px;width:0;height:3px;border-radius:3px;transform:translateX(-50%);background:currentColor;opacity:0;transition:width .34s var(--motion-spring),opacity .2s ease}
+.page.pageMotion{animation:pageEnterV31 .34s var(--motion-decelerate) both}
+@keyframes pageEnterV31{from{opacity:0;transform:translate3d(calc(var(--nav-dir,1)*18px),0,0)}to{opacity:1;transform:none}}
+#tabbar .tab{position:relative;overflow:hidden;transition:color .22s var(--motion-standard),background-color .22s var(--motion-standard),transform .16s var(--motion-standard)}
+#tabbar .tab::before{content:'';position:absolute;left:50%;top:3px;width:0;height:3px;border-radius:3px;transform:translateX(-50%);background:currentColor;opacity:0;transition:width .28s var(--motion-spring),opacity .16s ease}
 #tabbar .tab.on::before{width:28px;opacity:1}
-#tabbar .tab svg{transition:transform .34s var(--motion-spring),opacity .25s ease}
-#tabbar .tab.on svg{transform:translateY(-1px) scale(1.05)}
-/* Buttons: tactile but restrained. */
-button,.sbtn,.chip,.ebtn,.primary{transition:transform .18s var(--motion-standard),box-shadow .2s ease,background-color .2s ease}
-button:active,.sbtn:active,.chip:active,.ebtn:active{transform:scale(.965)}
-/* Sheets/dialogs */
-.sheet.on{animation:sheetInV3 .42s var(--motion-spring) both}
-@keyframes sheetInV3{from{opacity:.7;transform:translate3d(0,34px,0) scale(.985)}to{opacity:1;transform:none}}
-.sheetBackdrop{animation:scrimInV3 .25s ease both}
-@keyframes scrimInV3{from{opacity:0}to{opacity:1}}
-/* List additions/removals feel deliberate. */
-.taskCard,.card,.upcomingCard,.txRow{transition:transform .24s var(--motion-spring),box-shadow .24s ease,opacity .2s ease}
-.taskCard:active,.card:active,.upcomingCard:active,.txRow:active{transform:scale(.992)}
-/* Ripple */
+#tabbar .tab svg{transition:transform .28s var(--motion-spring),opacity .2s ease}
+#tabbar .tab.on svg{transform:translateY(-1px) scale(1.04)}
+button,.sbtn,.chip,.ebtn,.primary{transition:transform .16s var(--motion-standard),box-shadow .18s ease,background-color .18s ease}
+button:active,.sbtn:active,.chip:active,.ebtn:active{transform:scale(.97)}
+.sheet.on{animation:sheetInV31 .36s var(--motion-spring) both}
+@keyframes sheetInV31{from{opacity:.7;transform:translate3d(0,24px,0) scale(.99)}to{opacity:1;transform:none}}
+.sheetBackdrop{animation:scrimInV31 .22s ease both}
+@keyframes scrimInV31{from{opacity:0}to{opacity:1}}
+.taskCard,.card,.upcomingCard,.txRow{transition:transform .2s var(--motion-spring),box-shadow .2s ease,opacity .16s ease}
+.taskCard:active,.card:active,.upcomingCard:active,.txRow:active{transform:scale(.994)}
 .rippleHost{position:relative;overflow:hidden}
-.rippleDot{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.16;transform:scale(0);animation:rippleV3 .58s var(--motion-standard) forwards}
-@keyframes rippleV3{to{opacity:0;transform:scale(2)}}
-/* Native browser View Transitions, when supported by the WebView. */
-::view-transition-old(root){animation:vtOldV3 .24s var(--motion-accelerate) both}
-::view-transition-new(root){animation:vtNewV3 .42s var(--motion-decelerate) both}
-@keyframes vtOldV3{to{opacity:0;transform:translate3d(calc(var(--nav-dir,1)*-18px),0,0) scale(.985)}}
-@keyframes vtNewV3{from{opacity:0;transform:translate3d(calc(var(--nav-dir,1)*22px),0,0) scale(.985)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){
-  .page.pageMotion,.page.pageMotion > *, .sheet.on,.sheetBackdrop,::view-transition-old(root),::view-transition-new(root){animation:none!important}
-  #tabbar .tab,#tabbar .tab::before,#tabbar .tab svg,button,.sbtn,.chip,.ebtn,.primary{transition:none!important}
-}
+.rippleDot{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.16;transform:scale(0);animation:rippleV31 .5s var(--motion-standard) forwards}
+@keyframes rippleV31{to{opacity:0;transform:scale(2)}}
+@media (prefers-reduced-motion:reduce){.page.pageMotion,.sheet.on,.sheetBackdrop{animation:none!important}#tabbar .tab,#tabbar .tab::before,#tabbar .tab svg,button,.sbtn,.chip,.ebtn,.primary{transition:none!important}}
 </style>
 <script id="material-motion-v3-js">
 (function(){
@@ -8516,29 +8489,23 @@ var order=['pgToday','pgTasks','pgMood','pgExp','pgStats','pgAI','pgSet'];
 var $=function(id){return document.getElementById(id);};
 var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 var original=window.showTab;
-if(typeof original==='function'&&!original.__motionV3){
+if(typeof original==='function'&&!original.__motionV31){
   window.showTab=function(id){
-    if(!$(id)) return;
+    var target=$(id); if(!target)return;
     var current=document.querySelector('.page.on');
-    var prev=current?order.indexOf(current.id):-1, next=order.indexOf(id);
     if(current&&current.id===id){ original(id); return; }
+    var prev=current?order.indexOf(current.id):-1, next=order.indexOf(id);
     document.documentElement.style.setProperty('--nav-dir',next>=prev?'1':'-1');
-    var run=function(){
-      original(id);
-      var p=$(id);
-      if(!p)return;
-      p.classList.remove('pageMotion');
-      void p.offsetWidth;
-      p.classList.add('pageMotion');
-      window.setTimeout(function(){p.classList.remove('pageMotion');},520);
-    };
-    if(!reduced&&document.startViewTransition){
-      try{document.startViewTransition(run);}catch(e){run();}
-    }else run();
+    original(id);
+    if(reduced)return;
+    target.classList.remove('pageMotion');
+    requestAnimationFrame(function(){
+      target.classList.add('pageMotion');
+      window.setTimeout(function(){target.classList.remove('pageMotion');},380);
+    });
   };
-  window.showTab.__motionV3=true;
+  window.showTab.__motionV31=true;
 }
-/* Ripple only for real pointer activation; keyboard activation stays accessible and clean. */
 document.addEventListener('pointerdown',function(e){
   var b=e.target.closest&&e.target.closest('button,[role="button"]');
   if(!b||b.disabled||b.classList.contains('noRipple'))return;
@@ -8546,13 +8513,8 @@ document.addEventListener('pointerdown',function(e){
   var rect=b.getBoundingClientRect(),size=Math.max(rect.width,rect.height),r=document.createElement('span');
   r.className='rippleDot';r.style.width=r.style.height=size+'px';
   r.style.left=(e.clientX-rect.left-size/2)+'px';r.style.top=(e.clientY-rect.top-size/2)+'px';
-  b.appendChild(r);window.setTimeout(function(){if(r&&r.parentNode)r.remove();},620);
+  b.appendChild(r);window.setTimeout(function(){if(r&&r.parentNode)r.remove();},540);
 },{passive:true});
-/* Keyboard focus is visible without introducing movement. */
-document.addEventListener('keydown',function(e){
-  if(e.key==='Enter'||e.key===' '){var b=e.target.closest&&e.target.closest('button,[role="button"]');if(b)b.classList.add('motionKeyboardPress');}
-});
-document.addEventListener('keyup',function(e){var b=e.target.closest&&e.target.closest('button,[role="button"]');if(b)b.classList.remove('motionKeyboardPress');});
 })();
 </script>
 <!-- V4 AI VOICE ASSISTANT -->
@@ -8573,8 +8535,8 @@ document.addEventListener('keyup',function(e){var b=e.target.closest&&e.target.c
   var transcript=document.getElementById('voiceTranscript'),status=document.getElementById('voiceState'),voiceBusy=false;
   function setState(t,c){status.textContent=t;root.setAttribute('data-state',c||'idle');}
   function open(){root.classList.add('on');root.setAttribute('aria-hidden','false');setState('Tap and speak','idle');transcript.textContent='I can control your habits, actionables, reminders, expenses, mood, sleep, navigation and more.';}
-  function hide(){root.classList.remove('on');root.setAttribute('aria-hidden','true');voiceBusy=false;}
-  function run(){if(voiceBusy)return;voiceBusy=true;setState('Listening…','listening');transcript.textContent='Speak naturally. For example: “Mark exercise complete” or “Show my overdue tasks.”';startVoice(null,function(text){transcript.textContent='“'+text+'”';setState('Thinking…','thinking');try{uaiSend(text,{voice:true});}catch(e){setState('Could not process','error');voiceBusy=false;}});}
+  function hide(){try{if(nat&&typeof nat.stopSpeech==='function')nat.stopSpeech();}catch(e){}root.classList.remove('on');root.setAttribute('aria-hidden','true');voiceBusy=false;try{if(window.speechSynthesis)window.speechSynthesis.cancel();}catch(e){}}
+  function run(){if(voiceBusy)return;voiceBusy=true;setState('Listening…','listening');transcript.textContent='Speak naturally. For example: “Mark exercise complete” or “Show my overdue tasks.”';startVoice(null,function(text,err){if(err){setState('Try again','error');transcript.textContent=err;voiceBusy=false;return;}if(!text){setState('Try again','error');voiceBusy=false;return;}transcript.textContent='“'+text+'”';setState('Thinking…','thinking');try{uaiSend(text,{voice:true});}catch(e){setState('Could not process','error');voiceBusy=false;}});}
   btn.addEventListener('click',open);close.addEventListener('click',hide);scrim.addEventListener('click',hide);speak.addEventListener('click',run);
   window.__voiceAssistant={open:open,close:hide,run:run,finish:function(){voiceBusy=false;}};
 })();
