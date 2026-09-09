@@ -3441,13 +3441,14 @@ function buildDataContext(){
   return lines.join('\n');
 }
 function uaiPrompt(text){
-  return 'You are the universal AI assistant for Personal Tracker. You can READ/CREATE/UPDATE/DELETE across: Habits, Tasks, Expenses, Mood, Sleep, Settings.\n\n'
+  return 'You are the universal AI assistant for Personal Tracker. You can READ/CREATE/UPDATE/DELETE across the app: Habits, Tasks, Expenses/Transactions, Mood, Sleep, Journal, Workouts/Exercises, Settings and Navigation.\n\n'
   +'APP DATA:\n'+buildDataContext()+'\n\n'
   +'RESPOND WITH ONLY ONE JSON OBJECT (no markdown, no backticks, no extra text):\n'
   +'{"action":"TYPE","params":{...},"message":"short confirmation"}\n\n'
   +'ACTIONS:\n'
   +'add_expense: {amt,cat,sub,note,kind("exp"/"inc"),date("YYYY-MM-DD"),acct}\n'
-  +'delete_expense: {date,cat,amt} if ambiguous set confirm:true\n'
+  +'delete_expense: {id,date,cat,amt,payee} for one matching expense; if ambiguous ask for clarification\n'
+  +'delete_transactions: {scope(all/date/dateRange/category/account),date,startDate,endDate,cat,acct,kind(exp/inc/all)} for bulk deletion; always confirm:true\n'
   +'add_habit: {name,goal(default 1)}\n'
   +'complete_habit: {name,date}\n'
   +'uncomplete_habit: {name,date}\n'
@@ -3456,9 +3457,15 @@ function uaiPrompt(text){
   +'delete_mood: {date}\n'
   +'set_sleep: {date,bed("HH:MM" 24h),wake("HH:MM" 24h),mins(total)}\n'
   +'delete_sleep: {date}\n'
+  +'add_journal: {date,title,body}\n'
+  +'update_journal: {id,date,title,body}\n'
+  +'delete_journal: {id,date,title}\n'
+  +'log_workout: {exercise,date,sets([numbers])}\n'
+  +'delete_workout: {id,date,exercise}\n'
   +'add_task: {title,description,dueDate,dueTime,priority(high/medium/low),reminders([1,2]),recurrence({freq(none/daily/weekdays/weekly/monthly/custom),interval,endDate}),subtasks([titles])}\n'
   +'complete_task: {id,title}\n'
   +'reopen_task: {id,title}\n'
+  +'delete_task: {id,title}\n'
   +'update_task: {id,match,newTitle,description,dueDate,dueTime,priority,status,reminders,recurrence}\n'
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
   +'navigate: {tab(today/tasks/mood/exp/stats/ai/set)}\n'
@@ -3468,6 +3475,30 @@ function uaiPrompt(text){
   +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n\n'
   +'User: '+text;
 }
+function voiceActionCritical(a,p){
+  a=String(a||'');
+  return ['delete_expense','delete_transactions','delete_habit','delete_task','delete_journal','delete_mood','delete_sleep','delete_workout','clear_data','replace_data','bulk_update'].indexOf(a)>=0;
+}
+function voiceActionMutates(a){
+  a=String(a||'');
+  return ['add_task','complete_task','reopen_task','update_task','add_expense','delete_expense','delete_transactions','add_habit','complete_habit','uncomplete_habit','delete_habit','set_mood','delete_mood','set_sleep','delete_sleep','add_journal','update_journal','delete_journal','log_workout','delete_workout','change_setting'].indexOf(a)>=0;
+}
+function voiceActionLabel(r){
+  var a=String(r&&r.action||''),p=(r&&r.params)||{};
+  if(a==='delete_transactions') return 'delete '+(p.scope==='all'?'all transactions':(p.date?'transactions from '+p.date:'the selected transactions'));
+  if(a==='delete_expense') return 'delete the selected expense';
+  if(a==='delete_task') return 'delete the task “'+String(p.title||'')+'”';
+  if(a==='delete_habit') return 'delete the habit “'+String(p.name||'')+'”';
+  if(a==='delete_journal') return 'delete the selected journal entry';
+  if(a==='delete_workout') return 'delete the selected workout record';
+  return String((r&&r.message)||'perform this action').replace(/<[^>]*>/g,'');
+}
+function voiceSpeakStatus(text){ try{ if(typeof voiceModeSpeak==='function' && voiceModeActive) voiceModeSpeak(text); }catch(e){} }
+function voiceSetPendingConfirmation(payload){
+  window._voicePendingConfirmation=payload||null;
+}
+function voiceClearPendingConfirmation(){ window._voicePendingConfirmation=null; }
+
 function executeAction(r){
   try{
     var a=r.action,p=r.params||{},msg=r.message||'Done',d=p.date||today();
@@ -3486,6 +3517,14 @@ function executeAction(r){
     if(a==='update_task'){
       var ut=p.id?state.tasks.find(function(x){return x.id===p.id;}):taskFindByQuery(String(p.match||p.title||''));if(!ut)return{ok:0,msg:'Task not found.'};var old=JSON.parse(JSON.stringify(ut));var wasCompleted=ut.status==='completed';if(p.newTitle!==undefined)ut.title=String(p.newTitle).trim().slice(0,100)||ut.title;if(p.description!==undefined)ut.description=String(p.description).slice(0,1000);if(p.dueDate!==undefined)ut.dueDate=/^\d{4}-\d{2}-\d{2}$/.test(String(p.dueDate))?String(p.dueDate):'';if(p.dueTime!==undefined)ut.dueTime=String(p.dueTime||'');if(['high','medium','low'].indexOf(p.priority)>=0)ut.priority=p.priority;if(['open','inprogress','completed'].indexOf(p.status)>=0){ut.status=p.status;ut.completedAt=p.status==='completed'?Date.now():0;}if(Array.isArray(p.reminders))ut.reminders=p.reminders;if(p.recurrence)ut.recurrence=p.recurrence;var nextUpdate=null;if(!wasCompleted&&ut.status==='completed'){ut.completedAt=Date.now();nextUpdate=taskCreateNextOccurrence(ut);}ut.updatedAt=Date.now();persist();if($('pgTasks').classList.contains('on'))renderTasks();return{ok:1,msg:msg,detail:ut.title+(nextUpdate?' · next '+taskDateLabel(nextUpdate):''),undo:function(){var ix=state.tasks.findIndex(function(x){return x.id===ut.id;});if(ix>=0)state.tasks[ix]=old;if(nextUpdate)state.tasks=state.tasks.filter(function(x){return x.id!==nextUpdate.id;});persist();}};
     }
+    if(a==='delete_task'){
+      var tq=String(p.title||'').trim(),task=p.id?state.tasks.find(function(x){return x.id===p.id;}):taskFindByQuery(tq);
+      if(!task){var tc=state.tasks.filter(function(x){return tq&&x.title.toLowerCase().indexOf(tq.toLowerCase())>=0;});if(tc.length>1)return{ok:0,msg:'I found multiple matching tasks. Specify the task name more clearly.'};task=tc[0];}
+      if(!task)return{ok:0,msg:'Task not found.'};
+      if(!r.confirm)return{ok:0,msg:'Please confirm deleting task “'+task.title+'”.',needConfirm:1,pending:{action:'delete_task',params:{id:task.id,title:task.title},confirm:true}};
+      var oldTask=JSON.parse(JSON.stringify(task));state.tasks=state.tasks.filter(function(x){return x.id!==task.id;});persist();if($('pgTasks').classList.contains('on'))renderTasks();
+      return{ok:1,msg:msg,detail:'Deleted “'+task.title+'”',undo:function(){state.tasks.push(oldTask);persist();}};
+    }
     if(a==='add_expense'){
       var kind=p.kind==='inc'?'inc':'exp', amt=Number(p.amt), acct=String(p.acct||'');
       if(!isFinite(amt)||amt<=0)return{ok:0,msg:'Enter an amount greater than zero.'};
@@ -3497,7 +3536,51 @@ function executeAction(r){
       state.tx.push(tx);persist();
       return{ok:1,msg:msg,detail:(kind==='inc'?'+':'−')+inr(amt)+' · '+cat+' · '+d,undo:function(){state.tx=state.tx.filter(function(t){return t.id!==tx.id;});persist();}};
     }
-    if(a==='delete_expense'){var f=state.tx.filter(function(t){return t.kind==='exp'&&t.d===d&&(!p.cat||t.cat===p.cat)&&(!p.amt||Math.abs(Number(t.amt)-Number(p.amt))<0.01);});if(!f.length)return{ok:0,msg:'No matching expense for '+d};if(f.length>1&&!p.id)return{ok:0,msg:'I found multiple matching expenses. Specify the merchant or amount.'};var del=p.id?state.tx.find(function(t){return t.id===p.id;}):f[0];if(!del)return{ok:0,msg:'That transaction is no longer available.'};if(!r.confirm)return{ok:0,msg:'Please confirm deleting '+inr(del.amt)+' · '+(del.payee||del.cat||'expense')+'.',needConfirm:1,pending:{action:'delete_expense',params:{date:del.d,cat:del.cat,amt:del.amt,id:del.id},confirm:true}};state.tx=state.tx.filter(function(t){return t.id!==del.id;});persist();return{ok:1,msg:msg,detail:'Removed '+inr(del.amt)+' · '+del.cat,undo:function(){state.tx.push(del);persist();}};}
+    if(a==='delete_expense'){
+      var f=state.tx.filter(function(t){return t.kind==='exp'&&(!p.date||t.d===p.date)&&(!p.cat||t.cat===p.cat)&&(!p.payee||String(t.payee||'').toLowerCase().indexOf(String(p.payee).toLowerCase())>=0)&&(!p.amt||Math.abs(Number(t.amt)-Number(p.amt))<0.01);});
+      if(p.id){f=state.tx.filter(function(t){return t.id===p.id&&t.kind==='exp';});}
+      if(!f.length)return{ok:0,msg:'No matching expense found.'};
+      if(f.length>1&&!p.id)return{ok:0,msg:'I found multiple matching expenses. Specify the merchant or amount.'};
+      var del=f[0];
+      if(!r.confirm)return{ok:0,msg:'Please confirm deleting '+inr(del.amt)+' · '+(del.payee||del.cat||'expense')+'.',needConfirm:1,pending:{action:'delete_expense',params:{date:del.d,cat:del.cat,amt:del.amt,id:del.id},confirm:true}};
+      state.tx=state.tx.filter(function(t){return t.id!==del.id;});persist();return{ok:1,msg:msg,detail:'Removed '+inr(del.amt)+' · '+del.cat,undo:function(){state.tx.push(del);persist();}};
+    }
+    if(a==='delete_transactions'){
+      var scope=String(p.scope||'all'),start=p.startDate||p.date||'',end=p.endDate||p.date||'',kind=String(p.kind||'all');
+      var matches=state.tx.filter(function(t){
+        if(kind!=='all'&&t.kind!==kind)return false;
+        if(scope==='all')return true;
+        if(scope==='date')return !p.date||t.d===p.date;
+        if(scope==='dateRange')return (!start||t.d>=start)&&(!end||t.d<=end);
+        if(scope==='category')return !p.cat||t.cat===p.cat;
+        if(scope==='account')return !p.acct||t.acct===p.acct;
+        return false;
+      });
+      if(!matches.length)return{ok:0,msg:'No transactions match that request.'};
+      if(!r.confirm){
+        var desc=scope==='all'?'all transactions':scope==='date'?'transactions from '+(p.date||'the selected date'):scope==='dateRange'?'transactions from '+start+' to '+end:scope==='category'?'transactions in '+(p.cat||'that category'):scope==='account'?'transactions in that account':'the selected transactions';
+        return{ok:0,msg:'This will delete '+matches.length+' '+desc+'. Please confirm.',needConfirm:1,pending:{action:'delete_transactions',params:p,confirm:true}};
+      }
+      var oldTx=JSON.parse(JSON.stringify(matches)),ids={};matches.forEach(function(t){ids[t.id]=1;});state.tx=state.tx.filter(function(t){return !ids[t.id];});persist();if($('pgExp').classList.contains('on'))renderExp();
+      return{ok:1,msg:msg,detail:'Deleted '+matches.length+' transaction'+(matches.length===1?'':'s'),undo:function(){state.tx=state.tx.concat(oldTx);persist();}};
+    }
+
+    if(a==='add_journal'){
+      var je={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),d:p.date||today(),t:String(p.title||'').trim().slice(0,120),b:String(p.body||'').trim().slice(0,5000),ph:[],created:Date.now()};
+      if(!je.t&&!je.b)return{ok:0,msg:'Enter a journal title or body.'};state.jr.push(je);sortJr();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry saved for '+je.d};
+    }
+    if(a==='update_journal'){
+      var je2=p.id?jrFind(p.id):null;if(!je2&&p.title){je2=state.jr.find(function(x){return String(x.t||'').toLowerCase()===String(p.title).toLowerCase();})||null;}if(!je2)return{ok:0,msg:'Journal entry not found.'};var oldJ=JSON.parse(JSON.stringify(je2));if(p.date)je2.d=p.date;if(p.title!==undefined)je2.t=String(p.title).trim().slice(0,120);if(p.body!==undefined)je2.b=String(p.body).trim().slice(0,5000);sortJr();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry updated',undo:function(){var ix=state.jr.findIndex(function(x){return x.id===oldJ.id;});if(ix>=0)state.jr[ix]=oldJ;persist();}};
+    }
+    if(a==='delete_journal'){
+      var jf=state.jr.filter(function(x){return (!p.id||x.id===p.id)&&(!p.date||x.d===p.date)&&(!p.title||String(x.t||'').toLowerCase().indexOf(String(p.title).toLowerCase())>=0);});if(!jf.length)return{ok:0,msg:'Journal entry not found.'};if(jf.length>1)return{ok:0,msg:'I found multiple journal entries. Specify the title or date.'};var jd=jf[0];if(!r.confirm)return{ok:0,msg:'Please confirm deleting journal entry “'+(jd.t||'Untitled')+'”.',needConfirm:1,pending:{action:'delete_journal',params:{id:jd.id},confirm:true}};state.jr=state.jr.filter(function(x){return x.id!==jd.id;});persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Deleted journal entry',undo:function(){state.jr.push(jd);persist();}};
+    }
+    if(a==='log_workout'){
+      var en=String(p.exercise||'').trim(),exm=state.exs.find(function(x){return String(x.name||'').toLowerCase()===en.toLowerCase();})||state.exs.find(function(x){return String(x.name||'').toLowerCase().indexOf(en.toLowerCase())>=0;});if(!exm)return{ok:0,msg:'Exercise not found.'};var sets=Array.isArray(p.sets)?p.sets.map(function(x){return Math.max(0,Number(x)||0);}):[];if(!sets.length)return{ok:0,msg:'Provide workout values/sets.'};var wd=p.date||today(),before=wlogFor(exm.id,wd);var beforeCopy=before?JSON.parse(JSON.stringify(before)):null;setExVal(exm.id,sets,wd);return{ok:1,msg:msg,detail:exm.name+' · '+wd,undo:function(){if(beforeCopy){var w=wlogFor(exm.id,wd);if(w)w.sets=beforeCopy.sets;}else{state.wlog=state.wlog.filter(function(x){return !(x.exId===exm.id&&x.d===wd);});}persist();}};
+    }
+    if(a==='delete_workout'){
+      var wf=state.wlog.filter(function(w){var ex=exById(w.exId);return (!p.id||w.id===p.id)&&(!p.date||w.d===p.date)&&(!p.exercise||String(ex&&ex.name||'').toLowerCase().indexOf(String(p.exercise).toLowerCase())>=0);});if(!wf.length)return{ok:0,msg:'Workout record not found.'};if(wf.length>1)return{ok:0,msg:'I found multiple workout records. Specify the exercise or date.'};var wd0=wf[0];if(!r.confirm)return{ok:0,msg:'Please confirm deleting this workout record.',needConfirm:1,pending:{action:'delete_workout',params:{id:wd0.id},confirm:true}};state.wlog=state.wlog.filter(function(x){return x.id!==wd0.id;});persist();return{ok:1,msg:msg,detail:'Workout record deleted'};
+    }
     if(a==='add_habit'){
       if(!String(p.name||'').trim())return{ok:0,msg:'Enter a habit name.'};
       openEdit(null);$('fName').value=String(p.name).slice(0,40);if(p.goal>1)$('fGoal').value=p.goal;saveHabit();if(sheetOpen)closeSheet();persist();
@@ -3513,14 +3596,14 @@ function executeAction(r){
       var mi=typeof p.mood==='number'?p.mood:3;if(mi<0||mi>6)return{ok:0,msg:'Mood must be between 0 and 6.'};state.mood[d]=mi;
       if(p.note){if(!state.moodNotes)state.moodNotes={};state.moodNotes[d]=String(p.note).slice(0,160);} persist();return{ok:1,msg:msg,detail:MOODS[mi].e+' '+MOODS[mi].l+' · '+d};
     }
-    if(a==='delete_mood'){var prev=state.mood[d];delete state.mood[d];if(state.moodNotes)delete state.moodNotes[d];persist();return{ok:1,msg:msg,undo:function(){if(prev!==undefined)state.mood[d]=prev;persist();}};}
+    if(a==='delete_mood'){if(state.mood[d]===undefined)return{ok:0,msg:'No mood record found for '+d};if(!r.confirm)return{ok:0,msg:'Please confirm deleting the mood record for '+d+'.',needConfirm:1,pending:{action:'delete_mood',params:{date:d},confirm:true}};var prev=state.mood[d],prevNote=state.moodNotes&&state.moodNotes[d];delete state.mood[d];if(state.moodNotes)delete state.moodNotes[d];persist();return{ok:1,msg:msg,detail:'Mood record deleted for '+d,undo:function(){state.mood[d]=prev;if(prevNote!==undefined){state.moodNotes=state.moodNotes||{};state.moodNotes[d]=prevNote;}persist();}};}
     if(a==='set_sleep'){
       var bed=String(p.bed||'23:00'),wake=String(p.wake||'06:00'); if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(bed)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(wake))return{ok:0,msg:'Use valid 24-hour bed and wake times.'};
       var mins=sleepMins(bed,wake); if(mins<=0)return{ok:0,msg:'Sleep duration must be greater than zero.'};
       var si=state.sleep.findIndex(function(s){return s.d===d;}),entry={d:d,bed:bed,wake:wake,mins:mins,note:String(p.note||'').slice(0,160)};
       if(si>=0)state.sleep[si]=entry;else state.sleep.push(entry);persist();return{ok:1,msg:msg,detail:'Bed '+entry.bed+' · Wake '+entry.wake+' · '+Math.floor(entry.mins/60)+'h'+entry.mins%60+'m'};
     }
-    if(a==='delete_sleep'){var oldSleep=state.sleep.find(function(s){return s.d===d;});state.sleep=state.sleep.filter(function(s){return s.d!==d;});persist();return{ok:1,msg:msg,undo:function(){if(oldSleep)state.sleep.push(oldSleep);persist();}};}
+    if(a==='delete_sleep'){var oldSleep=state.sleep.find(function(s){return s.d===d;});if(!oldSleep)return{ok:0,msg:'No sleep record found for '+d};if(!r.confirm)return{ok:0,msg:'Please confirm deleting the sleep record for '+d+'.',needConfirm:1,pending:{action:'delete_sleep',params:{date:d},confirm:true}};state.sleep=state.sleep.filter(function(s){return s.d!==d;});persist();return{ok:1,msg:msg,detail:'Sleep record deleted for '+d,undo:function(){state.sleep.push(oldSleep);persist();}};}
     if(a==='change_setting'){if(p.key==='theme'&&['dark','light','auto','amoled'].indexOf(p.value)<0)return{ok:0,msg:'Unsupported theme.'};if(p.key==='theme'){state.set.theme=p.value;applyTheme();}else if(p.key==='curr'){var c=String(p.value||'');if(!c)return{ok:0,msg:'Currency cannot be empty.'};state.set.curr=c.slice(0,4);}else return{ok:0,msg:'Unsupported setting.'};persist();return{ok:1,msg:msg};}
     if(a==='navigate'){var tabs={today:'pgToday',tasks:'pgTasks',mood:'pgMood',exp:'pgExp',stats:'pgStats',ai:'pgAI',set:'pgSet'};var tid=tabs[String(p.tab||'').toLowerCase()];if(!tid)return{ok:0,msg:'I could not identify that section.'};showTab(tid);return{ok:1,msg:msg||('Opening '+String(p.tab||'section'))};}
     if(a==='query')return{ok:1,msg:msg,isQuery:1};
@@ -3539,25 +3622,39 @@ function uaiSend(text,opts){ opts=opts||{};
     var el=$('uaiTyping');if(el)el.remove();
     var clean=raw.replace(/```json|```/g,'').trim(),result,voiceReply='';
     try{result=JSON.parse(clean);}catch(e){
-      voiceReply=raw.replace(/\*\*(.*?)\*\*/g,'$1').replace(/<[^>]+>/g,'').trim();
-      log.innerHTML+='<div class="uaiMsg bot">'+raw.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')+'</div>';
-      log.scrollTop=log.scrollHeight;
-      if(opts.voiceMode&&typeof voiceModeSpeak==='function')voiceModeSpeak(voiceReply||'I could not format that response.');
-      return;
+      voiceReply=raw.replace(/\*\*(.*?)\*\*/g,'$1').replace(/<[^>]*>/g,'').trim();
+      log.innerHTML+='<div class="uaiMsg bot">'+raw.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>')+'</div>';log.scrollTop=log.scrollHeight;
+      if(opts.voiceMode&&typeof voiceModeSpeak==='function')voiceModeSpeak(voiceReply||'I could not format that response.');return;
     }
-    var res=executeAction(result),html='<div class="uaiMsg bot">';
-    if(res.ok){
-      voiceReply=res.msg+(res.detail?' '+res.detail:'');
-      html+='<div class="uaiAction"><div class="uaiCheck">✓ '+res.msg+'</div>';
-      if(res.detail)html+='<div class="uaiDetail">'+res.detail+'</div>';
-      html+='</div>';
-      if(res.undo){var uid='_u'+Date.now();window[uid]=res.undo;html+='<div class="uaiBtns"><button onclick="'+uid+'();this.closest(\'.uaiMsg\').remove();reRenderCurrent();toastN(\'Undone\')">Undo</button></div>';}
-    }else if(res.needConfirm&&res.pending){
-      voiceReply=res.msg;var pid='aiConfirm_'+Date.now();window[pid]=function(){var rr=executeAction(res.pending);var lg=$('uaiLog');if(lg){var speakMsg=(rr.msg||'Done')+(rr.detail?' '+rr.detail:'');lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';lg.scrollTop=lg.scrollHeight;if(typeof voiceModeSpeak==='function'&&voiceModeActive)voiceModeSpeak(speakMsg);}reRenderCurrent();};html+='<div class="uaiAction"><div class="uaiCheck">'+esc(res.msg)+'</div><div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
-    }else if(res.isQuery){voiceReply=res.msg.replace(/<[^>]+>/g,'');html+=res.msg.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');}
-    else{voiceReply=res.msg;html+=res.msg.replace(/</g,'&lt;');}
-    html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;reRenderCurrent();
-    if(opts.voiceMode&&typeof voiceModeSpeak==='function')voiceModeSpeak(voiceReply||'Done.');
+    function finishResult(res){
+      var html='<div class="uaiMsg bot">';
+      if(res.ok){
+        voiceReply=res.msg+(res.detail?' '+res.detail:'');
+        html+='<div class="uaiAction"><div class="uaiCheck">✓ '+res.msg+'</div>'+(res.detail?'<div class="uaiDetail">'+res.detail+'</div>':'')+'</div>';
+        if(res.undo){var uid='_u'+Date.now();window[uid]=res.undo;html+='<div class="uaiBtns"><button onclick="'+uid+'();this.closest(\'.uaiMsg\').remove();reRenderCurrent();toastN(\'Undone\')">Undo</button></div>';}
+      }else if(res.needConfirm&&res.pending){
+        voiceReply=res.msg;
+        var pid='aiConfirm_'+Date.now();
+        window[pid]=function(){var rr=executeAction(res.pending);var lg=$('uaiLog');if(lg){var speakMsg=(rr.msg||'Done')+(rr.detail?' '+rr.detail:'');lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';lg.scrollTop=lg.scrollHeight;if(typeof voiceModeSpeak==='function'&&voiceModeActive)voiceModeSpeak(speakMsg);}reRenderCurrent();};
+        html+='<div class="uaiAction"><div class="uaiCheck">'+esc(res.msg)+'</div><div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
+        if(opts.voiceMode){voiceSetPendingConfirmation({pending:res.pending,prompt:res.msg});}
+      }else if(res.isQuery){voiceReply=res.msg.replace(/<[^>]+>/g,'');html+=res.msg.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');}
+      else{voiceReply=res.msg;html+=res.msg.replace(/</g,'&lt;');}
+      html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;reRenderCurrent();
+      if(opts.voiceMode&&typeof voiceModeSpeak==='function')voiceModeSpeak(voiceReply||'Done.');
+    }
+    // Voice safety layer: wait before executing mutations; critical mutations must confirm.
+    if(opts.voiceMode && result && voiceActionMutates(result.action)){
+      if(voiceActionCritical(result.action)){
+        finishResult(executeAction(result));
+      }else{
+        setVMState('thinking','Action understood. Waiting briefly before applying it… Say “cancel” to stop.');
+        var cancelled=false;window._voiceActionPending=true;
+        window._voiceActionTimer=setTimeout(function(){if(cancelled)return;window._voiceActionPending=false;window._voiceActionTimer=null;finishResult(executeAction(result));},1800);
+        window._voiceCancelAction=function(){cancelled=true;window._voiceActionPending=false;clearTimeout(window._voiceActionTimer);window._voiceActionTimer=null;var lg=$('uaiLog');if(lg)lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">Cancelled.</div></div></div>';vm.waiting=false;setVMState('ready','Cancelled. Say something else.');voiceSpeakStatus('Cancelled.');setTimeout(nativeListen,500);};
+        vm.waiting=false;setTimeout(nativeListen,150);
+      }
+    }else finishResult(executeAction(result));
   }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();var msg=e.message||'AI request failed.';log.innerHTML+='<div class="uaiMsg err">'+msg+'</div>';log.scrollTop=log.scrollHeight;if(opts.voiceMode&&typeof voiceModeSpeak==='function')voiceModeSpeak(msg);});
 }
 function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();if($('pgTasks').classList.contains('on'))renderTasks();}catch(e){}}
@@ -8470,24 +8567,54 @@ window.__HT_PRO__='productivity-suite-v2';
 <button id="globalVoiceBtn" class="globalVoiceBtn" type="button" aria-label="Start AI voice mode" title="AI Voice Mode">🎙</button>
 <script>
 (function(){
-  var vm={active:false,recognition:null,speaking:false,muted:false,waiting:false,lastPartial:'',restartTimer:null};
+  var vm={active:false,recognition:null,speaking:false,muted:false,waiting:false,lastPartial:'',restartTimer:null,finalText:'',silenceTimer:null};
   function $(id){return document.getElementById(id);}
   function setVMState(state,hint){var o=$('voiceModeOverlay');if(!o)return;o.classList.remove('listening','thinking','speaking');if(state) o.classList.add(state);$('voiceModeState').textContent=state==='listening'?'Listening…':state==='thinking'?'Thinking…':state==='speaking'?'Speaking…':state==='error'?'Voice error':'Ready';$('voiceModeHint').textContent=hint||'';}
   function transcript(t,empty){var e=$('voiceTranscript');if(!e)return;e.textContent=t||'Your live transcript will appear here…';e.classList.toggle('empty',!!empty);}
   function addBubble(who,text){if(!text)return;var c=$('voiceConversation');if(!c)return;var d=document.createElement('div');d.className='voiceBubble '+(who==='you'?'you':'ai');d.innerHTML='<small>'+(who==='you'?'YOU':'AI')+'</small>'+String(text).replace(/</g,'&lt;').replace(/\n/g,'<br>');c.appendChild(d);c.scrollTop=c.scrollHeight;}
   function stopRecognition(){if(vm.restartTimer){clearTimeout(vm.restartTimer);vm.restartTimer=null;}try{if(window.Bridge&&Bridge.stopVoiceMode)Bridge.stopVoiceMode();}catch(e){}if(vm.recognition){try{vm.recognition.onresult=null;vm.recognition.onerror=null;vm.recognition.onend=null;vm.recognition.stop();}catch(e){}vm.recognition=null;}}
-  function browserListen(){if(!vm.active||vm.waiting)return;var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){setVMState('error','Voice mode is not supported here. Use the Android app or Chrome/Edge.');return;}stopRecognition();var r;try{r=new SR();}catch(e){setVMState('error','Could not start voice recognition.');return;}vm.recognition=r;vm.lastPartial='';r.lang='en-IN';r.continuous=false;r.interimResults=true;r.maxAlternatives=1;r.onstart=function(){setVMState('listening','Speak naturally — your words appear live below.');};r.onspeechstart=function(){setVMState('listening','Hearing you…');};r.onresult=function(e){var fin='',part='';for(var i=e.resultIndex;i<e.results.length;i++){var t=e.results[i][0]&&e.results[i][0].transcript||'';if(e.results[i].isFinal)fin+=t+' ';else part+=t;}var shown=(fin+part).replace(/\s+/g,' ').trim();if(shown)transcript(shown,false);if(fin.trim())handleVoiceTurn(fin.trim());};r.onerror=function(e){var m={'not-allowed':'Microphone permission was denied. Allow microphone access for this site.','service-not-allowed':'The browser blocked speech recognition.','audio':'The microphone could not be opened.','network':'Speech recognition needs a network connection.','no-speech':'No speech detected. Try again.'};setVMState('error',m[e.error]||'Voice recognition error: '+(e.error||'unknown'));vm.recognition=null;};r.onend=function(){vm.recognition=null;if(vm.active&&!vm.waiting&&!vm.speaking&&$('voiceModeOverlay').classList.contains('open')){vm.restartTimer=setTimeout(browserListen,350);}};try{r.start();}catch(e){setVMState('error','Could not start microphone: '+(e.message||'try again'));}}
+  function browserListen(){if(!vm.active||vm.waiting)return;var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){setVMState('error','Voice mode is not supported here. Use the Android app or Chrome/Edge.');return;}stopRecognition();var r;try{r=new SR();}catch(e){setVMState('error','Could not start voice recognition.');return;}vm.recognition=r;vm.lastPartial='';r.lang='en-IN';r.continuous=false;r.interimResults=true;r.maxAlternatives=1;r.onstart=function(){setVMState('listening','Speak naturally — your words appear live below.');};r.onspeechstart=function(){setVMState('listening','Hearing you…');};r.onresult=function(e){var fin='',part='';for(var i=e.resultIndex;i<e.results.length;i++){var t=e.results[i][0]&&e.results[i][0].transcript||'';if(e.results[i].isFinal)fin+=t+' ';else part+=t;}var shown=(fin+part).replace(/\s+/g,' ').trim();if(shown)transcript(shown,false);if(fin.trim()){vm.finalText=fin.trim();if(vm.silenceTimer)clearTimeout(vm.silenceTimer);vm.silenceTimer=setTimeout(function(){if(vm.finalText){var t=vm.finalText;vm.finalText='';handleVoiceTurn(t);}},2500);}};r.onerror=function(e){var m={'not-allowed':'Microphone permission was denied. Allow microphone access for this site.','service-not-allowed':'The browser blocked speech recognition.','audio':'The microphone could not be opened.','network':'Speech recognition needs a network connection.','no-speech':'No speech detected. Try again.'};setVMState('error',m[e.error]||'Voice recognition error: '+(e.error||'unknown'));vm.recognition=null;};r.onend=function(){vm.recognition=null;if(vm.active&&!vm.waiting&&!vm.speaking&&!vm.finalText&&$('voiceModeOverlay').classList.contains('open')){vm.restartTimer=setTimeout(browserListen,350);}};try{r.start();}catch(e){setVMState('error','Could not start microphone: '+(e.message||'try again'));}}
   function nativeListen(){if(!vm.active||vm.waiting)return;stopRecognition();try{if(window.Bridge&&Bridge.startVoiceMode){Bridge.startVoiceMode();setVMState('listening','Speak naturally — your words appear live below.');return;}}catch(e){}browserListen();}
-  function handleVoiceTurn(text){if(!vm.active||vm.waiting)return;vm.waiting=true;stopRecognition();transcript(text,false);addBubble('you',text);setVMState('thinking','AI is processing your request…');if(typeof uaiSend==='function')uaiSend(text,{voiceMode:true});else{setVMState('error','AI assistant is unavailable.');vm.waiting=false;}}
+  function handleVoiceTurn(text){
+    if(!vm.active)return;
+    text=String(text||'').trim();if(!text)return;
+    if(vm.silenceTimer){clearTimeout(vm.silenceTimer);vm.silenceTimer=null;}
+    var pending=window._voicePendingConfirmation;
+    var actionPending=window._voiceActionPending;
+    var low=text.toLowerCase();
+    if(pending){
+      stopRecognition();transcript(text,false);addBubble('you',text);
+      if(/\b(cancel|stop|no|don't|do not|never mind)\b/.test(low)){
+        voiceClearPendingConfirmation();vm.waiting=false;setVMState('ready','Cancelled. Say something else.');voiceModeSpeak('Cancelled.');return;
+      }
+      if(/\b(yes|yeah|yep|okay|ok|confirm|confirmed|do it|go ahead|proceed|sure)\b/.test(low)){
+        voiceClearPendingConfirmation();vm.waiting=true;setVMState('thinking','Confirmed. Applying it shortly…');
+        setTimeout(function(){var rr=executeAction(pending.pending);var lg=$('uaiLog');var speakMsg=(rr.msg||'Done')+(rr.detail?' '+rr.detail:'');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';lg.scrollTop=lg.scrollHeight;}reRenderCurrent();voiceModeSpeak(speakMsg);},1800);return;
+      }
+      vm.waiting=false;setVMState('ready','Please say yes to confirm, or cancel.');voiceModeSpeak('Please say yes to confirm, or cancel.');return;
+    }
+    if(actionPending){
+      stopRecognition();transcript(text,false);addBubble('you',text);
+      if(/\b(cancel|stop|wait|never mind|don't do it)\b/.test(low)){
+        if(typeof window._voiceCancelAction==='function')window._voiceCancelAction();
+      }else{voiceModeSpeak('An action is pending. Say cancel to stop it.');}
+      return;
+    }
+    if(vm.waiting)return;
+    stopRecognition();transcript(text,false);addBubble('you',text);vm.waiting=true;setVMState('thinking','AI is processing your complete request…');
+    if(typeof uaiSend==='function')uaiSend(text,{voiceMode:true});else{setVMState('error','AI assistant is unavailable.');vm.waiting=false;}
+  }
   window._voiceNativeState=function(s){if(!vm.active)return;if(s==='ready'||s==='starting')setVMState('listening','Microphone ready — speak naturally.');else if(s==='listening')setVMState('listening','Hearing you…');else if(s==='processing')setVMState('thinking','Processing your speech…');};
   window._voiceNativeLevel=function(v){var bars=document.querySelectorAll('#voiceLevel i');for(var i=0;i<bars.length;i++){var n=Math.max(6,Math.min(26,(v||0)*(i%2?1.5:1)));bars[i].style.height=n+'px';}};
   window._voiceNativePartial=function(t){if(!vm.active||vm.waiting)return;transcript(t,false);};
-  window._voiceNativeFinal=function(t){handleVoiceTurn(t);};
+  window._voiceNativeFinal=function(t){if(!vm.active||vm.waiting)return;vm.finalText=String(t||'').trim();if(vm.silenceTimer)clearTimeout(vm.silenceTimer);if(vm.finalText){setVMState('thinking','I heard you. Waiting 2–3 seconds in case you want to continue…');vm.silenceTimer=setTimeout(function(){if(vm.finalText){var x=vm.finalText;vm.finalText='';handleVoiceTurn(x);}},2500);}};
   window._voiceNativeError=function(m){if(!vm.active)return;setVMState('error',m||'Voice recognition failed.');vm.waiting=false;};
   window._voiceTtsDone=function(){if(!vm.active)return;vm.speaking=false;vm.waiting=false;setVMState('listening','Your turn — speak naturally.');transcript('',true);setTimeout(function(){if(vm.active)nativeListen();},180);};
-  window.voiceModeSpeak=function(text){if(!vm.active)return;var clean=String(text||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();if(!clean){window._voiceTtsDone();return;}addBubble('ai',clean);setVMState('speaking',vm.muted?'Voice response muted.':'AI is speaking…');vm.speaking=true;if(vm.muted){setTimeout(window._voiceTtsDone,250);return;}try{if(window.Bridge&&Bridge.speakVoiceMode){Bridge.speakVoiceMode(clean);return;}}catch(e){}if(window.speechSynthesis){try{window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(clean);u.lang='en-IN';u.rate=.98;u.pitch=1;u.onend=window._voiceTtsDone;u.onerror=window._voiceTtsDone;window.speechSynthesis.speak(u);return;}catch(e){}}window._voiceTtsDone();};
-  function openVM(){vm.active=true;vm.waiting=false;vm.speaking=false;$('voiceModeOverlay').classList.add('open');$('voiceModeOverlay').setAttribute('aria-hidden','false');$('globalVoiceBtn').classList.add('active');setVMState('ready','Start a natural conversation with your tracker.');transcript('',true);setTimeout(nativeListen,120);}
-  function closeVM(){vm.active=false;vm.waiting=false;vm.speaking=false;stopRecognition();try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}$('voiceModeOverlay').classList.remove('open');$('voiceModeOverlay').setAttribute('aria-hidden','true');$('globalVoiceBtn').classList.remove('active');setVMState('ready','Tap the microphone to start talking.');}
+  function preferredFemaleVoice(){try{if(!window.speechSynthesis)return null;var vs=window.speechSynthesis.getVoices()||[],best=null;for(var i=0;i<vs.length;i++){var v=vs[i],n=String(v.name||'').toLowerCase(),lang=String(v.lang||'').toLowerCase();if(lang.indexOf('en-in')===0&&(n.indexOf('female')>=0||n.indexOf('woman')>=0||n.indexOf('zira')>=0||n.indexOf('samantha')>=0||n.indexOf('aria')>=0||n.indexOf('google')>=0))return v;if(!best&&lang.indexOf('en-in')===0)best=v;}return best;}catch(e){return null;}}
+  if(window.speechSynthesis&&'onvoiceschanged' in window.speechSynthesis){try{window.speechSynthesis.onvoiceschanged=function(){};}catch(e){}}
+  window.voiceModeSpeak=function(text){if(!vm.active)return;var clean=String(text||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();if(!clean){window._voiceTtsDone();return;}addBubble('ai',clean);setVMState('speaking',vm.muted?'Voice response muted.':'AI is speaking…');vm.speaking=true;if(vm.muted){setTimeout(window._voiceTtsDone,250);return;}try{if(window.Bridge&&Bridge.speakVoiceMode){Bridge.speakVoiceMode(clean);return;}}catch(e){}if(window.speechSynthesis){try{window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(clean);u.lang='en-IN';var pv=preferredFemaleVoice();if(pv)u.voice=pv;u.rate=.97;u.pitch=1.02;u.onend=window._voiceTtsDone;u.onerror=window._voiceTtsDone;window.speechSynthesis.speak(u);return;}catch(e){}}window._voiceTtsDone();};
+  function openVM(){vm.active=true;vm.waiting=false;vm.speaking=false;vm.finalText='';if(vm.silenceTimer)clearTimeout(vm.silenceTimer);voiceClearPendingConfirmation();window._voiceActionPending=false;window._voiceCancelAction=null;$('voiceModeOverlay').classList.add('open');$('voiceModeOverlay').setAttribute('aria-hidden','false');$('globalVoiceBtn').classList.add('active');setVMState('ready','Start a natural conversation with your tracker.');transcript('',true);setTimeout(nativeListen,120);}
+  function closeVM(){vm.active=false;vm.waiting=false;vm.speaking=false;if(vm.silenceTimer)clearTimeout(vm.silenceTimer);vm.silenceTimer=null;window._voiceCancelAction=null;voiceClearPendingConfirmation();stopRecognition();try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}$('voiceModeOverlay').classList.remove('open');$('voiceModeOverlay').setAttribute('aria-hidden','true');$('globalVoiceBtn').classList.remove('active');setVMState('ready','Tap the microphone to start talking.');}
   window.voiceModeActive=false;Object.defineProperty(window,'voiceModeActive',{get:function(){return vm.active;}});
   $('voiceModeOpen').addEventListener('click',function(){openVM();});$('globalVoiceBtn').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();try{showTab('pgAI');}catch(err){}openVM();});$('voiceModeClose').addEventListener('click',closeVM);$('voiceModeStop').addEventListener('click',closeVM);$('voiceModeMute').addEventListener('click',function(){vm.muted=!vm.muted;this.textContent=vm.muted?'🔇':'🔊';});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&vm.active)closeVM();});

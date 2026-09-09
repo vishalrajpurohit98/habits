@@ -500,7 +500,23 @@ public class MainActivity extends Activity {
         runOnUiThread(() -> {
             try {
                 if(tts==null) { js("window._voiceTtsDone&&window._voiceTtsDone()"); return; }
-                tts.setLanguage(Locale.forLanguageTag("en-IN"));
+                Locale voiceLocale = Locale.forLanguageTag("en-IN");
+                tts.setLanguage(voiceLocale);
+                if (Build.VERSION.SDK_INT >= 21) {
+                    try {
+                        java.util.Set<android.speech.tts.Voice> voices = tts.getVoices();
+                        android.speech.tts.Voice best = null;
+                        for (android.speech.tts.Voice v : voices) {
+                            if (v == null || v.getLocale() == null) continue;
+                            String n = String.valueOf(v.getName()).toLowerCase(Locale.US);
+                            Locale l = v.getLocale();
+                            if (!"en".equalsIgnoreCase(l.getLanguage()) || !"IN".equalsIgnoreCase(l.getCountry())) continue;
+                            if (n.contains("female") || n.contains("woman") || n.contains("zira") || n.contains("samantha") || n.contains("aria") || n.contains("neural")) { best = v; break; }
+                            if (best == null) best = v;
+                        }
+                        if (best != null) tts.setVoice(best);
+                    } catch(Exception ignored) {}
+                }
                 tts.speak(text.trim(), TextToSpeech.QUEUE_FLUSH, null, "pt_voice_mode");
             } catch(Exception e) { js("window._voiceTtsDone&&window._voiceTtsDone()"); }
         });
@@ -540,7 +556,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void reqExact(){requestExact();}
         @JavascriptInterface public void openChannelSettings(){try{Intent i=new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);i.putExtra(Settings.EXTRA_APP_PACKAGE,getPackageName());i.putExtra(Settings.EXTRA_CHANNEL_ID,NativeAlarms.CHANNEL_ID);startActivity(i);}catch(Exception e){}}
         @JavascriptInterface public void setBars(String color, boolean light){try{getWindow().setStatusBarColor(Color.parseColor(color));getWindow().setNavigationBarColor(Color.parseColor(color));if(Build.VERSION.SDK_INT>=23){int f=getWindow().getDecorView().getSystemUiVisibility();if(light)f|=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;else f&=~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;getWindow().getDecorView().setSystemUiVisibility(f);}}catch(Exception ignored){}}
-        @JavascriptInterface public String appVer(){return "1.1.4";}
+        @JavascriptInterface public String appVer(){return "1.1.6";}
         @JavascriptInterface public void toast(String s){MainActivity.this.toast(s);}
         @JavascriptInterface public void testReminder(){NativeAlarms.test(MainActivity.this);}
         @JavascriptInterface public String fsCheck(){return "{\"need\":false}";}
