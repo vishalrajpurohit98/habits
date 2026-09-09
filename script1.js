@@ -5310,99 +5310,10 @@ function init(){
       toastN(unsupported); finish('',unsupported); return;
     }
 
-    // Ask for microphone access explicitly first. This makes permission failures
-    // visible instead of leaving SpeechRecognition in a silent Listening state.
-    var beginRecognition=function(){
-      if(finished)return;
-      try{
-        if(_browserSpeech){try{_browserSpeech.abort();}catch(e){}}
-        var rec=new SR();
-        _browserSpeech=rec;
-        var gotResult=false, heard=false;
-        rec.lang='en-IN';
-        rec.interimResults=true;
-        rec.continuous=false;
-        rec.maxAlternatives=1;
-
-        rec.onstart=function(){
-          var va=document.getElementById('voiceAssistant');
-          if(va&&va.classList.contains('on')){va.setAttribute('data-state','listening');var vs=document.getElementById('voiceState');if(vs)vs.textContent='Listening…';}
-          clearBrowserSpeechWatchdog();
-          _browserSpeechTimer=setTimeout(function(){
-            if(!finished&&!gotResult){try{rec.stop();}catch(e){} finish('','No speech detected. Please speak after the microphone starts.');}
-          },12000);
-        };
-        rec.onaudiostart=function(){
-          var vt=document.getElementById('voiceTranscript');
-          if(vt)vt.textContent='Microphone active — speak now…';
-        };
-        rec.onspeechstart=function(){
-          heard=true;
-          var vt=document.getElementById('voiceTranscript');
-          if(vt)vt.textContent='Hearing you…';
-        };
-        rec.onresult=function(e){
-          var text='';
-          for(var i=e.resultIndex||0;i<e.results.length;i++) text+=e.results[i][0].transcript+' ';
-          text=text.trim();
-          var vt=document.getElementById('voiceTranscript');
-          var isFinal=e.results[e.results.length-1] && e.results[e.results.length-1].isFinal;
-          if(vt&&text) vt.textContent='“'+text+'”';
-          if(isFinal&&text){
-            gotResult=true;
-            if(targetInput){targetInput.value=text;targetInput.focus();}
-            finish(text,null);
-          }
-        };
-        rec.onerror=function(e){
-          if(finished)return;
-          var code=e&&e.error||'unknown';
-          var msg=code==='not-allowed'?'Microphone permission denied. Allow microphone access for this site and try again.':
-            code==='service-not-allowed'?'The browser speech service is blocked. Try Chrome/Edge with internet access.':
-            code==='audio-capture'?'No working microphone was found. Check your microphone settings.':
-            code==='no-speech'?'No speech detected. Tap Speak and talk clearly.':
-            code==='network'?'Browser speech recognition needs an internet connection.':
-            code==='aborted'?'Voice input was cancelled.':
-            'Voice recognition error: '+code;
-          var va=document.getElementById('voiceAssistant');
-          if(va&&va.classList.contains('on')){va.setAttribute('data-state','error');var vs=document.getElementById('voiceState');if(vs)vs.textContent='Try again';var vt=document.getElementById('voiceTranscript');if(vt)vt.textContent=msg;}
-          toastN(msg); finish('',msg);
-        };
-        rec.onend=function(){
-          if(finished)return;
-          if(gotResult)return;
-          finish('','Voice input ended before a final transcript was received. Please try again.');
-        };
-        rec.start();
-        // Critical: start the watchdog immediately, not only from onstart.
-        // Some browser implementations can accept start() but never fire onstart.
-        clearBrowserSpeechWatchdog();
-        _browserSpeechTimer=setTimeout(function(){
-          if(!finished){
-            try{rec.abort();}catch(e){}
-            finish('','The microphone did not start. Check browser microphone permission, then try again.');
-          }
-        },5000);
-      }catch(e){
-        var msg=e&&e.name==='NotAllowedError'?'Microphone permission denied. Allow microphone access for this site and try again.':'Could not start voice input: '+(e.message||'unknown error');
-        toastN(msg); finish('',msg);
-      }
-    };
-
-    try{
-      if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
-        navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
-          try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
-          beginRecognition();
-        }).catch(function(e){
-          var msg=e&&e.name==='NotAllowedError'?'Microphone permission denied. Allow microphone access for this site and try again.':
-            e&&e.name==='NotFoundError'?'No microphone was found. Connect a microphone and try again.':'Microphone could not be opened: '+(e.message||e.name||'unknown error');
-          toastN(msg); finish('',msg);
-        });
-      }else{
-        beginRecognition();
-      }
-    }catch(e){ finish('',e.message||'Could not access the microphone'); }
+    // Browser: start SpeechRecognition directly from the user's button click.
+    // Do NOT preflight with getUserMedia(): on some browsers that promise can remain
+    // pending indefinitely and prevent SpeechRecognition from ever starting.
+    try{ beginRecognition(); }catch(e){ finish('',e&&e.message ? e.message : 'Could not access the microphone'); }
   }
 
   /* simplified stats + mood toggles */

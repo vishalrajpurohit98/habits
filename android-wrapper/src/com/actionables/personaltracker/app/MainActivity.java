@@ -509,7 +509,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void reqExact(){requestExact();}
         @JavascriptInterface public void openChannelSettings(){try{Intent i=new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);i.putExtra(Settings.EXTRA_APP_PACKAGE,getPackageName());i.putExtra(Settings.EXTRA_CHANNEL_ID,NativeAlarms.CHANNEL_ID);startActivity(i);}catch(Exception e){}}
         @JavascriptInterface public void setBars(String color, boolean light){try{getWindow().setStatusBarColor(Color.parseColor(color));getWindow().setNavigationBarColor(Color.parseColor(color));if(Build.VERSION.SDK_INT>=23){int f=getWindow().getDecorView().getSystemUiVisibility();if(light)f|=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;else f&=~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;getWindow().getDecorView().setSystemUiVisibility(f);}}catch(Exception ignored){}}
-        @JavascriptInterface public String appVer(){return "1.1.1";}
+        @JavascriptInterface public String appVer(){return "1.1.2";}
         @JavascriptInterface public void toast(String s){MainActivity.this.toast(s);}
         @JavascriptInterface public void testReminder(){NativeAlarms.test(MainActivity.this);}
         @JavascriptInterface public String fsCheck(){return "{\"need\":false}";}
