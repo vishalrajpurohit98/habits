@@ -8722,8 +8722,8 @@ window.__HT_PRO__='productivity-suite-v2';
           inputAudioTranscription:{languageCodes:['en-IN']},
           outputAudioTranscription:{},
           realtimeInputConfig:{automaticActivityDetection:{disabled:false,prefixPaddingMs:500,silenceDurationMs:2000,endOfSpeechSensitivity:'END_SENSITIVITY_LOW'}},
-          sessionResumption:{},
-          contextWindowCompression:{triggerTokens:80000,targetTokens:60000},
+          sessionResumption:(function(){try{var h=localStorage.getItem('gemini_live_session_handle');return h?{handle:String(h)}:{};}catch(e){return {};}})(),
+          contextWindowCompression:{slidingWindow:{targetTokens:60000}},
           tools:[{functionDeclarations:[liveToolDeclaration()]}],
           systemInstruction:{parts:[{text:liveSystemPrompt()}]}
         }};
