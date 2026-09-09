@@ -98,73 +98,30 @@ The local Windows machine does **not** need:
 
 GitHub Actions supplies Java and the Android command-line SDK tools.
 
-## One-time signing setup
+## Signing setup — production key is preserved
 
-### 1. Push this project to GitHub
-
-Use your normal repository. Do not commit a `.jks` file or signing passwords.
-
-### 2. Run the one-time keystore workflow
-
-In GitHub:
-
-**Actions → Generate Android Signing Keystore — RUN ONLY ONCE → Run workflow**
-
-For the confirmation field enter exactly:
+The project intentionally keeps the existing production signing key at:
 
 ```text
-I_UNDERSTAND_THIS_CREATES_THE_PRODUCTION_SIGNING_KEY
+android-wrapper/keystore.b64
+android-wrapper/keystore.alias
 ```
 
-The workflow has a safeguard using the repository variable:
+This is the same key used to sign future APK releases. **Do not delete, replace, or regenerate it.** Keeping the same signing certificate allows Android to recognize future APKs as updates to the existing installed app.
+
+The keystore password is supplied through the GitHub Actions secret:
 
 ```text
-SIGNING_KEY_INITIALIZED=true
+KEYSTORE_PASSWORD
 ```
 
-Do **not** set that variable until you have safely stored the generated key.
+The build workflow decodes `keystore.b64` temporarily on the GitHub runner, signs the APK, and does not place the raw keystore into the build output.
 
-The workflow generates:
+> Security note: keeping a production private signing key in the repository is convenient, but it is less secure than keeping the base64 keystore only in GitHub Secrets. Since you specifically want the current key preserved for uninterrupted updates, this project keeps `keystore.b64` and protects it from accidental regeneration.
 
-- `release.jks`
-- `release.jks.base64`
-- `KEYSTORE_PASSWORD.txt`
-- `KEY_ALIAS.txt`
+### Important
 
-The artifact is retained for only 1 day.
-
-### 3. Create GitHub Secrets
-
-In:
-
-**Repository → Settings → Secrets and variables → Actions → New repository secret**
-
-Create:
-
-| Secret | Value |
-|---|---|
-| `KEYSTORE_BASE64` | Entire contents of `release.jks.base64` |
-| `KEYSTORE_PASSWORD` | Contents of `KEYSTORE_PASSWORD.txt` |
-| `KEY_ALIAS` | Contents of `KEY_ALIAS.txt` |
-| `KEY_PASSWORD` | Same value as `KEYSTORE_PASSWORD` |
-
-Do not put these values into source files.
-
-After confirming the secrets work, delete the one-time keystore artifact.
-
-Then create repository variable:
-
-```text
-SIGNING_KEY_INITIALIZED=true
-```
-
-This prevents the one-time workflow from generating another production key.
-
-### Why the same key matters
-
-Android identifies updates partly through the signing certificate. If a future APK is signed with a different key, Android can treat it as a different application and normal in-place updates can fail.
-
-**Never regenerate the production key for a normal release.**
+The **Generate signing keystore** workflow is only for initial setup. It now refuses to run if `android-wrapper/keystore.b64` already exists. **Never use that workflow to create a replacement key for a normal release.**
 
 ## Versioning
 
@@ -174,21 +131,23 @@ Version information is stored in:
 android-wrapper/version.properties
 ```
 
-Initial values:
+Current values in this project are:
 
 ```text
-versionCode=1
-versionName=1.0
+versionCode=3
+versionName=1.1.0
 ```
 
-For the next release:
+GitHub Actions now reads these values directly. It no longer replaces them with the GitHub workflow run number.
+
+For every release, increase `versionCode` and set the desired `versionName`, for example:
 
 ```text
-versionCode=2
-versionName=1.1
+versionCode=4
+versionName=1.2.0
 ```
 
-`versionCode` must always increase.
+`versionCode` must always increase for an APK update.
 
 ## Every future release
 
