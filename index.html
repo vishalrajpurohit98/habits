@@ -3685,7 +3685,7 @@ function uaiSend(text,opts){ opts=opts||{};
       }else if(res.isQuery){voiceReply=res.msg.replace(/<[^>]+>/g,'');html+=res.msg.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');}
       else{voiceReply=res.msg;html+=res.msg.replace(/</g,'&lt;');}
       html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;reRenderCurrent();
-      if(opts.voiceMode&&voiceReply)rememberVoiceTurn('ai',voiceReply);
+      if(opts.voiceMode&&voiceReply&&typeof window.rememberVoiceTurn==='function')window.rememberVoiceTurn('ai',voiceReply);
       if(opts.voiceMode&&typeof voiceModeSpeak==='function')voiceModeSpeak(voiceReply||'Done.');
     }
     // Voice action gate: the speech-completion buffer is the primary delay.
@@ -8632,6 +8632,7 @@ window.__HT_PRO__='productivity-suite-v2';
   function nativeListen(){if(!vm.active||vm.waiting)return;stopRecognition();try{if(window.Bridge&&Bridge.startVoiceMode){Bridge.startVoiceMode();setVMState('listening','Speak naturally — your words appear live below.');return;}}catch(e){}browserListen();}
   function voiceContextText(){return vm.turns.slice(-8).map(function(x){return (x.who==='you'?'User':'Assistant')+': '+x.text;}).join('\n');}
   function rememberVoiceTurn(who,text){if(!text)return;vm.turns.push({who:who,text:String(text).slice(0,1200)});if(vm.turns.length>12)vm.turns=vm.turns.slice(-12);}
+  window.rememberVoiceTurn=rememberVoiceTurn;
   function handleVoiceTurn(text){
     if(!vm.active)return;
     text=String(text||'').trim();if(!text)return;
