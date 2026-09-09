@@ -3446,7 +3446,7 @@ function uaiPrompt(text){
   +'RESPOND WITH ONLY ONE JSON OBJECT (no markdown, no backticks, no extra text):\n'
   +'{"action":"TYPE","params":{...},"message":"short confirmation"}\n\n'
   +'ACTIONS:\n'
-  +'add_expense: {amt,cat,sub,note,kind("exp"/"inc"),date("YYYY-MM-DD"),acct}\n'
+  +'add_expense: {amt,cat,sub,note,payee,kind("exp"/"inc"),date("YYYY-MM-DD"),acct}\n'
   +'delete_expense: {id,date,cat,amt,payee} for one matching expense; if ambiguous ask for clarification\n'
   +'delete_transactions: {scope(all/date/dateRange/category/account),date,startDate,endDate,cat,acct,kind(exp/inc/all)} for bulk deletion; always confirm:true\n'
   +'add_habit: {name,goal(default 1)}\n'
@@ -3471,6 +3471,7 @@ function uaiPrompt(text){
   +'navigate: {tab(today/tasks/mood/exp/stats/ai/set)}\n'
   +'query: {} message=answer the question from app data\n'
   +'clarify: {} message=ask for missing info\n\n'
+  +'For add_expense, acct must be the account ID shown in APP DATA (preferred) or the exact account name; never use a merchant/payee/category as the account. If the user does not specify an account, leave acct empty and let the app choose the active default account. Put merchant names such as Swiggy in payee, not acct.\n'
   +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
   +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n\n'
   +'User: '+text;
@@ -3526,10 +3527,17 @@ function executeAction(r){
       return{ok:1,msg:msg,detail:'Deleted “'+task.title+'”',undo:function(){state.tasks.push(oldTask);persist();}};
     }
     if(a==='add_expense'){
-      var kind=p.kind==='inc'?'inc':'exp', amt=Number(p.amt), acct=String(p.acct||'');
+      var kind=p.kind==='inc'?'inc':'exp', amt=Number(p.amt), acct=String(p.acct||'').trim();
       if(!isFinite(amt)||amt<=0)return{ok:0,msg:'Enter an amount greater than zero.'};
-      var accts=activeAccts(); if(!acct && accts.length===1)acct=accts[0].id;
-      if(!acct || !acctById(acct) || (acctById(acct).active===false))return{ok:0,msg:'Choose a valid active account.'};
+      var accts=activeAccts();
+      /* Resolve account robustly: AI may return an id or an account name. Never reject a valid account merely because the AI used its display name. If no account was explicitly supplied, use the same default ordering as the manual expense form. */
+      var acctObj=null;
+      if(acct){
+        acctObj=accts.find(function(a){return String(a.id)===acct;})||accts.find(function(a){return String(a.name||'').toLowerCase()===acct.toLowerCase();})||accts.find(function(a){return String(a.name||'').toLowerCase().indexOf(acct.toLowerCase())>=0;});
+      }
+      if(!acctObj && !acct && accts.length) acctObj=accts[0];
+      if(!acctObj) return{ok:0,msg:accts.length?'I could not match that account. Say the account name, or leave it out to use the default active account.':'Create an active account before adding an expense.'};
+      acct=acctObj.id;
       var cat=String(p.cat||'Other').slice(0,40), known=kind==='inc'?(state.incCats||[]):Object.keys(state.cats||{});
       if(known.length && known.indexOf(cat)<0)cat='Other';
       var tx=normTx({d:d,kind:kind,amt:amt,acct:acct,cat:cat,sub:String(p.sub||'').slice(0,40),payee:String(p.payee||'').slice(0,60),note:String(p.note||'').slice(0,200),created:Date.now()});
