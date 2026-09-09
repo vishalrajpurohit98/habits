@@ -8724,21 +8724,23 @@ window.__HT_PRO__='productivity-suite-v2';
         opened=true;
         if(connectTimer){clearTimeout(connectTimer);connectTimer=null;}
         setVMState('thinking','Connected — configuring Gemini Live…');
+        /* Raw WebSocket mode: start from Google's documented setup shape.  Avoid
+           SDK-only/optional fields during the initial handshake; local voice context
+           is carried in the system instruction so the conversation remains useful
+           even when a WebSocket must be recreated. */
         var setup={setup:{
           model:'models/gemini-3.1-flash-live-preview',
-          generationConfig:{responseModalities:['AUDIO'],thinkingConfig:{thinkingLevel:'minimal'},speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:'Aoede'}}}},
+          generationConfig:{responseModalities:['AUDIO'],speechConfig:{languageCode:'en-IN',voiceConfig:{prebuiltVoiceConfig:{voiceName:'Aoede'}}}},
           inputAudioTranscription:{},
           outputAudioTranscription:{},
           realtimeInputConfig:{automaticActivityDetection:{disabled:false,prefixPaddingMs:500,silenceDurationMs:2000,endOfSpeechSensitivity:'END_SENSITIVITY_LOW'}},
-          sessionResumption:(function(){try{var h=localStorage.getItem('gemini_live_session_handle');return h?{handle:String(h)}:{};}catch(e){return {};}})(),
-          contextWindowCompression:{slidingWindow:{}},
           tools:[{functionDeclarations:[liveToolDeclaration()]}],
           systemInstruction:{parts:[{text:liveSystemPrompt()}]}
         }};
         try{
           ws.send(JSON.stringify(setup));
           setupTimer=setTimeout(function(){
-            if(!vm.liveReady&&!settled) failLive('Gemini Live connected but did not accept the session setup. The API key may not have Live API access, or the Live model may be unavailable for this key.',true);
+            if(!vm.liveReady&&!settled) failLive('Gemini Live WebSocket opened but setupComplete was not received. The server may be rejecting the setup configuration or closing the session.',true);
           },12000);
         }catch(e){failLive('Gemini Live setup failed: '+(e.message||e),false);}
       };
@@ -8795,7 +8797,26 @@ window.__HT_PRO__='productivity-suite-v2';
         if(generation!==vm.liveGeneration)return;
         if(!settled&&vm.active){
           settled=true;
-          reject(new Error('Gemini Live closed before setup completed'+(code?' (code '+code+')':'')+(reason?': '+reason:'')));
+          var preSetupAttempt=Number(vm.liveReconnectAttempts||0)+1;
+          vm.liveReconnectAttempts=preSetupAttempt;
+          var closeDetail='Gemini Live closed before setup completed'+(code?' (code '+code+')':'')+(reason?': '+reason:'');
+          if(preSetupAttempt<=2){
+            /* A clean 1000 before setup is not useful to retry with the same
+               optional session state.  Start a genuinely fresh handshake. */
+            try{localStorage.removeItem('gemini_live_session_handle');}catch(e){}
+            setVMState('thinking','Live handshake ended — starting a fresh connection…');
+            vm.liveReconnectTimer=setTimeout(function(){
+              vm.liveReconnectTimer=null;
+              if(!vm.active)return;
+              startLiveVoice(preSetupAttempt).then(function(){vm.liveReconnectAttempts=0;}).catch(function(err){
+                if(!vm.active)return;
+                if(preSetupAttempt<2)setVMState('thinking','Retrying live handshake…');
+                else setVMState('error',(err&&err.message)||closeDetail);
+              });
+            },700*preSetupAttempt);
+            return;
+          }
+          reject(new Error(closeDetail));
           return;
         }
         if(vm.active&&!vm.liveClosing){
