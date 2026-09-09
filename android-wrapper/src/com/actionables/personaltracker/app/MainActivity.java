@@ -10,7 +10,10 @@ import android.os.*;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
+import android.speech.RecognitionListener;
+import android.speech.SpeechRecognizer;
 import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
 import android.text.TextUtils;
 import android.view.*;
 import android.webkit.*;
@@ -43,11 +46,13 @@ public class MainActivity extends Activity {
     String pendingPhotoDir = "photos";
     Uri pendingCameraUri = null;
     boolean pendingCameraPermission = false;
+    SpeechRecognizer voiceRecognizer = null;
+    boolean voiceModeActive = false;
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         prefs = getSharedPreferences("personal_tracker_native", MODE_PRIVATE);
-        tts = new TextToSpeech(this, status -> { if(status == TextToSpeech.SUCCESS) tts.setLanguage(Locale.forLanguageTag("en-IN")); });
+        tts = new TextToSpeech(this, status -> { if(status == TextToSpeech.SUCCESS) { tts.setLanguage(Locale.forLanguageTag("en-IN")); tts.setOnUtteranceProgressListener(new UtteranceProgressListener() { @Override public void onStart(String utteranceId) {} @Override public void onDone(String utteranceId) { if("pt_voice_mode".equals(utteranceId)) js("window._voiceTtsDone&&window._voiceTtsDone()"); } @Override public void onError(String utteranceId) { if("pt_voice_mode".equals(utteranceId)) js("window._voiceTtsDone&&window._voiceTtsDone()"); } }); } });
         createNotificationChannel();
         configureWindow();
         web = new WebView(this);
@@ -297,8 +302,8 @@ public class MainActivity extends Activity {
         super.onRequestPermissionsResult(req, permissions, grants);
         if (req == REQ_SPEECH && pendingSpeechId != null) {
             String id = pendingSpeechId;
-            if (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) startSpeech(id);
-            else { pendingSpeechId = null; js("window._speechResult&&window._speechResult("+JSONObject.quote(id)+",'','Microphone permission denied')"); }
+            if ("__voice_mode__".equals(id)) { pendingSpeechId=null; if (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) startVoiceMode(); else { voiceModeActive=false; js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Microphone permission denied")+")"); } }
+            else { if (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) startSpeech(id); else { pendingSpeechId = null; js("window._speechResult&&window._speechResult("+JSONObject.quote(id)+",'','Microphone permission denied')"); } }
         } else if (req == REQ_CAMERA) {
             boolean ok = grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED;
             pendingCameraPermission = false;
@@ -417,6 +422,90 @@ public class MainActivity extends Activity {
         i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION); startActivity(Intent.createChooser(i,"Share file"));
     }
 
+    void stopVoiceRecognizer() {
+        try { if (voiceRecognizer != null) { voiceRecognizer.stopListening(); voiceRecognizer.cancel(); voiceRecognizer.destroy(); } } catch (Exception ignored) {}
+        voiceRecognizer = null;
+    }
+
+    void startVoiceMode() {
+        voiceModeActive = true;
+        stopVoiceRecognizer();
+        if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            pendingSpeechId = "__voice_mode__";
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_SPEECH);
+            return;
+        }
+        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
+            js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Speech recognition is not available on this device")+")");
+            return;
+        }
+        try {
+            voiceRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+            voiceRecognizer.setRecognitionListener(new RecognitionListener() {
+                public void onReadyForSpeech(Bundle p) { js("window._voiceNativeState&&window._voiceNativeState('ready')"); }
+                public void onBeginningOfSpeech() { js("window._voiceNativeState&&window._voiceNativeState('listening')"); }
+                public void onRmsChanged(float rmsdB) { js("window._voiceNativeLevel&&window._voiceNativeLevel("+Float.toString(Math.max(0f, Math.min(12f, rmsdB + 2f)))+")"); }
+                public void onBufferReceived(byte[] b) {}
+                public void onEndOfSpeech() { js("window._voiceNativeState&&window._voiceNativeState('processing')"); }
+                public void onError(int error) {
+                    String msg;
+                    switch(error) {
+                        case SpeechRecognizer.ERROR_AUDIO: msg="Microphone audio error"; break;
+                        case SpeechRecognizer.ERROR_CLIENT: msg="Voice recognition client error"; break;
+                        case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS: msg="Microphone permission denied"; break;
+                        case SpeechRecognizer.ERROR_NETWORK: msg="Network error during speech recognition"; break;
+                        case SpeechRecognizer.ERROR_NETWORK_TIMEOUT: msg="Speech recognition network timeout"; break;
+                        case SpeechRecognizer.ERROR_NO_MATCH: msg="I didn't catch that. Please try again."; break;
+                        case SpeechRecognizer.ERROR_RECOGNIZER_BUSY: msg="Voice recognition is busy. Try again."; break;
+                        case SpeechRecognizer.ERROR_SERVER: msg="Speech recognition service error"; break;
+                        case SpeechRecognizer.ERROR_SPEECH_TIMEOUT: msg="No speech detected. Please speak."; break;
+                        default: msg="Voice recognition error";
+                    }
+                    js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote(msg)+")");
+                }
+                public void onResults(Bundle results) {
+                    ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    String text = r != null && !r.isEmpty() ? r.get(0) : "";
+                    if(!text.trim().isEmpty()) js("window._voiceNativeFinal&&window._voiceNativeFinal("+JSONObject.quote(text.trim())+")");
+                    stopVoiceRecognizer();
+                }
+                public void onPartialResults(Bundle results) {
+                    ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                    String text = r != null && !r.isEmpty() ? r.get(0) : "";
+                    if(!text.trim().isEmpty()) js("window._voiceNativePartial&&window._voiceNativePartial("+JSONObject.quote(text.trim())+")");
+                }
+                public void onEvent(int t, Bundle p) {}
+            });
+            Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN");
+            i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
+            i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
+            voiceRecognizer.startListening(i);
+            js("window._voiceNativeState&&window._voiceNativeState('starting')");
+        } catch(Exception e) {
+            stopVoiceRecognizer();
+            js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Could not start voice recognition")+")");
+        }
+    }
+
+    void stopVoiceMode() {
+        voiceModeActive=false;
+        stopVoiceRecognizer();
+        try { if(tts!=null) tts.stop(); } catch(Exception ignored) {}
+    }
+
+    void speakVoiceMode(String text) {
+        if(text==null || text.trim().isEmpty()) { js("window._voiceTtsDone&&window._voiceTtsDone()"); return; }
+        runOnUiThread(() -> {
+            try {
+                if(tts==null) { js("window._voiceTtsDone&&window._voiceTtsDone()"); return; }
+                tts.setLanguage(Locale.forLanguageTag("en-IN"));
+                tts.speak(text.trim(), TextToSpeech.QUEUE_FLUSH, null, "pt_voice_mode");
+            } catch(Exception e) { js("window._voiceTtsDone&&window._voiceTtsDone()"); }
+        });
+    }
+
     void startSpeech(String id) {
         pendingSpeechId=id;
         if (Build.VERSION.SDK_INT >= 23 &&
@@ -436,7 +525,7 @@ public class MainActivity extends Activity {
 
     void speakText(String s){ if(s==null||s.trim().isEmpty()) return; runOnUiThread(() -> { try { if(tts!=null){ tts.setLanguage(Locale.forLanguageTag("en-IN")); tts.speak(s.trim(), TextToSpeech.QUEUE_FLUSH, null, "pt_voice"); } } catch(Exception ignored){} }); }
 
-    @Override protected void onDestroy(){ try{ if(tts!=null){tts.stop();tts.shutdown();} }catch(Exception ignored){} super.onDestroy(); }
+    @Override protected void onDestroy(){ try{ voiceModeActive=false; stopVoiceRecognizer(); if(tts!=null){tts.stop();tts.shutdown();} }catch(Exception ignored){} super.onDestroy(); }
 
     void toast(String s){ runOnUiThread(()->Toast.makeText(this,s,Toast.LENGTH_SHORT).show()); }
 
@@ -480,6 +569,9 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String saveFile(String name,String mime,String b64)throws Exception{return MainActivity.this.saveFile(name,mime,b64);}
         @JavascriptInterface public void shareFile(String name,String mime,String b64)throws Exception{MainActivity.this.shareFile(name,mime,b64);}
         @JavascriptInterface public void startSpeech(String id){MainActivity.this.startSpeech(id);}
+        @JavascriptInterface public void startVoiceMode(){MainActivity.this.startVoiceMode();}
+        @JavascriptInterface public void stopVoiceMode(){MainActivity.this.stopVoiceMode();}
+        @JavascriptInterface public void speakVoiceMode(String text){MainActivity.this.speakVoiceMode(text);}
         @JavascriptInterface public void speak(String text){MainActivity.this.speakText(text);}
     }
 }
