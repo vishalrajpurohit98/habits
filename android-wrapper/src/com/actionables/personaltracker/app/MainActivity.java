@@ -432,7 +432,11 @@ public class MainActivity extends Activity {
                     @Override public void onBufferReceived(byte[] buffer) { }
                     @Override public void onEndOfSpeech() { }
                     @Override public void onEvent(int eventType, android.os.Bundle params) { }
-                    @Override public void onPartialResults(android.os.Bundle partialResults) { }
+                    @Override public void onPartialResults(android.os.Bundle partialResults) {
+                        if (pendingSpeechId == null || partialResults == null) return;
+                        ArrayList<String> r = partialResults.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        if (r != null && !r.isEmpty()) js("window._speechState&&window._speechState("+JSONObject.quote(pendingSpeechId)+",'partial',"+JSONObject.quote(r.get(0))+ ")");
+                    }
                     @Override public void onResults(android.os.Bundle results) {
                         ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         String text = r != null && !r.isEmpty() ? r.get(0) : "";
@@ -467,6 +471,14 @@ public class MainActivity extends Activity {
                 i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3);
                 i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
                 speechRecognizer.startListening(i);
+                new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                    if (pendingSpeechId != null && pendingSpeechId.equals(id)) {
+                        try { speechRecognizer.stopListening(); } catch (Exception ignored) {}
+                        String current = pendingSpeechId;
+                        cleanupSpeechRecognizer();
+                        finishSpeech(current, "", "Speech recognition timed out. Please try again.");
+                    }
+                }, 12000);
             } catch (Exception e) {
                 cleanupSpeechRecognizer();
                 finishSpeech(id, "", "Could not start speech recognition");
