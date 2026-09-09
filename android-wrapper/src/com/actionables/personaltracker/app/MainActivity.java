@@ -48,6 +48,8 @@ public class MainActivity extends Activity {
     boolean pendingCameraPermission = false;
     SpeechRecognizer voiceRecognizer = null;
     boolean voiceModeActive = false;
+    final Handler voiceHandler = new Handler(Looper.getMainLooper());
+    Runnable voiceStartRunnable = null;
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
@@ -423,7 +425,13 @@ public class MainActivity extends Activity {
     }
 
     void stopVoiceRecognizer() {
-        try { if (voiceRecognizer != null) { voiceRecognizer.stopListening(); voiceRecognizer.cancel(); voiceRecognizer.destroy(); } } catch (Exception ignored) {}
+        if (voiceStartRunnable != null) {
+            try { voiceHandler.removeCallbacks(voiceStartRunnable); } catch (Exception ignored) {}
+            voiceStartRunnable = null;
+        }
+        try { if (voiceRecognizer != null) { voiceRecognizer.stopListening(); } } catch (Exception ignored) {}
+        try { if (voiceRecognizer != null) { voiceRecognizer.cancel(); } } catch (Exception ignored) {}
+        try { if (voiceRecognizer != null) { voiceRecognizer.destroy(); } } catch (Exception ignored) {}
         voiceRecognizer = null;
     }
 
@@ -436,63 +444,72 @@ public class MainActivity extends Activity {
             return;
         }
         if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Speech recognition is not available on this device")+")");
+            js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Speech recognition is not available on this device. Please enable Google voice recognition.")+")");
             return;
         }
-        try {
-            voiceRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
-            voiceRecognizer.setRecognitionListener(new RecognitionListener() {
-                public void onReadyForSpeech(Bundle p) { js("window._voiceNativeState&&window._voiceNativeState('ready')"); }
-                public void onBeginningOfSpeech() { js("window._voiceNativeState&&window._voiceNativeState('listening')"); }
-                public void onRmsChanged(float rmsdB) { js("window._voiceNativeLevel&&window._voiceNativeLevel("+Float.toString(Math.max(0f, Math.min(12f, rmsdB + 2f)))+")"); }
-                public void onBufferReceived(byte[] b) {}
-                public void onEndOfSpeech() { js("window._voiceNativeState&&window._voiceNativeState('processing')"); }
-                public void onError(int error) {
-                    String msg;
-                    switch(error) {
-                        case SpeechRecognizer.ERROR_AUDIO: msg="Microphone audio error"; break;
-                        case SpeechRecognizer.ERROR_CLIENT: msg="Voice recognition client error"; break;
-                        case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS: msg="Microphone permission denied"; break;
-                        case SpeechRecognizer.ERROR_NETWORK: msg="Network error during speech recognition"; break;
-                        case SpeechRecognizer.ERROR_NETWORK_TIMEOUT: msg="Speech recognition network timeout"; break;
-                        case SpeechRecognizer.ERROR_NO_MATCH: msg="I didn't catch that. Please try again."; break;
-                        case SpeechRecognizer.ERROR_RECOGNIZER_BUSY: msg="Voice recognition is busy. Try again."; break;
-                        case SpeechRecognizer.ERROR_SERVER: msg="Speech recognition service error"; break;
-                        case SpeechRecognizer.ERROR_SPEECH_TIMEOUT: msg="No speech detected. Please speak."; break;
-                        default: msg="Voice recognition error";
+        // SpeechRecognizer can throw when a previous recognizer has just been destroyed.
+        // Always create/start it from the main looper after a short hand-off period.
+        voiceStartRunnable = () -> {
+            voiceStartRunnable = null;
+            if (!voiceModeActive) return;
+            try {
+                voiceRecognizer = SpeechRecognizer.createSpeechRecognizer(MainActivity.this);
+                voiceRecognizer.setRecognitionListener(new RecognitionListener() {
+                    public void onReadyForSpeech(Bundle p) { js("window._voiceNativeState&&window._voiceNativeState('ready')"); }
+                    public void onBeginningOfSpeech() { js("window._voiceNativeState&&window._voiceNativeState('listening')"); }
+                    public void onRmsChanged(float rmsdB) { js("window._voiceNativeLevel&&window._voiceNativeLevel("+Float.toString(Math.max(0f, Math.min(12f, rmsdB + 2f)))+")"); }
+                    public void onBufferReceived(byte[] b) {}
+                    public void onEndOfSpeech() { js("window._voiceNativeState&&window._voiceNativeState('processing')"); }
+                    public void onError(int error) {
+                        String msg;
+                        switch(error) {
+                            case SpeechRecognizer.ERROR_AUDIO: msg="Microphone audio error"; break;
+                            case SpeechRecognizer.ERROR_CLIENT: msg="Voice recognition client error"; break;
+                            case SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS: msg="Microphone permission denied"; break;
+                            case SpeechRecognizer.ERROR_NETWORK: msg="Network error during speech recognition"; break;
+                            case SpeechRecognizer.ERROR_NETWORK_TIMEOUT: msg="Speech recognition network timeout"; break;
+                            case SpeechRecognizer.ERROR_NO_MATCH: msg="I didn't catch that. Please try again."; break;
+                            case SpeechRecognizer.ERROR_RECOGNIZER_BUSY: msg="Voice recognition is busy. Please try again."; break;
+                            case SpeechRecognizer.ERROR_SERVER: msg="Speech recognition service error"; break;
+                            case SpeechRecognizer.ERROR_SPEECH_TIMEOUT: msg="No speech detected. Please speak."; break;
+                            default: msg="Voice recognition error";
+                        }
+                        if ((error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) && voiceModeActive) {
+                            js("window._voiceNativeState&&window._voiceNativeState('ready')");
+                            return;
+                        }
+                        js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote(msg)+")");
                     }
-                    if ((error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) && voiceModeActive) {
-                        js("window._voiceNativeState&&window._voiceNativeState('processing')");
-                        return;
+                    public void onResults(Bundle results) {
+                        ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        String text = r != null && !r.isEmpty() ? r.get(0) : "";
+                        if(!text.trim().isEmpty()) js("window._voiceNativeFinal&&window._voiceNativeFinal("+JSONObject.quote(text.trim())+")");
                     }
-                    js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote(msg)+")");
-                }
-                public void onResults(Bundle results) {
-                    ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    String text = r != null && !r.isEmpty() ? r.get(0) : "";
-                    if(!text.trim().isEmpty()) js("window._voiceNativeFinal&&window._voiceNativeFinal("+JSONObject.quote(text.trim())+")");
-                }
-                public void onPartialResults(Bundle results) {
-                    ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                    String text = r != null && !r.isEmpty() ? r.get(0) : "";
-                    if(!text.trim().isEmpty()) js("window._voiceNativePartial&&window._voiceNativePartial("+JSONObject.quote(text.trim())+")");
-                }
-                public void onEvent(int t, Bundle p) {}
-            });
-            Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN");
-            i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
-            i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
-            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,1200);
-            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
-            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
-            voiceRecognizer.startListening(i);
-            js("window._voiceNativeState&&window._voiceNativeState('starting')");
-        } catch(Exception e) {
-            stopVoiceRecognizer();
-            js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Could not start voice recognition")+")");
-        }
+                    public void onPartialResults(Bundle results) {
+                        ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+                        String text = r != null && !r.isEmpty() ? r.get(0) : "";
+                        if(!text.trim().isEmpty()) js("window._voiceNativePartial&&window._voiceNativePartial("+JSONObject.quote(text.trim())+")");
+                    }
+                    public void onEvent(int t, Bundle p) {}
+                });
+                Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+                i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+                i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN");
+                i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
+                i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,1200);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
+                voiceRecognizer.startListening(i);
+                js("window._voiceNativeState&&window._voiceNativeState('starting')");
+            } catch(Exception e) {
+                String detail = e.getMessage();
+                if (detail == null || detail.trim().isEmpty()) detail = e.getClass().getSimpleName();
+                stopVoiceRecognizer();
+                js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Could not start voice recognition: "+detail)+")");
+            }
+        };
+        voiceHandler.postDelayed(voiceStartRunnable, 300);
     }
 
     void stopVoiceMode() {
