@@ -49,24 +49,14 @@ jobs:
           else
             echo "value=personaltracker" >> "$GITHUB_OUTPUT"
           fi
-      - name: Read version from version.properties
+      - name: Compute version
         id: ver
-        working-directory: android-wrapper
         run: |
-          set -euo pipefail
-          if [ ! -f version.properties ]; then
-            echo "ERROR: android-wrapper/version.properties not found."
-            exit 1
-          fi
-          CODE="$(sed -n 's/^versionCode=//p' version.properties | head -n1 | tr -d '\r')"
-          NAME="$(sed -n 's/^versionName=//p' version.properties | head -n1 | tr -d '\r')"
-          if ! [[ "$CODE" =~ ^[0-9]+$ ]] || [ -z "$NAME" ]; then
-            echo "ERROR: invalid version.properties. Expected versionCode=<number> and versionName=<name>."
-            exit 1
-          fi
+          # versionCode must strictly increase; use the workflow run number.
+          CODE="${{ github.run_number }}"
           echo "code=$CODE" >> "$GITHUB_OUTPUT"
-          echo "name=$NAME" >> "$GITHUB_OUTPUT"
-          echo "Using versionCode=$CODE versionName=$NAME"
+          echo "name=1.0.$CODE" >> "$GITHUB_OUTPUT"
+          echo "Using versionCode=$CODE versionName=1.0.$CODE"
 
       - name: Build APK
         working-directory: android-wrapper
