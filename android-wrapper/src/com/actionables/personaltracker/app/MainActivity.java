@@ -476,6 +476,7 @@ public class MainActivity extends Activity {
                         }
                         if ((error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) && voiceModeActive) {
                             js("window._voiceNativeState&&window._voiceNativeState('ready')");
+                            voiceHandler.postDelayed(() -> { if (voiceModeActive) startVoiceMode(); }, 250);
                             return;
                         }
                         js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote(msg)+")");
@@ -483,7 +484,11 @@ public class MainActivity extends Activity {
                     public void onResults(Bundle results) {
                         ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         String text = r != null && !r.isEmpty() ? r.get(0) : "";
-                        if(!text.trim().isEmpty()) js("window._voiceNativeFinal&&window._voiceNativeFinal("+JSONObject.quote(text.trim())+")");
+                        if(!text.trim().isEmpty()) {
+                            js("window._voiceNativeFinal&&window._voiceNativeFinal("+JSONObject.quote(text.trim())+")");
+                        }
+                        // Release this recognition session cleanly. JS owns the 2.5s finalization buffer.
+                        try { if (voiceRecognizer != null) voiceRecognizer.cancel(); } catch(Exception ignored) {}
                     }
                     public void onPartialResults(Bundle results) {
                         ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
@@ -497,9 +502,9 @@ public class MainActivity extends Activity {
                 i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN");
                 i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
                 i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,1200);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,900);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,1200);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,1500);
                 voiceRecognizer.startListening(i);
                 js("window._voiceNativeState&&window._voiceNativeState('starting')");
             } catch(Exception e) {
