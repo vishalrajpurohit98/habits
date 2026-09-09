@@ -8691,51 +8691,77 @@ window.__HT_PRO__='productivity-suite-v2';
     var key=getAiKey();
     if(!key||getAiProvider()!=='gemini') return Promise.reject(new Error('Live Voice requires the Google Gemini provider and an API key.'));
     stopLegacyVoice();
+    stopLiveVoice();
     setVMState('thinking','Connecting to Gemini Live…');
     var url='wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key='+encodeURIComponent(key);
     return new Promise(function(resolve,reject){
-      var ws=new WebSocket(url);
+      var ws;
+      var opened=false, resolved=false, settled=false, connectTimer=null, setupTimer=null;
+      function cleanupTimers(){if(connectTimer){clearTimeout(connectTimer);connectTimer=null;}if(setupTimer){clearTimeout(setupTimer);setupTimer=null;}}
+      function failLive(message, fallback){
+        if(settled)return;
+        settled=true;cleanupTimers();
+        try{if(ws)ws.close();}catch(e){}
+        vm.live=null;vm.liveReady=false;
+        var msg=String(message||'Could not connect to Gemini Live.');
+        if(!fallback) reject(new Error(msg));
+        else reject(new Error(msg));
+      }
+      try{ws=new WebSocket(url);}catch(e){failLive('Gemini Live WebSocket could not be created: '+(e.message||e),false);return;}
       vm.live=ws;
-      var opened=false, resolved=false;
+      connectTimer=setTimeout(function(){
+        if(!opened&&!settled) failLive('Gemini Live connection timed out after 12 seconds. Check internet access and Gemini API key permissions.',true);
+      },12000);
       ws.onopen=function(){
         opened=true;
+        if(connectTimer){clearTimeout(connectTimer);connectTimer=null;}
+        setVMState('thinking','Connected — configuring Gemini Live…');
         var setup={setup:{
           model:'models/gemini-3.1-flash-live-preview',
           generationConfig:{responseModalities:['AUDIO'],thinkingConfig:{thinkingLevel:'minimal'},speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:'Aoede'}}}},
-          inputAudioTranscription:{},
+          inputAudioTranscription:{languageCodes:['en-IN']},
           outputAudioTranscription:{},
           realtimeInputConfig:{automaticActivityDetection:{disabled:false,prefixPaddingMs:500,silenceDurationMs:2000,endOfSpeechSensitivity:'END_SENSITIVITY_LOW'}},
+          sessionResumption:{},
+          contextWindowCompression:{triggerTokens:80000,targetTokens:60000},
           tools:[{functionDeclarations:[liveToolDeclaration()]}],
           systemInstruction:{parts:[{text:liveSystemPrompt()}]}
         }};
-        try{ws.send(JSON.stringify(setup));}catch(e){reject(e);}
+        try{
+          ws.send(JSON.stringify(setup));
+          setupTimer=setTimeout(function(){
+            if(!vm.liveReady&&!settled) failLive('Gemini Live connected but did not accept the session setup. The API key may not have Live API access, or the Live model may be unavailable for this key.',true);
+          },12000);
+        }catch(e){failLive('Gemini Live setup failed: '+(e.message||e),false);}
       };
       ws.onmessage=function(ev){
         try{
           var m=JSON.parse(ev.data);
+          if(m.error){
+            var er=m.error, detail=(er.message||er.status||'Gemini Live returned an error.');
+            failLive('Gemini Live: '+detail,true);return;
+          }
           if(m.setupComplete){
-            vm.liveReady=true;
-            setVMState('listening','Live voice connected — speak naturally.');
-            setupLiveAudio().then(function(){if(!resolved){resolved=true;resolve();}}).catch(function(e){if(!resolved){resolved=true;reject(e);}});
+            if(setupTimer){clearTimeout(setupTimer);setupTimer=null;}
+            vm.liveReady=true;settled=true;
+            setVMState('thinking','Live connected — opening microphone…');
+            setupLiveAudio().then(function(){
+              setVMState('listening','Live voice connected — speak naturally.');
+              resolve();
+            }).catch(function(e){reject(e);});
             return;
           }
+          if(m.sessionResumptionUpdate&&m.sessionResumptionUpdate.newHandle){
+            try{localStorage.setItem('gemini_live_session_handle',String(m.sessionResumptionUpdate.newHandle));}catch(e){}
+          }
+          if(m.goAway&&vm.active)setVMState('thinking','Refreshing the live voice connection…');
           if(m.serverContent){
             var sc=m.serverContent;
             if(sc.interrupted){stopLiveAudio();vm.speaking=false;}
-            if(sc.inputTranscription&&sc.inputTranscription.text){
-              vm.liveInputText+=sc.inputTranscription.text;
-              transcript(vm.liveInputText,false);
-            }
-            if(sc.interimInputTranscription&&sc.interimInputTranscription.text){
-              transcript(vm.liveInputText+sc.interimInputTranscription.text,false);
-            }
-            if(sc.outputTranscription&&sc.outputTranscription.text){
-              vm.liveOutputText+=sc.outputTranscription.text;
-              addBubbleLiveOutput(sc.outputTranscription.text,false);
-            }
-            if(sc.modelTurn&&sc.modelTurn.parts){
-              sc.modelTurn.parts.forEach(function(part){if(part.inlineData&&part.inlineData.data)playLivePcm(part.inlineData.data);});
-            }
+            if(sc.inputTranscription&&sc.inputTranscription.text){vm.liveInputText+=sc.inputTranscription.text;transcript(vm.liveInputText,false);}
+            if(sc.interimInputTranscription&&sc.interimInputTranscription.text){transcript(vm.liveInputText+sc.interimInputTranscription.text,false);}
+            if(sc.outputTranscription&&sc.outputTranscription.text){vm.liveOutputText+=sc.outputTranscription.text;addBubbleLiveOutput(sc.outputTranscription.text,false);}
+            if(sc.modelTurn&&sc.modelTurn.parts){sc.modelTurn.parts.forEach(function(part){if(part.inlineData&&part.inlineData.data)playLivePcm(part.inlineData.data);});}
             if(sc.turnComplete){
               if(vm.liveInputText.trim()){addBubble('you',vm.liveInputText.trim());rememberVoiceTurn('you',vm.liveInputText.trim());}
               vm.liveInputText='';
@@ -8746,16 +8772,19 @@ window.__HT_PRO__='productivity-suite-v2';
             }
           }
           if(m.toolCall)handleLiveToolCall(m);
-          if(m.goAway&&vm.active)setVMState('thinking','Refreshing the live voice connection…');
         }catch(e){console.warn('Live message error',e);}
       };
       ws.onerror=function(){
-        if(!opened){if(!resolved){resolved=true;reject(new Error('Could not connect to Gemini Live. Check the Gemini API key and network connection.'));}}
-        else setVMState('error','Gemini Live connection error.');
+        var msg=opened?'Gemini Live WebSocket error.':'Gemini Live could not open the WebSocket. Check the API key, network, and Gemini Live access.';
+        failLive(msg,true);
       };
-      ws.onclose=function(){
+      ws.onclose=function(ev){
+        var reason=ev&&ev.reason?String(ev.reason):'';
+        var code=ev&&ev.code?String(ev.code):'';
         vm.liveReady=false;
-        if(vm.active&&!vm.liveClosing)setVMState('error','Live voice connection closed.');
+        cleanupTimers();
+        if(!settled&&vm.active){settled=true;reject(new Error('Gemini Live closed before setup completed'+(code?' (code '+code+')':'')+(reason?': '+reason:'')));return;}
+        if(vm.active&&!vm.liveClosing)setVMState('error','Live voice connection closed'+(code?' (code '+code+')':'')+(reason?': '+reason:'.'));
       };
     });
   }
