@@ -1131,6 +1131,20 @@ html.light select.inp,html.light input.inp{color-scheme:light}
 html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @media(max-width:430px){.featureGrid3{grid-template-columns:1fr 1fr}.featureModal{width:94vw}}
 
+
+/* V4 voice assistant motion */
+.globalVoiceBtn{position:fixed;right:22px;bottom:92px;width:58px;height:58px;border:0;border-radius:50%;z-index:80;background:var(--accent,#6c63ff);color:#fff;font-size:24px;box-shadow:0 12px 32px rgba(0,0,0,.24);cursor:pointer;transition:transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .22s;}
+.globalVoiceBtn:active{transform:scale(.91)}
+.globalVoiceBtn:hover{transform:translateY(-2px) scale(1.03)}
+.voiceAssistant{position:fixed;inset:0;z-index:100;display:none;align-items:flex-end;justify-content:center;}
+.voiceAssistant.on{display:flex;animation:voiceFadeIn .24s ease-out}
+.voiceScrim{position:absolute;inset:0;background:rgba(0,0,0,.52);backdrop-filter:blur(5px);animation:voiceScrimIn .28s ease-out}
+.voicePanel{position:relative;width:min(560px,calc(100% - 24px));margin:12px;padding:28px 22px 22px;border-radius:30px;background:var(--card,#fff);box-shadow:0 24px 70px rgba(0,0,0,.34);text-align:center;transform:translateY(30px);animation:voiceSheetIn .42s cubic-bezier(.2,.85,.25,1) forwards}
+.voiceOrbWrap{height:108px;display:grid;place-items:center}.voiceOrb{width:92px;height:92px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#7c6cff,#4f46e5);color:#fff;font-size:34px;box-shadow:0 10px 34px rgba(79,70,229,.35);transition:transform .3s,box-shadow .3s}.voiceOrb span{display:block}.voiceAssistant[data-state=listening] .voiceOrb{animation:voicePulse 1.2s ease-in-out infinite}.voiceAssistant[data-state=thinking] .voiceOrb{animation:voiceSpin 1.2s linear infinite}.voiceAssistant[data-state=error] .voiceOrb{transform:scale(.94)}
+.voiceState{font-size:20px;font-weight:750;margin:6px 0 10px}.voiceTranscript{min-height:54px;max-width:470px;margin:0 auto 20px;opacity:.78;line-height:1.5}.voiceActions{display:flex;justify-content:center;gap:10px}.voiceSpeakBtn{min-width:150px}
+@keyframes voiceFadeIn{from{opacity:0}to{opacity:1}}@keyframes voiceScrimIn{from{opacity:0}to{opacity:1}}@keyframes voiceSheetIn{from{transform:translateY(30px) scale(.98);opacity:0}to{transform:none;opacity:1}}@keyframes voicePulse{0%,100%{transform:scale(1);box-shadow:0 10px 34px rgba(79,70,229,.35)}50%{transform:scale(1.08);box-shadow:0 16px 48px rgba(79,70,229,.52)}}@keyframes voiceSpin{0%{transform:rotate(0)}50%{transform:rotate(180deg) scale(1.03)}100%{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.globalVoiceBtn,.voiceAssistant *{animation:none!important;transition:none!important}.voicePanel{transform:none}}
+@media(max-width:600px){.globalVoiceBtn{right:16px;bottom:82px}.voicePanel{border-radius:26px;padding:24px 16px 18px}}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -3460,6 +3474,7 @@ function uaiPrompt(text){
   +'reopen_task: {id,title}\n'
   +'update_task: {id,match,newTitle,description,dueDate,dueTime,priority,status,reminders,recurrence}\n'
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
+  +'navigate: {tab(today/tasks/mood/exp/stats/ai/set)}\n'
   +'query: {} message=answer the question from app data\n'
   +'clarify: {} message=ask for missing info\n\n'
   +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
@@ -3520,13 +3535,14 @@ function executeAction(r){
     }
     if(a==='delete_sleep'){var oldSleep=state.sleep.find(function(s){return s.d===d;});state.sleep=state.sleep.filter(function(s){return s.d!==d;});persist();return{ok:1,msg:msg,undo:function(){if(oldSleep)state.sleep.push(oldSleep);persist();}};}
     if(a==='change_setting'){if(p.key==='theme'&&['dark','light','auto','amoled'].indexOf(p.value)<0)return{ok:0,msg:'Unsupported theme.'};if(p.key==='theme'){state.set.theme=p.value;applyTheme();}else if(p.key==='curr'){var c=String(p.value||'');if(!c)return{ok:0,msg:'Currency cannot be empty.'};state.set.curr=c.slice(0,4);}else return{ok:0,msg:'Unsupported setting.'};persist();return{ok:1,msg:msg};}
+    if(a==='navigate'){var tabs={today:'pgToday',tasks:'pgTasks',mood:'pgMood',exp:'pgExp',stats:'pgStats',ai:'pgAI',set:'pgSet'};var tid=tabs[String(p.tab||'').toLowerCase()];if(!tid)return{ok:0,msg:'I could not identify that section.'};showTab(tid);return{ok:1,msg:msg||('Opening '+String(p.tab||'section'))};}
     if(a==='query')return{ok:1,msg:msg,isQuery:1};
     if(a==='clarify')return{ok:0,msg:msg,isClarify:1};
     return{ok:0,msg:'Unsupported AI action.'};
   }catch(e){return{ok:0,msg:'Could not complete that action: '+e.message};}
 }
 try{localStorage.removeItem('ai_recent');}catch(e){} // Recent feature removed (v5.4)
-function uaiSend(text){
+function uaiSend(text,opts){ opts=opts||{}; var voiceMode=!!opts.voice;
   if(!text||!text.trim())return;
   var log=$('uaiLog');
   log.innerHTML+='<div class="uaiMsg user">'+text.replace(/</g,'&lt;')+'</div>';
@@ -3545,8 +3561,8 @@ function uaiSend(text){
     }else if(res.needConfirm&&res.pending){var pid='aiConfirm_'+Date.now();window[pid]=function(){var rr=executeAction(res.pending);var lg=$('uaiLog');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';lg.scrollTop=lg.scrollHeight;}reRenderCurrent();};html+='<div class="uaiAction"><div class="uaiCheck">'+esc(res.msg)+'</div><div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
     }else if(res.isQuery){html+=res.msg.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');}
     else{html+=res.msg.replace(/</g,'&lt;');}
-    html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;reRenderCurrent();
-  }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();log.innerHTML+='<div class="uaiMsg err">'+e.message+'</div>';log.scrollTop=log.scrollHeight;});
+    html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;reRenderCurrent(); if(voiceMode){ var speakText=(res&&res.msg)||result.message||'Done'; if(res&&res.detail)speakText += '. '+res.detail; voiceSpeak(speakText); if(window.__voiceAssistant)window.__voiceAssistant.finish(); }
+  }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();log.innerHTML+='<div class="uaiMsg err">'+e.message+'</div>';log.scrollTop=log.scrollHeight;if(voiceMode){voiceSpeak('I could not complete that request. '+e.message);if(window.__voiceAssistant)window.__voiceAssistant.finish();}});
 }
 function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();if($('pgTasks').classList.contains('on'))renderTasks();}catch(e){}}
 function periodRate(h,days){var now=new Date(),due=0,done=0;for(var i=0;i<days;i++){var d=addDays(now,-i),ds=fmt(d);if(ds<h.created)continue;if(dueOn(h,d)){due++;if(isDone(h,ds))done++;}}return due?done/due:0;}
@@ -7363,13 +7379,21 @@ function init(){
     cb(text);
   };
 
+  function voiceSpeak(text){
+    text=String(text||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+    var vt=document.getElementById('voiceTranscript'),vs=document.getElementById('voiceState');
+    if(vt)vt.textContent=text; if(vs)vs.textContent='Done';
+    try{ if(nat && nat.speak){ nat.speak(text); return; } }catch(e){}
+    try{ if(window.speechSynthesis){ window.speechSynthesis.cancel(); var u=new SpeechSynthesisUtterance(text);u.lang='en-IN';u.rate=.98;window.speechSynthesis.speak(u); } }catch(e){}
+  }
+
   function startVoice(targetInput, onDone){
     // APK: use native Android speech recognizer (WebView doesn't support Web Speech API)
     if(nat && nat.startSpeech){
       var id = 'sp_' + (++_speechCbId);
       _speechCallbacks[id] = function(text){
-        targetInput.value = text;
-        targetInput.focus();
+      var va=document.getElementById('voiceAssistant');if(va&&va.classList.contains('on'))va.setAttribute('data-state','thinking');
+        if(targetInput){ targetInput.value = text; targetInput.focus(); }
         toastN('Got: "' + text + '"');
         if(onDone) onDone(text);
       };
@@ -7385,8 +7409,7 @@ function init(){
     rec.maxAlternatives = 1;
     rec.onresult = function(e){
       var text = e.results[0][0].transcript;
-      targetInput.value = text;
-      targetInput.focus();
+      if(targetInput){ targetInput.value = text; targetInput.focus(); }
       if(onDone) onDone(text);
     };
     rec.onerror = function(e){
@@ -8530,6 +8553,30 @@ document.addEventListener('keydown',function(e){
   if(e.key==='Enter'||e.key===' '){var b=e.target.closest&&e.target.closest('button,[role="button"]');if(b)b.classList.add('motionKeyboardPress');}
 });
 document.addEventListener('keyup',function(e){var b=e.target.closest&&e.target.closest('button,[role="button"]');if(b)b.classList.remove('motionKeyboardPress');});
+})();
+</script>
+<!-- V4 AI VOICE ASSISTANT -->
+<div id="voiceAssistant" class="voiceAssistant" aria-hidden="true">
+  <div class="voiceScrim" id="voiceScrim"></div>
+  <div class="voicePanel" role="dialog" aria-modal="true" aria-label="AI Voice Assistant">
+    <div class="voiceOrbWrap"><div class="voiceOrb" id="voiceOrb"><span>🎙</span></div></div>
+    <div class="voiceState" id="voiceState">Tap and speak</div>
+    <div class="voiceTranscript" id="voiceTranscript">I can control your habits, actionables, reminders, expenses, mood, sleep, navigation and more.</div>
+    <div class="voiceActions"><button class="sbtn" id="voiceClose">Close</button><button class="primary voiceSpeakBtn" id="voiceSpeak">🎙 Speak</button></div>
+  </div>
+</div>
+<button id="globalVoiceBtn" class="globalVoiceBtn" aria-label="AI Voice Assistant" title="AI Voice Assistant">🎙</button>
+<script>
+(function(){
+  var root=document.getElementById('voiceAssistant'),btn=document.getElementById('globalVoiceBtn'),close=document.getElementById('voiceClose'),speak=document.getElementById('voiceSpeak'),scrim=document.getElementById('voiceScrim');
+  if(!root||!btn)return;
+  var transcript=document.getElementById('voiceTranscript'),status=document.getElementById('voiceState'),voiceBusy=false;
+  function setState(t,c){status.textContent=t;root.setAttribute('data-state',c||'idle');}
+  function open(){root.classList.add('on');root.setAttribute('aria-hidden','false');setState('Tap and speak','idle');transcript.textContent='I can control your habits, actionables, reminders, expenses, mood, sleep, navigation and more.';}
+  function hide(){root.classList.remove('on');root.setAttribute('aria-hidden','true');voiceBusy=false;}
+  function run(){if(voiceBusy)return;voiceBusy=true;setState('Listening…','listening');transcript.textContent='Speak naturally. For example: “Mark exercise complete” or “Show my overdue tasks.”';startVoice(null,function(text){transcript.textContent='“'+text+'”';setState('Thinking…','thinking');try{uaiSend(text,{voice:true});}catch(e){setState('Could not process','error');voiceBusy=false;}});}
+  btn.addEventListener('click',open);close.addEventListener('click',hide);scrim.addEventListener('click',hide);speak.addEventListener('click',run);
+  window.__voiceAssistant={open:open,close:hide,run:run,finish:function(){voiceBusy=false;}};
 })();
 </script>
 </body>

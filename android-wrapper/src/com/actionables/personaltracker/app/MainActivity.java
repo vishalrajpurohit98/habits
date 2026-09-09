@@ -11,6 +11,7 @@ import android.provider.MediaStore;
 import android.provider.Settings;
 import android.speech.RecognizerIntent;
 import android.speech.SpeechRecognizer;
+import android.speech.tts.TextToSpeech;
 import android.text.TextUtils;
 import android.view.*;
 import android.webkit.*;
@@ -37,6 +38,7 @@ public class MainActivity extends Activity {
     WebView web;
     SharedPreferences prefs;
     String pendingSpeechId = null;
+    TextToSpeech tts;
     String pendingImportCallback = "importNative";
     String pendingImportMode = "backup";
     String pendingPhotoDir = "photos";
@@ -46,6 +48,7 @@ public class MainActivity extends Activity {
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
         prefs = getSharedPreferences("personal_tracker_native", MODE_PRIVATE);
+        tts = new TextToSpeech(this, status -> { if(status == TextToSpeech.SUCCESS) tts.setLanguage(Locale.forLanguageTag("en-IN")); });
         createNotificationChannel();
         configureWindow();
         web = new WebView(this);
@@ -425,6 +428,10 @@ public class MainActivity extends Activity {
         }
     }
 
+    void speakText(String s){ if(s==null||s.trim().isEmpty()) return; runOnUiThread(() -> { try { if(tts!=null){ tts.setLanguage(Locale.forLanguageTag("en-IN")); tts.speak(s.trim(), TextToSpeech.QUEUE_FLUSH, null, "pt_voice"); } } catch(Exception ignored){} }); }
+
+    @Override protected void onDestroy(){ try{ if(tts!=null){tts.stop();tts.shutdown();} }catch(Exception ignored){} super.onDestroy(); }
+
     void toast(String s){ runOnUiThread(()->Toast.makeText(this,s,Toast.LENGTH_SHORT).show()); }
 
     public class Bridge {
@@ -467,5 +474,6 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String saveFile(String name,String mime,String b64)throws Exception{return MainActivity.this.saveFile(name,mime,b64);}
         @JavascriptInterface public void shareFile(String name,String mime,String b64)throws Exception{MainActivity.this.shareFile(name,mime,b64);}
         @JavascriptInterface public void startSpeech(String id){MainActivity.this.startSpeech(id);}
+        @JavascriptInterface public void speak(String text){MainActivity.this.speakText(text);}
     }
 }
