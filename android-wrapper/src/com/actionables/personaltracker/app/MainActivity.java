@@ -133,6 +133,17 @@ public class MainActivity extends Activity {
             @Override public boolean onConsoleMessage(ConsoleMessage m) {
                 return true;
             }
+            @Override public void onPermissionRequest(final PermissionRequest request) {
+                runOnUiThread(() -> {
+                    try {
+                        if (request.getOrigin() != null && APP_HOST.equalsIgnoreCase(request.getOrigin().getHost())) {
+                            request.grant(new String[]{PermissionRequest.RESOURCE_AUDIO_CAPTURE});
+                        } else {
+                            request.deny();
+                        }
+                    } catch (Exception e) { try { request.deny(); } catch (Exception ignored) {} }
+                });
+            }
             @Override public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
                 // The app's own import path uses Bridge.pickImport(). This also supports ordinary <input type=file>.
                 Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
@@ -305,6 +316,7 @@ public class MainActivity extends Activity {
         if (req == REQ_SPEECH && pendingSpeechId != null) {
             String id = pendingSpeechId;
             if ("__voice_mode__".equals(id)) { pendingSpeechId=null; if (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) startVoiceMode(); else { voiceModeActive=false; js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Microphone permission denied")+")"); } }
+            else if ("__live_web__".equals(id)) { pendingSpeechId=null; if (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) js("window._voicePermissionReady&&window._voicePermissionReady(true)"); else js("window._voicePermissionReady&&window._voicePermissionReady(false)"); }
             else { if (grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED) startSpeech(id); else { pendingSpeechId = null; js("window._speechResult&&window._speechResult("+JSONObject.quote(id)+",'','Microphone permission denied')"); } }
         } else if (req == REQ_CAMERA) {
             boolean ok = grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED;
@@ -613,6 +625,14 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String saveFile(String name,String mime,String b64)throws Exception{return MainActivity.this.saveFile(name,mime,b64);}
         @JavascriptInterface public void shareFile(String name,String mime,String b64)throws Exception{MainActivity.this.shareFile(name,mime,b64);}
         @JavascriptInterface public void startSpeech(String id){MainActivity.this.startSpeech(id);}
+        @JavascriptInterface public void requestVoicePermission(){
+            if (Build.VERSION.SDK_INT < 23 || checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                js("window._voicePermissionReady&&window._voicePermissionReady(true)");
+                return;
+            }
+            pendingSpeechId="__live_web__";
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_SPEECH);
+        }
         @JavascriptInterface public void startVoiceMode(){MainActivity.this.startVoiceMode();}
         @JavascriptInterface public void stopVoiceMode(){MainActivity.this.stopVoiceMode();}
         @JavascriptInterface public void speakVoiceMode(String text){MainActivity.this.speakVoiceMode(text);}

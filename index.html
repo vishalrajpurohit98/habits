@@ -8663,71 +8663,117 @@ window.__HT_PRO__='productivity-suite-v2';
 <button id="globalVoiceBtn" class="globalVoiceBtn" type="button" aria-label="Start AI voice mode" title="AI Voice Mode">🎙</button>
 <script>
 (function(){
-  var vm={active:false,recognition:null,speaking:false,muted:false,waiting:false,lastPartial:'',restartTimer:null,finalText:'',pendingParts:[],silenceTimer:null,turns:[]};
+  var vm={active:false,speaking:false,muted:false,waiting:false,lastPartial:'',turns:[],live:null,liveReady:false,liveOutputText:'',liveInputText:'',audioCtx:null,micStream:null,micSource:null,processor:null,silentGain:null,playAt:0,playbackTimer:null};
   function $(id){return document.getElementById(id);}
-  function setVMState(state,hint){var o=$('voiceModeOverlay');if(!o)return;o.classList.remove('listening','thinking','speaking');if(state) o.classList.add(state);$('voiceModeState').textContent=state==='listening'?'Listening…':state==='thinking'?'Thinking…':state==='speaking'?'Speaking…':state==='error'?'Voice error':'Ready';$('voiceModeHint').textContent=hint||'';}
+  function setVMState(state,hint){var o=$('voiceModeOverlay');if(!o)return;o.classList.remove('listening','thinking','speaking','error');if(state) o.classList.add(state);$('voiceModeState').textContent=state==='listening'?'Listening…':state==='thinking'?'Thinking…':state==='speaking'?'Speaking…':state==='error'?'Voice error':'Ready';$('voiceModeHint').textContent=hint||'';}
   window.setVMState=setVMState;
   function transcript(t,empty){var e=$('voiceTranscript');if(!e)return;e.textContent=t||'Your live transcript will appear here…';e.classList.toggle('empty',!!empty);}
   function addBubble(who,text){if(!text)return;var c=$('voiceConversation');if(!c)return;var d=document.createElement('div');d.className='voiceBubble '+(who==='you'?'you':'ai');d.innerHTML='<small>'+(who==='you'?'YOU':'AI')+'</small>'+String(text).replace(/</g,'&lt;').replace(/\n/g,'<br>');c.appendChild(d);c.scrollTop=c.scrollHeight;}
-  function stopRecognition(){if(vm.restartTimer){clearTimeout(vm.restartTimer);vm.restartTimer=null;}try{if(window.Bridge&&Bridge.stopVoiceMode)Bridge.stopVoiceMode();}catch(e){}if(vm.recognition){try{vm.recognition.onresult=null;vm.recognition.onerror=null;vm.recognition.onend=null;vm.recognition.stop();}catch(e){}vm.recognition=null;}}
-  function scheduleVoiceFinalize(){
-    if(vm.silenceTimer)clearTimeout(vm.silenceTimer);
-    vm.silenceTimer=setTimeout(function(){
-      vm.silenceTimer=null;
-      var t=String(vm.finalText||vm.pendingParts.join(' ')||'').replace(/\s+/g,' ').trim();
-      if(!t||vm.waiting||!vm.active)return;
-      vm.pendingParts=[];vm.finalText='';handleVoiceTurn(t);
-    },2600);
-  }
-  function browserListen(){if(!vm.active||vm.waiting)return;var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){setVMState('error','Voice mode is not supported here. Use the Android app or Chrome/Edge.');return;}stopRecognition();var r;try{r=new SR();}catch(e){setVMState('error','Could not start voice recognition.');return;}vm.recognition=r;vm.lastPartial='';r.lang='en-IN';r.continuous=false;r.interimResults=true;r.maxAlternatives=1;r.onstart=function(){setVMState('listening',vm.pendingParts.length?'Continue speaking…':'Speak naturally — your words appear live below.');};r.onspeechstart=function(){setVMState('listening','Hearing you…');if(vm.silenceTimer){clearTimeout(vm.silenceTimer);vm.silenceTimer=null;}};r.onresult=function(e){var fin='',part='';for(var i=e.resultIndex;i<e.results.length;i++){var t=e.results[i][0]&&e.results[i][0].transcript||'';if(e.results[i].isFinal)fin+=t+' ';else part+=t;}var base=vm.pendingParts.join(' '),shown=(base+' '+fin+' '+part).replace(/\s+/g,' ').trim();if(shown)transcript(shown,false);if(fin.trim()){vm.pendingParts.push(fin.trim());vm.finalText=vm.pendingParts.join(' ').replace(/\s+/g,' ').trim();scheduleVoiceFinalize();}};r.onerror=function(e){var code=e.error||'';if((code==='no-speech'||code==='aborted')&&vm.active&&!vm.waiting){vm.restartTimer=setTimeout(browserListen,0);vm.recognition=null;return;}var m={'not-allowed':'Microphone permission was denied. Allow microphone access for this site.','service-not-allowed':'The browser blocked speech recognition.','audio':'The microphone could not be opened.','network':'Speech recognition needs a network connection.','no-speech':'No speech detected. Try again.'};setVMState('error',m[code]||'Voice recognition error: '+code);vm.recognition=null;};r.onend=function(){vm.recognition=null;if(vm.active&&!vm.waiting&&!vm.speaking&&$('voiceModeOverlay').classList.contains('open')){vm.restartTimer=setTimeout(browserListen,0);}};try{r.start();}catch(e){setVMState('error','Could not start microphone: '+(e.message||'try again'));}}
-  function nativeListen(){if(!vm.active||vm.waiting)return;stopRecognition();try{if(window.Bridge&&Bridge.startVoiceMode){Bridge.startVoiceMode();setVMState('listening','Speak naturally — your words appear live below.');return;}}catch(e){}browserListen();}
-  function voiceContextText(){return vm.turns.slice(-16,-1).map(function(x){return (x.who==='you'?'User':'Assistant')+': '+x.text;}).join('\n');}
-  function rememberVoiceTurn(who,text){if(!text)return;vm.turns.push({who:who,text:String(text).slice(0,900)});if(vm.turns.length>18)vm.turns=vm.turns.slice(-18);}
+  function rememberVoiceTurn(who,text){if(!text)return;vm.turns.push({who:who,text:String(text).slice(0,1200)});if(vm.turns.length>30)vm.turns=vm.turns.slice(-30);}
   window.rememberVoiceTurn=rememberVoiceTurn;
-  function handleVoiceTurn(text){
-    if(!vm.active)return;
-    text=String(text||'').trim();if(!text)return;
-    if(vm.silenceTimer){clearTimeout(vm.silenceTimer);vm.silenceTimer=null;}
-    var pending=window._voicePendingConfirmation;
-    var actionPending=window._voiceActionPending;
-    var low=text.toLowerCase();
-    if(pending){
-      stopRecognition();transcript(text,false);addBubble('you',text);
-      if(/\b(cancel|stop|no|don't|do not|never mind)\b/.test(low)){
-        voiceClearPendingConfirmation();vm.waiting=false;setVMState('ready','Cancelled. Say something else.');voiceModeSpeak('Cancelled.');return;
-      }
-      if(/\b(yes|yeah|yep|okay|ok|confirm|confirmed|do it|go ahead|proceed|sure)\b/.test(low)){
-        voiceClearPendingConfirmation();vm.waiting=true;setVMState('thinking','Confirmed. Applying it now…');
-        var rr=executeAction(pending.pending);var lg=$('uaiLog');var speakMsg=(rr.msg||'Done')+(rr.detail?' '+rr.detail:'');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';lg.scrollTop=lg.scrollHeight;}reRenderCurrent();voiceModeSpeak(speakMsg);return;
-      }
-      vm.waiting=false;setVMState('ready','Please say yes to confirm, or cancel.');voiceModeSpeak('Please say yes to confirm, or cancel.');return;
-    }
-    if(actionPending){
-      stopRecognition();transcript(text,false);addBubble('you',text);
-      if(/\b(cancel|stop|wait|never mind|don't do it)\b/.test(low)){
-        if(typeof window._voiceCancelAction==='function')window._voiceCancelAction();
-      }else{voiceModeSpeak('An action is pending. Say cancel to stop it.');}
-      return;
-    }
-    if(vm.waiting)return;
-    stopRecognition();vm.pendingParts=[];vm.finalText='';transcript(text,false);addBubble('you',text);rememberVoiceTurn('you',text);vm.waiting=true;setVMState('thinking','AI is processing your complete request…');
-    if(typeof uaiSend==='function')uaiSend(text,{voiceMode:true,voiceContext:voiceContextText()});else{setVMState('error','AI assistant is unavailable.');vm.waiting=false;}
+  function voiceContextText(){return vm.turns.slice(-20).map(function(x){return (x.who==='you'?'User':'Assistant')+': '+x.text;}).join('\n');}
+  function stopLegacyVoice(){try{if(window.Bridge&&Bridge.stopVoiceMode)Bridge.stopVoiceMode();}catch(e){}}
+  function b64ToBytes(b64){var bin=atob(b64||''),u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return u;}
+  function playLivePcm(b64){if(vm.muted)return;try{var ctx=vm.audioCtx;if(!ctx)return;var bytes=b64ToBytes(b64),samples=Math.floor(bytes.length/2);if(!samples)return;var buf=ctx.createBuffer(1,samples,24000),ch=buf.getChannelData(0),dv=new DataView(bytes.buffer);for(var i=0;i<samples;i++)ch[i]=Math.max(-1,Math.min(1,dv.getInt16(i*2,true)/32768));var src=ctx.createBufferSource();src.buffer=buf;src.connect(ctx.destination);var now=ctx.currentTime;if(vm.playAt<now+0.03)vm.playAt=now+0.03;src.start(vm.playAt);vm.playAt+=buf.duration;vm.speaking=true;setVMState('speaking','AI is speaking…');if(vm.playbackTimer)clearTimeout(vm.playbackTimer);var wait=Math.max(0,(vm.playAt-ctx.currentTime)*1000)+120;vm.playbackTimer=setTimeout(function(){vm.playbackTimer=null;if(vm.active&&vm.speaking){vm.speaking=false;setVMState('listening','Your turn — speak naturally.');}},wait);}catch(e){console.warn('Live audio playback',e);}}
+  function stopLiveAudio(){if(vm.playbackTimer){clearTimeout(vm.playbackTimer);vm.playbackTimer=null;}try{if(vm.audioCtx){vm.audioCtx.close();}}catch(e){}vm.audioCtx=null;vm.playAt=0;}
+  function stopLiveMedia(){try{if(vm.processor){vm.processor.disconnect();}}catch(e){}try{if(vm.micSource){vm.micSource.disconnect();}}catch(e){}try{if(vm.silentGain){vm.silentGain.disconnect();}}catch(e){}vm.processor=null;vm.micSource=null;vm.silentGain=null;if(vm.micStream){try{vm.micStream.getTracks().forEach(function(t){t.stop();});}catch(e){}vm.micStream=null;}}
+  function downsample16(input,inRate){if(inRate===16000)return input;var ratio=inRate/16000,outLen=Math.round(input.length/ratio),out=new Float32Array(outLen),pos=0;for(var i=0;i<outLen;i++){var next=Math.round((i+1)*ratio),sum=0,count=0;for(var j=pos;j<next&&j<input.length;j++){sum+=input[j];count++;}out[i]=count?sum/count:0;pos=next;}return out;}
+  function floatToPcmB64(float32){var buf=new ArrayBuffer(float32.length*2),dv=new DataView(buf);for(var i=0;i<float32.length;i++){var s=Math.max(-1,Math.min(1,float32[i]));dv.setInt16(i*2,s<0?s*32768:s*32767,true);}var bytes=new Uint8Array(buf),chunk=0x8000,out='';for(var p=0;p<bytes.length;p+=chunk){out+=String.fromCharCode.apply(null,bytes.subarray(p,Math.min(p+chunk,bytes.length)));}return btoa(out);}
+  function liveToolDeclaration(){return {name:'tracker_action',description:'Read, create, update, complete, navigate, or delete data in Personal Tracker. Use this function for app actions. For destructive actions always set confirm=false first; after the assistant asks the user for confirmation, only set confirm=true when the user clearly confirms. Never guess an ambiguous record.',parameters:{type:'object',properties:{action:{type:'string',enum:['add_task','complete_task','reopen_task','update_task','delete_task','add_expense','delete_expense','delete_transactions','add_habit','complete_habit','uncomplete_habit','delete_habit','set_mood','delete_mood','set_sleep','delete_sleep','add_journal','update_journal','delete_journal','log_workout','delete_workout','change_setting','navigate','query','clarify']},confirm:{type:'boolean'},id:{type:'string'},title:{type:'string'},newTitle:{type:'string'},name:{type:'string'},match:{type:'string'},description:{type:'string'},amt:{type:'number'},cat:{type:'string'},sub:{type:'string'},note:{type:'string'},payee:{type:'string'},kind:{type:'string',enum:['exp','inc','all']},date:{type:'string'},acct:{type:'string'},scope:{type:'string'},startDate:{type:'string'},endDate:{type:'string'},mood:{type:'integer'},bed:{type:'string'},wake:{type:'string'},mins:{type:'integer'},body:{type:'string'},exercise:{type:'string'},sets:{type:'array',items:{type:'number'}},key:{type:'string'},value:{type:'string'},tab:{type:'string'},goal:{type:'number'},frequency:{type:'string'},dows:{type:'array',items:{type:'integer'}},scheduleKind:{type:'string'},times:{type:'array',items:{type:'string'}},start:{type:'string'},end:{type:'string'},reminder:{type:'string'},dueDate:{type:'string'},dueTime:{type:'string'},priority:{type:'string'},status:{type:'string'},reminders:{type:'array',items:{type:'number'}},recurrence:{type:'object',properties:{freq:{type:'string'},interval:{type:'number'},endDate:{type:'string'}}},subtasks:{type:'array',items:{type:'string'}},message:{type:'string'}}}};}
+  function liveParamsFromArgs(a){var keys=['id','title','newTitle','name','match','description','amt','cat','sub','note','payee','kind','date','acct','scope','startDate','endDate','mood','bed','wake','mins','body','exercise','sets','key','value','tab','goal','frequency','dows','scheduleKind','times','start','end','reminder','dueDate','dueTime','priority','status','reminders','recurrence','subtasks'],p={};keys.forEach(function(k){if(a&&a[k]!==undefined&&a[k]!==null&&a[k]!=='')p[k]=a[k];});return p;}
+  function liveSystemPrompt(){return 'You are the real-time voice assistant inside Personal Tracker. Speak naturally and briefly, like a capable phone assistant. Keep the conversation state across turns. Never make the user repeat information already supplied. If the user gives a short follow-up such as “food”, “HDFC”, “yes”, “500”, “that one”, or “the drinking habit”, interpret it using the active conversation and current app data. Use tracker_action for app operations; do not merely describe how to do an operation. For read-only questions, answer directly from the supplied app data; do not call tracker_action unless an actual app mutation/navigation is required. For a missing field, ask only the smallest focused question. For ambiguous record names, ask the user to choose; never guess. Destructive actions (delete anything, bulk changes, clearing/replacing data) MUST first call tracker_action with confirm=false, then tell the user exactly what will happen. Only after a clear yes/confirm/do it should you call the same action with confirm=true. Do not delete or mutate a record just because a name is similar. For expenses, preserve amount, category, account, merchant/payee, date and any other fields already established in the conversation. If the user supplies a later field, fill it into the same pending request. For habit deletion, use the exact habit or a unique match; if multiple habits match, ask which one. For add_habit, ask for meaningful frequency/schedule if missing. Do not invent dates or amounts. After a successful action, state the result in one short sentence. The app is the source of truth. Current app data follows.\n\nAPP DATA:\n'+buildDataContext()+'\n\nPERSISTENT USER PREFERENCES:\n'+preferenceText()+'\n\nRECENT LOCAL VOICE DISPLAY CONTEXT:\n'+(voiceContextText()||'None');}
+  function liveSend(obj){if(vm.live&&vm.live.readyState===1){try{vm.live.send(JSON.stringify(obj));return true;}catch(e){console.warn(e);}}return false;}
+  function liveSendToolResponse(id,name,result){liveSend({toolResponse:{functionResponses:[{id:id,name:name,response:{result:result}}]}});}
+  function logVoiceResult(res){try{var log=$('uaiLog');if(!log)return;var msg=(res.msg||'Done')+(res.detail?' '+res.detail:'');log.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(res.ok?'✓ ':'')+esc(msg)+'</div></div></div>';log.scrollTop=log.scrollHeight;}catch(e){}}
+  function handleLiveToolCall(msg){var calls=msg.toolCall&&msg.toolCall.functionCalls||[];calls.forEach(function(fc){var a=fc.args||{},action=String(a.action||'clarify'),params=liveParamsFromArgs(a),result;params.confirm=!!a.confirm;result=executeAction({action:action,params:params,confirm:!!a.confirm,message:''});if(result.needConfirm&&result.pending){window._voicePendingConfirmation={pending:result.pending,prompt:result.msg};}else if(result.ok){window._voicePendingConfirmation=null;reRenderCurrent();logVoiceResult(result);}else if(result.isClarify){/* keep live session active */}liveSendToolResponse(fc.id,fc.name,{ok:!!result.ok,message:result.msg||'',detail:result.detail||'',needsConfirmation:!!result.needConfirm,confirmation:result.needConfirm?result.msg:'',pendingAction:result.needConfirm?result.pending:null,appData:buildDataContext()});});}
+  function setupLiveAudio(){if(!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia))return Promise.reject(new Error('Microphone streaming is not supported on this device.'));return navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true,autoGainControl:true}}).then(function(stream){if(!vm.active){stream.getTracks().forEach(function(t){t.stop();});return;}vm.micStream=stream;var AC=window.AudioContext||window.webkitAudioContext;if(!AC)throw new Error('Audio input is not supported on this device.');vm.audioCtx=new AC();var ctx=vm.audioCtx;return ctx.resume().then(function(){vm.micSource=ctx.createMediaStreamSource(stream);vm.processor=ctx.createScriptProcessor(4096,1,1);vm.silentGain=ctx.createGain();vm.silentGain.gain.value=0;vm.processor.onaudioprocess=function(ev){if(!vm.active||!vm.live||vm.live.readyState!==1)return;var input=ev.inputBuffer.getChannelData(0),pcm=downsample16(input,ctx.sampleRate);if(pcm.length)liveSend({realtimeInput:{audio:{data:floatToPcmB64(pcm),mimeType:'audio/pcm;rate=16000'}}});};vm.micSource.connect(vm.processor);vm.processor.connect(vm.silentGain);vm.silentGain.connect(ctx.destination);});});}
+  function startLiveVoice(){
+    var key=getAiKey();
+    if(!key||getAiProvider()!=='gemini') return Promise.reject(new Error('Live Voice requires the Google Gemini provider and an API key.'));
+    stopLegacyVoice();
+    setVMState('thinking','Connecting to Gemini Live…');
+    var url='wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key='+encodeURIComponent(key);
+    return new Promise(function(resolve,reject){
+      var ws=new WebSocket(url);
+      vm.live=ws;
+      var opened=false, resolved=false;
+      ws.onopen=function(){
+        opened=true;
+        var setup={setup:{
+          model:'models/gemini-3.1-flash-live-preview',
+          generationConfig:{responseModalities:['AUDIO'],thinkingConfig:{thinkingLevel:'minimal'},speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:'Aoede'}}}},
+          inputAudioTranscription:{},
+          outputAudioTranscription:{},
+          realtimeInputConfig:{automaticActivityDetection:{disabled:false,prefixPaddingMs:500,silenceDurationMs:2000,endOfSpeechSensitivity:'END_SENSITIVITY_LOW'}},
+          tools:[{functionDeclarations:[liveToolDeclaration()]}],
+          systemInstruction:{parts:[{text:liveSystemPrompt()}]}
+        }};
+        try{ws.send(JSON.stringify(setup));}catch(e){reject(e);}
+      };
+      ws.onmessage=function(ev){
+        try{
+          var m=JSON.parse(ev.data);
+          if(m.setupComplete){
+            vm.liveReady=true;
+            setVMState('listening','Live voice connected — speak naturally.');
+            setupLiveAudio().then(function(){if(!resolved){resolved=true;resolve();}}).catch(function(e){if(!resolved){resolved=true;reject(e);}});
+            return;
+          }
+          if(m.serverContent){
+            var sc=m.serverContent;
+            if(sc.interrupted){stopLiveAudio();vm.speaking=false;}
+            if(sc.inputTranscription&&sc.inputTranscription.text){
+              vm.liveInputText+=sc.inputTranscription.text;
+              transcript(vm.liveInputText,false);
+            }
+            if(sc.interimInputTranscription&&sc.interimInputTranscription.text){
+              transcript(vm.liveInputText+sc.interimInputTranscription.text,false);
+            }
+            if(sc.outputTranscription&&sc.outputTranscription.text){
+              vm.liveOutputText+=sc.outputTranscription.text;
+              addBubbleLiveOutput(sc.outputTranscription.text,false);
+            }
+            if(sc.modelTurn&&sc.modelTurn.parts){
+              sc.modelTurn.parts.forEach(function(part){if(part.inlineData&&part.inlineData.data)playLivePcm(part.inlineData.data);});
+            }
+            if(sc.turnComplete){
+              if(vm.liveInputText.trim()){addBubble('you',vm.liveInputText.trim());rememberVoiceTurn('you',vm.liveInputText.trim());}
+              vm.liveInputText='';
+              if(vm.liveOutputText.trim()){rememberVoiceTurn('ai',vm.liveOutputText.trim());}
+              var liveBubble=document.querySelector('#voiceConversation .voiceLiveOutput');if(liveBubble)liveBubble.classList.remove('voiceLiveOutput');
+              vm.liveOutputText='';
+              if(!vm.speaking)setVMState('listening','Your turn — speak naturally.');
+            }
+          }
+          if(m.toolCall)handleLiveToolCall(m);
+          if(m.goAway&&vm.active)setVMState('thinking','Refreshing the live voice connection…');
+        }catch(e){console.warn('Live message error',e);}
+      };
+      ws.onerror=function(){
+        if(!opened){if(!resolved){resolved=true;reject(new Error('Could not connect to Gemini Live. Check the Gemini API key and network connection.'));}}
+        else setVMState('error','Gemini Live connection error.');
+      };
+      ws.onclose=function(){
+        vm.liveReady=false;
+        if(vm.active&&!vm.liveClosing)setVMState('error','Live voice connection closed.');
+      };
+    });
   }
-  window._voiceNativeState=function(s){if(!vm.active)return;if(s==='ready'||s==='starting')setVMState('listening','Microphone ready — speak naturally.');else if(s==='listening')setVMState('listening','Hearing you…');else if(s==='processing')setVMState('thinking','Processing your speech…');};
-  window._voiceNativeLevel=function(v){var bars=document.querySelectorAll('#voiceLevel i');for(var i=0;i<bars.length;i++){var n=Math.max(6,Math.min(26,(v||0)*(i%2?1.5:1)));bars[i].style.height=n+'px';}};
-  window._voiceNativePartial=function(t){if(!vm.active||vm.waiting)return;var base=vm.pendingParts.join(' '),shown=(base+' '+String(t||'')).replace(/\s+/g,' ').trim();if(shown)transcript(shown,false);if(vm.silenceTimer){clearTimeout(vm.silenceTimer);vm.silenceTimer=null;}};
-  window._voiceNativeFinal=function(t){if(!vm.active||vm.waiting)return;var x=String(t||'').trim();if(!x)return;vm.pendingParts.push(x);vm.finalText=vm.pendingParts.join(' ').replace(/\s+/g,' ').trim();transcript(vm.finalText,false);scheduleVoiceFinalize();setTimeout(function(){if(vm.active&&!vm.waiting&&!vm.speaking)nativeListen();},80);};
-  window._voiceNativeError=function(m){if(!vm.active)return;vm.waiting=false;setVMState('error',m||'Voice recognition failed.');if(/network|busy|client|timeout/i.test(String(m||''))){setTimeout(function(){if(vm.active&&!vm.waiting){setVMState('listening','Retrying voice recognition…');nativeListen();}},700);} };
-  window._voiceTtsDone=function(){if(!vm.active)return;if(vm.silenceTimer){clearTimeout(vm.silenceTimer);vm.silenceTimer=null;}vm.speaking=false;vm.waiting=false;setVMState('listening','Your turn — speak naturally.');transcript('',true);if(vm.active)nativeListen();};
-  function preferredFemaleVoice(){try{if(!window.speechSynthesis)return null;var vs=window.speechSynthesis.getVoices()||[],best=null;for(var i=0;i<vs.length;i++){var v=vs[i],n=String(v.name||'').toLowerCase(),lang=String(v.lang||'').toLowerCase();if(lang.indexOf('en-in')===0&&(n.indexOf('female')>=0||n.indexOf('woman')>=0||n.indexOf('zira')>=0||n.indexOf('samantha')>=0||n.indexOf('aria')>=0||n.indexOf('google')>=0))return v;if(!best&&lang.indexOf('en-in')===0)best=v;}return best;}catch(e){return null;}}
-  if(window.speechSynthesis&&'onvoiceschanged' in window.speechSynthesis){try{window.speechSynthesis.onvoiceschanged=function(){};}catch(e){}}
-  var vmAudio=null,vmAudioUrl=null;
-  function pcmWavBlob(b64){var bin=atob(b64),len=bin.length,buf=new ArrayBuffer(44+len),v=new DataView(buf);function ws(o,str){for(var i=0;i<str.length;i++)v.setUint8(o+i,str.charCodeAt(i));}ws(0,'RIFF');v.setUint32(4,36+len,true);ws(8,'WAVE');ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,24000,true);v.setUint32(28,48000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);ws(36,'data');v.setUint32(40,len,true);for(var i=0;i<len;i++)v.setUint8(44+i,bin.charCodeAt(i));return new Blob([buf],{type:'audio/wav'});}
-  function stopVmAudio(){try{if(vmAudio){vmAudio.pause();vmAudio.currentTime=0;}}catch(e){}if(vmAudioUrl){try{URL.revokeObjectURL(vmAudioUrl);}catch(e){}vmAudioUrl=null;}vmAudio=null;}
-  function geminiNaturalTTS(text){var key=getAiKey();if(!key||getAiProvider()!=='gemini')return Promise.reject(new Error('Gemini TTS unavailable'));var prompt='Speak as a natural, warm, human female personal assistant in clear Indian English. Conversational, calm, friendly, concise. Use natural pauses and intonation; do not sound like a robotic announcer. Say only the following transcript:\n'+text;return fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:'Aoede'}}}}})}).then(function(r){if(!r.ok)throw new Error('TTS API '+r.status);return r.json();}).then(function(d){var part=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0],b64=part&&part.inlineData&&part.inlineData.data;if(!b64)throw new Error('No TTS audio');return pcmWavBlob(b64);});}
-  window.voiceModeSpeak=function(text){if(!vm.active)return;var clean=String(text||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();if(!clean){window._voiceTtsDone();return;}addBubble('ai',clean);setVMState('speaking',vm.muted?'Voice response muted.':'AI is speaking…');vm.speaking=true;if(vm.muted){setTimeout(window._voiceTtsDone,250);return;}stopVmAudio();if(getAiProvider()==='gemini'&&getAiKey()){geminiNaturalTTS(clean).then(function(blob){if(!vm.active){return;}vmAudioUrl=URL.createObjectURL(blob);vmAudio=new Audio(vmAudioUrl);vmAudio.onended=window._voiceTtsDone;vmAudio.onerror=function(){stopVmAudio();window._voiceTtsDone();};return vmAudio.play();}).catch(function(){if(!vm.active)return;try{if(window.Bridge&&Bridge.speakVoiceMode){Bridge.speakVoiceMode(clean);return;}}catch(e){}if(window.speechSynthesis){try{window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(clean);u.lang='en-IN';var pv=preferredFemaleVoice();if(pv)u.voice=pv;u.rate=.97;u.pitch=1.02;u.onend=window._voiceTtsDone;u.onerror=window._voiceTtsDone;window.speechSynthesis.speak(u);return;}catch(e){}}window._voiceTtsDone();});return;}try{if(window.Bridge&&Bridge.speakVoiceMode){Bridge.speakVoiceMode(clean);return;}}catch(e){}if(window.speechSynthesis){try{window.speechSynthesis.cancel();var u2=new SpeechSynthesisUtterance(clean);u2.lang='en-IN';var pv2=preferredFemaleVoice();if(pv2)u2.voice=pv2;u2.rate=.97;u2.pitch=1.02;u2.onend=window._voiceTtsDone;u2.onerror=window._voiceTtsDone;window.speechSynthesis.speak(u2);return;}catch(e){}}window._voiceTtsDone();};
-  function openVM(){vm.active=true;vm.waiting=false;vm.speaking=false;vm.finalText='';vm.pendingParts=[];if(vm.silenceTimer)clearTimeout(vm.silenceTimer);voiceClearPendingConfirmation();window._voiceActionPending=false;window._voiceCancelAction=null;$('voiceModeOverlay').classList.add('open');$('voiceModeOverlay').setAttribute('aria-hidden','false');$('globalVoiceBtn').classList.add('active');setVMState('ready','Start a natural conversation with your tracker.');transcript('',true);nativeListen();}
-  function closeVM(){vm.active=false;vm.waiting=false;vm.speaking=false;vm.pendingParts=[];vm.finalText='';if(vm.silenceTimer)clearTimeout(vm.silenceTimer);vm.silenceTimer=null;window._voiceCancelAction=null;voiceClearPendingConfirmation();stopRecognition();stopVmAudio();try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}$('voiceModeOverlay').classList.remove('open');$('voiceModeOverlay').setAttribute('aria-hidden','true');$('globalVoiceBtn').classList.remove('active');setVMState('ready','Tap the microphone to start talking.');}
+  function addBubbleLiveOutput(text,final){if(!text)return;var c=$('voiceConversation');if(!c)return;var d=c.querySelector('.voiceLiveOutput');if(!d){d=document.createElement('div');d.className='voiceBubble ai voiceLiveOutput';d.innerHTML='<small>AI</small><span></span>';c.appendChild(d);}d.querySelector('span').textContent=vm.liveOutputText||text;c.scrollTop=c.scrollHeight;}
+  function stopLiveVoice(){vm.liveClosing=true;try{if(vm.live)vm.live.close();}catch(e){}vm.live=null;vm.liveReady=false;stopLiveMedia();stopLiveAudio();vm.liveClosing=false;}
+  function browserListen(){/* Legacy fallback retained for non-Gemini web usage. */}
+  function nativeListen(){if(vm.live&&vm.live.readyState===1)return;stopLegacyVoice();try{if(window.Bridge&&Bridge.startVoiceMode){Bridge.startVoiceMode();setVMState('listening','Speak naturally — your words appear live below.');return;}}catch(e){}browserListen();}
+  function handleVoiceTurn(text){if(!vm.active)return;text=String(text||'').trim();if(!text)return;rememberVoiceTurn('you',text);if(getAiProvider()==='gemini'&&getAiKey()&&vm.live&&vm.live.readyState===1){liveSend({realtimeInput:{text:text}});return;}if(typeof uaiSend==='function')uaiSend(text,{voiceMode:true,voiceContext:voiceContextText()});}
+  window._voiceNativeState=function(s){if(vm.live)return;if(!vm.active)return;if(s==='ready'||s==='starting')setVMState('listening','Microphone ready — speak naturally.');else if(s==='listening')setVMState('listening','Hearing you…');else if(s==='processing')setVMState('thinking','Processing your speech…');};
+  window._voiceNativeLevel=function(v){};
+  window._voiceNativePartial=function(t){if(vm.live||!vm.active)return;transcript(String(t||''),false);};
+  window._voiceNativeFinal=function(t){if(vm.live||!vm.active)return;handleVoiceTurn(String(t||''));};
+  window._voiceNativeError=function(m){if(vm.live||!vm.active)return;setVMState('error',m||'Voice recognition failed.');};
+  window._voiceTtsDone=function(){if(vm.live)return;vm.speaking=false;vm.waiting=false;setVMState('listening','Your turn — speak naturally.');nativeListen();};
+  function voiceModeSpeak(text){if(!vm.active||!text)return;if(vm.live&&vm.live.readyState===1){liveSend({clientContent:{turns:[{role:'user',parts:[{text:'Say this concise confirmation naturally: '+String(text)}]}],turnComplete:true}});return;}try{if(window.Bridge&&Bridge.speakVoiceMode){Bridge.speakVoiceMode(String(text));return;}}catch(e){}if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(String(text));u.lang='en-IN';u.onend=window._voiceTtsDone;u.onerror=window._voiceTtsDone;window.speechSynthesis.speak(u);}}
+  window.voiceModeSpeak=voiceModeSpeak;
+  function openVM(){if(vm.active)return;vm.active=true;vm.speaking=false;vm.liveInputText='';vm.liveOutputText='';$('voiceModeOverlay').classList.add('open');$('voiceModeOverlay').setAttribute('aria-hidden','false');$('globalVoiceBtn').classList.add('active');setVMState('thinking','Starting real-time voice…');transcript('',true);if(getAiProvider()==='gemini'&&getAiKey()){window._voicePermissionReady=function(ok){if(!vm.active)return;if(!ok){setVMState('error','Microphone permission denied.');return;}startLiveVoice().catch(function(e){console.warn(e);if(vm.active){setVMState('error',e.message||'Could not start live voice. Falling back to device voice.');setTimeout(function(){if(vm.active)nativeListen();},400);}});};try{if(window.Bridge&&Bridge.requestVoicePermission){Bridge.requestVoicePermission();}else{startLiveVoice().catch(function(e){setVMState('error',e.message||'Could not start live voice.');});}}catch(e){startLiveVoice().catch(function(err){setVMState('error',err.message||'Could not start live voice.');});}}else{setVMState('listening','Gemini Live requires the Google Gemini provider.');nativeListen();}}
+  function closeVM(){vm.active=false;stopLiveVoice();stopLegacyVoice();try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}$('voiceModeOverlay').classList.remove('open');$('voiceModeOverlay').setAttribute('aria-hidden','true');$('globalVoiceBtn').classList.remove('active');setVMState('ready','Tap the microphone to start talking.');}
   window.voiceModeActive=false;Object.defineProperty(window,'voiceModeActive',{get:function(){return vm.active;}});
   $('voiceModeOpen').addEventListener('click',function(){openVM();});$('globalVoiceBtn').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();try{showTab('pgAI');}catch(err){}openVM();});$('voiceModeClose').addEventListener('click',closeVM);$('voiceModeStop').addEventListener('click',closeVM);$('voiceModeMute').addEventListener('click',function(){vm.muted=!vm.muted;this.textContent=vm.muted?'🔇':'🔊';});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&vm.active)closeVM();});
