@@ -5269,38 +5269,140 @@ function init(){
   };
 
   function startVoice(targetInput, onDone){
-    // APK: use native Android speech recognizer (WebView doesn't support Web Speech API)
-    if(nat && nat.startSpeech){
-      var id = 'sp_' + (++_speechCbId);
-      _speechCallbacks[id] = function(text){
-        targetInput.value = text;
-        targetInput.focus();
-        toastN('Got: "' + text + '"');
-        if(onDone) onDone(text);
+    if(!onDone) onDone=function(){};
+    var finished=false;
+    var finish=function(text,err){
+      if(finished)return;
+      finished=true;
+      clearBrowserSpeechWatchdog();
+      if(_browserSpeech){ try{_browserSpeech.onend=null;_browserSpeech.onerror=null;_browserSpeech.stop();}catch(e){} _browserSpeech=null; }
+      onDone(String(text||''), err||null);
+    };
+
+    // Android APK: use the native recognizer. Browser Web Speech is deliberately
+    // not used inside the Android WebView because support varies by WebView/device.
+    if(nat && typeof nat.startSpeech==='function'){
+      var id='sp_'+(++_speechCbId);
+      _speechCallbacks[id]=function(text,err){
+        clearBrowserSpeechWatchdog();
+        if(err){
+          if(err!=='cancelled') toastN(err);
+          finish('',err);
+          return;
+        }
+        if(targetInput){targetInput.value=text||'';targetInput.focus();}
+        finish(text||'', text ? null : 'No speech detected — try again');
       };
-      nat.startSpeech(id);
+      try{ nat.startSpeech(id); }catch(e){ delete _speechCallbacks[id]; finish('',e.message||'Could not start Android speech recognition'); }
+      // Native callback should arrive quickly; don't allow a stuck native request.
+      _browserSpeechTimer=setTimeout(function(){
+        if(!finished){
+          try{nat.stopSpeech&&nat.stopSpeech();}catch(e){}
+          finish('','Speech recognition did not respond. Check microphone permission and try again.');
+        }
+      },18000);
       return;
     }
-    // Browser: use Web Speech API
-    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if(!SR){ toastN('Voice input not supported in this browser'); return; }
-    var rec = new SR();
-    rec.lang = 'en-IN';
-    rec.interimResults = false;
-    rec.maxAlternatives = 1;
-    rec.onresult = function(e){
-      var text = e.results[0][0].transcript;
-      targetInput.value = text;
-      targetInput.focus();
-      if(onDone) onDone(text);
+
+    var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!SR){
+      var unsupported='Voice recognition is not supported by this browser. Please use Chrome or Edge, or use the Android app.';
+      toastN(unsupported); finish('',unsupported); return;
+    }
+
+    // Ask for microphone access explicitly first. This makes permission failures
+    // visible instead of leaving SpeechRecognition in a silent Listening state.
+    var beginRecognition=function(){
+      if(finished)return;
+      try{
+        if(_browserSpeech){try{_browserSpeech.abort();}catch(e){}}
+        var rec=new SR();
+        _browserSpeech=rec;
+        var gotResult=false, heard=false;
+        rec.lang='en-IN';
+        rec.interimResults=true;
+        rec.continuous=false;
+        rec.maxAlternatives=1;
+
+        rec.onstart=function(){
+          var va=document.getElementById('voiceAssistant');
+          if(va&&va.classList.contains('on')){va.setAttribute('data-state','listening');var vs=document.getElementById('voiceState');if(vs)vs.textContent='Listening…';}
+          clearBrowserSpeechWatchdog();
+          _browserSpeechTimer=setTimeout(function(){
+            if(!finished&&!gotResult){try{rec.stop();}catch(e){} finish('','No speech detected. Please speak after the microphone starts.');}
+          },12000);
+        };
+        rec.onaudiostart=function(){
+          var vt=document.getElementById('voiceTranscript');
+          if(vt)vt.textContent='Microphone active — speak now…';
+        };
+        rec.onspeechstart=function(){
+          heard=true;
+          var vt=document.getElementById('voiceTranscript');
+          if(vt)vt.textContent='Hearing you…';
+        };
+        rec.onresult=function(e){
+          var text='';
+          for(var i=e.resultIndex||0;i<e.results.length;i++) text+=e.results[i][0].transcript+' ';
+          text=text.trim();
+          var vt=document.getElementById('voiceTranscript');
+          var isFinal=e.results[e.results.length-1] && e.results[e.results.length-1].isFinal;
+          if(vt&&text) vt.textContent='“'+text+'”';
+          if(isFinal&&text){
+            gotResult=true;
+            if(targetInput){targetInput.value=text;targetInput.focus();}
+            finish(text,null);
+          }
+        };
+        rec.onerror=function(e){
+          if(finished)return;
+          var code=e&&e.error||'unknown';
+          var msg=code==='not-allowed'?'Microphone permission denied. Allow microphone access for this site and try again.':
+            code==='service-not-allowed'?'The browser speech service is blocked. Try Chrome/Edge with internet access.':
+            code==='audio-capture'?'No working microphone was found. Check your microphone settings.':
+            code==='no-speech'?'No speech detected. Tap Speak and talk clearly.':
+            code==='network'?'Browser speech recognition needs an internet connection.':
+            code==='aborted'?'Voice input was cancelled.':
+            'Voice recognition error: '+code;
+          var va=document.getElementById('voiceAssistant');
+          if(va&&va.classList.contains('on')){va.setAttribute('data-state','error');var vs=document.getElementById('voiceState');if(vs)vs.textContent='Try again';var vt=document.getElementById('voiceTranscript');if(vt)vt.textContent=msg;}
+          toastN(msg); finish('',msg);
+        };
+        rec.onend=function(){
+          if(finished)return;
+          if(gotResult)return;
+          finish('','Voice input ended before a final transcript was received. Please try again.');
+        };
+        rec.start();
+        // Critical: start the watchdog immediately, not only from onstart.
+        // Some browser implementations can accept start() but never fire onstart.
+        clearBrowserSpeechWatchdog();
+        _browserSpeechTimer=setTimeout(function(){
+          if(!finished){
+            try{rec.abort();}catch(e){}
+            finish('','The microphone did not start. Check browser microphone permission, then try again.');
+          }
+        },5000);
+      }catch(e){
+        var msg=e&&e.name==='NotAllowedError'?'Microphone permission denied. Allow microphone access for this site and try again.':'Could not start voice input: '+(e.message||'unknown error');
+        toastN(msg); finish('',msg);
+      }
     };
-    rec.onerror = function(e){
-      if(e.error === 'not-allowed') toastN('Microphone permission denied — enable in Settings → App permissions');
-      else if(e.error === 'no-speech') toastN('No speech detected — try again');
-      else toastN('Voice error: ' + e.error);
-    };
-    rec.onstart = function(){ toastN('🎙 Listening…'); };
-    rec.start();
+
+    try{
+      if(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia){
+        navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+          try{stream.getTracks().forEach(function(t){t.stop();});}catch(e){}
+          beginRecognition();
+        }).catch(function(e){
+          var msg=e&&e.name==='NotAllowedError'?'Microphone permission denied. Allow microphone access for this site and try again.':
+            e&&e.name==='NotFoundError'?'No microphone was found. Connect a microphone and try again.':'Microphone could not be opened: '+(e.message||e.name||'unknown error');
+          toastN(msg); finish('',msg);
+        });
+      }else{
+        beginRecognition();
+      }
+    }catch(e){ finish('',e.message||'Could not access the microphone'); }
   }
 
   /* simplified stats + mood toggles */
