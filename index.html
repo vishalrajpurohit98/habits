@@ -8429,6 +8429,108 @@ setTimeout(init,40);
 window.__HT_PRO__='productivity-suite-v2';
 })();
 
-</script><script id="material-ripple">document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('button');if(!b||b.disabled||b.classList.contains('noRipple'))return;var r=document.createElement('span'),rect=b.getBoundingClientRect(),size=Math.max(rect.width,rect.height);r.className='rippleDot';r.style.width=r.style.height=size+'px';r.style.left=(e.clientX-rect.left-size/2)+'px';r.style.top=(e.clientY-rect.top-size/2)+'px';b.appendChild(r);setTimeout(function(){r.remove();},600);});</script>
+</script><style id="material-motion-v3">
+/* ===== Material Motion V3 ===== */
+:root{
+  --motion-standard:cubic-bezier(.2,.0,0,1);
+  --motion-emphasized:cubic-bezier(.2,.0,0,1);
+  --motion-decelerate:cubic-bezier(0,0,.2,1);
+  --motion-accelerate:cubic-bezier(.4,0,1,1);
+  --motion-spring:cubic-bezier(.22,1,.36,1);
+}
+#app{contain:layout paint;}
+.page{display:none;will-change:transform,opacity;transform:translateZ(0)}
+.page.on{display:block}
+.page.pageMotion{animation:pageEnterV3 .46s var(--motion-emphasized) both}
+@keyframes pageEnterV3{
+  from{opacity:0;transform:translate3d(calc(var(--nav-dir,1)*28px),6px,0) scale(.985)}
+  45%{opacity:1}
+  to{opacity:1;transform:translate3d(0,0,0) scale(1)}
+}
+/* Avoid re-running content animations on every data refresh. Only the active navigation transition animates the first-level content. */
+.page.pageMotion > *{animation:contentRiseV3 .42s var(--motion-decelerate) both}
+.page.pageMotion > *:nth-child(1){animation-delay:20ms}
+.page.pageMotion > *:nth-child(2){animation-delay:35ms}
+.page.pageMotion > *:nth-child(3){animation-delay:50ms}
+.page.pageMotion > *:nth-child(4){animation-delay:65ms}
+.page.pageMotion > *:nth-child(5){animation-delay:80ms}
+@keyframes contentRiseV3{from{opacity:.15;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* Material bottom navigation: animated active indicator instead of an abrupt background swap. */
+#tabbar .tab{position:relative;overflow:hidden;transition:color .28s var(--motion-standard),background .28s var(--motion-standard),transform .16s var(--motion-standard)}
+#tabbar .tab::before{content:'';position:absolute;left:50%;top:3px;width:0;height:3px;border-radius:3px;transform:translateX(-50%);background:currentColor;opacity:0;transition:width .34s var(--motion-spring),opacity .2s ease}
+#tabbar .tab.on::before{width:28px;opacity:1}
+#tabbar .tab svg{transition:transform .34s var(--motion-spring),opacity .25s ease}
+#tabbar .tab.on svg{transform:translateY(-1px) scale(1.05)}
+/* Buttons: tactile but restrained. */
+button,.sbtn,.chip,.ebtn,.primary{transition:transform .18s var(--motion-standard),box-shadow .2s ease,background-color .2s ease}
+button:active,.sbtn:active,.chip:active,.ebtn:active{transform:scale(.965)}
+/* Sheets/dialogs */
+.sheet.on{animation:sheetInV3 .42s var(--motion-spring) both}
+@keyframes sheetInV3{from{opacity:.7;transform:translate3d(0,34px,0) scale(.985)}to{opacity:1;transform:none}}
+.sheetBackdrop{animation:scrimInV3 .25s ease both}
+@keyframes scrimInV3{from{opacity:0}to{opacity:1}}
+/* List additions/removals feel deliberate. */
+.taskCard,.card,.upcomingCard,.txRow{transition:transform .24s var(--motion-spring),box-shadow .24s ease,opacity .2s ease}
+.taskCard:active,.card:active,.upcomingCard:active,.txRow:active{transform:scale(.992)}
+/* Ripple */
+.rippleHost{position:relative;overflow:hidden}
+.rippleDot{position:absolute;border-radius:50%;pointer-events:none;background:currentColor;opacity:.16;transform:scale(0);animation:rippleV3 .58s var(--motion-standard) forwards}
+@keyframes rippleV3{to{opacity:0;transform:scale(2)}}
+/* Native browser View Transitions, when supported by the WebView. */
+::view-transition-old(root){animation:vtOldV3 .24s var(--motion-accelerate) both}
+::view-transition-new(root){animation:vtNewV3 .42s var(--motion-decelerate) both}
+@keyframes vtOldV3{to{opacity:0;transform:translate3d(calc(var(--nav-dir,1)*-18px),0,0) scale(.985)}}
+@keyframes vtNewV3{from{opacity:0;transform:translate3d(calc(var(--nav-dir,1)*22px),0,0) scale(.985)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){
+  .page.pageMotion,.page.pageMotion > *, .sheet.on,.sheetBackdrop,::view-transition-old(root),::view-transition-new(root){animation:none!important}
+  #tabbar .tab,#tabbar .tab::before,#tabbar .tab svg,button,.sbtn,.chip,.ebtn,.primary{transition:none!important}
+}
+</style>
+<script id="material-motion-v3-js">
+(function(){
+'use strict';
+var order=['pgToday','pgTasks','pgMood','pgExp','pgStats','pgAI','pgSet'];
+var $=function(id){return document.getElementById(id);};
+var reduced=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+var original=window.showTab;
+if(typeof original==='function'&&!original.__motionV3){
+  window.showTab=function(id){
+    if(!$(id)) return;
+    var current=document.querySelector('.page.on');
+    var prev=current?order.indexOf(current.id):-1, next=order.indexOf(id);
+    if(current&&current.id===id){ original(id); return; }
+    document.documentElement.style.setProperty('--nav-dir',next>=prev?'1':'-1');
+    var run=function(){
+      original(id);
+      var p=$(id);
+      if(!p)return;
+      p.classList.remove('pageMotion');
+      void p.offsetWidth;
+      p.classList.add('pageMotion');
+      window.setTimeout(function(){p.classList.remove('pageMotion');},520);
+    };
+    if(!reduced&&document.startViewTransition){
+      try{document.startViewTransition(run);}catch(e){run();}
+    }else run();
+  };
+  window.showTab.__motionV3=true;
+}
+/* Ripple only for real pointer activation; keyboard activation stays accessible and clean. */
+document.addEventListener('pointerdown',function(e){
+  var b=e.target.closest&&e.target.closest('button,[role="button"]');
+  if(!b||b.disabled||b.classList.contains('noRipple'))return;
+  b.classList.add('rippleHost');
+  var rect=b.getBoundingClientRect(),size=Math.max(rect.width,rect.height),r=document.createElement('span');
+  r.className='rippleDot';r.style.width=r.style.height=size+'px';
+  r.style.left=(e.clientX-rect.left-size/2)+'px';r.style.top=(e.clientY-rect.top-size/2)+'px';
+  b.appendChild(r);window.setTimeout(function(){if(r&&r.parentNode)r.remove();},620);
+},{passive:true});
+/* Keyboard focus is visible without introducing movement. */
+document.addEventListener('keydown',function(e){
+  if(e.key==='Enter'||e.key===' '){var b=e.target.closest&&e.target.closest('button,[role="button"]');if(b)b.classList.add('motionKeyboardPress');}
+});
+document.addEventListener('keyup',function(e){var b=e.target.closest&&e.target.closest('button,[role="button"]');if(b)b.classList.remove('motionKeyboardPress');});
+})();
+</script>
 </body>
 </html>
