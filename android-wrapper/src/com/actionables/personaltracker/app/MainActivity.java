@@ -50,6 +50,9 @@ public class MainActivity extends Activity {
     boolean voiceModeActive = false;
     final Handler voiceHandler = new Handler(Looper.getMainLooper());
     Runnable voiceStartRunnable = null;
+    Runnable voiceResultFallbackRunnable = null;
+    String voiceLastPartial = "";
+    boolean voiceResultDelivered = false;
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
@@ -425,6 +428,10 @@ public class MainActivity extends Activity {
     }
 
     void stopVoiceRecognizer() {
+        if (voiceResultFallbackRunnable != null) {
+            try { voiceHandler.removeCallbacks(voiceResultFallbackRunnable); } catch (Exception ignored) {}
+            voiceResultFallbackRunnable = null;
+        }
         if (voiceStartRunnable != null) {
             try { voiceHandler.removeCallbacks(voiceStartRunnable); } catch (Exception ignored) {}
             voiceStartRunnable = null;
@@ -437,6 +444,8 @@ public class MainActivity extends Activity {
 
     void startVoiceMode() {
         voiceModeActive = true;
+        voiceLastPartial = "";
+        voiceResultDelivered = false;
         stopVoiceRecognizer();
         if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             pendingSpeechId = "__voice_mode__";
@@ -459,7 +468,21 @@ public class MainActivity extends Activity {
                     public void onBeginningOfSpeech() { js("window._voiceNativeState&&window._voiceNativeState('listening')"); }
                     public void onRmsChanged(float rmsdB) { js("window._voiceNativeLevel&&window._voiceNativeLevel("+Float.toString(Math.max(0f, Math.min(12f, rmsdB + 2f)))+")"); }
                     public void onBufferReceived(byte[] b) {}
-                    public void onEndOfSpeech() { js("window._voiceNativeState&&window._voiceNativeState('processing')"); }
+                    public void onEndOfSpeech() {
+                        js("window._voiceNativeState&&window._voiceNativeState('processing')");
+                        // Some Android speech services can remain in PROCESSING without
+                        // delivering onResults. Give them the requested ~2.5s completion
+                        // window, then fall back to the latest partial transcript.
+                        if (voiceResultFallbackRunnable != null) { try { voiceHandler.removeCallbacks(voiceResultFallbackRunnable); } catch (Exception ignored) {} }
+                        final String fallbackText = voiceLastPartial == null ? "" : voiceLastPartial.trim();
+                        voiceResultFallbackRunnable = () -> {
+                            voiceResultFallbackRunnable = null;
+                            if (!voiceModeActive || voiceResultDelivered || fallbackText.isEmpty()) return;
+                            voiceResultDelivered = true;
+                            js("window._voiceNativeFinal&&window._voiceNativeFinal("+JSONObject.quote(fallbackText)+")");
+                        };
+                        voiceHandler.postDelayed(voiceResultFallbackRunnable, 2600);
+                    }
                     public void onError(int error) {
                         String msg;
                         switch(error) {
@@ -484,16 +507,19 @@ public class MainActivity extends Activity {
                     public void onResults(Bundle results) {
                         ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         String text = r != null && !r.isEmpty() ? r.get(0) : "";
-                        if(!text.trim().isEmpty()) {
+                        if(!text.trim().isEmpty() && !voiceResultDelivered) {
+                            voiceResultDelivered = true;
+                            if (voiceResultFallbackRunnable != null) { try { voiceHandler.removeCallbacks(voiceResultFallbackRunnable); } catch (Exception ignored) {} voiceResultFallbackRunnable = null; }
                             js("window._voiceNativeFinal&&window._voiceNativeFinal("+JSONObject.quote(text.trim())+")");
                         }
-                        // Release this recognition session cleanly. JS owns the 2.5s finalization buffer.
+                        // Android has already applied the 2.5s silence completion window,
+                        // so JS should not add another artificial 2.6s delay.
                         try { if (voiceRecognizer != null) voiceRecognizer.cancel(); } catch(Exception ignored) {}
                     }
                     public void onPartialResults(Bundle results) {
                         ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         String text = r != null && !r.isEmpty() ? r.get(0) : "";
-                        if(!text.trim().isEmpty()) js("window._voiceNativePartial&&window._voiceNativePartial("+JSONObject.quote(text.trim())+")");
+                        if(!text.trim().isEmpty()) { voiceLastPartial = text.trim(); js("window._voiceNativePartial&&window._voiceNativePartial("+JSONObject.quote(text.trim())+")"); }
                     }
                     public void onEvent(int t, Bundle p) {}
                 });
@@ -503,8 +529,8 @@ public class MainActivity extends Activity {
                 i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
                 i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
                 i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,900);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,1200);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,1500);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
                 voiceRecognizer.startListening(i);
                 js("window._voiceNativeState&&window._voiceNativeState('starting')");
             } catch(Exception e) {
