@@ -3527,7 +3527,7 @@ function uaiPrompt(text,conversationContext){
   +'delete_journal: {id,date,title}\n'
   +'log_workout: {exercise,date,sets([numbers])}\n'
   +'delete_workout: {id,date,exercise}\n'
-  +'add_task: {title,description,dueDate,dueTime,priority(high/medium/low),reminders([1,2]),recurrence({freq(none/daily/weekdays/weekly/monthly/custom),interval,endDate}),subtasks([titles])}\n'
+  +'add_task: {title,description,dueDate,dueTime,noDueDate,priority(high/medium/low),reminders([1,2]),recurrence({freq(none/daily/weekdays/weekly/monthly/custom),interval,endDate}),subtasks([titles])}\n'
   +'complete_task: {id,title}\n'
   +'reopen_task: {id,title}\n'
   +'delete_task: {id,title}\n'
@@ -3539,7 +3539,7 @@ function uaiPrompt(text,conversationContext){
   +'For add_expense, acct must be the account ID shown in APP DATA (preferred) or the exact account name; never use a merchant/payee/category as the account. If the user does not specify an account, leave acct empty and let the app choose the active default account. Put merchant names such as Swiggy in payee, not acct.\n'
   +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
   +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n'
-  +'CONVERSATION RULES: Understand natural language and scenarios, not only explicit commands. Infer likely intent, but do not perform consequential actions when intent is uncertain. Before creating or updating anything, collect important missing fields required by the app. For habit creation, normally ask for habit name and meaningful schedule/frequency; if the user has not supplied frequency, return clarify instead of silently using a default. For tasks, ask for a due date/time only when the user clearly needs scheduling and it is missing; do not invent deadlines. For expenses, ask for category when it cannot be reliably inferred and use the saved default account/category only when an explicit preference exists or the app has a clear default. Keep follow-up questions focused: ask only the smallest set of missing details needed to execute. Preserve context across follow-up turns. Treat scenario/problem statements as opportunities to identify the user’s likely goal. If the scenario clearly implies a useful tracker action, propose the action or ask one focused question rather than merely giving generic advice; once the user authorizes it, collect required details and execute. Do not mutate data solely from an uncertain inference. Explicit preference statements such as \"remember that...\" should be reflected in PERSISTENT USER PREFERENCES; casual temporary comments should not. If the user asks to remember or forget a preference, handle that explicitly.\n\n'
+  +'CONVERSATION RULES: Understand natural language and scenarios, not only explicit commands. Infer likely intent, but NEVER execute a create/update action while a required field is missing. The assistant must behave like a conversational form: collect required details over multiple turns, one focused question at a time, and carry every previously supplied detail forward. IMPORTANT REQUIRED-FIELD RULES: For add_habit, require the habit name AND an explicit meaningful frequency/schedule (daily, weekdays, selected days, X times, or quota); if frequency is missing, return clarify and DO NOT create the habit. For add_task, require the task title AND ask when it should be due/scheduled; if the user says no due date, that is an explicit answer and may be used. If a task is intended to repeat, also collect the recurrence/frequency; never invent a deadline or recurrence. For set_mood, require the mood before saving; if the user only says \"log my mood\" or similar, ask which mood and do not default to Neutral. For set_sleep, require both bedtime and wake time before saving; if either is missing, ask for the missing time and do not silently use 23:00/06:00. For log_workout, require the exercise and workout values/sets before saving; ask for whichever is missing. For add_journal, require meaningful title/body content before saving. For add_expense, require amount and a reliable category; ask for category when it cannot be reliably inferred rather than defaulting to Other. Account may use the explicit/default account rule already defined. Keep follow-up questions focused: normally ask ONE smallest missing detail, not a long questionnaire. Preserve context across follow-up turns. Treat scenario/problem statements as opportunities to identify the user’s likely goal. If the scenario clearly implies a useful tracker action, propose the action or ask one focused question rather than merely giving generic advice; once the user authorizes it, collect required details and execute. Do not mutate data solely from an uncertain inference. Explicit preference statements such as \"remember that...\" should be reflected in PERSISTENT USER PREFERENCES; casual temporary comments should not. If the user asks to remember or forget a preference, handle that explicitly.\n\n'
   +'RECENT VOICE CONVERSATION (this is the active conversation, not background history):\n'+(conversationContext||'None')+'\n'+voiceConversationSummary()+'\n\nFOLLOW-UP RULES: If the latest user message is short (for example a category, account, amount, date, habit name, task name, yes/no answer, or correction), treat it as a continuation of the immediately preceding request/clarification. Do NOT discard the earlier request. Carry forward all already supplied fields and fill only the missing/corrected field. Never restart an expense, task, habit, or other action from scratch unless the user explicitly starts a new request. For destructive actions, use the exact named record from the conversation or APP DATA; never substitute the first/most familiar record. If a name is ambiguous, ask the user to choose instead of guessing.\n'+'NATURAL VOICE RESPONSE RULES: The message field is spoken directly to the user. Sound like a normal human personal assistant, not a database, programmer, or API. For habit progress, say habit names and percentages naturally; use a short conversational sentence or compact list. NEVER mention internal IDs, record IDs, database fields, JSON, params, action names, implementation details, or strings such as id=... or (id: ...). Never read opaque identifiers aloud. Keep voice replies concise and human-like.\n\nUser: '+text;
 }
 function voiceActionCritical(a,p){
@@ -3574,9 +3574,44 @@ function voiceSetPendingConfirmation(payload){
 }
 function voiceClearPendingConfirmation(){ window._voicePendingConfirmation=null; }
 
+/* Deterministic required-field guard: the model may suggest an action, but the
+   client is the final gate before any state mutation. This prevents silent
+   defaults when a conversational follow-up is required. */
+function validateVoiceActionCompleteness(a,p){
+  a=String(a||''); p=p||{};
+  if(a==='add_habit'){
+    if(!String(p.name||'').trim()) return {ok:0,msg:'What should I call the habit?',isClarify:1};
+    if(!(p.frequency||p.scheduleKind||(Array.isArray(p.dows)&&p.dows.length)||(Array.isArray(p.days)&&p.days.length)||(Array.isArray(p.times)&&p.times.length)))
+      return {ok:0,msg:'How often should I schedule “'+String(p.name).slice(0,40)+'”? For example, every day, weekdays, or specific days.',isClarify:1};
+  }
+  if(a==='add_task'){
+    if(!String(p.title||'').trim()) return {ok:0,msg:'What should I call the task?',isClarify:1};
+    if(!p.dueDate && p.noDueDate!==true && p.noDueDate!=='true') return {ok:0,msg:'When should I schedule “'+String(p.title).slice(0,50)+'”? You can give a date/time, or say “no due date”.',isClarify:1};
+    if(p.recurrence && p.recurrence.freq && p.recurrence.freq!=='none' && !p.recurrence.interval && p.recurrence.freq!=='daily' && p.recurrence.freq!=='weekdays') return {ok:0,msg:'How often should “'+String(p.title).slice(0,50)+'” repeat?',isClarify:1};
+  }
+  if(a==='set_mood'){
+    if(typeof p.mood!=='number') return {ok:0,msg:'How are you feeling? You can say excellent, happy, calm, neutral, tired, sad, or stressed.',isClarify:1};
+  }
+  if(a==='set_sleep'){
+    if(!p.bed) return {ok:0,msg:'What time did you go to bed?',isClarify:1};
+    if(!p.wake) return {ok:0,msg:'What time did you wake up?',isClarify:1};
+  }
+  if(a==='log_workout'){
+    if(!String(p.exercise||'').trim()) return {ok:0,msg:'Which exercise did you do?',isClarify:1};
+    if(!Array.isArray(p.sets)||!p.sets.length) return {ok:0,msg:'What workout value or sets should I log?',isClarify:1};
+  }
+  if(a==='add_expense'){
+    if(!isFinite(Number(p.amt))||Number(p.amt)<=0) return {ok:0,msg:'How much was the expense?',isClarify:1};
+    if(!String(p.cat||'').trim()) return {ok:0,msg:'What category should I use for that expense?',isClarify:1};
+  }
+  return null;
+}
+
 function executeAction(r){
   try{
     var a=r.action,p=r.params||{},msg=r.message||'Done',d=p.date||today();
+    var completeness=validateVoiceActionCompleteness(a,p);
+    if(completeness)return completeness;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(d) || (d>today() && ['add_task','update_task'].indexOf(a)<0)) return {ok:0,msg:'Use a valid date today or earlier.'};
     if(a==='add_task'){
       var title=String(p.title||'').trim();if(!title)return{ok:0,msg:'Enter a task name.'};
@@ -3690,7 +3725,7 @@ function executeAction(r){
     }
     if(a==='delete_mood'){if(state.mood[d]===undefined)return{ok:0,msg:'No mood record found for '+d};if(!r.confirm)return{ok:0,msg:'Please confirm deleting the mood record for '+d+'.',needConfirm:1,pending:{action:'delete_mood',params:{date:d},confirm:true}};var prev=state.mood[d],prevNote=state.moodNotes&&state.moodNotes[d];delete state.mood[d];if(state.moodNotes)delete state.moodNotes[d];persist();return{ok:1,msg:msg,detail:'Mood record deleted for '+d,undo:function(){state.mood[d]=prev;if(prevNote!==undefined){state.moodNotes=state.moodNotes||{};state.moodNotes[d]=prevNote;}persist();}};}
     if(a==='set_sleep'){
-      var bed=String(p.bed||'23:00'),wake=String(p.wake||'06:00'); if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(bed)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(wake))return{ok:0,msg:'Use valid 24-hour bed and wake times.'};
+      var bed=String(p.bed||''),wake=String(p.wake||''); if(!/^([01]\d|2[0-3]):[0-5]\d$/.test(bed)||!/^([01]\d|2[0-3]):[0-5]\d$/.test(wake))return{ok:0,msg:'Use valid 24-hour bed and wake times.'};
       var mins=sleepMins(bed,wake); if(mins<=0)return{ok:0,msg:'Sleep duration must be greater than zero.'};
       var si=state.sleep.findIndex(function(s){return s.d===d;}),entry={d:d,bed:bed,wake:wake,mins:mins,note:String(p.note||'').slice(0,160)};
       if(si>=0)state.sleep[si]=entry;else state.sleep.push(entry);persist();return{ok:1,msg:msg,detail:'Bed '+entry.bed+' · Wake '+entry.wake+' · '+Math.floor(entry.mins/60)+'h'+entry.mins%60+'m'};
@@ -3732,13 +3767,13 @@ function uaiSend(text,opts){ opts=opts||{};
     function finishResult(res){
       var html='<div class="uaiMsg bot">';
       if(res.ok){
-        voiceReply=sanitizeVoiceReply(res.msg+(res.detail?' '+res.detail:''));
+        voiceReply=sanitizeVoiceReply(res.msg);
         html+='<div class="uaiAction"><div class="uaiCheck">✓ '+res.msg+'</div>'+(res.detail?'<div class="uaiDetail">'+res.detail+'</div>':'')+'</div>';
         if(res.undo){var uid='_u'+Date.now();window[uid]=res.undo;html+='<div class="uaiBtns"><button onclick="'+uid+'();this.closest(\'.uaiMsg\').remove();reRenderCurrent();toastN(\'Undone\')">Undo</button></div>';}
       }else if(res.needConfirm&&res.pending){
         voiceReply=res.msg;
         var pid='aiConfirm_'+Date.now();
-        window[pid]=function(){var rr=executeAction(res.pending);var lg=$('uaiLog');if(lg){var speakMsg=(rr.msg||'Done')+(rr.detail?' '+rr.detail:'');lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';lg.scrollTop=lg.scrollHeight;if(typeof voiceModeSpeak==='function'&&voiceModeActive)voiceModeSpeak(speakMsg);}reRenderCurrent();};
+        window[pid]=function(){var rr=executeAction(res.pending);var lg=$('uaiLog');if(lg){var speakMsg=sanitizeVoiceReply(rr.msg||'Done');lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';lg.scrollTop=lg.scrollHeight;if(typeof voiceModeSpeak==='function'&&voiceModeActive)voiceModeSpeak(speakMsg);}reRenderCurrent();};
         html+='<div class="uaiAction"><div class="uaiCheck">'+esc(res.msg)+'</div><div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
         if(opts.voiceMode){voiceSetPendingConfirmation({pending:res.pending,prompt:res.msg});}
       }else if(res.isQuery){voiceReply=sanitizeVoiceReply(res.msg.replace(/<[^>]+>/g,''));html+=res.msg.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');}
@@ -8723,7 +8758,7 @@ window.__HT_PRO__='productivity-suite-v2';
       }
       if(/\b(yes|yeah|yep|okay|ok|confirm|confirmed|do it|go ahead|proceed|sure)\b/.test(low)){
         voiceClearPendingConfirmation();vm.waiting=true;setVMState('thinking','Confirmed. Applying it now…');
-        var rr=executeAction(pending.pending);var lg=$('uaiLog');var speakMsg=(rr.msg||'Done')+(rr.detail?' '+rr.detail:'');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';lg.scrollTop=lg.scrollHeight;}reRenderCurrent();voiceModeSpeak(speakMsg);return;
+        var rr=executeAction(pending.pending);var lg=$('uaiLog');var speakMsg=sanitizeVoiceReply(rr.msg||'Done');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';lg.scrollTop=lg.scrollHeight;}reRenderCurrent();voiceModeSpeak(speakMsg);return;
       }
       vm.waiting=false;setVMState('ready','Please say yes to confirm, or cancel.');voiceModeSpeak('Please say yes to confirm, or cancel.');return;
     }
