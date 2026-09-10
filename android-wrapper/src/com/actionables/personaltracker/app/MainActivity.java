@@ -481,7 +481,7 @@ public class MainActivity extends Activity {
                             voiceResultDelivered = true;
                             js("window._voiceNativeFinal&&window._voiceNativeFinal("+JSONObject.quote(fallbackText)+")");
                         };
-                        voiceHandler.postDelayed(voiceResultFallbackRunnable, 2600);
+                        voiceHandler.postDelayed(voiceResultFallbackRunnable, 2800);
                     }
                     public void onError(int error) {
                         String msg;
@@ -529,8 +529,8 @@ public class MainActivity extends Activity {
                 i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
                 i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
                 i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,900);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,2800);
+                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,2800);
                 voiceRecognizer.startListening(i);
                 js("window._voiceNativeState&&window._voiceNativeState('starting')");
             } catch(Exception e) {
