@@ -53,6 +53,9 @@ public class MainActivity extends Activity {
     Runnable voiceResultFallbackRunnable = null;
     String voiceLastPartial = "";
     boolean voiceResultDelivered = false;
+    boolean voiceUsingOnDevice = false;
+    int voiceRetryCount = 0;
+    String voiceLanguage = "en-IN";
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
@@ -452,8 +455,10 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_SPEECH);
             return;
         }
-        if (!SpeechRecognizer.isRecognitionAvailable(this)) {
-            js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Speech recognition is not available on this device. Please enable Google voice recognition.")+")");
+        boolean standardAvailable = SpeechRecognizer.isRecognitionAvailable(this);
+        boolean onDeviceAvailable = Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(this);
+        if (!standardAvailable && !onDeviceAvailable) {
+            js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote("Speech recognition is not available on this device. Enable Google voice typing/voice recognition and allow microphone access.")+")");
             return;
         }
         // SpeechRecognizer can throw when a previous recognizer has just been destroyed.
@@ -462,9 +467,19 @@ public class MainActivity extends Activity {
             voiceStartRunnable = null;
             if (!voiceModeActive) return;
             try {
-                voiceRecognizer = SpeechRecognizer.createSpeechRecognizer(MainActivity.this);
+                voiceUsingOnDevice = false;
+                if ((!SpeechRecognizer.isRecognitionAvailable(MainActivity.this) || voiceRetryCount >= 2) && Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(MainActivity.this)) {
+                    try {
+                        voiceRecognizer = SpeechRecognizer.createOnDeviceSpeechRecognizer(MainActivity.this);
+                        voiceUsingOnDevice = true;
+                    } catch (Exception ignored) {
+                        voiceRecognizer = SpeechRecognizer.createSpeechRecognizer(MainActivity.this);
+                    }
+                } else {
+                    voiceRecognizer = SpeechRecognizer.createSpeechRecognizer(MainActivity.this);
+                }
                 voiceRecognizer.setRecognitionListener(new RecognitionListener() {
-                    public void onReadyForSpeech(Bundle p) { js("window._voiceNativeState&&window._voiceNativeState('ready')"); }
+                    public void onReadyForSpeech(Bundle p) { voiceRetryCount = 0; js("window._voiceNativeState&&window._voiceNativeState('ready')"); }
                     public void onBeginningOfSpeech() { js("window._voiceNativeState&&window._voiceNativeState('listening')"); }
                     public void onRmsChanged(float rmsdB) { js("window._voiceNativeLevel&&window._voiceNativeLevel("+Float.toString(Math.max(0f, Math.min(12f, rmsdB + 2f)))+")"); }
                     public void onBufferReceived(byte[] b) {}
@@ -495,20 +510,44 @@ public class MainActivity extends Activity {
                             case SpeechRecognizer.ERROR_RECOGNIZER_BUSY: msg="Voice recognition is busy. Please try again."; break;
                             case SpeechRecognizer.ERROR_SERVER: msg="Speech recognition service error"; break;
                             case SpeechRecognizer.ERROR_SPEECH_TIMEOUT: msg="No speech detected. Please speak."; break;
+                            case SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED: msg="English recognition is not available on this device."; break;
                             default: msg="Voice recognition error";
                         }
-                        if ((error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) && voiceModeActive) {
+                        if (!voiceModeActive) return;
+                        // A recognition session is finished only after onError/onResults.
+                        // Restart with backoff; very short retries can cause ERROR_RECOGNIZER_BUSY.
+                        if (error == SpeechRecognizer.ERROR_NO_MATCH || error == SpeechRecognizer.ERROR_SPEECH_TIMEOUT) {
+                            voiceRetryCount = Math.min(voiceRetryCount + 1, 4);
                             js("window._voiceNativeState&&window._voiceNativeState('ready')");
-                            voiceHandler.postDelayed(() -> { if (voiceModeActive) startVoiceMode(); }, 250);
+                            long delay = Math.min(1200L, 450L + (voiceRetryCount * 150L));
+                            voiceHandler.postDelayed(() -> { if (voiceModeActive) startVoiceMode(); }, delay);
                             return;
                         }
-                        js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote(msg)+")");
+                        if ((error == SpeechRecognizer.ERROR_NETWORK || error == SpeechRecognizer.ERROR_NETWORK_TIMEOUT || error == SpeechRecognizer.ERROR_SERVER) && !voiceUsingOnDevice && Build.VERSION.SDK_INT >= 31 && SpeechRecognizer.isOnDeviceRecognitionAvailable(MainActivity.this)) {
+                            voiceRetryCount = Math.min(voiceRetryCount + 1, 4);
+                            js("window._voiceNativeState&&window._voiceNativeState('ready')");
+                            voiceHandler.postDelayed(() -> { if (voiceModeActive) startVoiceMode(); }, 650);
+                            return;
+                        }
+                        if (error == SpeechRecognizer.ERROR_RECOGNIZER_BUSY || error == SpeechRecognizer.ERROR_CLIENT) {
+                            voiceRetryCount = Math.min(voiceRetryCount + 1, 4);
+                            voiceHandler.postDelayed(() -> { if (voiceModeActive) startVoiceMode(); }, 900);
+                            return;
+                        }
+                        if (error == SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED && "en-IN".equals(voiceLanguage)) {
+                            voiceLanguage = "en-US";
+                            voiceRetryCount = 0;
+                            voiceHandler.postDelayed(() -> { if (voiceModeActive) startVoiceMode(); }, 500);
+                            return;
+                        }
+                        js("window._voiceNativeError&&window._voiceNativeError("+JSONObject.quote(msg+(voiceUsingOnDevice?" (on-device recognition)":""))+')');
                     }
                     public void onResults(Bundle results) {
                         ArrayList<String> r = results == null ? null : results.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
                         String text = r != null && !r.isEmpty() ? r.get(0) : "";
                         if(!text.trim().isEmpty() && !voiceResultDelivered) {
                             voiceResultDelivered = true;
+                            voiceRetryCount = 0;
                             if (voiceResultFallbackRunnable != null) { try { voiceHandler.removeCallbacks(voiceResultFallbackRunnable); } catch (Exception ignored) {} voiceResultFallbackRunnable = null; }
                             js("window._voiceNativeFinal&&window._voiceNativeFinal("+JSONObject.quote(text.trim())+")");
                         }
@@ -525,7 +564,11 @@ public class MainActivity extends Activity {
                 });
                 Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
                 i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN");
+                i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,voiceLanguage);
+                if (Build.VERSION.SDK_INT >= 34) {
+                    i.putExtra(RecognizerIntent.EXTRA_ENABLE_LANGUAGE_DETECTION, true);
+                    i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_DETECTION_ALLOWED_LANGUAGES, new String[]{"en-IN","en-US","hi-IN"});
+                }
                 i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
                 i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
                 i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,900);
@@ -592,7 +635,11 @@ public class MainActivity extends Activity {
         }
         Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
         i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN");
+        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,voiceLanguage);
+                if (Build.VERSION.SDK_INT >= 34) {
+                    i.putExtra(RecognizerIntent.EXTRA_ENABLE_LANGUAGE_DETECTION, true);
+                    i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_DETECTION_ALLOWED_LANGUAGES, new String[]{"en-IN","en-US","hi-IN"});
+                }
         i.putExtra(RecognizerIntent.EXTRA_PROMPT,"Speak");
         try { startActivityForResult(i,REQ_SPEECH); } catch(Exception e) {
             js("window._speechResult&&window._speechResult("+JSONObject.quote(id)+",'',"+JSONObject.quote("Speech input unavailable")+")");
@@ -617,7 +664,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void reqExact(){requestExact();}
         @JavascriptInterface public void openChannelSettings(){try{Intent i=new Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS);i.putExtra(Settings.EXTRA_APP_PACKAGE,getPackageName());i.putExtra(Settings.EXTRA_CHANNEL_ID,NativeAlarms.CHANNEL_ID);startActivity(i);}catch(Exception e){}}
         @JavascriptInterface public void setBars(String color, boolean light){try{getWindow().setStatusBarColor(Color.parseColor(color));getWindow().setNavigationBarColor(Color.parseColor(color));if(Build.VERSION.SDK_INT>=23){int f=getWindow().getDecorView().getSystemUiVisibility();if(light)f|=View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;else f&=~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;getWindow().getDecorView().setSystemUiVisibility(f);}}catch(Exception ignored){}}
-        @JavascriptInterface public String appVer(){return "1.1.6";}
+        @JavascriptInterface public String appVer(){return "1.3.8";}
         @JavascriptInterface public void toast(String s){MainActivity.this.toast(s);}
         @JavascriptInterface public void testReminder(){NativeAlarms.test(MainActivity.this);}
         @JavascriptInterface public String fsCheck(){return "{\"need\":false}";}

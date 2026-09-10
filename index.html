@@ -3407,11 +3407,11 @@ function buildDataContext(){
     var done7=0,due7=0,hist=[];
     for(var d=0;d<7;d++){var ds=fmt(addDays(now,-d));if(dueOn(h,addDays(now,-d))){due7++;if(isDone(h,ds)){done7++;hist.push(ds+':done');}else hist.push(ds+':miss');}};
     var rate=due7?Math.round(done7/due7*100):0;
-    lines.push('- "'+h.name+'" id='+h.id+' streak='+streak(h)+' done_today='+isDone(h,ts)+' 7d_rate='+rate+'% last7=['+hist.join(',')+']');
+    lines.push('- "'+h.name+'" streak='+streak(h)+' done_today='+isDone(h,ts)+' 7d_rate='+rate+'% last7=['+hist.join(',')+']');
   });
 
   lines.push('TASKS:');
-  taskAllVisible().filter(function(t){return !t.virtualHabit;}).slice().sort(function(a,b){return taskDueMs(a)-taskDueMs(b);}).slice(0,30).forEach(function(t){var sp=taskSubProgress(t);lines.push('- \"'+t.title.replace(/\"/g,'')+'\" id='+t.id+' status='+taskEffectiveStatus(t)+' priority='+t.priority+' due='+ (t.dueDate||'none') +' '+(t.dueTime||'')+' subtasks='+sp.done+'/'+sp.total+' comments='+(t.comments||[]).length);});
+  taskAllVisible().filter(function(t){return !t.virtualHabit;}).slice().sort(function(a,b){return taskDueMs(a)-taskDueMs(b);}).slice(0,30).forEach(function(t){var sp=taskSubProgress(t);lines.push('- \"'+t.title.replace(/\"/g,'')+'\" status='+taskEffectiveStatus(t)+' priority='+t.priority+' due='+ (t.dueDate||'none') +' '+(t.dueTime||'')+' subtasks='+sp.done+'/'+sp.total+' comments='+(t.comments||[]).length);});
 
   // Mood last 7 days
   lines.push('MOOD (last 7):');
@@ -3446,7 +3446,7 @@ function buildDataContext(){
   lines.push('MONEY this month: income='+mInc+' expenses='+mExp+' net='+(mInc-mExp));
   if(state.cats)for(var ck in state.cats)cats.push(ck);
   if(cats.length)lines.push('CATEGORIES: '+cats.join(', '));
-  if(state.accts)state.accts.forEach(function(a){if(a.active!==false)lines.push('ACCOUNT: "'+a.name+'" id='+a.id+' bal='+acctBalance(a.id));});
+  if(state.accts)state.accts.forEach(function(a){if(a.active!==false)lines.push('ACCOUNT: "'+a.name+'" bal='+acctBalance(a.id));});
   return lines.join('\n');
 }
 var AI_PREF_KEY='ai_user_preferences_v1';
@@ -3498,6 +3498,19 @@ function voiceResolveTask(name,id){
   if(partial.length>1)return {error:'I found multiple tasks matching “'+name+'”. Please say the exact task name.'};
   return {error:'I could not find a task named “'+name+'”.'};
 }
+function voiceResolveAccount(name,id){
+  var active=activeAccts();
+  if(id){var byId=active.find(function(a){return a.id===id;});if(byId)return {account:byId};}
+  var q=String(name||'').trim().toLowerCase();
+  if(!q)return {account:null};
+  var exact=active.filter(function(a){return String(a.name||'').trim().toLowerCase()===q;});
+  if(exact.length===1)return {account:exact[0]};
+  if(exact.length>1)return {error:'I found multiple accounts with that name. Please choose one.'};
+  var partial=active.filter(function(a){return String(a.name||'').toLowerCase().indexOf(q)>=0;});
+  if(partial.length===1)return {account:partial[0]};
+  if(partial.length>1)return {error:'I found multiple accounts matching “'+name+'”: '+partial.slice(0,5).map(function(a){return a.name;}).join(', ')+'. Please say the exact account name.'};
+  return {error:'I could not find an active account named “'+name+'”.'};
+}
 function voiceConversationSummary(){
   try{
     var h=state.habits.filter(function(x){return !x.arch;}).map(function(x){return x.name;}).slice(0,20);
@@ -3536,11 +3549,11 @@ function uaiPrompt(text,conversationContext){
   +'navigate: {tab(today/tasks/mood/exp/stats/ai/set)}\n'
   +'query: {} message=answer the question from app data\n'
   +'clarify: {} message=ask for missing info\n\n'
-  +'For add_expense, acct must be the account ID shown in APP DATA (preferred) or the exact account name; never use a merchant/payee/category as the account. If the user does not specify an account, leave acct empty and let the app choose the active default account. Put merchant names such as Swiggy in payee, not acct.\n'
+  +'For add_expense, acct should be the exact account name when the user names an account; the app resolves it internally. Never invent or repeat internal IDs; never use a merchant/payee/category as the account. If the user does not specify an account, leave acct empty and let the app choose the active default account. Put merchant names such as Swiggy in payee, not acct.\n'
   +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep message under 2 lines.\n'
   +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n'
   +'CONVERSATION RULES: Understand natural language and scenarios, not only explicit commands. Infer likely intent, but NEVER execute a create/update action while a required field is missing. The assistant must behave like a conversational form: collect required details over multiple turns, one focused question at a time, and carry every previously supplied detail forward. IMPORTANT REQUIRED-FIELD RULES: For add_habit, require the habit name AND an explicit meaningful frequency/schedule (daily, weekdays, selected days, X times, or quota); if frequency is missing, return clarify and DO NOT create the habit. For add_task, require the task title AND ask when it should be due/scheduled; if the user says no due date, that is an explicit answer and may be used. If a task is intended to repeat, also collect the recurrence/frequency; never invent a deadline or recurrence. For set_mood, require the mood before saving; if the user only says \"log my mood\" or similar, ask which mood and do not default to Neutral. For set_sleep, require both bedtime and wake time before saving; if either is missing, ask for the missing time and do not silently use 23:00/06:00. For log_workout, require the exercise and workout values/sets before saving; ask for whichever is missing. For add_journal, require meaningful title/body content before saving. For add_expense, require amount and a reliable category; ask for category when it cannot be reliably inferred rather than defaulting to Other. Account may use the explicit/default account rule already defined. Keep follow-up questions focused: normally ask ONE smallest missing detail, not a long questionnaire. Preserve context across follow-up turns. Treat scenario/problem statements as opportunities to identify the user’s likely goal. If the scenario clearly implies a useful tracker action, propose the action or ask one focused question rather than merely giving generic advice; once the user authorizes it, collect required details and execute. Do not mutate data solely from an uncertain inference. Explicit preference statements such as \"remember that...\" should be reflected in PERSISTENT USER PREFERENCES; casual temporary comments should not. If the user asks to remember or forget a preference, handle that explicitly.\n\n'
-  +'RECENT VOICE CONVERSATION (this is the active conversation, not background history):\n'+(conversationContext||'None')+'\n'+voiceConversationSummary()+'\n\nFOLLOW-UP RULES: If the latest user message is short (for example a category, account, amount, date, habit name, task name, yes/no answer, or correction), treat it as a continuation of the immediately preceding request/clarification. Do NOT discard the earlier request. Carry forward all already supplied fields and fill only the missing/corrected field. Never restart an expense, task, habit, or other action from scratch unless the user explicitly starts a new request. For destructive actions, use the exact named record from the conversation or APP DATA; never substitute the first/most familiar record. If a name is ambiguous, ask the user to choose instead of guessing.\n'+'NATURAL VOICE RESPONSE RULES: The message field is spoken directly to the user. Sound like a normal human personal assistant, not a database, programmer, or API. For habit progress, say habit names and percentages naturally; use a short conversational sentence or compact list. NEVER mention internal IDs, record IDs, database fields, JSON, params, action names, implementation details, or strings such as id=... or (id: ...). Never read opaque identifiers aloud. Keep voice replies concise and human-like.\n\nUser: '+text;
+  +'RECENT VOICE CONVERSATION (this is the active conversation, not background history):\n'+(conversationContext||'None')+'\n'+voicePendingConversationText()+'\n'+voiceConversationSummary()+'\n\nFOLLOW-UP RULES: If the latest user message is short (for example a category, account, amount, date, habit name, task name, yes/no answer, or correction), treat it as a continuation of the immediately preceding request/clarification. Do NOT discard the earlier request. Carry forward all already supplied fields and fill only the missing/corrected field. Never restart an expense, task, habit, or other action from scratch unless the user explicitly starts a new request. For destructive actions, use the exact named record from the conversation or APP DATA; never substitute the first/most familiar record. If a name is ambiguous, ask the user to choose instead of guessing.\n'+'NATURAL VOICE RESPONSE RULES: The message field is spoken directly to the user. Sound like a normal human personal assistant, not a database, programmer, or API. For habit progress, say habit names and percentages naturally; use a short conversational sentence or compact list. NEVER mention internal IDs, record IDs, database fields, JSON, params, action names, implementation details, or strings such as id=... or (id: ...). Never read opaque identifiers aloud. Keep voice replies concise and human-like.\n\nUser: '+text;
 }
 function voiceActionCritical(a,p){
   a=String(a||'');
@@ -3580,15 +3593,23 @@ function voiceClearPendingConfirmation(){ window._voicePendingConfirmation=null;
 function voiceUserEvidenceText(){
   try{return String(window._voiceActiveUserContext||'').toLowerCase();}catch(e){return '';}
 }
+function voiceSetPendingConversation(action,params,question){
+  try{window._voicePendingConversation={action:String(action||''),params:JSON.parse(JSON.stringify(params||{})),question:String(question||''),evidence:String(window._voiceActiveUserContext||'')};}catch(e){window._voicePendingConversation={action:String(action||''),params:params||{},question:String(question||''),evidence:String(window._voiceActiveUserContext||'')};}
+}
+function voiceClearPendingConversation(){window._voicePendingConversation=null;}
+function voicePendingConversationText(){
+  try{var p=window._voicePendingConversation;if(!p)return '';return 'PENDING ACTION: '+p.action+'\nKNOWN PARAMETERS: '+JSON.stringify(p.params||{})+'\nMISSING DETAIL REQUESTED: '+(p.question||'')+'\nEARLIER USER EVIDENCE: '+(p.evidence||'');}catch(e){return '';}
+}
+
 function voiceHasFrequencyEvidence(t){
   return /\b(daily|every day|each day|every weekday|weekdays|weekday|weekly|every week|once a week|twice a week|three times a week|four times a week|\d+\s*times?\s*(a|per)\s*week|\d+\s*times?\s*(a|per)\s*day|monthly|every month|once a month|on (monday|tuesday|wednesday|thursday|friday|saturday|sunday)|monday|tuesday|wednesday|thursday|friday|saturday|sunday|specific days?|selected days?)\b/.test(t);
 }
 function voiceHasTaskTimingEvidence(t){
   return /\b(today|tomorrow|tonight|this evening|next week|next month|monday|tuesday|wednesday|thursday|friday|saturday|sunday|\d{1,2}(?:st|nd|rd|th)?(?:\s+of)?\s+(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)|(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}|\d{1,2}[:.]\d{2}|\d{1,2}\s*(?:am|pm)|no due date|without a due date|no deadline|without a deadline)\b/.test(t);
 }
-function voiceHasPriorityEvidence(t){return /\b(high|medium|low)\s+priority\b|\bpriority\s*(?:is|=|:)?\s*(high|medium|low)\b/.test(t);}
+function voiceHasPriorityEvidence(t){return /\b(?:high|medium|low)(?:\s+priority)?\b|\bpriority\s*(?:is|=|:)?\s*(high|medium|low)\b/.test(t);}
 function voiceHasMoodEvidence(t){return /\b(excellent|happy|calm|neutral|tired|sad|stressed|great|good|bad|okay|angry|anxious|excited|frustrated|content|relaxed)\b/.test(t);}
-function voiceTimeEvidenceCount(t){var m=String(t||'').match(/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b|\b(?:midnight|noon)\b/g);return m?m.length:0;}
+function voiceTimeEvidenceCount(t){var x=String(t||'').toLowerCase();var m=x.match(/\b\d{1,2}(?::\d{2})?\s*(?:am|pm)\b|\b(?:at\s+)?\d{1,2}\b|\b(?:midnight|noon)\b/g);var words=x.match(/\b(?:one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\b/g);return (m?m.length:0)+(words?Math.min(words.length,2):0);}
 function voiceHasTimeEvidence(t){return voiceTimeEvidenceCount(t)>0||/\b(morning|afternoon|evening|night)\b/.test(t);}
 function voiceHasWorkoutValueEvidence(t){return /\b\d+(?:\.\d+)?\s*(?:kg|kgs|lb|lbs|reps?|sets?|minutes?|mins?|km|miles?|seconds?|sec)\b/.test(t);}
 function voiceConversationalGate(r){
@@ -3641,7 +3662,8 @@ function executeAction(r){
     var a=r.action,p=r.params||{},msg=r.message||'Done',d=p.date||today();
     var completeness=validateVoiceActionCompleteness(a,p);
     if(completeness)return completeness;
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(d) || (d>today() && ['add_task','update_task'].indexOf(a)<0)) return {ok:0,msg:'Use a valid date today or earlier.'};
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) return {ok:0,msg:'Use a valid date.'};
+    if(d>today() && ['add_task','update_task','add_journal'].indexOf(a)<0) return {ok:0,msg:'Use a valid date today or earlier for this action.'};
     if(a==='add_task'){
       var title=String(p.title||'').trim();if(!title)return{ok:0,msg:'Enter a task name.'};
       var td=String(p.dueDate||'');if(td&&!/^\d{4}-\d{2}-\d{2}$/.test(td))return{ok:0,msg:'Use a valid task due date.'};
@@ -3654,7 +3676,7 @@ function executeAction(r){
       var before=JSON.parse(JSON.stringify(tt));tt.status=a==='complete_task'?'completed':'open';tt.completedAt=a==='complete_task'?Date.now():0;tt.updatedAt=Date.now();var next=null;if(a==='complete_task')next=taskCreateNextOccurrence(tt);persist();if($('pgTasks').classList.contains('on'))renderTasks();return{ok:1,msg:msg,detail:tt.title+(next?' · next '+taskDateLabel(next):''),undo:function(){var ix=state.tasks.findIndex(function(x){return x.id===tt.id;});if(ix>=0)state.tasks[ix]=before;if(next)state.tasks=state.tasks.filter(function(x){return x.id!==next.id;});persist();}};
     }
     if(a==='update_task'){
-      var ut=p.id?state.tasks.find(function(x){return x.id===p.id;}):taskFindByQuery(String(p.match||p.title||''));if(!ut)return{ok:0,msg:'Task not found.'};var old=JSON.parse(JSON.stringify(ut));var wasCompleted=ut.status==='completed';if(p.newTitle!==undefined)ut.title=String(p.newTitle).trim().slice(0,100)||ut.title;if(p.description!==undefined)ut.description=String(p.description).slice(0,1000);if(p.dueDate!==undefined)ut.dueDate=/^\d{4}-\d{2}-\d{2}$/.test(String(p.dueDate))?String(p.dueDate):'';if(p.dueTime!==undefined)ut.dueTime=String(p.dueTime||'');if(['high','medium','low'].indexOf(p.priority)>=0)ut.priority=p.priority;if(['open','inprogress','completed'].indexOf(p.status)>=0){ut.status=p.status;ut.completedAt=p.status==='completed'?Date.now():0;}if(Array.isArray(p.reminders))ut.reminders=p.reminders;if(p.recurrence)ut.recurrence=p.recurrence;var nextUpdate=null;if(!wasCompleted&&ut.status==='completed'){ut.completedAt=Date.now();nextUpdate=taskCreateNextOccurrence(ut);}ut.updatedAt=Date.now();persist();if($('pgTasks').classList.contains('on'))renderTasks();return{ok:1,msg:msg,detail:ut.title+(nextUpdate?' · next '+taskDateLabel(nextUpdate):''),undo:function(){var ix=state.tasks.findIndex(function(x){return x.id===ut.id;});if(ix>=0)state.tasks[ix]=old;if(nextUpdate)state.tasks=state.tasks.filter(function(x){return x.id!==nextUpdate.id;});persist();}};
+      var ur=voiceResolveTask(p.match||p.title,p.id);if(ur.error)return{ok:0,msg:ur.error,isClarify:1};var ut=ur.task;if(!ut)return{ok:0,msg:'Task not found.',isClarify:1};var old=JSON.parse(JSON.stringify(ut));var wasCompleted=ut.status==='completed';if(p.newTitle!==undefined)ut.title=String(p.newTitle).trim().slice(0,100)||ut.title;if(p.description!==undefined)ut.description=String(p.description).slice(0,1000);if(p.dueDate!==undefined)ut.dueDate=/^\d{4}-\d{2}-\d{2}$/.test(String(p.dueDate))?String(p.dueDate):'';if(p.dueTime!==undefined)ut.dueTime=String(p.dueTime||'');if(['high','medium','low'].indexOf(p.priority)>=0)ut.priority=p.priority;if(['open','inprogress','completed'].indexOf(p.status)>=0){ut.status=p.status;ut.completedAt=p.status==='completed'?Date.now():0;}if(Array.isArray(p.reminders))ut.reminders=p.reminders;if(p.recurrence)ut.recurrence=p.recurrence;var nextUpdate=null;if(!wasCompleted&&ut.status==='completed'){ut.completedAt=Date.now();nextUpdate=taskCreateNextOccurrence(ut);}ut.updatedAt=Date.now();persist();if($('pgTasks').classList.contains('on'))renderTasks();return{ok:1,msg:msg,detail:ut.title+(nextUpdate?' · next '+taskDateLabel(nextUpdate):''),undo:function(){var ix=state.tasks.findIndex(function(x){return x.id===ut.id;});if(ix>=0)state.tasks[ix]=old;if(nextUpdate)state.tasks=state.tasks.filter(function(x){return x.id!==nextUpdate.id;});persist();}};
     }
     if(a==='delete_task'){
       var tr=voiceResolveTask(p.title,p.id);if(tr.error)return{ok:0,msg:tr.error};var task=tr.task;
@@ -3669,10 +3691,12 @@ function executeAction(r){
       /* Resolve account robustly: AI may return an id or an account name. Never reject a valid account merely because the AI used its display name. If no account was explicitly supplied, use the same default ordering as the manual expense form. */
       var acctObj=null;
       if(acct){
-        acctObj=accts.find(function(a){return String(a.id)===acct;})||accts.find(function(a){return String(a.name||'').toLowerCase()===acct.toLowerCase();})||accts.find(function(a){return String(a.name||'').toLowerCase().indexOf(acct.toLowerCase())>=0;});
+        var ar=voiceResolveAccount(acct,p.acctId);
+        if(ar.error)return{ok:0,msg:ar.error,isClarify:1};
+        acctObj=ar.account;
       }
       if(!acctObj && !acct && accts.length) acctObj=accts[0];
-      if(!acctObj) return{ok:0,msg:accts.length?'I could not match that account. Say the account name, or leave it out to use the default active account.':'Create an active account before adding an expense.'};
+      if(!acctObj) return{ok:0,msg:accts.length?'I could not match that account. Say the account name, or leave it out to use the default active account.':'Create an active account before adding an expense.',isClarify:1};
       acct=acctObj.id;
       var cat=String(p.cat||'Other').slice(0,40), known=kind==='inc'?(state.incCats||[]):Object.keys(state.cats||{});
       if(known.length && known.indexOf(cat)<0)cat='Other';
@@ -3720,7 +3744,7 @@ function executeAction(r){
       var jf=state.jr.filter(function(x){return (!p.id||x.id===p.id)&&(!p.date||x.d===p.date)&&(!p.title||String(x.t||'').toLowerCase().indexOf(String(p.title).toLowerCase())>=0);});if(!jf.length)return{ok:0,msg:'Journal entry not found.'};if(jf.length>1)return{ok:0,msg:'I found multiple journal entries. Specify the title or date.'};var jd=jf[0];if(!r.confirm)return{ok:0,msg:'Please confirm deleting journal entry “'+(jd.t||'Untitled')+'”.',needConfirm:1,pending:{action:'delete_journal',params:{id:jd.id},confirm:true}};state.jr=state.jr.filter(function(x){return x.id!==jd.id;});persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Deleted journal entry',undo:function(){state.jr.push(jd);persist();}};
     }
     if(a==='log_workout'){
-      var en=String(p.exercise||'').trim(),exm=state.exs.find(function(x){return String(x.name||'').toLowerCase()===en.toLowerCase();})||state.exs.find(function(x){return String(x.name||'').toLowerCase().indexOf(en.toLowerCase())>=0;});if(!exm)return{ok:0,msg:'Exercise not found.'};var sets=Array.isArray(p.sets)?p.sets.map(function(x){return Math.max(0,Number(x)||0);}):[];if(!sets.length)return{ok:0,msg:'Provide workout values/sets.'};var wd=p.date||today(),before=wlogFor(exm.id,wd);var beforeCopy=before?JSON.parse(JSON.stringify(before)):null;setExVal(exm.id,sets,wd);return{ok:1,msg:msg,detail:exm.name+' · '+wd,undo:function(){if(beforeCopy){var w=wlogFor(exm.id,wd);if(w)w.sets=beforeCopy.sets;}else{state.wlog=state.wlog.filter(function(x){return !(x.exId===exm.id&&x.d===wd);});}persist();}};
+      var en=String(p.exercise||'').trim(),exExact=state.exs.filter(function(x){return String(x.name||'').trim().toLowerCase()===en.toLowerCase()&&x.active!==false;}),exPartial=state.exs.filter(function(x){return x.active!==false&&String(x.name||'').toLowerCase().indexOf(en.toLowerCase())>=0;}),exm=exExact.length===1?exExact[0]:(exPartial.length===1?exPartial[0]:null);if(exPartial.length>1&&!exExact.length)return{ok:0,msg:'I found multiple exercises matching “'+en+'”. Please say the exact exercise name.',isClarify:1};if(!exm)return{ok:0,msg:'Exercise not found.',isClarify:1};var sets=Array.isArray(p.sets)?p.sets.map(function(x){return Math.max(0,Number(x)||0);}):[];if(!sets.length)return{ok:0,msg:'Provide workout values/sets.'};var wd=p.date||today(),before=wlogFor(exm.id,wd);var beforeCopy=before?JSON.parse(JSON.stringify(before)):null;setExVal(exm.id,sets,wd);return{ok:1,msg:msg,detail:exm.name+' · '+wd,undo:function(){if(beforeCopy){var w=wlogFor(exm.id,wd);if(w)w.sets=beforeCopy.sets;}else{state.wlog=state.wlog.filter(function(x){return !(x.exId===exm.id&&x.d===wd);});}persist();}};
     }
     if(a==='delete_workout'){
       var wf=state.wlog.filter(function(w){var ex=exById(w.exId);return (!p.id||w.id===p.id)&&(!p.date||w.d===p.date)&&(!p.exercise||String(ex&&ex.name||'').toLowerCase().indexOf(String(p.exercise).toLowerCase())>=0);});if(!wf.length)return{ok:0,msg:'Workout record not found.'};if(wf.length>1)return{ok:0,msg:'I found multiple workout records. Specify the exercise or date.'};var wd0=wf[0];if(!r.confirm)return{ok:0,msg:'Please confirm deleting this workout record.',needConfirm:1,pending:{action:'delete_workout',params:{id:wd0.id},confirm:true}};state.wlog=state.wlog.filter(function(x){return x.id!==wd0.id;});persist();return{ok:1,msg:msg,detail:'Workout record deleted'};
@@ -3731,7 +3755,18 @@ function executeAction(r){
       if(!hasFreq)return{ok:0,msg:'How often should I schedule “'+String(p.name).slice(0,40)+'”? For example, every day, weekdays, or specific days.',isClarify:1};
       openEdit(null);$('fName').value=String(p.name).slice(0,40);if(p.goal>1)$('fGoal').value=p.goal;
       if(p.category){var cc=document.querySelector('#catRow [data-cat=\"'+String(p.category).replace(/\"/g,'')+'\"]');if(cc)cc.click();}
-      if(p.scheduleKind){var sk=String(p.scheduleKind).toLowerCase(),mapSk={daily:'daily',weekdays:'weekdays',custom:'custom',x_times:'x'};var btn=document.querySelector('#schRow [data-sk=\"'+(mapSk[sk]||sk)+'\"]');if(btn)btn.click();}
+      var sk=String(p.scheduleKind||p.frequency||'').toLowerCase();
+      if(/every day|daily|each day/.test(sk))sk='daily';
+      else if(/weekday/.test(sk))sk='dow';
+      else if(/weekend/.test(sk))sk='weekend';
+      else if(/\b\d+\s*(?:times?|x)\s*(?:per|a)\s*week\b|x_times|quota/.test(sk))sk='wquota';
+      else if(/month/.test(sk))sk='mquota';
+      else if(/every x|every \d+ days?/.test(sk))sk='everyx';
+      if(sk){var btn=document.querySelector('#schRow [data-sk="'+sk+'"]');if(btn)btn.click();}
+      if(Array.isArray(p.dows)&&p.dows.length){ed.sched.dows=p.dows.map(Number).filter(function(n){return n>=0&&n<=6;});}
+      if(Array.isArray(p.times)&&p.times.length){ed.rem.times=p.times.filter(function(x){return /^([01]\d|2[0-3]):[0-5]\d$/.test(String(x));});}
+      var qmatch=String(p.frequency||'').match(/(\d+)\s*(?:times?|x)\s*(?:per|a)\s*week/i);
+      if(p.quota||qmatch)ed.sched.quota=Math.max(1,Number(p.quota||qmatch[1])||1);
       if(Array.isArray(p.dows)&&p.dows.length){ed.sched.dows=p.dows.map(Number).filter(function(n){return n>=0&&n<=6;});}
       if(p.goal)ed.target=Math.max(1,Number(p.goal)||1);if(p.start)ed.start=String(p.start);if(p.end)ed.end=String(p.end);
       saveHabit();if(sheetOpen)closeSheet();persist();
@@ -3808,6 +3843,8 @@ function uaiSend(text,opts){ opts=opts||{};
       }else if(res.isQuery){voiceReply=sanitizeVoiceReply(res.msg.replace(/<[^>]+>/g,''));html+=res.msg.replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');}
       else{voiceReply=sanitizeVoiceReply(res.msg);html+=res.msg.replace(/</g,'&lt;');}
       html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;reRenderCurrent();
+      if(opts.voiceMode && res.isClarify && result && result.action && result.action!=='clarify') voiceSetPendingConversation(result.action,result.params,res.msg);
+      if(opts.voiceMode && res.ok && !res.needConfirm) voiceClearPendingConversation();
       if(opts.voiceMode&&voiceReply&&typeof window.rememberVoiceTurn==='function')window.rememberVoiceTurn('ai',voiceReply);
       if(opts.voiceMode&&typeof voiceModeSpeak==='function')voiceModeSpeak(voiceReply||'Done.');
     }
@@ -3817,6 +3854,7 @@ function uaiSend(text,opts){ opts=opts||{};
     if(opts.voiceMode){
       var conversationalGate=voiceConversationalGate(result);
       if(conversationalGate){
+        voiceSetPendingConversation(result.action,result.params,conversationalGate.msg);
         finishResult(conversationalGate);
         return;
       }
@@ -8809,14 +8847,18 @@ window.__HT_PRO__='productivity-suite-v2';
       return;
     }
     if(vm.waiting)return;
-    stopRecognition();vm.pendingParts=[];vm.finalText='';transcript(text,false);addBubble('you',text);rememberVoiceTurn('you',text);window._voiceActiveUserContext=vm.turns.slice(-8).filter(function(x){return x.who==='you';}).map(function(x){return x.text;}).join('\n');transcript('',true);vm.waiting=true;setVMState('thinking','AI is processing your complete request…');
+    stopRecognition();vm.pendingParts=[];vm.finalText='';transcript(text,false);addBubble('you',text);rememberVoiceTurn('you',text);
+    var pendingConv=window._voicePendingConversation;
+    if(pendingConv){ window._voiceActiveUserContext=String(pendingConv.evidence||'')+'\n'+text; }
+    else { window._voiceActiveUserContext=vm.turns.slice(-8).filter(function(x){return x.who==='you';}).map(function(x){return x.text;}).join('\n'); }
+    transcript('',true);vm.waiting=true;setVMState('thinking','AI is processing your complete request…');
     if(typeof uaiSend==='function')uaiSend(text,{voiceMode:true,voiceContext:voiceContextText()});else{setVMState('error','AI assistant is unavailable.');vm.waiting=false;}
   }
   window._voiceNativeState=function(s){if(!vm.active)return;if(s==='ready'||s==='starting')setVMState('listening','Microphone ready — speak naturally.');else if(s==='listening')setVMState('listening','Hearing you…');else if(s==='processing')setVMState('finalizing','Finishing your sentence…');};
   window._voiceNativeLevel=function(v){var bars=document.querySelectorAll('#voiceLevel i');for(var i=0;i<bars.length;i++){var n=Math.max(6,Math.min(26,(v||0)*(i%2?1.5:1)));bars[i].style.height=n+'px';}};
   window._voiceNativePartial=function(t){if(!vm.active||vm.waiting)return;var base=vm.pendingParts.join(' '),shown=(base+' '+String(t||'')).replace(/\s+/g,' ').trim();if(shown)transcript(shown,false);if(vm.silenceTimer){clearTimeout(vm.silenceTimer);vm.silenceTimer=null;}};
   window._voiceNativeFinal=function(t){if(!vm.active||vm.waiting)return;var x=String(t||'').trim();if(!x)return;vm.pendingParts.push(x);vm.finalText=vm.pendingParts.join(' ').replace(/\s+/g,' ').trim();transcript(vm.finalText,false);if(vm.silenceTimer){clearTimeout(vm.silenceTimer);vm.silenceTimer=null;}handleVoiceTurn(vm.finalText);};
-  window._voiceNativeError=function(m){if(!vm.active)return;vm.waiting=false;setVMState('error',m||'Voice recognition failed.');if(/network|busy|client|timeout/i.test(String(m||''))){setTimeout(function(){if(vm.active&&!vm.waiting){setVMState('listening','Retrying voice recognition…');nativeListen();}},700);} };
+  window._voiceNativeError=function(m){if(!vm.active)return;vm.waiting=false;setVMState('error',m||'Voice recognition failed.');if(/network|busy|client|timeout|service|microphone/i.test(String(m||''))){setTimeout(function(){if(vm.active&&!vm.waiting){setVMState('listening','Retrying voice recognition…');nativeListen();}},900);} };
   window._voiceTtsInterrupted=function(){if(!vm.active)return;vm.speaking=false;};
   window._voiceTtsDone=function(){if(!vm.active||vm.interrupting)return;if(vm.silenceTimer){clearTimeout(vm.silenceTimer);vm.silenceTimer=null;}vm.speaking=false;vm.waiting=false;setVMState('listening','Your turn — speak naturally.');transcript('',true);if(vm.active)nativeListen();};
   function preferredFemaleVoice(){try{if(!window.speechSynthesis)return null;var vs=window.speechSynthesis.getVoices()||[],best=null;for(var i=0;i<vs.length;i++){var v=vs[i],n=String(v.name||'').toLowerCase(),lang=String(v.lang||'').toLowerCase();if(lang.indexOf('en-in')===0&&(n.indexOf('female')>=0||n.indexOf('woman')>=0||n.indexOf('zira')>=0||n.indexOf('samantha')>=0||n.indexOf('aria')>=0||n.indexOf('google')>=0))return v;if(!best&&lang.indexOf('en-in')===0)best=v;}return best;}catch(e){return null;}}
@@ -8890,8 +8932,8 @@ window.__HT_PRO__='productivity-suite-v2';
     transcript('',true);
     setTimeout(function(){if(vm.active&&!vm.waiting){vm.interrupting=false;nativeListen();}},100);
   }
-  function openVM(){vm.active=true;vm.waiting=false;vm.speaking=false;vm.finalText='';vm.pendingParts=[];if(vm.silenceTimer)clearTimeout(vm.silenceTimer);voiceClearPendingConfirmation();window._voiceActionPending=false;window._voiceCancelAction=null;$('voiceModeOverlay').classList.add('open');$('voiceModeOverlay').setAttribute('aria-hidden','false');$('globalVoiceBtn').classList.add('active');setVMState('ready','Start a natural conversation with your tracker.');transcript('',true);nativeListen();}
-  function closeVM(){vm.active=false;vm.waiting=false;vm.speaking=false;vm.pendingParts=[];vm.finalText='';if(vm.silenceTimer)clearTimeout(vm.silenceTimer);vm.silenceTimer=null;window._voiceCancelAction=null;voiceClearPendingConfirmation();stopRecognition();stopVmAudio();try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}$('voiceModeOverlay').classList.remove('open');$('voiceModeOverlay').setAttribute('aria-hidden','true');$('globalVoiceBtn').classList.remove('active');setVMState('ready','Tap the microphone to start talking.');}
+  function openVM(){vm.active=true;vm.waiting=false;vm.speaking=false;vm.finalText='';vm.pendingParts=[];if(vm.silenceTimer)clearTimeout(vm.silenceTimer);voiceClearPendingConfirmation();voiceClearPendingConversation();window._voiceActionPending=false;window._voiceCancelAction=null;$('voiceModeOverlay').classList.add('open');$('voiceModeOverlay').setAttribute('aria-hidden','false');$('globalVoiceBtn').classList.add('active');setVMState('ready','Start a natural conversation with your tracker.');transcript('',true);nativeListen();}
+  function closeVM(){vm.active=false;vm.waiting=false;vm.speaking=false;vm.pendingParts=[];vm.finalText='';if(vm.silenceTimer)clearTimeout(vm.silenceTimer);vm.silenceTimer=null;window._voiceCancelAction=null;voiceClearPendingConfirmation();voiceClearPendingConversation();stopRecognition();stopVmAudio();try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}$('voiceModeOverlay').classList.remove('open');$('voiceModeOverlay').setAttribute('aria-hidden','true');$('globalVoiceBtn').classList.remove('active');setVMState('ready','Tap the microphone to start talking.');}
   window.voiceModeActive=false;Object.defineProperty(window,'voiceModeActive',{get:function(){return vm.active;}});
   $('voiceModeOpen').addEventListener('click',function(){openVM();});$('voiceModeInterrupt').addEventListener('click',function(){interruptAndListen();});$('voiceOrb').addEventListener('click',function(){if(vm.speaking)interruptAndListen();});$('globalVoiceBtn').addEventListener('click',function(e){e.preventDefault();e.stopPropagation();try{showTab('pgAI');}catch(err){}openVM();});$('voiceModeClose').addEventListener('click',closeVM);$('voiceModeStop').addEventListener('click',closeVM);$('voiceModeMute').addEventListener('click',function(){vm.muted=!vm.muted;this.textContent=vm.muted?'🔇':'🔊';});
   document.addEventListener('keydown',function(e){if(e.key==='Escape'&&vm.active)closeVM();});
