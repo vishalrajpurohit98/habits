@@ -523,6 +523,13 @@ public class MainActivity extends Activity {
         try { if(tts!=null) tts.stop(); } catch(Exception ignored) {}
     }
 
+    void interruptVoiceSpeech() {
+        runOnUiThread(() -> {
+            try { if(tts!=null) tts.stop(); } catch(Exception ignored) {}
+            js("window._voiceTtsInterrupted&&window._voiceTtsInterrupted()" );
+        });
+    }
+
     void speakVoiceMode(String text) {
         if(text==null || text.trim().isEmpty()) { js("window._voiceTtsDone&&window._voiceTtsDone()"); return; }
         runOnUiThread(() -> {
@@ -616,6 +623,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void startVoiceMode(){MainActivity.this.startVoiceMode();}
         @JavascriptInterface public void stopVoiceMode(){MainActivity.this.stopVoiceMode();}
         @JavascriptInterface public void speakVoiceMode(String text){MainActivity.this.speakVoiceMode(text);}
+        @JavascriptInterface public void interruptVoiceSpeech(){MainActivity.this.interruptVoiceSpeech();}
         @JavascriptInterface public void speak(String text){MainActivity.this.speakText(text);}
     }
 }
