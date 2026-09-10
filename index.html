@@ -8725,7 +8725,58 @@ window.__HT_PRO__='productivity-suite-v2';
   function pcmWavBlob(b64){var bin=atob(b64),len=bin.length,buf=new ArrayBuffer(44+len),v=new DataView(buf);function ws(o,str){for(var i=0;i<str.length;i++)v.setUint8(o+i,str.charCodeAt(i));}ws(0,'RIFF');v.setUint32(4,36+len,true);ws(8,'WAVE');ws(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,24000,true);v.setUint32(28,48000,true);v.setUint16(32,2,true);v.setUint16(34,16,true);ws(36,'data');v.setUint32(40,len,true);for(var i=0;i<len;i++)v.setUint8(44+i,bin.charCodeAt(i));return new Blob([buf],{type:'audio/wav'});}
   function stopVmAudio(){try{if(vmAudio){vmAudio.pause();vmAudio.currentTime=0;}}catch(e){}if(vmAudioUrl){try{URL.revokeObjectURL(vmAudioUrl);}catch(e){}vmAudioUrl=null;}vmAudio=null;}
   function geminiNaturalTTS(text){var key=getAiKey();if(!key||getAiProvider()!=='gemini')return Promise.reject(new Error('Gemini TTS unavailable'));var prompt='Speak as a natural, warm, human female personal assistant in clear Indian English. Conversational, calm, friendly, concise. Use natural pauses and intonation; do not sound like a robotic announcer. Say only the following transcript:\n'+text;return fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-tts-preview:generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{responseModalities:['AUDIO'],speechConfig:{voiceConfig:{prebuiltVoiceConfig:{voiceName:'Aoede'}}}}})}).then(function(r){if(!r.ok)throw new Error('TTS API '+r.status);return r.json();}).then(function(d){var part=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0],b64=part&&part.inlineData&&part.inlineData.data;if(!b64)throw new Error('No TTS audio');return pcmWavBlob(b64);});}
-  window.voiceModeSpeak=function(text){if(!vm.active)return;var clean=String(text||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();if(!clean){window._voiceTtsDone();return;}addBubble('ai',clean);setVMState('speaking',vm.muted?'Voice response muted.':'AI is speaking…');vm.speaking=true;if(vm.muted){setTimeout(window._voiceTtsDone,250);return;}stopVmAudio();if(getAiProvider()==='gemini'&&getAiKey()){geminiNaturalTTS(clean).then(function(blob){if(!vm.active){return;}vmAudioUrl=URL.createObjectURL(blob);vmAudio=new Audio(vmAudioUrl);vmAudio.onended=window._voiceTtsDone;vmAudio.onerror=function(){stopVmAudio();window._voiceTtsDone();};return vmAudio.play();}).catch(function(){if(!vm.active)return;try{if(window.Bridge&&Bridge.speakVoiceMode){Bridge.speakVoiceMode(clean);return;}}catch(e){}if(window.speechSynthesis){try{window.speechSynthesis.cancel();var u=new SpeechSynthesisUtterance(clean);u.lang='en-IN';var pv=preferredFemaleVoice();if(pv)u.voice=pv;u.rate=.97;u.pitch=1.02;u.onend=window._voiceTtsDone;u.onerror=window._voiceTtsDone;window.speechSynthesis.speak(u);return;}catch(e){}}window._voiceTtsDone();});return;}try{if(window.Bridge&&Bridge.speakVoiceMode){Bridge.speakVoiceMode(clean);return;}}catch(e){}if(window.speechSynthesis){try{window.speechSynthesis.cancel();var u2=new SpeechSynthesisUtterance(clean);u2.lang='en-IN';var pv2=preferredFemaleVoice();if(pv2)u2.voice=pv2;u2.rate=.97;u2.pitch=1.02;u2.onend=window._voiceTtsDone;u2.onerror=window._voiceTtsDone;window.speechSynthesis.speak(u2);return;}catch(e){}}window._voiceTtsDone();};
+  window.voiceModeSpeak=function(text){
+    if(!vm.active)return;
+    var clean=String(text||'').replace(/<[^>]*>/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();
+    if(!clean){window._voiceTtsDone();return;}
+    addBubble('ai',clean);
+    setVMState('speaking',vm.muted?'Voice response muted.':'AI is speaking…');
+    vm.speaking=true;
+    if(vm.muted){setTimeout(window._voiceTtsDone,120);return;}
+    stopVmAudio();
+
+    // FAST VOICE PATH: start local Android/browser speech immediately.
+    // The previous path waited for a separate Gemini TTS network request,
+    // which made the text response appear several seconds before audio.
+    try{
+      if(window.Bridge&&Bridge.speakVoiceMode){
+        Bridge.speakVoiceMode(clean);
+        return;
+      }
+    }catch(e){}
+
+    if(window.speechSynthesis){
+      try{
+        window.speechSynthesis.cancel();
+        var u2=new SpeechSynthesisUtterance(clean);
+        u2.lang='en-IN';
+        var pv2=preferredFemaleVoice();
+        if(pv2)u2.voice=pv2;
+        u2.rate=.97;
+        u2.pitch=1.02;
+        u2.onend=window._voiceTtsDone;
+        u2.onerror=window._voiceTtsDone;
+        window.speechSynthesis.speak(u2);
+        return;
+      }catch(e){}
+    }
+
+    // Last-resort fallback only when local speech is unavailable.
+    // This path may have network latency, but it is no longer on the normal
+    // Android Voice Mode path.
+    if(getAiProvider()==='gemini'&&getAiKey()){
+      geminiNaturalTTS(clean).then(function(blob){
+        if(!vm.active)return;
+        vmAudioUrl=URL.createObjectURL(blob);
+        vmAudio=new Audio(vmAudioUrl);
+        vmAudio.onended=window._voiceTtsDone;
+        vmAudio.onerror=function(){stopVmAudio();window._voiceTtsDone();};
+        return vmAudio.play();
+      }).catch(function(){window._voiceTtsDone();});
+      return;
+    }
+    window._voiceTtsDone();
+  };
   function openVM(){vm.active=true;vm.waiting=false;vm.speaking=false;vm.finalText='';vm.pendingParts=[];if(vm.silenceTimer)clearTimeout(vm.silenceTimer);voiceClearPendingConfirmation();window._voiceActionPending=false;window._voiceCancelAction=null;$('voiceModeOverlay').classList.add('open');$('voiceModeOverlay').setAttribute('aria-hidden','false');$('globalVoiceBtn').classList.add('active');setVMState('ready','Start a natural conversation with your tracker.');transcript('',true);nativeListen();}
   function closeVM(){vm.active=false;vm.waiting=false;vm.speaking=false;vm.pendingParts=[];vm.finalText='';if(vm.silenceTimer)clearTimeout(vm.silenceTimer);vm.silenceTimer=null;window._voiceCancelAction=null;voiceClearPendingConfirmation();stopRecognition();stopVmAudio();try{window.speechSynthesis&&window.speechSynthesis.cancel();}catch(e){}$('voiceModeOverlay').classList.remove('open');$('voiceModeOverlay').setAttribute('aria-hidden','true');$('globalVoiceBtn').classList.remove('active');setVMState('ready','Tap the microphone to start talking.');}
   window.voiceModeActive=false;Object.defineProperty(window,'voiceModeActive',{get:function(){return vm.active;}});
