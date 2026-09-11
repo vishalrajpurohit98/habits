@@ -1574,7 +1574,7 @@ function executeAction(r){
       if(!String(p.name||'').trim())return{ok:0,msg:'What should I call the habit?',isClarify:1};
       var hasFreq=!!(p.frequency||p.scheduleKind||p.dows||p.days||p.times);
       if(!hasFreq)return{ok:0,msg:'How often should I schedule “'+String(p.name).slice(0,40)+'”? For example, every day, weekdays, or specific days.',isClarify:1};
-      openEdit(null);$('fName').value=String(p.name).slice(0,40);if(p.goal>1)$('fGoal').value=p.goal;
+      openEdit(null);var _a1=$('habitAdv1'),_a2=$('habitAdv2'),_mb=$('habitMoreBtn');if(_a1)_a1.style.display='';if(_a2)_a2.style.display='';if(_mb)_mb.style.display='none';$('fName').value=String(p.name).slice(0,40);if(p.goal>1&&$('fTarget'))$('fTarget').value=p.goal;
       if(p.category){var cc=document.querySelector('#catRow [data-cat=\"'+String(p.category).replace(/\"/g,'')+'\"]');if(cc)cc.click();}
       if(p.scheduleKind){var sk=String(p.scheduleKind).toLowerCase(),mapSk={daily:'daily',weekdays:'weekdays',custom:'custom',x_times:'x'};var btn=document.querySelector('#schRow [data-sk=\"'+(mapSk[sk]||sk)+'\"]');if(btn)btn.click();}
       if(Array.isArray(p.dows)&&p.dows.length){ed.sched.dows=p.dows.map(Number).filter(function(n){return n>=0&&n<=6;});}
@@ -1717,6 +1717,7 @@ function renderToday(){
   renderTaskDashboard();
   try{ renderTodayProgress(); }catch(e){}
   try{ if($('sleepCard')) renderSleepCard(); }catch(e){}
+  try{ if($('wkCard')) renderWkCard(); }catch(e){}
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
   $('greet').textContent = greetTxt();
@@ -5917,7 +5918,7 @@ function init(){
     else if(m==='export'){ showTab('pgSet'); setTimeout(function(){ var el=$('btnBk')||$('btnJrExport'); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'center'}); },120); }
     else if(m==='health-mood'){ showTab('pgJr'); setTimeout(function(){ jrGo('insights'); var mb=$('jrMoodInsBtn'); if(mb){ var p=$('jrMoodPanel'); if(p&&p.style.display==='none') mb.click(); } },120); }
     else if(m==='health-sleep'){ showTab('pgToday'); setTimeout(function(){ if(typeof openSleep==='function') openSleep(today()); },120); }
-    else if(m==='health-workout'){ showTab('pgStats'); setTimeout(function(){ var f=$('fitSection'); if(f&&f.scrollIntoView) f.scrollIntoView({behavior:'smooth',block:'start'}); },150); }
+    else if(m==='health-workout'){ showTab('pgToday'); setTimeout(function(){ if(typeof openWkModule==='function') openWkModule(); },140); }
   });
   /* ===== Journal V1.4.0 wiring ===== */
   var _moodIns=$('jrMoodInsBtn'); if(_moodIns) _moodIns.addEventListener('click', function(){

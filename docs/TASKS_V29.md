@@ -457,3 +457,27 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
   reverse decisions the user made earlier or re-architect already-organized code for little gain.
   Flagged to the user; user agreed to skip. Insight-consolidation across Money/Journal/Stats was
   not done as it needs an Analytics rebuild (large, deferred).
+
+---
+
+# V1.5.1 — workout restore, journal action placement, bug fixes
+
+## Journal action placement (reported issue)
+- "Ask about my day" (Summarize/Reflect/Talk) + its output moved ABOVE the entry list on the
+  Journal timeline, so it stays at the top regardless of entry count (was buried below 200+ entries).
+
+## Workout restored to Today (reported issue)
+- Workout summary card (#wkCard) was force-hidden in an earlier declutter pass. Removed it from
+  the #pgToday hide list and renderToday() now calls renderWkCard(). The card is back below Sleep.
+- More -> Workout now opens the actual workout module (openWkModule) instead of scrolling to the
+  Stats fitness section.
+
+## Bug fixes found during audit
+- AI add_habit referenced $('fGoal') (nonexistent) -> fixed to $('fTarget') with a guard; also
+  now expands the habit advanced section so AI-prefilled category/goal are visible to the user.
+- Audited all $('id') references vs. actual element IDs: remaining "missing" refs are all guarded
+  or dynamically created (verified no unguarded crashes).
+
+## Verified (real Chromium)
+- Workout card visible on Today; More->Workout opens module; journal ask button sits above the
+  list with 15+ seeded entries; all pages render; zero page errors.
