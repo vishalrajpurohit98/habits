@@ -183,3 +183,49 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 - 7 tabs (Mood gone) all render; sleep+mood on Today, mood history on Stats.
 - Journal mood writes to mood history (good -> Calm/2 confirmed).
 - Zero runtime errors. All relocated mood/sleep element ids still resolve for their handlers.
+
+---
+
+# V1.4.0 — journal exports, range insights, stat & favorite fixes
+
+## Bug fixes
+- Journal stats: "days journaled / this month" showed ~0 for imported historical entries
+  (they were 2025-2026, not the current month). Kept "this month" and ADDED all-time
+  totals: total entries, days journaled, longest streak. (Confirmed on import: 221 / 215 / 114.)
+- Favorite: the native checkbox was effectively invisible/untappable on the dark theme.
+  Replaced with a styled toggle (jrFavTog). Verified click toggles + persists favorite.
+- Timeline preview already renders mood emoji when an entry has a mood; imported entries
+  have none (left moodless by decision), so mood shows on new entries going forward.
+
+## New: filtered export (PDF + Word)
+- Export sheet: pick a date range and optional tag(s) (AND match), see live match count,
+  export to PDF (print dialog) or Word (.doc via HTML, opens in Word; no library needed).
+- Works on web (download / print) and Android (nat.saveFile). Content sanitized to a safe
+  HTML subset; photos/media are not included (text-only journal).
+
+## New: custom date-range insights
+- Insights view now has From/To date inputs showing entries / days / words / moods for the
+  chosen range, plus an "AI analysis of this range" button (uses gemCall, tentative language,
+  source references). Defaults to the full span of your journal.
+
+## UI/UX polish
+- Bigger tap targets (cards, nav items, mood options, toolbar buttons, New Entry),
+  cleaner card spacing/typography, styled favorite toggle.
+
+## Validation (runtime, jsdom)
+- All-time stats correct on the 221-entry import; favorite toggle persists; PDF doc builds
+  with entries; Word export produces application/msword .doc; range insights compute.
+- All 7 tabs render with zero runtime errors.
+
+---
+
+# V1.4.0 — Memories: layered "On this day"
+- On This Day now works in two layers:
+  1) Exact month+day match in earlier years (label "On this day", "N years ago").
+  2) Fallback when no exact match: surfaces nearest PAST entries (prefers same day-of-month,
+     else most recent past), labelled "Looking back" with N days/months ago.
+- This makes imported history (single ~13-month span, no cross-year dates yet) visible now,
+  and auto-upgrades to true same-date memories as the journal ages.
+- Favorites still requires entries marked favorite (imported entries have none).
+- Verified: with imported data -> "Looking back" + 3 past entries; with a seeded
+  one-year-ago entry -> "On this day" + "year ago". All 7 tabs render, no errors.

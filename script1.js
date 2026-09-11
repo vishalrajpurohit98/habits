@@ -2746,6 +2746,153 @@ window._speechResult = function(id, text, err){
 };
 
 /* ============================================================
+   JOURNAL enhancements (V1.4.0):
+   - all-time stats, filtered export (PDF/Word by date range + tags),
+   - custom date-range insights.
+   ============================================================ */
+
+/* ---- all-time stats ---- */
+function jrTotalEntries(){ return (state.jr||[]).length; }
+function jrTotalDays(){ var s={}; (state.jr||[]).forEach(function(e){ if(e.date) s[e.date]=1; }); return Object.keys(s).length; }
+function jrLongestStreak(){
+  var days=Object.keys((function(){var s={};(state.jr||[]).forEach(function(e){if(e.date)s[e.date]=1;});return s;})()).sort();
+  if(!days.length) return 0;
+  var best=1, cur=1;
+  for(var i=1;i<days.length;i++){
+    var prev=new Date(days[i-1]+'T00:00'), d=new Date(days[i]+'T00:00');
+    var diff=Math.round((d-prev)/86400000);
+    if(diff===1){ cur++; if(cur>best)best=cur; } else if(diff>1){ cur=1; }
+  }
+  return best;
+}
+
+/* ---- date/tag filtering shared by export + insights ---- */
+function jrFilterEntries(fromISO, toISO, tags){
+  tags = (tags||[]).map(function(t){ t=String(t).toLowerCase(); return t.charAt(0)==='#'?t:'#'+t; }).filter(Boolean);
+  return (state.jr||[]).filter(function(e){
+    if(fromISO && (e.date||'')<fromISO) return false;
+    if(toISO && (e.date||'')>toISO) return false;
+    if(tags.length){
+      var et=jrTagsOf(e);
+      if(!tags.every(function(t){ return et.indexOf(t)>=0; })) return false;  /* AND match */
+    }
+    return true;
+  }).sort(function(a,b){ return ((a.date||'')+(a.time||'')).localeCompare((b.date||'')+(b.time||'')); });
+}
+
+/* ---- export: build printable HTML for a set of entries ---- */
+function jrEntryHtmlForExport(e){
+  var dt;
+  try{ dt=new Date(e.date+'T00:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }catch(_){ dt=e.date||''; }
+  var moodTxt = e.mood && JR_MOOD_LABEL[e.mood] ? (' \u00B7 '+JR_MOOD_LABEL[e.mood]) : '';
+  var tg=jrTagsOf(e);
+  /* sanitize content to a safe subset for print/word */
+  var body=String(e.content||'')
+    .replace(/<(?!\/?(p|br|b|i|strong|em|h3|ul|ol|li|blockquote)\b)[^>]*>/gi,'');
+  return '<div class="jrx-entry">'
+    + '<div class="jrx-date">'+esc(dt)+(e.time?(' \u00B7 '+esc(e.time)):'')+moodTxt+(e.favorite?' \u2B50':'')+'</div>'
+    + (e.title?'<h2 class="jrx-title">'+esc(e.title)+'</h2>':'')
+    + '<div class="jrx-body">'+body+'</div>'
+    + (tg.length?'<div class="jrx-tags">'+tg.map(function(t){return esc(t);}).join('  ')+'</div>':'')
+    + '</div>';
+}
+function jrExportDocHtml(entries, title){
+  var css='<style>'
+    +'@page{margin:16mm}'
+    +'body{font-family:Georgia,\'Times New Roman\',serif;color:#1a1a1a;line-height:1.55;font-size:12pt}'
+    +'h1{font-family:Arial,sans-serif;font-size:20pt;margin:0 0 4px}'
+    +'.jrx-sub{color:#666;font-size:10pt;margin-bottom:20px;font-family:Arial,sans-serif}'
+    +'.jrx-entry{margin:0 0 22px;padding:0 0 16px;border-bottom:1px solid #ddd}'
+    +'.jrx-date{color:#a06000;font-weight:bold;font-size:10pt;font-family:Arial,sans-serif;margin-bottom:3px}'
+    +'.jrx-title{font-size:14pt;margin:2px 0 6px}'
+    +'.jrx-body{white-space:normal}'
+    +'.jrx-body h3{font-size:12pt;margin:.5em 0 .2em}'
+    +'.jrx-body blockquote{border-left:3px solid #ccc;margin:.4em 0;padding-left:10px;color:#555}'
+    +'.jrx-tags{color:#4a7bbf;font-size:9pt;margin-top:8px;font-family:Arial,sans-serif}'
+    +'</style>';
+  var head='<h1>'+esc(title)+'</h1><div class="jrx-sub">'+entries.length+' '+(entries.length===1?'entry':'entries')+' \u00B7 exported '+new Date().toLocaleDateString()+'</div>';
+  var bodyHtml=entries.map(jrEntryHtmlForExport).join('');
+  return '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title>'+css+'</head><body>'+head+bodyHtml+'</body></html>';
+}
+function jrExportTitle(fromISO,toISO,tags){
+  var parts=['Journal'];
+  if(tags&&tags.length) parts.push(tags.join(' '));
+  if(fromISO||toISO) parts.push((fromISO||'start')+' to '+(toISO||'now'));
+  return parts.join(' \u2014 ');
+}
+function jrExportPdf(fromISO,toISO,tags){
+  var entries=jrFilterEntries(fromISO,toISO,tags);
+  if(!entries.length){ toastN('No entries match those filters'); return; }
+  var docHtml=jrExportDocHtml(entries, jrExportTitle(fromISO,toISO,tags));
+  var w=window.open('','_blank');
+  if(w){ w.document.write(docHtml); w.document.close(); setTimeout(function(){ try{w.print();}catch(e){} },500); }
+  else toastN('Allow pop-ups to export PDF');
+}
+function jrExportWord(fromISO,toISO,tags){
+  var entries=jrFilterEntries(fromISO,toISO,tags);
+  if(!entries.length){ toastN('No entries match those filters'); return; }
+  var docHtml=jrExportDocHtml(entries, jrExportTitle(fromISO,toISO,tags));
+  var name='journal-'+(fromISO||'all')+(toISO?('-to-'+toISO):'')+'.doc';
+  var mime='application/msword';
+  var b64=btoa(unescape(encodeURIComponent(docHtml)));
+  if(nat && nat.saveFile){ try{ var p=nat.saveFile(name,mime,b64); toastN(p?('Saved to '+p):'Saved'); return; }catch(e){} }
+  toastN(webSave(name,mime,b64) ? 'Downloading Word document\u2026' : 'Export failed');
+}
+
+/* ---- export sheet UI ---- */
+function jrOpenExport(){
+  var all=(state.jr||[]).map(function(e){return e.date;}).filter(Boolean).sort();
+  var minD=all[0]||fmt(addDays(new Date(),-30)), maxD=all[all.length-1]||today();
+  $('jrExpFrom').value=minD; $('jrExpTo').value=maxD;
+  jrExpTags=[];
+  jrRenderExpTags();
+  jrUpdExpCount();
+  openSheet('jrExportSheet');
+}
+var jrExpTags=[];
+function jrRenderExpTags(){
+  var row=$('jrExpTagRow'); if(!row) return;
+  var t=jrAllTags();
+  if(!t.length){ row.innerHTML='<span class="jrMut" style="padding:0">No tags in your journal yet</span>'; return; }
+  row.innerHTML=t.map(function(x){return '<button class="chip'+(jrExpTags.indexOf(x)>=0?' sel':'')+'" data-jext="'+esc(x)+'">'+esc(x)+'</button>';}).join('');
+}
+function jrExpToggleTag(t){ var i=jrExpTags.indexOf(t); if(i>=0) jrExpTags.splice(i,1); else jrExpTags.push(t); jrRenderExpTags(); jrUpdExpCount(); }
+function jrUpdExpCount(){
+  var from=$('jrExpFrom').value||'', to=$('jrExpTo').value||'';
+  var n=jrFilterEntries(from,to,jrExpTags).length;
+  setText('jrExpCount', n+' '+(n===1?'entry':'entries')+' match');
+}
+
+/* ---- custom-range insights ---- */
+function jrRangeInsights(){
+  var from=$('jrInsFrom').value||'', to=$('jrInsTo').value||'';
+  var entries=jrFilterEntries(from,to,[]);
+  var box=$('jrInsRangeOut'); if(!box) return;
+  if(!entries.length){ box.innerHTML='<div class="jrMut">No entries in that range.</div>'; return; }
+  var days={}; entries.forEach(function(e){ days[e.date]=1; });
+  var words=entries.reduce(function(a,e){ return a+jrStrip(e.content).split(/\s+/).filter(Boolean).length; },0);
+  var moods={}; entries.forEach(function(e){ if(e.mood) moods[e.mood]=(moods[e.mood]||0)+1; });
+  var moodStr=Object.keys(moods).sort(function(a,b){return moods[b]-moods[a];}).map(function(m){return (JR_MOODS[m]||'')+' '+moods[m];}).join('  ')||'\u2014';
+  box.innerHTML='<div class="jrStatCards">'
+    +'<div class="jrStatCard"><div class="n">'+entries.length+'</div><div class="l">entries</div></div>'
+    +'<div class="jrStatCard"><div class="n">'+Object.keys(days).length+'</div><div class="l">days</div></div>'
+    +'<div class="jrStatCard"><div class="n">'+words.toLocaleString()+'</div><div class="l">words</div></div>'
+    +'</div>'
+    +'<div class="jrMut" style="text-align:left;padding:10px 2px 0">Moods logged: '+moodStr+'</div>';
+  window._jrInsRange={from:from,to:to};
+}
+function jrRangeAi(){
+  var from=$('jrInsFrom').value||'', to=$('jrInsTo').value||'';
+  var entries=jrFilterEntries(from,to,[]);
+  if(!entries.length){ jrAiShow('jrInsAiOut','Range analysis','No entries in that range.'); return; }
+  jrAiBox('jrInsAiOut','Range analysis');
+  var sample=entries.slice(-40);
+  var joined=sample.map(function(e){return e.date+': '+(e.title?e.title+' \u2014 ':'')+jrStrip(e.content).slice(0,300);}).join('\n');
+  var prompt='Analyze these journal entries from '+(from||'start')+' to '+(to||'now')+'. Identify recurring themes, what recurs positively, and what recurs as a struggle. Separate OBSERVED patterns from INFERENCE; use tentative language for inference. Never invent entries or counts. 3-5 sentences.\n\nENTRIES ('+sample.length+'):\n'+joined;
+  gemCall(prompt,450).then(function(r){ jrAiShow('jrInsAiOut','Range analysis', r, sample.slice(-5)); }).catch(function(e){ jrAiErr('jrInsAiOut','Range analysis', e); });
+}
+
+/* ============================================================
    JOURNAL V1 (V1.4.0) — text-only, multi-entry, rich AI.
    Replaces the legacy photo-based journal. Schema:
    {id,date,time,title,content,mood,tags[],favorite,template,createdAt,updatedAt}
@@ -2850,10 +2997,13 @@ function renderJr(){
   var s=jrStreak();
   setText('jrStatStreak','\uD83D\uDD25 '+s);
   setText('jrStatMonth', jrMonthCount());
-  setText('jrStatDays', jrDaysJournaled());
+  setText('jrStatTotal', jrTotalEntries());
+  setText('jrStatAllDays', jrTotalDays());
+  setText('jrStatBest', jrLongestStreak());
   setText('jrInsStreak','\uD83D\uDD25 '+s);
-  setText('jrInsMonth', jrMonthCount());
-  setText('jrInsDays', jrDaysJournaled());
+  setText('jrInsTotal', jrTotalEntries());
+  setText('jrInsDays', jrTotalDays());
+  setText('jrInsBest', jrLongestStreak());
   jrRenderTimeline();
   jrRenderTpl();
   jrRenderPrompt();
@@ -2872,6 +3022,11 @@ function jrGo(v){
   });
   var nav=$('jrNav'); if(nav){ Array.prototype.forEach.call(nav.children,function(n){ n.classList.toggle('on', n.getAttribute('data-jv')===v); }); }
   if(v==='calendar') jrRenderCal();
+  if(v==='insights'){
+    var all=(state.jr||[]).map(function(e){return e.date;}).filter(Boolean).sort();
+    if(all.length && $('jrInsFrom') && !$('jrInsFrom').value){ $('jrInsFrom').value=all[0]; $('jrInsTo').value=all[all.length-1]; }
+    if(typeof jrRangeInsights==='function' && $('jrInsFrom') && $('jrInsFrom').value) jrRangeInsights();
+  }
   if(v==='search'){ jrRenderSearch(); var si=$('jrSearchInp'); if(si) setTimeout(function(){si.focus();},50); }
   var app=$('app'); if(app) app.scrollTop=0;
 }
@@ -2917,18 +3072,48 @@ function jrRenderCtx(){
 function jrCtxSummaryText(){
   var box=$('jrCtx'); return box?jrStrip(box.textContent):'';
 }
+function jrRelDay(fromISO, toISO){
+  /* human "N days/months/years ago" between two ISO dates */
+  var a=new Date(toISO+'T00:00'), b=new Date(fromISO+'T00:00');
+  var days=Math.round((a-b)/86400000);
+  if(days<=0) return '';
+  if(days<30) return days+(days===1?' day ago':' days ago');
+  var months=(a.getFullYear()-b.getFullYear())*12+(a.getMonth()-b.getMonth());
+  if(months<12) return months+(months===1?' month ago':' months ago');
+  var years=a.getFullYear()-b.getFullYear();
+  return years+(years===1?' year ago':' years ago');
+}
 function jrRenderMemories(){
-  var td=new Date(jrToday()+'T00:00'), out=[];
+  var todayISO=jrToday(), td=new Date(todayISO+'T00:00'), rows=[], heading='On this day';
+  /* 1) Exact month+day match in earlier years */
   state.jr.forEach(function(e){
-    if(e.date===jrToday()) return;
+    if(!e.date || e.date===todayISO) return;
     var d=new Date(e.date+'T00:00');
     if(d.getDate()===td.getDate() && d.getMonth()===td.getMonth() && d.getFullYear()<td.getFullYear()){
-      var y=td.getFullYear()-d.getFullYear(); out.push([e,y+(y===1?' year ago':' years ago')]);
+      var y=td.getFullYear()-d.getFullYear();
+      rows.push([e, y+(y===1?' year ago':' years ago')]);
     }
   });
-  var otd=$('jrOtd'); if(otd) otd.innerHTML=out.length?out.map(function(o){return '<div class="jrOtdRow" data-jid="'+o[0].id+'"><span class="oy">'+o[1]+'</span><span class="ot">'+esc(o[0].title||jrStrip(o[0].content).slice(0,50)||'Untitled')+'</span></div>';}).join(''):'<div class="jrMut" style="padding:6px">No memories from earlier years yet.</div>';
+  /* 2) Fallback: if no exact match, surface the nearest PAST entries so history shows now */
+  if(!rows.length){
+    var past=state.jr.filter(function(e){ return e.date && e.date<todayISO; })
+      .sort(function(a,b){ return b.date.localeCompare(a.date); });  /* most recent past first */
+    if(past.length){
+      heading='Looking back';
+      /* prefer "same day of month" if any exist, else just most-recent past entries */
+      var sameDom=past.filter(function(e){ return new Date(e.date+'T00:00').getDate()===td.getDate(); });
+      var pick=(sameDom.length?sameDom:past).slice(0,3);
+      pick.forEach(function(e){ rows.push([e, jrRelDay(e.date, todayISO)]); });
+    }
+  }
+  rows=rows.slice(0,4);
+  var otd=$('jrOtd');
+  var head=$('jrOtdHead'); if(head) head.textContent='🔙 '+heading;
+  if(otd) otd.innerHTML=rows.length
+    ? rows.map(function(o){return '<div class="jrOtdRow" data-jid="'+o[0].id+'"><span class="oy">'+esc(o[1])+'</span><span class="ot">'+esc(o[0].title||jrStrip(o[0].content).slice(0,50)||'Untitled')+'</span></div>';}).join('')
+    : '<div class="jrMut" style="padding:6px">Your memories will appear here as your journal grows.</div>';
   var f=state.jr.filter(function(e){return e.favorite;});
-  var fav=$('jrFavList'); if(fav) fav.innerHTML=f.length?f.map(jrCard).join(''):'<div class="jrMut" style="padding:6px">Tap \u2B50 on an entry to keep it here.</div>';
+  var fav=$('jrFavList'); if(fav) fav.innerHTML=f.length?f.map(jrCard).join(''):'<div class="jrMut" style="padding:6px">Tap the \u2B50 toggle on an entry to keep it here.</div>';
 }
 function jrRenderTags(){
   var row=$('jrTagRow'); if(!row) return;
@@ -2979,7 +3164,7 @@ function openJr(id, prompt, tplBody, forceDate){
   $('jrDate').value = jrEd.date;
   $('jrTime').value = jrEd.time||now.toTimeString().slice(0,5);
   $('jrBody').innerHTML = src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
-  $('jrFav').checked = !!jrEd.favorite;
+  var _ft=$('jrFavTog'); if(_ft){ _ft.classList.toggle('on', !!jrEd.favorite); _ft.setAttribute('aria-checked', !!jrEd.favorite); }
   jrSyncMood();
   $('jrDelBtn').style.display = id?'':'none';
   jrResetDel();
@@ -3006,7 +3191,7 @@ function saveJr(){
   jrEd.date = $('jrDate').value || jrToday();
   jrEd.time = $('jrTime').value || '';
   jrEd.mood = jrEd.mood||'';
-  jrEd.favorite = $('jrFav').checked;
+  jrEd.favorite = !!($('jrFavTog') && $('jrFavTog').classList.contains('on'));
   jrEd.tags = Array.from(new Set((jrText(jrEd).match(/#[A-Za-z0-9_]+/g)||[]).map(function(x){return x.toLowerCase();})));
   if(!jrEd.title && !jrStrip(jrEd.content)){ $('jrBody').focus(); return; }
   jrEd.updatedAt = Date.now();
@@ -5526,6 +5711,19 @@ function init(){
   /* journal */
   var _uaiMic=$('uaiMic'); if(_uaiMic) _uaiMic.addEventListener('click', uaiToggleVoice);
   /* ===== Journal V1.4.0 wiring ===== */
+  /* favorite toggle */
+  var _favTog=$('jrFavTog'); if(_favTog) _favTog.addEventListener('click', function(){ var on=!this.classList.contains('on'); this.classList.toggle('on',on); this.setAttribute('aria-checked',on); if(jrEd) jrEd.favorite=on; });
+  /* export */
+  var _expBtn=$('jrExportBtn'); if(_expBtn) _expBtn.addEventListener('click', jrOpenExport);
+  var _ef=$('jrExpFrom'); if(_ef) _ef.addEventListener('change', jrUpdExpCount);
+  var _et=$('jrExpTo'); if(_et) _et.addEventListener('change', jrUpdExpCount);
+  var _etr=$('jrExpTagRow'); if(_etr) _etr.addEventListener('click', function(e){ var b=climb(e.target,this,'data-jext'); if(b) jrExpToggleTag(b.getAttribute('data-jext')); });
+  var _epdf=$('jrExpPdf'); if(_epdf) _epdf.addEventListener('click', function(){ jrExportPdf($('jrExpFrom').value, $('jrExpTo').value, jrExpTags); });
+  var _eword=$('jrExpWord'); if(_eword) _eword.addEventListener('click', function(){ jrExportWord($('jrExpFrom').value, $('jrExpTo').value, jrExpTags); });
+  /* range insights */
+  var _if=$('jrInsFrom'); if(_if) _if.addEventListener('change', jrRangeInsights);
+  var _it=$('jrInsTo'); if(_it) _it.addEventListener('change', jrRangeInsights);
+  var _ira=$('jrRangeAiBtn'); if(_ira) _ira.addEventListener('click', jrRangeAi);
   $('jrSrchBtn').addEventListener('click', function(){ jrGo('search'); });
   $('jrNav').addEventListener('click', function(e){
     var b=climb(e.target,this,'data-jv'); if(b) jrGo(b.getAttribute('data-jv'));
