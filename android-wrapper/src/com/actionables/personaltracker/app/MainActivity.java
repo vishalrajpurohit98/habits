@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.os.*;
 import android.provider.MediaStore;
 import android.provider.Settings;
+import android.speech.RecognizerIntent;
 import android.text.TextUtils;
 import android.view.*;
 import android.webkit.*;
@@ -29,6 +30,8 @@ public class MainActivity extends Activity {
     static final int REQ_IMPORT = 403;
     static final int REQ_PHOTO = 404;
     static final int REQ_CAMERA = 406;
+    static final int REQ_SPEECH = 407;
+    static final int REQ_MIC_PERM = 408;
 
     static final String APP_HOST = "personal-tracker.local";
     WebView web;
@@ -38,6 +41,8 @@ public class MainActivity extends Activity {
     String pendingPhotoDir = "photos";
     Uri pendingCameraUri = null;
     boolean pendingCameraPermission = false;
+    String pendingSpeechId = null;
+    String pendingSpeechPrompt = "";
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
@@ -293,6 +298,47 @@ public class MainActivity extends Activity {
             boolean ok = grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED;
             pendingCameraPermission = false;
             if (ok) launchCamera(); else toast("Camera permission denied");
+        } else if (req == REQ_MIC_PERM) {
+            boolean ok = grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED;
+            if (ok) launchSpeech();
+            else {
+                String id = pendingSpeechId; pendingSpeechId = null;
+                if (id != null) js("window._speechResult&&window._speechResult(" + JSONObject.quote(id) + ",'', " + JSONObject.quote("permission-denied") + ")");
+                toast("Microphone permission denied");
+            }
+        }
+    }
+
+    void startSpeech(String id, String promptText) {
+        pendingSpeechId = id;
+        pendingSpeechPrompt = promptText != null ? promptText : "";
+        if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC_PERM);
+            return;
+        }
+        launchSpeech();
+    }
+
+    void launchSpeech() {
+        try {
+            Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+            i.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
+            i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true);
+            // Wait ~2.5s of silence before finalizing, per requirement.
+            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2500L);
+            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 2500L);
+            i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS, 1500L);
+            if (pendingSpeechPrompt != null && pendingSpeechPrompt.length() > 0) i.putExtra(RecognizerIntent.EXTRA_PROMPT, pendingSpeechPrompt);
+            if (i.resolveActivity(getPackageManager()) == null) {
+                String id = pendingSpeechId; pendingSpeechId = null;
+                if (id != null) js("window._speechResult&&window._speechResult(" + JSONObject.quote(id) + ",'', " + JSONObject.quote("unavailable") + ")");
+                return;
+            }
+            startActivityForResult(i, REQ_SPEECH);
+        } catch (Exception e) {
+            String id = pendingSpeechId; pendingSpeechId = null;
+            if (id != null) js("window._speechResult&&window._speechResult(" + JSONObject.quote(id) + ",'', " + JSONObject.quote("error") + ")");
         }
     }
 
@@ -444,6 +490,9 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void pickImport(String mode){MainActivity.this.importFile(mode);}
         @JavascriptInterface public void pickPhoto(){MainActivity.this.pickPhoto();}
         @JavascriptInterface public void capturePhoto(){MainActivity.this.capturePhoto();}
+        @JavascriptInterface public boolean speechAvailable(){try{return new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).resolveActivity(getPackageManager())!=null;}catch(Exception e){return false;}}
+        @JavascriptInterface public void startSpeech(String id){MainActivity.this.runOnUiThread(()->MainActivity.this.startSpeech(id,""));}
+        @JavascriptInterface public void startSpeech(String id,String promptText){MainActivity.this.runOnUiThread(()->MainActivity.this.startSpeech(id,promptText));}
         @JavascriptInterface public String readPhoto(String name){try{File f=new File(new File(getFilesDir(),pendingPhotoDir),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public void deletePhoto(String name){try{new File(new File(getFilesDir(),pendingPhotoDir),name).delete();}catch(Exception ignored){}}
         @JavascriptInterface public String saveFile(String name,String mime,String b64)throws Exception{return MainActivity.this.saveFile(name,mime,b64);}

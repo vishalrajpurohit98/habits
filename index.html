@@ -1139,6 +1139,10 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 .uaiMsg.bot{box-shadow:0 5px 18px rgba(0,0,0,.08)}.uaiMsg.user{box-shadow:0 5px 18px rgba(0,0,0,.07)}
 
 /* ===== Journal V1.4.0 ===== */
+.uaiMic{flex:0 0 auto;width:42px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;color:var(--ink2);cursor:pointer;display:grid;place-items:center}
+.uaiMic svg{width:20px;height:20px}
+.uaiMic.listening{background:var(--coralSoft);border-color:var(--coral);color:var(--coral);animation:uaiPulse 1.2s ease-in-out infinite}
+@keyframes uaiPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,94,.4)}50%{box-shadow:0 0 0 6px rgba(255,107,94,0)}}
 .jrNav{display:flex;gap:6px;margin:14px 0 16px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .jrNav::-webkit-scrollbar{display:none}
 .jrNavItem{flex:1 0 auto;min-width:64px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:.15s;color:var(--mut)}
@@ -1654,7 +1658,7 @@ to{opacity:1;transform:none}}
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can understand your tracker, answer questions, and help you make changes safely.</div>
-    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ Actionables AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask about your habits, tasks, spending, mood, sleep, workouts, journal, or planning. I’ll ask for missing details before making changes.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div></div><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything about your tracker…" autocomplete="off"><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span></div></div>
+    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ Actionables AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask about your habits, tasks, spending, mood, sleep, workouts, journal, or planning. I’ll ask for missing details before making changes.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div></div><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><button class="uaiMic" id="uaiMic" aria-label="Voice input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything about your tracker…" autocomplete="off"><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span></div></div>
     
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
@@ -2241,6 +2245,8 @@ to{opacity:1;transform:none}}
     <div class="jrMoodOpt" data-jm="low">&#128532;<span class="ml">Low</span></div>
     <div class="jrMoodOpt" data-jm="diff">&#128547;<span class="ml">Difficult</span></div>
   </div>
+  <button class="jrAiMenuBtn" id="jrTplPickBtn" style="background:var(--card2);border-color:var(--line);color:var(--ink2);margin-top:0">&#128209; Use a template &#9662;</button>
+  <div class="jrAiMenu" id="jrTplPick"></div>
   <div class="jrToolbar" id="jrToolbar">
     <button class="jrTb" data-jrt="bold" style="font-weight:800">B</button>
     <button class="jrTb" data-jrt="italic" style="font-style:italic">I</button>
@@ -4929,6 +4935,103 @@ function renderMood(){
 
 /* ================= journal ================= */
 /* ============================================================
+   VOICE INPUT for AI Chat (V1.4.0)
+   - Native Android speech via Bridge.startSpeech(id) when available
+     (results arrive through window._speechResult).
+   - Web Speech API fallback (continuous), finalizing after ~2.5s
+     of silence, per requirement.
+   ============================================================ */
+var uaiVoiceActive = false;
+var uaiVoiceId = null;
+var uaiWebRec = null;
+var uaiSilenceTimer = null;
+var uaiFinalText = '';
+var UAI_SILENCE_MS = 2500;
+
+function uaiMicBtn(){ return $('uaiMic'); }
+function uaiSetListening(on){
+  uaiVoiceActive = on;
+  var b = uaiMicBtn(); if(b) b.classList.toggle('listening', on);
+}
+
+function uaiToggleVoice(){
+  if(uaiVoiceActive){ uaiStopVoice(); return; }
+  uaiStartVoice();
+}
+
+function uaiStartVoice(){
+  uaiFinalText = '';
+  /* Prefer native recognizer (also the Android build's speech path). */
+  if(nat && nat.speechAvailable && nat.startSpeech){
+    try{
+      if(nat.speechAvailable()){
+        uaiVoiceId = 'v'+Date.now();
+        uaiSetListening(true);
+        nat.startSpeech(uaiVoiceId);
+        return;
+      }
+    }catch(e){}
+  }
+  /* Web Speech API fallback. */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ toastN('Voice input is not available on this device'); return; }
+  try{
+    uaiWebRec = new SR();
+    uaiWebRec.lang = (navigator.language || 'en-US');
+    uaiWebRec.continuous = true;        /* keep listening while the user speaks */
+    uaiWebRec.interimResults = true;
+    uaiSetListening(true);
+    uaiWebRec.onresult = function(ev){
+      var interim = '';
+      for(var i=ev.resultIndex; i<ev.results.length; i++){
+        var res = ev.results[i];
+        if(res.isFinal) uaiFinalText += res[0].transcript + ' ';
+        else interim += res[0].transcript;
+      }
+      var inp = $('uaiInput');
+      if(inp) inp.value = (uaiFinalText + interim).replace(/\s+/g,' ').trimStart();
+      /* Reset the 2.5s silence countdown on every chunk of speech. */
+      if(uaiSilenceTimer) clearTimeout(uaiSilenceTimer);
+      uaiSilenceTimer = setTimeout(function(){ uaiStopVoice(); }, UAI_SILENCE_MS);
+    };
+    uaiWebRec.onerror = function(ev){
+      uaiSetListening(false);
+      if(ev && ev.error && ev.error!=='no-speech' && ev.error!=='aborted'){
+        toastN(ev.error==='not-allowed' ? 'Microphone permission denied' : 'Voice input error');
+      }
+    };
+    uaiWebRec.onend = function(){
+      /* If we're still supposed to be listening (no silence stop yet), keep going. */
+      if(uaiVoiceActive){ try{ uaiWebRec.start(); return; }catch(e){} }
+      uaiSetListening(false);
+    };
+    uaiWebRec.start();
+  }catch(e){ uaiSetListening(false); toastN('Could not start voice input'); }
+}
+
+function uaiStopVoice(){
+  if(uaiSilenceTimer){ clearTimeout(uaiSilenceTimer); uaiSilenceTimer = null; }
+  uaiSetListening(false);
+  if(uaiWebRec){ try{ uaiWebRec.stop(); }catch(e){} uaiWebRec = null; }
+  var inp = $('uaiInput');
+  var txt = inp ? inp.value.trim() : '';
+  if(txt){ inp.focus(); }  /* leave text in the box for the user to review/send */
+}
+
+/* Native callback: Android speech recognition returns here. */
+window._speechResult = function(id, text, err){
+  uaiSetListening(false);
+  if(id && id!==uaiVoiceId) return;
+  uaiVoiceId = null;
+  if(err){
+    if(err!=='cancelled' && err!=='no-speech') toastN(err==='permission-denied' ? 'Microphone permission denied' : (err==='unavailable'?'Voice input unavailable':'Voice input error'));
+    return;
+  }
+  var inp = $('uaiInput');
+  if(inp && text){ inp.value = text; inp.focus(); }
+};
+
+/* ============================================================
    JOURNAL V1 (V1.4.0) — text-only, multi-entry, rich AI.
    Replaces the legacy photo-based journal. Schema:
    {id,date,time,title,content,mood,tags[],favorite,template,createdAt,updatedAt}
@@ -5165,6 +5268,7 @@ function openJr(id, prompt, tplBody, forceDate){
   $('jrDelBtn').style.display = id?'':'none';
   jrResetDel();
   var menu=$('jrAiMenu'); if(menu) menu.classList.remove('on');
+  var tpk=$('jrTplPick'); if(tpk) tpk.classList.remove('on');
   var out=$('jrEntryAiOut'); if(out) out.innerHTML='';
   jrUpdTagLine();
   openSheet('jrSheet');
@@ -7653,6 +7757,7 @@ function init(){
   });
 
   /* journal */
+  var _uaiMic=$('uaiMic'); if(_uaiMic) _uaiMic.addEventListener('click', uaiToggleVoice);
   /* ===== Journal V1.4.0 wiring ===== */
   $('jrSrchBtn').addEventListener('click', function(){ jrGo('search'); });
   $('jrNav').addEventListener('click', function(e){
@@ -7667,6 +7772,8 @@ function init(){
   $('jrSearchInp').addEventListener('input', function(){ jrQ=this.value.replace(/^\s+/,''); jrRenderSearch(); });
   $('jrTagRow').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jt'); if(!b) return; jrTag=b.getAttribute('data-jt'); jrRenderTags(); jrRenderSearch(); });
   $('jrTplGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jtpl'); if(!b) return; var t=JR_TEMPLATES[+b.getAttribute('data-jtpl')]; if(t) openJr(null,'',t.body); });
+  $('jrTplPickBtn').addEventListener('click', function(){ var m=$('jrTplPick'); if(!m) return; if(!m.innerHTML){ m.innerHTML=JR_TEMPLATES.map(function(t,i){return '<button class="sbtn" data-jetpl="'+i+'">'+t.icon+' '+esc(t.name)+'</button>';}).join(''); } m.classList.toggle('on'); });
+  $('jrTplPick').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jetpl'); if(!b) return; var t=JR_TEMPLATES[+b.getAttribute('data-jetpl')]; if(!t) return; var ed=$('jrBody'); var hasContent=jrStrip(ed.innerHTML).length>0; if(hasContent && !confirm('Insert the "'+t.name+'" template? This adds to your current text.')){ this.classList.remove('on'); return; } ed.innerHTML = (hasContent? ed.innerHTML : '') + t.body; this.classList.remove('on'); jrUpdTagLine(); ed.focus(); });
   $('jrPromptText').addEventListener('click', function(){});
   $('jrWriteBtn').addEventListener('click', function(){ openJr(null, jrPromptText()); });
   $('jrAnotherPrompt').addEventListener('click', function(){ jrPromptIx=(jrPromptIx<0?0:jrPromptIx+1)%JR_PROMPTS.length; jrRenderPrompt(); });

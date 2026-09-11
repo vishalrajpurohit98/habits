@@ -58,3 +58,37 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
   legacy entry migrates and photos are dropped; every existing tab still renders without error.
 - NOT verified in this environment (require your pipeline/device): APK compilation and
   on-device Firestore sync behavior.
+
+---
+
+# V1.4.0 addendum — build fix, in-editor templates, voice input
+
+## Android build fix (pre-existing failure)
+- MainActivity.java referenced `REQ_SPEECH`, `pendingSpeechId`, and `RecognizerIntent`
+  in `onActivityResult` but never declared/imported them (half-finished speech code,
+  present before the Journal work). Completed it:
+  - Added `import android.speech.RecognizerIntent;`
+  - Declared `REQ_SPEECH`, `REQ_MIC_PERM`, `pendingSpeechId`, `pendingSpeechPrompt`
+  - Added `startSpeech()/launchSpeech()` (RECORD_AUDIO permission flow mirrors camera)
+  - Added mic-permission handling in `onRequestPermissionsResult`
+  - Added Bridge methods: `speechAvailable()`, `startSpeech(id)`, `startSpeech(id,prompt)`
+  - Recognizer configured with 2.5s silence-complete timeout per requirement.
+
+## Voice input in AI Chat
+- Mic button added to the AI chat input row.
+- Prefers native Android recognizer via Bridge; result returns through `window._speechResult`.
+- Web Speech API fallback: continuous listening, finalizes after ~2.5s of silence.
+- Transcript is placed in the input box for review before sending.
+
+## Templates inside the writing screen
+- Added a "Use a template" picker inside the entry editor (all 6 built-in templates),
+  in addition to the Write tab. Inserting into a non-empty entry asks for confirmation.
+- Custom (user-defined) templates: deferred to a later version, per decision.
+
+## AI journal querying — verified
+- Confirmed (runtime test) that a journal question sends the model a prompt containing a
+  JOURNAL section, the actual entry text, and the no-hallucination rule.
+
+## Note on CI version override
+- Observed the build pipeline overrides the manifest version (code/name) at build time,
+  so the manifest bump is cosmetic when CI supplies its own version.

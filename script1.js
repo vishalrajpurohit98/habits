@@ -2647,6 +2647,103 @@ function renderMood(){
 
 /* ================= journal ================= */
 /* ============================================================
+   VOICE INPUT for AI Chat (V1.4.0)
+   - Native Android speech via Bridge.startSpeech(id) when available
+     (results arrive through window._speechResult).
+   - Web Speech API fallback (continuous), finalizing after ~2.5s
+     of silence, per requirement.
+   ============================================================ */
+var uaiVoiceActive = false;
+var uaiVoiceId = null;
+var uaiWebRec = null;
+var uaiSilenceTimer = null;
+var uaiFinalText = '';
+var UAI_SILENCE_MS = 2500;
+
+function uaiMicBtn(){ return $('uaiMic'); }
+function uaiSetListening(on){
+  uaiVoiceActive = on;
+  var b = uaiMicBtn(); if(b) b.classList.toggle('listening', on);
+}
+
+function uaiToggleVoice(){
+  if(uaiVoiceActive){ uaiStopVoice(); return; }
+  uaiStartVoice();
+}
+
+function uaiStartVoice(){
+  uaiFinalText = '';
+  /* Prefer native recognizer (also the Android build's speech path). */
+  if(nat && nat.speechAvailable && nat.startSpeech){
+    try{
+      if(nat.speechAvailable()){
+        uaiVoiceId = 'v'+Date.now();
+        uaiSetListening(true);
+        nat.startSpeech(uaiVoiceId);
+        return;
+      }
+    }catch(e){}
+  }
+  /* Web Speech API fallback. */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ toastN('Voice input is not available on this device'); return; }
+  try{
+    uaiWebRec = new SR();
+    uaiWebRec.lang = (navigator.language || 'en-US');
+    uaiWebRec.continuous = true;        /* keep listening while the user speaks */
+    uaiWebRec.interimResults = true;
+    uaiSetListening(true);
+    uaiWebRec.onresult = function(ev){
+      var interim = '';
+      for(var i=ev.resultIndex; i<ev.results.length; i++){
+        var res = ev.results[i];
+        if(res.isFinal) uaiFinalText += res[0].transcript + ' ';
+        else interim += res[0].transcript;
+      }
+      var inp = $('uaiInput');
+      if(inp) inp.value = (uaiFinalText + interim).replace(/\s+/g,' ').trimStart();
+      /* Reset the 2.5s silence countdown on every chunk of speech. */
+      if(uaiSilenceTimer) clearTimeout(uaiSilenceTimer);
+      uaiSilenceTimer = setTimeout(function(){ uaiStopVoice(); }, UAI_SILENCE_MS);
+    };
+    uaiWebRec.onerror = function(ev){
+      uaiSetListening(false);
+      if(ev && ev.error && ev.error!=='no-speech' && ev.error!=='aborted'){
+        toastN(ev.error==='not-allowed' ? 'Microphone permission denied' : 'Voice input error');
+      }
+    };
+    uaiWebRec.onend = function(){
+      /* If we're still supposed to be listening (no silence stop yet), keep going. */
+      if(uaiVoiceActive){ try{ uaiWebRec.start(); return; }catch(e){} }
+      uaiSetListening(false);
+    };
+    uaiWebRec.start();
+  }catch(e){ uaiSetListening(false); toastN('Could not start voice input'); }
+}
+
+function uaiStopVoice(){
+  if(uaiSilenceTimer){ clearTimeout(uaiSilenceTimer); uaiSilenceTimer = null; }
+  uaiSetListening(false);
+  if(uaiWebRec){ try{ uaiWebRec.stop(); }catch(e){} uaiWebRec = null; }
+  var inp = $('uaiInput');
+  var txt = inp ? inp.value.trim() : '';
+  if(txt){ inp.focus(); }  /* leave text in the box for the user to review/send */
+}
+
+/* Native callback: Android speech recognition returns here. */
+window._speechResult = function(id, text, err){
+  uaiSetListening(false);
+  if(id && id!==uaiVoiceId) return;
+  uaiVoiceId = null;
+  if(err){
+    if(err!=='cancelled' && err!=='no-speech') toastN(err==='permission-denied' ? 'Microphone permission denied' : (err==='unavailable'?'Voice input unavailable':'Voice input error'));
+    return;
+  }
+  var inp = $('uaiInput');
+  if(inp && text){ inp.value = text; inp.focus(); }
+};
+
+/* ============================================================
    JOURNAL V1 (V1.4.0) — text-only, multi-entry, rich AI.
    Replaces the legacy photo-based journal. Schema:
    {id,date,time,title,content,mood,tags[],favorite,template,createdAt,updatedAt}
@@ -2883,6 +2980,7 @@ function openJr(id, prompt, tplBody, forceDate){
   $('jrDelBtn').style.display = id?'':'none';
   jrResetDel();
   var menu=$('jrAiMenu'); if(menu) menu.classList.remove('on');
+  var tpk=$('jrTplPick'); if(tpk) tpk.classList.remove('on');
   var out=$('jrEntryAiOut'); if(out) out.innerHTML='';
   jrUpdTagLine();
   openSheet('jrSheet');
@@ -5371,6 +5469,7 @@ function init(){
   });
 
   /* journal */
+  var _uaiMic=$('uaiMic'); if(_uaiMic) _uaiMic.addEventListener('click', uaiToggleVoice);
   /* ===== Journal V1.4.0 wiring ===== */
   $('jrSrchBtn').addEventListener('click', function(){ jrGo('search'); });
   $('jrNav').addEventListener('click', function(e){
@@ -5385,6 +5484,8 @@ function init(){
   $('jrSearchInp').addEventListener('input', function(){ jrQ=this.value.replace(/^\s+/,''); jrRenderSearch(); });
   $('jrTagRow').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jt'); if(!b) return; jrTag=b.getAttribute('data-jt'); jrRenderTags(); jrRenderSearch(); });
   $('jrTplGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jtpl'); if(!b) return; var t=JR_TEMPLATES[+b.getAttribute('data-jtpl')]; if(t) openJr(null,'',t.body); });
+  $('jrTplPickBtn').addEventListener('click', function(){ var m=$('jrTplPick'); if(!m) return; if(!m.innerHTML){ m.innerHTML=JR_TEMPLATES.map(function(t,i){return '<button class="sbtn" data-jetpl="'+i+'">'+t.icon+' '+esc(t.name)+'</button>';}).join(''); } m.classList.toggle('on'); });
+  $('jrTplPick').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jetpl'); if(!b) return; var t=JR_TEMPLATES[+b.getAttribute('data-jetpl')]; if(!t) return; var ed=$('jrBody'); var hasContent=jrStrip(ed.innerHTML).length>0; if(hasContent && !confirm('Insert the "'+t.name+'" template? This adds to your current text.')){ this.classList.remove('on'); return; } ed.innerHTML = (hasContent? ed.innerHTML : '') + t.body; this.classList.remove('on'); jrUpdTagLine(); ed.focus(); });
   $('jrPromptText').addEventListener('click', function(){});
   $('jrWriteBtn').addEventListener('click', function(){ openJr(null, jrPromptText()); });
   $('jrAnotherPrompt').addEventListener('click', function(){ jrPromptIx=(jrPromptIx<0?0:jrPromptIx+1)%JR_PROMPTS.length; jrRenderPrompt(); });
