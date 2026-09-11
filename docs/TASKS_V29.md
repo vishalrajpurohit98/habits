@@ -377,3 +377,30 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 ## Validation
 - Computed styles verified: every page (Stats/Tasks/Exp/Journal/AI/Settings) resolves to
   display:block, opacity:1, with content, and no runtime errors.
+
+---
+
+# V1.4.0 — CRITICAL FIX: scrambled page structure (blank tabs)
+
+## Root cause (real browser diagnosis via Playwright/Chromium)
+- The earlier mood-relocation build's inject script broke the HTML nesting: pgTasks/pgAI/pgSet
+  ended up rendering INSIDE pgJr (the journal page), and the journal's insights/search views +
+  whole-journal button got scrambled into pgTasks. Because pgJr is display:none when not active,
+  everything nested inside collapsed to 0x0 -> blank tabs. Today worked only because it's the
+  default active page.
+- Also found orphaned task-export divs wrongly sitting inside pgToday (leftover from the same
+  corruption), causing duplicate IDs.
+
+## Fix
+- Reconstructed the entire pgJr insights/mood/search region + pgTasks with correct nesting.
+- Removed the orphaned task-export block from pgToday.
+- Result: no duplicate IDs; all 7 pages are correct top-level siblings.
+
+## Verification (REAL browser, not jsdom)
+- Installed Playwright + Chromium and loaded the app. Every tab (Today/Tasks/Money/Stats/
+  Journal/AI/Settings) renders at full width (354) with proper height and content; zero page
+  errors. Screenshots captured and visually confirmed.
+
+## Process note
+- jsdom testing gave false confidence (it builds DOM content but does not do CSS layout, so
+  0x0 collapsed pages read as "has content"). Switched to real-browser rendering checks.

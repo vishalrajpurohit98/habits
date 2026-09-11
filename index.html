@@ -1384,9 +1384,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div style="font-size:11px;color:var(--mut2)">Developed by Vishal</div>
       <div style="font-size:10px;color:var(--mut2);margin-top:2px">For personal use only</div>
     </div>
-      <div class="taskFormGrid" id="taskExportCustom" style="display:none;margin-top:8px"><input id="taskExportFrom" class="inp" type="date"><input id="taskExportTo" class="inp" type="date"></div>
-      <div class="taskExportBtns"><button class="sbtn" id="taskExportPdf">PDF</button><button class="sbtn acc" id="taskExportXlsx">Excel</button></div>
-    </div>
   </div>
 
   <!-- ============ EXPENSES ============ -->
@@ -1635,51 +1632,56 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
               <button id="moRemSave">&#10003;</button>
             </div>
           </div>
-    <div class="lbl" style="margin-top:18px">Mood</div>
-    <div class="lbl">History</div>
-    <div class="setCard" style="padding:14px 16px 16px">
-      <div class="moWeek" id="moWeek"></div>
-      <div class="mnav">
-        <button id="moPrev">&#8249;</button>
-        <div id="moTitle" style="font-family:var(--fDisp);font-size:12.5px;font-weight:700"></div>
-        <button id="moNext">&#8250;</button>
-      </div>
-      <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-      <div class="mgrid" id="mogrid" style="margin-bottom:4px"></div>
-      <div class="fzBar" id="moBar">
-        <div class="ft" id="moBarT"></div>
-        <div class="moGrid mini" id="moBarGrid"></div>
-        <div class="jrIn" id="moBarRemRow" style="display:none;margin:10px 0 0">
-          <input class="inp" id="moBarRem" maxlength="160" placeholder="Remark for this day&#8230;">
-          <button id="moBarRemSave">&#10003;</button>
+          <div class="lbl">History</div>
+          <div class="setCard" style="padding:14px 16px 16px">
+            <div class="moWeek" id="moWeek"></div>
+            <div class="mnav">
+              <button id="moPrev">&#8249;</button>
+              <div id="moTitle" style="font-family:var(--fDisp);font-size:12.5px;font-weight:700"></div>
+              <button id="moNext">&#8250;</button>
+            </div>
+            <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+            <div class="mgrid" id="mogrid" style="margin-bottom:4px"></div>
+            <div class="fzBar" id="moBar">
+              <div class="ft" id="moBarT"></div>
+              <div class="moGrid mini" id="moBarGrid"></div>
+              <div class="jrIn" id="moBarRemRow" style="display:none;margin:10px 0 0">
+                <input class="inp" id="moBarRem" maxlength="160" placeholder="Remark for this day&#8230;">
+                <button id="moBarRemSave">&#10003;</button>
+              </div>
+            </div>
+          </div>
+          <div class="lbl">Entries</div>
+          <div class="setCard" style="padding:8px 16px" id="moLog"></div>
+          <button class="addT" id="moToggle">More insights</button>
+          <div id="moFull" style="display:none">
+            <div class="lbl">Analytics</div>
+            <div class="seg" id="moSeg">
+              <button data-ms="w" class="sel">Week</button>
+              <button data-ms="m">Month</button>
+              <button data-ms="y">Year</button>
+            </div>
+            <div class="tiles" id="moTiles"></div>
+            <div class="lbl">Trend</div>
+            <div class="chartBox" id="moChart"></div>
+            <div class="lbl">Distribution</div>
+            <div class="setCard" style="padding:8px 16px" id="moDist"></div>
+            <div class="lbl">Insights</div>
+            <div id="moIns"></div>
+            <div id="moPatternInsights"></div>
+          </div>
         </div>
       </div>
+      <button class="jrAiBtn acc" style="width:100%;margin-top:12px" id="jrWholeAiBtn">&#10024; Analyse my whole journal</button>
     </div>
 
-    <div class="lbl">Entries</div>
-    <div class="setCard" style="padding:8px 16px" id="moLog"></div>
-
-    <button class="addT" id="moToggle">More insights</button>
-    <div id="moFull" style="display:none">
-    <div class="lbl">Analytics</div>
-    <div class="seg" id="moSeg">
-      <button data-ms="w" class="sel">Week</button>
-      <button data-ms="m">Month</button>
-      <button data-ms="y">Year</button>
+    <!-- SEARCH -->
+    <div id="jrView-search" style="display:none">
+      <input class="inp" id="jrSearchInp" maxlength="60" placeholder="Search title, body, #tags, mood, date&#8230;" autocomplete="off">
+      <div class="chips" id="jrTagRow" style="margin:12px 0"></div>
+      <div id="jrSearchResults"></div>
     </div>
-    <div class="tiles" id="moTiles"></div>
-    <div class="lbl">Trend</div>
-    <div class="chartBox" id="moChart"></div>
-    <div class="lbl">Distribution</div>
-    <div class="setCard" style="padding:8px 16px" id="moDist"></div>
-    <div class="lbl">Insights</div>
-    <div id="moIns"></div>
-    <div id="moPatternInsights"></div>
-    </div>
-
   </div>
-
-  <!-- ============ STATS ============ -->
 
   <!-- ============ TASKS ============ -->
   <div class="page" id="pgTasks">
@@ -1697,19 +1699,10 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="taskExportRow" id="taskExportRange">
         <button class="chip sel" data-ter="today">Today</button><button class="chip" data-ter="week">This week</button><button class="chip" data-ter="next7">Next 7 days</button><button class="chip" data-ter="month">This month</button><button class="chip" data-ter="custom">Custom</button>
       </div>
-        </div>
-      </div>
-      <button class="jrAiBtn acc" style="width:100%;margin-top:12px" id="jrWholeAiBtn">&#10024; Analyse my whole journal</button>
-    </div>
-
-    <!-- SEARCH -->
-    <div id="jrView-search" style="display:none">
-      <input class="inp" id="jrSearchInp" maxlength="60" placeholder="Search title, body, #tags, mood, date&#8230;" autocomplete="off">
-      <div class="chips" id="jrTagRow" style="margin:12px 0"></div>
-      <div id="jrSearchResults"></div>
+      <div class="taskFormGrid" id="taskExportCustom" style="display:none;margin-top:8px"><input id="taskExportFrom" class="inp" type="date"><input id="taskExportTo" class="inp" type="date"></div>
+      <div class="taskExportBtns"><button class="sbtn" id="taskExportPdf">PDF</button><button class="sbtn acc" id="taskExportXlsx">Excel</button></div>
     </div>
   </div>
-
 
   <!-- ============ SETTINGS ============ -->
   <!-- ============ AI PAGE ============ -->
