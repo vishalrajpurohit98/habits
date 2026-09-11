@@ -18,7 +18,7 @@
     <!-- Android 11+ package visibility: expose the system speech recognition service. -->
     <queries>
         <intent>
-            <action android:name="android.speech.RecognitionService"/>
+            <action android:name="android.speech.action.RECOGNIZE_SPEECH"/>
         </intent>
     </queries>
 
