@@ -92,3 +92,31 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 ## Note on CI version override
 - Observed the build pipeline overrides the manifest version (code/name) at build time,
   so the manifest bump is cosmetic when CI supplies its own version.
+
+---
+
+# V1.4.0 cleanup pass
+
+## Removed (safe, no user-facing change)
+- Deleted 6 stale VOICE_MODE_PREVIEW_*.html scratch files (not part of the app).
+- Moved internal dev docs (TASKS_V*.md, ARCHITECTURE, REMOVED_FEATURES, FIRESTORE_*) into /docs/
+  so they don't ship in the app build. Exclude /docs from the web-asset packaging step.
+- Removed the orphaned recurring-transaction editor sheet (already hidden) and its init
+  event wiring (recurKindGrid/recurFreqGrid/recurWeekGrid/recurCatGrid/recurAcctGrid/
+  recurActive/recurSave/recurDel). paintRecur() reduced to a no-op.
+
+## Deliberately KEPT (removal would have caused regressions)
+- Transaction fields recurId/recurDate — used by live split-transaction, credit-card
+  payment, and Excel/PDF export code.
+- s.recur state normalization — keeps older backup files importable.
+- recurringNextDate/recurringStateInit/recurringAdvance helpers — harmless, referenced by
+  the retained normalization; removing risked breaking backward-compatible parsing.
+- FX / multi-currency — left fully untouched per decision (deeply wired into balances and
+  historical accounting; not safe to remove without a data migration).
+- Biometric code — already correctly self-hides when the native bridge reports unavailable;
+  left intact so it works if implemented later.
+
+## Validation
+- All inline script blocks parse; mirrors (script1.js/script2.js) regenerated.
+- Runtime (jsdom): all 8 tabs render, recurring sheet gone, zero runtime errors.
+- Caught and fixed one missed init handler (recurKindGrid) during runtime testing.

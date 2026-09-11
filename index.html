@@ -319,7 +319,7 @@ html:not(.light) .tab.on{color:var(--amber)}
 .receiptBox{border:1px dashed var(--line2);border-radius:14px;padding:10px;background:var(--card)}
 .receiptThumb{width:100%;max-height:180px;object-fit:contain;border-radius:10px;background:var(--bg2);display:block}.receiptName{font-size:11px;color:var(--mut);padding:6px 2px;word-break:break-all}.receiptActions{display:flex;gap:8px;margin-top:8px}.receiptActions .sbtn{flex:1}
 .upcomingCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:13px;margin-bottom:9px}.upcomingHead{display:flex;align-items:center;gap:9px}.upcomingHead .uicon{font-size:18px}.upcomingHead b{font-size:13px}.upcomingHead span{margin-left:auto;font-size:11px;color:var(--mut)}
-#recurSheet{display:none!important}.recurRow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.recurRow:last-child{border-bottom:0}.recurMain{flex:1;min-width:0}.recurMain b{font-size:13px;display:block}.recurMain span{font-size:10.5px;color:var(--mut)}.recurAmt{font-weight:800;font-size:13px}.smartBadge{display:inline-block;font-size:9px;padding:3px 6px;border-radius:8px;background:var(--primarySoft);color:var(--primary);margin-left:5px}
+.recurRow{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}.recurRow:last-child{border-bottom:0}.recurMain{flex:1;min-width:0}.recurMain b{font-size:13px;display:block}.recurMain span{font-size:10.5px;color:var(--mut)}.recurAmt{font-weight:800;font-size:13px}.smartBadge{display:inline-block;font-size:9px;padding:3px 6px;border-radius:8px;background:var(--primarySoft);color:var(--primary);margin-left:5px}
 .materialSearch{border-radius:18px!important;background:var(--card)!important;border-color:var(--line2)!important;padding-left:16px!important}
 .materialSearch:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px var(--primarySoft)}
 .snack{position:fixed;left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:90;display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line2);box-shadow:var(--shadowUp);transform:translateY(130%);opacity:0;pointer-events:none;transition:transform .25s cubic-bezier(.22,.68,.36,1),opacity .2s}
@@ -1908,25 +1908,6 @@ to{opacity:1;transform:none}}
 </div>
 
 <!-- ============ RECURRING EXPENSE SHEET ============ -->
-<div class="sheet" id="recurSheet" style="display:none!important">
-  <div class="grab"></div>
-  <h2 id="recurSheetT">Add recurring expense</h2>
-  <div class="lbl">Type</div><div class="pickGrid" id="recurKindGrid"><button class="chip sel" data-rkind="exp">Expense</button><button class="chip" data-rkind="inc">Income</button></div>
-  <div class="lbl">Name</div>
-  <input id="recurName" class="inp" maxlength="40" placeholder="e.g. Netflix, Rent, Electricity">
-  <div class="lbl">Amount</div>
-  <input id="recurAmt" class="inp" type="number" inputmode="decimal" step="any" placeholder="0">
-  <div class="lbl">Frequency</div>
-  <div class="pickGrid" id="recurFreqGrid"><button class="chip sel" data-rf="monthly">Monthly</button><button class="chip" data-rf="weekly">Weekly</button><button class="chip" data-rf="yearly">Yearly</button></div>
-  <div id="recurMonthlyFields"><div class="lbl">Day of month</div><input id="recurDay" class="inp" type="number" min="1" max="31" value="1"></div>
-  <div id="recurWeeklyFields" style="display:none"><div class="lbl">Day of week</div><div class="pickGrid" id="recurWeekGrid"><button class="chip" data-rw="1">Mon</button><button class="chip" data-rw="2">Tue</button><button class="chip" data-rw="3">Wed</button><button class="chip" data-rw="4">Thu</button><button class="chip" data-rw="5">Fri</button><button class="chip" data-rw="6">Sat</button><button class="chip" data-rw="0">Sun</button></div></div>
-  <div id="recurYearlyFields" style="display:none"><div class="lbl">Month / day</div><div style="display:flex;gap:8px"><select id="recurMonth" class="inp"><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><input id="recurYearDay" class="inp" type="number" min="1" max="31" value="1"></div></div>
-  <div class="lbl">Category</div><div class="pickGrid" id="recurCatGrid"></div>
-  <div class="lbl">Account</div><div class="pickGrid" id="recurAcctGrid"></div>
-  <div class="lbl">Starts</div><input id="recurStart" class="inp" type="date">
-  <div class="setRow" style="padding:12px 0"><div class="setInfo"><div class="setT">Active</div><div class="setS">Automatically add the transaction when due</div></div><div class="tog on" id="recurActive"></div></div>
-  <button class="primary" id="recurSave">Save recurring</button><button class="danger" id="recurDel" style="display:none">Delete recurring</button>
-</div>
 <!-- ============ EXPENSE EXPORT RANGE SHEET ============ -->
 <div class="sheet" id="expExportSheet"><div class="grab"></div><h2>Export expense data</h2><div class="setS" style="margin-bottom:12px">All transaction fields are included. Choose the date range and format.</div><div class="lbl">From</div><input id="expExportFrom" class="inp" type="date"><div class="lbl">To</div><input id="expExportTo" class="inp" type="date"><div class="lbl">Format</div><div style="display:flex;gap:8px"><button class="sbtn acc" id="expExportXlsx">Excel</button><button class="sbtn" id="expExportPdf">PDF</button></div></div>
 
@@ -6436,7 +6417,7 @@ function normTx(x){ x.id='t'+Date.now().toString(36)+Math.random().toString(36).
 var recurEd=null,recurFreq='monthly',recurWeekday=1,recurCat='',recurAcct='';
 function openRecur(id){ toastN('Recurring transactions have been removed from this build'); }
 
-function paintRecur(){var bs=$('recurFreqGrid').children;for(var i=0;i<bs.length;i++)bs[i].classList.toggle('sel',bs[i].getAttribute('data-rf')===recurFreq);$('recurMonthlyFields').style.display=recurFreq==='monthly'?'':'none';$('recurWeeklyFields').style.display=recurFreq==='weekly'?'':'none';$('recurYearlyFields').style.display=recurFreq==='yearly'?'':'none';var wb=$('recurWeekGrid').children;for(var j=0;j<wb.length;j++)wb[j].classList.toggle('sel',+wb[j].getAttribute('data-rw')===recurWeekday);var cats=Object.keys(state.cats),cg='';for(var k=0;k<cats.length;k++)cg+=chip(cats[k],cats[k]===recurCat,'data-rc',cats[k]);$('recurCatGrid').innerHTML=cg;var acs=activeAccts(),ag='';for(var m=0;m<acs.length;m++)ag+=chip(acs[m].name,acs[m].id===recurAcct,'data-ra',acs[m].id);$('recurAcctGrid').innerHTML=ag;}
+function paintRecur(){} /* recurring UI removed */
 function saveRecur(){
   toastN('Recurring transactions have been removed from this build');
 }
@@ -8245,14 +8226,7 @@ function init(){
   $('expReceiptAdd').addEventListener('click', addExpReceipt);
   $('expReceiptCamera').addEventListener('click', addExpReceiptCamera);
   $('expReceiptFile').addEventListener('change', function(){var f=this.files&&this.files[0];if(!f)return;if(f.size>12*1024*1024){toastN('Receipt is too large');this.value='';return;}resizeReceipt(f,function(data){receiptScanData=data;receiptScanName=f.name||'receipt';renderExpReceipt();scanReceiptWithAi();});this.value='';});
-  $('recurKindGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rkind');if(!b)return;recurEd.kind=b.getAttribute('data-rkind');var bs=this.children;for(var i=0;i<bs.length;i++)bs[i].classList.toggle('sel',bs[i]===b);});
-  $('recurFreqGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rf');if(!b)return;recurFreq=b.getAttribute('data-rf');paintRecur();});
-  $('recurWeekGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rw');if(!b)return;recurWeekday=+b.getAttribute('data-rw');paintRecur();});
-  $('recurCatGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-rc');if(!b)return;recurCat=b.getAttribute('data-rc');paintRecur();});
-  $('recurAcctGrid').addEventListener('click',function(e){var b=climb(e.target,this,'data-ra');if(!b)return;recurAcct=b.getAttribute('data-ra');paintRecur();});
-  $('recurActive').addEventListener('click',function(){this.classList.toggle('on');});
-  $('recurSave').addEventListener('click',saveRecur);
-  $('recurDel').addEventListener('click',function(){if(!recurEd||!recurEd._edit)return;if(!confirm('Delete this recurring transaction? Existing posted transactions will remain.'))return;state.recur=state.recur.filter(function(r){return r.id!==recurEd._edit;});persist();closeSheet();renderExp();toastN('Recurring expense deleted');});
+
   $('expExportXlsx').addEventListener('click',exportExpRangeXlsx);
   $('expExportPdf').addEventListener('click',exportExpRangePdf);
 
