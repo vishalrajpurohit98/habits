@@ -1140,6 +1140,9 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 
 /* ===== Journal V1.4.0 ===== */
 /* journal enhancements */
+.jrTpl{position:relative}
+.jrTplNew{border-style:dashed;opacity:.85}
+.jrTplDel{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:0;background:var(--coralSoft);color:var(--coral);font-size:15px;line-height:1;cursor:pointer;display:grid;place-items:center}
 .jrStatBtn{width:100%;height:100%;border:0;background:var(--amberSoft);color:var(--amber);font-weight:800;font-size:13px;border-radius:12px;cursor:pointer;padding:8px}
 .jrFavRow{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin:12px 0;font-size:14px;font-weight:600;cursor:pointer}
 .jrTog{width:46px;height:28px;border-radius:16px;background:var(--card3);border:1px solid var(--line2);position:relative;transition:.18s;flex:0 0 46px}
@@ -1226,10 +1229,16 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 .jrToolbar{display:flex;gap:2px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:5px;margin:10px 0}
 .jrTb{border:0;background:transparent;color:var(--ink2);width:34px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700}
 .jrTb:active{background:var(--card3)}
+.jrTb.listening{background:var(--coralSoft);color:var(--coral);animation:jrMicPulse 1.2s ease-in-out infinite}
+@keyframes jrMicPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,94,.4)}50%{box-shadow:0 0 0 5px rgba(255,107,94,0)}}
 .jrEditor{width:100%;min-height:180px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:14px;font-size:15px;line-height:1.6;font-family:inherit;outline:none}
 .jrEditor:focus{border-color:var(--amber)}
 .jrEditor:empty:before{content:attr(data-ph);color:var(--mut2)}
-.jrEditor h3{font-size:18px;margin:.4em 0}
+.jrEditor h3{font-size:18px;margin:.4em 0;font-weight:700}
+.jrEditor p{margin:.5em 0}
+.jrEditor ul,.jrEditor ol{margin:.5em 0;padding-left:1.6em}
+.jrEditor li{margin:.2em 0}
+.jrEditor .jrCheckLine{margin:.2em 0}
 .jrEditor blockquote{border-left:3px solid var(--amber);margin:.5em 0;padding-left:12px;color:var(--ink2)}
 .jrFavLbl{display:flex;align-items:center;gap:8px;margin:12px 2px;font-size:14px;cursor:pointer}
 .jrAiMenuBtn{width:100%;border:1px solid rgba(155,123,255,.3);background:var(--purpleSoft,rgba(155,123,255,.14));color:var(--purple,#9B7BFF);font-weight:800;font-size:14px;padding:12px;border-radius:14px;cursor:pointer;margin-top:12px}
@@ -2270,6 +2279,7 @@ to{opacity:1;transform:none}}
     <button class="jrTb" data-jrt="insertOrderedList">1.</button>
     <button class="jrTb" data-jrtblock="blockquote">&ldquo;</button>
     <button class="jrTb" data-jrtcheck="1">&#9745;</button>
+    <button class="jrTb" id="jrMicBtn" data-jrmic="1" aria-label="Voice input" style="margin-left:auto">&#127908;</button>
   </div>
   <div class="jrEditor" id="jrBody" contenteditable="true" data-ph="Write freely&#8230; use #tags anywhere"></div>
   <div class="setS" id="jrTagLine" style="margin-top:7px"></div>
@@ -2283,10 +2293,32 @@ to{opacity:1;transform:none}}
     <button class="sbtn" data-jrai="Reflect">Reflect</button>
     <button class="sbtn" data-jrai="Extract Tasks">Extract Tasks</button>
     <button class="sbtn" data-jrai="Ask AI About This">Ask AI About This</button>
+    <div style="flex-basis:100%;height:1px;background:var(--line);margin:4px 0"></div>
+    <button class="sbtn" data-jrrw="Rewrite">Rewrite</button>
+    <button class="sbtn" data-jrrw="Improve">Improve</button>
+    <button class="sbtn" data-jrrw="Shorten">Shorten</button>
+    <button class="sbtn" data-jrrw="Expand">Expand</button>
+    <button class="sbtn" data-jrrw="Make professional">Professional</button>
+    <button class="sbtn" data-jrrw="Make personal">Personal</button>
   </div>
   <div id="jrEntryAiOut"></div>
   <button class="primary" id="jrSaveBtn">Save entry</button>
   <button class="danger" id="jrDelBtn" style="display:none">Delete entry</button>
+</div>
+
+<div class="sheet" id="jrTplSheet">
+  <div class="grab"></div>
+  <h2>New template</h2>
+  <input id="jrTplName" class="inp" maxlength="60" placeholder="Template name (e.g. Gym log)">
+  <div class="jrToolbar" id="jrTplToolbar" style="margin-top:10px">
+    <button class="jrTb" data-jtpltb="bold" style="font-weight:800">B</button>
+    <button class="jrTb" data-jtpltb="italic" style="font-style:italic">I</button>
+    <button class="jrTb" data-jtpltblock="h3">H</button>
+    <button class="jrTb" data-jtpltb="insertUnorderedList">&bull;</button>
+    <button class="jrTb" data-jtpltb="insertOrderedList">1.</button>
+  </div>
+  <div class="jrEditor" id="jrTplBody" contenteditable="true" data-ph="Build your template structure&#8230;" style="min-height:150px"></div>
+  <button class="primary" id="jrTplSave" style="margin-top:12px">Save template</button>
 </div>
 
 <div class="sheet" id="jrExportSheet">
@@ -2525,6 +2557,7 @@ function normState(s){
   if(!(s.tasks instanceof Array)) s.tasks=[];
   s.tasks=s.tasks.map(normTask);
   if(!(s.jr instanceof Array)) s.jr = [];
+  if(!(s.jrTpl instanceof Array)) s.jrTpl = [];
   for(var ji=0; ji<s.jr.length; ji++){
     s.jr[ji] = (typeof jrMigrateEntry==='function') ? jrMigrateEntry(s.jr[ji]) : (s.jr[ji]||{});
   }
@@ -5246,6 +5279,45 @@ var JR_TEMPLATES = [
   {icon:'\uD83D\uDCBC',name:'Workday',body:'<h3>What did I accomplish?</h3><p></p><h3>What remains unfinished?</h3><p></p><h3>What did I learn?</h3><p></p><h3>What next?</h3><p></p>'},
   {icon:'\uD83D\uDCC6',name:'Weekly',body:'<h3>What went well?</h3><p></p><h3>What did not?</h3><p></p><h3>What did I learn?</h3><p></p><h3>Change next week?</h3><p></p>'}
 ];
+/* Built-in templates get ids b0..bN; custom templates live in state.jrTpl with their own ids. */
+function jrAllTemplates(){
+  var out=JR_TEMPLATES.map(function(t,i){ return {id:'b'+i, icon:t.icon, name:t.name, body:t.body, builtin:true}; });
+  (state.jrTpl||[]).forEach(function(t){ out.push({id:t.id, icon:t.icon||'\uD83D\uDCDD', name:t.name||'Custom', body:t.body||'', builtin:false}); });
+  return out;
+}
+function jrTemplateById(id){ var all=jrAllTemplates(); for(var i=0;i<all.length;i++) if(all[i].id===id) return all[i]; return null; }
+function jrOpenTemplateEditor(){
+  $('jrTplName').value='';
+  $('jrTplBody').innerHTML='<p><br></p>';
+  openSheet('jrTplSheet');
+}
+function jrSaveTemplate(){
+  var name=($('jrTplName').value||'').trim().slice(0,60);
+  var body=$('jrTplBody').innerHTML;
+  if(!name){ $('jrTplName').focus(); toastN('Give the template a name'); return; }
+  if(!jrStrip(body)){ $('jrTplBody').focus(); toastN('Add some template content'); return; }
+  state.jrTpl=state.jrTpl||[];
+  state.jrTpl.push({ id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), icon:'\uD83D\uDCDD', name:name, body:body, createdAt:Date.now() });
+  persist(); closeSheet(); jrRenderTpl(); toastN('Template saved');
+}
+function jrDeleteTemplate(id){
+  var t=(state.jrTpl||[]).find(function(x){return x.id===id;});
+  if(!t) return;
+  if(!confirm('Delete the template "'+(t.name||'Custom')+'"?')) return;
+  state.jrTpl=state.jrTpl.filter(function(x){return x.id!==id;});
+  persist(); jrRenderTpl(); toastN('Template deleted');
+}
+/* Save the current entry's content as a reusable template. */
+function jrSaveEntryAsTemplate(){
+  var body=$('jrBody').innerHTML;
+  if(!jrStrip(body)){ toastN('Nothing to save as a template'); return; }
+  var name=prompt('Template name:', ($('jrTitle').value||'My template').slice(0,60));
+  if(name===null) return;
+  name=(name||'').trim().slice(0,60); if(!name){ toastN('Template needs a name'); return; }
+  state.jrTpl=state.jrTpl||[];
+  state.jrTpl.push({ id:'t'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), icon:'\uD83D\uDCDD', name:name, body:body, createdAt:Date.now() });
+  persist(); toastN('Saved as template'); jrRenderTpl();
+}
 
 var jrEd = null, jrQ = '', jrTag = 'all', jrView = 'timeline', jrCalY = 0, jrCalM = 0, jrPromptIx = -1, jrDelArmed = false, jrDelTimer2 = null;
 
@@ -5364,7 +5436,8 @@ function jrRenderTimeline(){
 }
 function jrRenderTpl(){
   var g=$('jrTplGrid'); if(!g) return;
-  g.innerHTML=JR_TEMPLATES.map(function(t,i){return '<div class="jrTpl" data-jtpl="'+i+'"><div class="ti">'+t.icon+'</div><div class="tn">'+esc(t.name)+'</div><div class="td">Tap to start</div></div>';}).join('');
+  g.innerHTML=jrAllTemplates().map(function(t){return '<div class="jrTpl" data-jtplid="'+esc(t.id)+'"><div class="ti">'+t.icon+'</div><div class="tn">'+esc(t.name)+'</div><div class="td">'+(t.builtin?'Tap to start':'Custom \u00B7 tap to start')+'</div>'+(t.builtin?'':'<button class="jrTplDel" data-jtpldel="'+esc(t.id)+'" aria-label="Delete template">\u00D7</button>')+'</div>';}).join('')
+    + '<div class="jrTpl jrTplNew" data-jtplnew="1"><div class="ti">\u2795</div><div class="tn">New template</div><div class="td">Create your own</div></div>';
 }
 function jrRenderPrompt(){
   var p=$('jrPromptText'); if(p) p.textContent='\u201C'+jrPromptText()+'\u201D';
@@ -5483,6 +5556,7 @@ function openJr(id, prompt, tplBody, forceDate){
   $('jrDate').value = jrEd.date;
   $('jrTime').value = jrEd.time||now.toTimeString().slice(0,5);
   $('jrBody').innerHTML = src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
+  if(!$('jrBody').innerHTML.trim()) $('jrBody').innerHTML='<p><br></p>';
   var _ft=$('jrFavTog'); if(_ft){ _ft.classList.toggle('on', !!jrEd.favorite); _ft.setAttribute('aria-checked', !!jrEd.favorite); }
   jrSyncMood();
   $('jrDelBtn').style.display = id?'':'none';
@@ -5497,9 +5571,39 @@ function jrSyncMood(){
   var row=$('jrMoodRow'); if(!row) return;
   Array.prototype.forEach.call(row.children,function(o){ o.classList.toggle('on', o.getAttribute('data-jm')===(jrEd&&jrEd.mood)); });
 }
-function jrRt(c){ document.execCommand(c,false,null); $('jrBody').focus(); }
-function jrRtBlock(t){ document.execCommand('formatBlock',false,t); $('jrBody').focus(); }
-function jrRtCheck(){ document.execCommand('insertHTML',false,'<div>\u2610 </div>'); $('jrBody').focus(); }
+function jrEnsureEditable(){ var ed=$('jrBody'); if(ed){ ed.focus(); if(!ed.innerHTML.trim()){ ed.innerHTML='<p><br></p>'; jrPlaceCaretEnd(ed); } } }
+function jrPlaceCaretEnd(el){ try{ var r=document.createRange(); r.selectNodeContents(el); r.collapse(false); var s=window.getSelection(); s.removeAllRanges(); s.addRange(r); }catch(e){} }
+function jrExec(cmd, val){
+  var ed=$('jrBody'); if(!ed) return;
+  ed.focus();
+  try{ document.execCommand('styleWithCSS', false, false); }catch(e){}
+  try{ document.execCommand(cmd, false, val===undefined?null:val); }catch(e){}
+  jrUpdTagLine();
+}
+function jrRt(c){ jrExec(c); }
+function jrRtBlock(t){
+  var ed=$('jrBody'); if(!ed) return; ed.focus();
+  /* toggle: if the current block is already this type, revert to <p> */
+  var cur='';
+  try{ cur=(document.queryCommandValue('formatBlock')||'').toLowerCase(); }catch(e){}
+  var target=(cur===t || cur==='<'+t+'>') ? 'p' : t;
+  try{ document.execCommand('styleWithCSS', false, false); }catch(e){}
+  try{ document.execCommand('formatBlock', false, '<'+target+'>'); }catch(e){ try{ document.execCommand('formatBlock', false, target); }catch(_){ } }
+  jrUpdTagLine();
+}
+function jrRtList(kind){
+  /* kind: insertUnorderedList | insertOrderedList — ensure a block exists first */
+  var ed=$('jrBody'); if(!ed) return; ed.focus();
+  if(!ed.innerHTML.trim()){ ed.innerHTML='<p><br></p>'; jrPlaceCaretEnd(ed); }
+  try{ document.execCommand('styleWithCSS', false, false); }catch(e){}
+  try{ document.execCommand(kind, false, null); }catch(e){}
+  jrUpdTagLine();
+}
+function jrRtCheck(){
+  var ed=$('jrBody'); if(!ed) return; ed.focus();
+  try{ document.execCommand('insertHTML', false, '<div class="jrCheckLine">\u2610 </div>'); }catch(e){}
+  jrUpdTagLine();
+}
 function jrUpdTagLine(){
   var m=(($('jrTitle').value)+' '+jrStrip($('jrBody').innerHTML)).match(/#[A-Za-z0-9_]+/g);
   setText('jrTagLine', m&&m.length?'Tags: '+Array.from(new Set(m.map(function(x){return x.toLowerCase();}))).join('  '):'Add #tags anywhere in your text');
@@ -5605,6 +5709,85 @@ function jrEntryAi(kind){
   };
   gemCall(prompts[kind]||('Respond to this journal entry.\n\n'+base), 400).then(function(r){ jrAiShow('jrEntryAiOut', kind, r); }).catch(function(e){ jrAiErr('jrEntryAiOut', kind, e); });
 }
+
+/* ---- AI rewrite actions: generate a new version and let the user replace the entry ---- */
+var _jrRewritePending=null;
+function jrRewrite(kind){
+  var bodyHtml=$('jrBody').innerHTML, body=jrStrip(bodyHtml), title=$('jrTitle').value.trim();
+  if(!body){ jrAiShow('jrEntryAiOut', kind, 'Write something first, then I can '+kind.toLowerCase()+' it.'); return; }
+  jrAiBox('jrEntryAiOut', kind);
+  var instr={
+    'Rewrite':'Rewrite this journal entry keeping the same meaning, first person, and the author\u2019s voice, but with clearer wording.',
+    'Improve':'Improve the clarity, flow and grammar of this journal entry while preserving its meaning, first person and voice.',
+    'Shorten':'Shorten this journal entry to about half its length, keeping the key points, first person and voice.',
+    'Expand':'Expand this journal entry with a little more descriptive detail and reflection, staying truthful to what is written, in first person and the author\u2019s voice.',
+    'Make professional':'Rewrite this journal entry in a more polished, professional tone, keeping the meaning and first person.',
+    'Make personal':'Rewrite this journal entry in a warmer, more personal and reflective tone, keeping the meaning and first person.'
+  }[kind]||'Rewrite this journal entry.';
+  var prompt=instr+' Return ONLY the rewritten text as plain paragraphs (you may use blank lines between paragraphs). Do not add commentary, headings, or quotes.\n\nENTRY'+(title?' ("'+title+'")':'')+':\n'+body;
+  gemCall(prompt, 700).then(function(r){
+    r=String(r||'').trim();
+    if(!r){ jrAiErr('jrEntryAiOut', kind, {message:'No rewrite returned.'}); return; }
+    _jrRewritePending=jrTextToHtml(r);
+    var preview=esc(r).replace(/\n{2,}/g,'<br><br>').replace(/\n/g,'<br>');
+    var box=$('jrEntryAiOut');
+    box.innerHTML='<div class="jrAiOut"><div class="h">'+esc(kind)+' \u00B7 preview</div><div class="b">'+preview+'</div>'
+      +'<div class="jrSaveRow"><button class="primary" id="jrRwApply">Replace my entry</button><button class="ghost" id="jrRwCopy">Copy instead</button><button class="ghost" id="jrRwDiscard">Discard</button></div>'
+      +'<div class="jrMut" style="text-align:left;padding:8px 2px 0">Your original stays until you tap Replace.</div></div>';
+  }).catch(function(e){ jrAiErr('jrEntryAiOut', kind, e); });
+}
+function jrTextToHtml(t){
+  return String(t||'').split(/\n{2,}/).map(function(p){ return '<p>'+esc(p.trim()).replace(/\n/g,'<br>')+'</p>'; }).join('');
+}
+
+/* ---- voice input for the journal editor (native + Web Speech fallback) ---- */
+var jrVoiceActive=false, jrVoiceId=null, jrWebRec=null, jrVoiceSilence=null, jrVoiceBase='';
+function jrMicSet(on){ jrVoiceActive=on; var b=$('jrMicBtn'); if(b) b.classList.toggle('listening',on); }
+function jrToggleVoice(){ if(jrVoiceActive){ jrStopVoice(); return; } jrStartVoice(); }
+function jrInsertVoice(text){
+  if(!text) return;
+  var ed=$('jrBody'); if(!ed) return;
+  ed.focus();
+  try{ document.execCommand('insertText', false, (ed.innerHTML.trim()&&!/(\s|>)$/.test(ed.innerHTML)?' ':'')+text); }
+  catch(e){ ed.innerHTML += '<p>'+esc(text)+'</p>'; }
+  jrUpdTagLine();
+}
+function jrStartVoice(){
+  if(nat && nat.speechAvailable && nat.startSpeech){
+    try{ if(nat.speechAvailable()){ jrVoiceId='j'+Date.now(); jrMicSet(true); window._jrVoiceTarget=true; nat.startSpeech(jrVoiceId); return; } }catch(e){}
+  }
+  var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SR){ toastN('Voice input is not available on this device'); return; }
+  try{
+    jrWebRec=new SR(); jrWebRec.lang=navigator.language||'en-US'; jrWebRec.continuous=true; jrWebRec.interimResults=true;
+    var finalTxt=''; jrMicSet(true);
+    jrWebRec.onresult=function(ev){
+      var interim='';
+      for(var i=ev.resultIndex;i<ev.results.length;i++){ var res=ev.results[i]; if(res.isFinal) finalTxt+=res[0].transcript+' '; else interim+=res[0].transcript; }
+      if(jrVoiceSilence) clearTimeout(jrVoiceSilence);
+      jrVoiceSilence=setTimeout(function(){ jrStopVoice(finalTxt); }, 2500);
+    };
+    jrWebRec.onerror=function(ev){ jrMicSet(false); if(ev&&ev.error&&ev.error!=='no-speech'&&ev.error!=='aborted') toastN(ev.error==='not-allowed'?'Microphone permission denied':'Voice input error'); };
+    jrWebRec.onend=function(){ if(jrVoiceActive){ try{ jrWebRec.start(); return; }catch(e){} } jrMicSet(false); };
+    jrWebRec.start();
+    window._jrVoiceFinalGetter=function(){ return finalTxt; };
+  }catch(e){ jrMicSet(false); toastN('Could not start voice input'); }
+}
+function jrStopVoice(finalTxt){
+  if(jrVoiceSilence){ clearTimeout(jrVoiceSilence); jrVoiceSilence=null; }
+  jrMicSet(false);
+  var txt=(finalTxt!==undefined?finalTxt:(window._jrVoiceFinalGetter?window._jrVoiceFinalGetter():'')).trim();
+  if(jrWebRec){ try{ jrWebRec.stop(); }catch(e){} jrWebRec=null; }
+  if(txt) jrInsertVoice(txt);
+}
+/* extend native speech callback to also feed the journal editor */
+(function(){
+  var prev=window._speechResult;
+  window._speechResult=function(id, text, err){
+    if(id && id===jrVoiceId){ jrMicSet(false); jrVoiceId=null; window._jrVoiceTarget=false; if(!err && text) jrInsertVoice(text); else if(err && err!=='cancelled' && err!=='no-speech') toastN(err==='permission-denied'?'Microphone permission denied':'Voice input error'); return; }
+    if(typeof prev==='function') prev(id, text, err);
+  };
+})();
 
 function jrWholeAi(){
   if(!state.jr.length){ jrAiShow('jrInsAiOut','Whole-journal analysis','Your journal is empty. Write a few entries and I can look for themes and patterns.'); return; }
@@ -7083,13 +7266,13 @@ function applySyncMeta(d){d=d||{};var x=d.syncMeta&&typeof d.syncMeta==='object'
 function loadSyncMeta(){var ref=syncMetaRef();if(!ref)return Promise.resolve();syncMetaDoc=ref;return ref.get({source:'default'}).then(function(s){if(s.exists){var d=s.data()||{};applySyncMeta(d);renderSyncUI();renderTodaySyncUI();}}).catch(function(){});}
 function writeSyncMeta(status){var ref=syncMetaRef();if(!ref||!fbUser)return Promise.resolve();var at=Date.now();var payload={lastSyncAtMs:at,lastSyncState:status||'synced',lastSyncDeviceId:deviceId,lastSyncMtime:Number(state.mtime||at),schemaVersion:1};syncLastAt=at;syncLastState=status||'synced';syncLastDevice=deviceId;return ref.set({syncMeta:payload},{merge:true}).catch(function(){});}
 
-function syncRecordEntries(){var out={};function addArray(d,a){(a||[]).forEach(function(v){if(v&&v.id)out[d+':'+v.id]=v;});}function addMap(d,o){if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(k){out[d+':'+k]={key:k,value:o[k]};});}addArray('habit',state.habits);addArray('tx',state.tx);addArray('acct',state.accts);addArray('exercise',state.exs);addArray('workout',state.wlog);addArray('sleep',state.sleep);addArray('journal',state.jr);addArray('goal',state.goals);addArray('task',state.tasks);addMap('mood',state.mood);addMap('moodNote',state.moodNotes);addMap('hlog',state.hlog);addMap('closed',state.closed);addMap('budg',state.budg);addMap('budgets',state.budgets);addMap('cats',state.cats);addMap('fxRates',state.fxRates);out['set:all']=state.set;out['incCats:all']=state.incCats;return out;}
+function syncRecordEntries(){var out={};function addArray(d,a){(a||[]).forEach(function(v){if(v&&v.id)out[d+':'+v.id]=v;});}function addMap(d,o){if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(k){out[d+':'+k]={key:k,value:o[k]};});}addArray('habit',state.habits);addArray('tx',state.tx);addArray('acct',state.accts);addArray('exercise',state.exs);addArray('workout',state.wlog);addArray('sleep',state.sleep);addArray('journal',state.jr);addArray('jrtpl',state.jrTpl);addArray('goal',state.goals);addArray('task',state.tasks);addMap('mood',state.mood);addMap('moodNote',state.moodNotes);addMap('hlog',state.hlog);addMap('closed',state.closed);addMap('budg',state.budg);addMap('budgets',state.budgets);addMap('cats',state.cats);addMap('fxRates',state.fxRates);out['set:all']=state.set;out['incCats:all']=state.incCats;return out;}
 var syncRecordShadow={};var syncPendingRecords={};
 try{syncRecordShadow=JSON.parse(localStorage.getItem('hb_sync_record_shadow')||'{}')||{};}catch(e){}
 try{syncPendingRecords=JSON.parse(localStorage.getItem('hb_sync_pending')||'{}')||{};}catch(e){}
 function syncHash(v){try{return JSON.stringify(v);}catch(e){return String(v);}}
 function queueChangedSyncRecords(){var cur=syncRecordEntries(),now=Date.now(),meta=syncRecordShadow||{};Object.keys(cur).forEach(function(k){var h=syncHash(cur[k]),old=meta[k];if(!old||old.hash!==h){meta[k]={hash:h,at:now};syncPendingRecords[k]={data:cur[k],at:now,deleted:false};}});Object.keys(meta).forEach(function(k){if(!cur[k]&&!meta[k].deleted){meta[k]={hash:'__deleted__',at:now,deleted:true};syncPendingRecords[k]={data:null,at:now,deleted:true};}});syncRecordShadow=meta;try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(meta));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}}
-function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){arrSet(state.sleep,value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
+function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){arrSet(state.sleep,value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='jrtpl'){state.jrTpl=state.jrTpl||[];arrSet(state.jrTpl,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
 function pushLegacySync(force){if(!fbDoc||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}setSyncState('syncing');var payload={data:JSON.stringify(stateForStorage()),version:Number(state.mtime||Date.now()),schemaVersion:2,updatedAtMs:Date.now(),syncMode:'compatibility'};return fbDoc.set(payload,{merge:true}).then(function(){return writeSyncMeta('synced');}).then(function(){setSyncState('synced');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
 function pushRecordSync(force){if(syncLegacyMode)return pushLegacySync(force);if(!fbRecords||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}queueChangedSyncRecords();var keys=Object.keys(syncPendingRecords);if(!keys.length){setSyncState('synced');return writeSyncMeta('synced').then(function(){setSyncState('synced');});}setSyncState('syncing');var jobs=[];for(var b=0;b<keys.length;b+=400){(function(keys2){var batch=fbFS.batch();keys2.forEach(function(k){var m=syncPendingRecords[k],ref=fbRecords.doc(k.replace(/[^A-Za-z0-9_-]/g,'_')),pl={key:k,deleted:!!m.deleted,updatedAtMs:m.at,deviceId:deviceId,schemaVersion:2};if(!m.deleted)pl.data=m.data;batch.set(ref,pl,{merge:true});});jobs.push(batch.commit());})(keys.slice(b,b+400));}return Promise.all(jobs).then(function(){keys.forEach(function(k){delete syncPendingRecords[k];});try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}return writeSyncMeta('synced');}).then(function(){setSyncState('synced');syncMsg('',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
 function applyRemoteRecords(docs){var changed=false;docs.forEach(function(doc){var v=doc.data()||{},key=v.key||doc.id,at=Number(v.updatedAtMs||0),local=syncRecordShadow[key],pending=syncPendingRecords[key],lat=Math.max(local&&local.at||0,pending&&pending.at||0);if(at<=lat)return;applySyncRecord(key,v.data,v.deleted);delete syncPendingRecords[key];syncRecordShadow[key]={hash:v.deleted?'__deleted__':syncHash(v.data),at:at,deleted:!!v.deleted};changed=true;});try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}if(changed){state=normState(state);var json=stateJson();if(json){try{localStorage.setItem(KEY,json);}catch(e){}if(nat){try{nat.saveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}return changed;}
@@ -8029,6 +8212,11 @@ function init(){
 
   /* journal */
   var _uaiMic=$('uaiMic'); if(_uaiMic) _uaiMic.addEventListener('click', uaiToggleVoice);
+  var _tplSave=$('jrTplSave'); if(_tplSave) _tplSave.addEventListener('click', jrSaveTemplate);
+  var _tplTb=$('jrTplToolbar'); if(_tplTb){ _tplTb.addEventListener('mousedown',function(e){e.preventDefault();}); _tplTb.addEventListener('click', function(e){
+    var b=climb(e.target,this,'data-jtpltb'); if(b){ var c=b.getAttribute('data-jtpltb'); $('jrTplBody').focus(); try{document.execCommand('styleWithCSS',false,false);}catch(_){} try{document.execCommand(c,false,null);}catch(_){} return; }
+    b=climb(e.target,this,'data-jtpltblock'); if(b){ $('jrTplBody').focus(); try{document.execCommand('formatBlock',false,'<'+b.getAttribute('data-jtpltblock')+'>');}catch(_){} }
+  }); }
   /* ===== Journal V1.4.0 wiring ===== */
   /* favorite toggle */
   var _favTog=$('jrFavTog'); if(_favTog) _favTog.addEventListener('click', function(){ var on=!this.classList.contains('on'); this.classList.toggle('on',on); this.setAttribute('aria-checked',on); if(jrEd) jrEd.favorite=on; });
@@ -8055,9 +8243,15 @@ function init(){
   $('jrSearchResults').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jid'); if(b) openJr(b.getAttribute('data-jid')); });
   $('jrSearchInp').addEventListener('input', function(){ jrQ=this.value.replace(/^\s+/,''); jrRenderSearch(); });
   $('jrTagRow').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jt'); if(!b) return; jrTag=b.getAttribute('data-jt'); jrRenderTags(); jrRenderSearch(); });
-  $('jrTplGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jtpl'); if(!b) return; var t=JR_TEMPLATES[+b.getAttribute('data-jtpl')]; if(t) openJr(null,'',t.body); });
-  $('jrTplPickBtn').addEventListener('click', function(){ var m=$('jrTplPick'); if(!m) return; if(!m.innerHTML){ m.innerHTML=JR_TEMPLATES.map(function(t,i){return '<button class="sbtn" data-jetpl="'+i+'">'+t.icon+' '+esc(t.name)+'</button>';}).join(''); } m.classList.toggle('on'); });
-  $('jrTplPick').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jetpl'); if(!b) return; var t=JR_TEMPLATES[+b.getAttribute('data-jetpl')]; if(!t) return; var ed=$('jrBody'); var hasContent=jrStrip(ed.innerHTML).length>0; if(hasContent && !confirm('Insert the "'+t.name+'" template? This adds to your current text.')){ this.classList.remove('on'); return; } ed.innerHTML = (hasContent? ed.innerHTML : '') + t.body; this.classList.remove('on'); jrUpdTagLine(); ed.focus(); });
+  $('jrTplGrid').addEventListener('click', function(e){
+    var del=climb(e.target,this,'data-jtpldel'); if(del){ e.stopPropagation(); jrDeleteTemplate(del.getAttribute('data-jtpldel')); return; }
+    var nw=climb(e.target,this,'data-jtplnew'); if(nw){ jrOpenTemplateEditor(); return; }
+    var b=climb(e.target,this,'data-jtplid'); if(!b) return; var t=jrTemplateById(b.getAttribute('data-jtplid')); if(t) openJr(null,'',t.body);
+  });
+  $('jrTplPickBtn').addEventListener('click', function(){ var m=$('jrTplPick'); if(!m) return; m.innerHTML=jrAllTemplates().map(function(t){return '<button class="sbtn" data-jetpl="'+esc(t.id)+'">'+t.icon+' '+esc(t.name)+'</button>';}).join('')+'<button class="sbtn" data-jetplnew="1" style="border-style:dashed">\u2795 New template</button>'; m.classList.toggle('on'); });
+  $('jrTplPick').addEventListener('click', function(e){
+    var nw=climb(e.target,this,'data-jetplnew'); if(nw){ this.classList.remove('on'); jrOpenTemplateEditor(); return; }
+    var b=climb(e.target,this,'data-jetpl'); if(!b) return; var t=jrTemplateById(b.getAttribute('data-jetpl')); if(!t) return; var ed=$('jrBody'); var hasContent=jrStrip(ed.innerHTML).length>0; if(hasContent && !confirm('Insert the "'+t.name+'" template? This adds to your current text.')){ this.classList.remove('on'); return; } ed.innerHTML = (hasContent? ed.innerHTML : '') + t.body; this.classList.remove('on'); jrUpdTagLine(); ed.focus(); });
   $('jrPromptText').addEventListener('click', function(){});
   $('jrWriteBtn').addEventListener('click', function(){ openJr(null, jrPromptText()); });
   $('jrAnotherPrompt').addEventListener('click', function(){ jrPromptIx=(jrPromptIx<0?0:jrPromptIx+1)%JR_PROMPTS.length; jrRenderPrompt(); });
@@ -8070,15 +8264,26 @@ function init(){
   document.querySelectorAll('[data-jcalmove]').forEach(function(b){ b.addEventListener('click', function(){ var n=+this.getAttribute('data-jcalmove'); if(!jrCalY){var d=new Date();jrCalY=d.getFullYear();jrCalM=d.getMonth();} jrCalM+=n; if(jrCalM<0){jrCalM=11;jrCalY--;} if(jrCalM>11){jrCalM=0;jrCalY++;} jrRenderCal(); }); });
   /* editor */
   $('jrMoodRow').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jm'); if(!b||!jrEd) return; var m=b.getAttribute('data-jm'); jrEd.mood=(jrEd.mood===m)?'':m; jrSyncMood(); });
+  $('jrToolbar').addEventListener('mousedown', function(e){ e.preventDefault(); }); /* keep editor selection */
   $('jrToolbar').addEventListener('click', function(e){
-    var b=climb(e.target,this,'data-jrt'); if(b){ jrRt(b.getAttribute('data-jrt')); return; }
+    var b=climb(e.target,this,'data-jrt');
+    if(b){ var c=b.getAttribute('data-jrt'); if(c==='insertUnorderedList'||c==='insertOrderedList') jrRtList(c); else jrRt(c); return; }
     b=climb(e.target,this,'data-jrtblock'); if(b){ jrRtBlock(b.getAttribute('data-jrtblock')); return; }
-    b=climb(e.target,this,'data-jrtcheck'); if(b){ jrRtCheck(); }
+    b=climb(e.target,this,'data-jrtcheck'); if(b){ jrRtCheck(); return; }
+    b=climb(e.target,this,'data-jrmic'); if(b){ jrToggleVoice(); }
   });
   $('jrBody').addEventListener('input', jrUpdTagLine);
   $('jrTitle').addEventListener('input', jrUpdTagLine);
   $('jrAiMenuBtn').addEventListener('click', function(){ $('jrAiMenu').classList.toggle('on'); });
-  $('jrAiMenu').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jrai'); if(b) jrEntryAi(b.getAttribute('data-jrai')); });
+  $('jrAiMenu').addEventListener('click', function(e){
+    var b=climb(e.target,this,'data-jrai'); if(b){ jrEntryAi(b.getAttribute('data-jrai')); return; }
+    var rw=climb(e.target,this,'data-jrrw'); if(rw){ jrRewrite(rw.getAttribute('data-jrrw')); }
+  });
+  $('jrEntryAiOut').addEventListener('click', function(e){
+    if(e.target && e.target.id==='jrRwApply'){ if(_jrRewritePending!=null){ $('jrBody').innerHTML=_jrRewritePending; jrUpdTagLine(); _jrRewritePending=null; $('jrEntryAiOut').innerHTML='<div class="jrAiOut"><div class="b">\u2713 Entry replaced. Remember to Save.</div></div>'; } return; }
+    if(e.target && e.target.id==='jrRwCopy'){ if(_jrRewritePending!=null){ try{ navigator.clipboard.writeText(jrStrip(_jrRewritePending)); toastN('Copied'); }catch(_){}} return; }
+    if(e.target && e.target.id==='jrRwDiscard'){ _jrRewritePending=null; $('jrEntryAiOut').innerHTML=''; return; }
+  });
   $('jrSaveBtn').addEventListener('click', saveJr);
   $('jrDelBtn').addEventListener('click', onJrDelete);
   /* Listen (TTS) + source links, delegated on the page + sheets */

@@ -229,3 +229,49 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 - Favorites still requires entries marked favorite (imported entries have none).
 - Verified: with imported data -> "Looking back" + 3 past entries; with a seeded
   one-year-ago entry -> "On this day" + "year ago". All 7 tabs render, no errors.
+
+---
+
+# V1.4.0 — Journal pass (formatting, templates, voice, AI rewrite, mood sync)
+
+## Editor formatting (fixed)
+- Rewrote toolbar commands: styleWithCSS applied before each command; formatBlock uses
+  <h3>/<blockquote> with toggle-back-to-<p>; lists ensure a block exists first; toolbar
+  uses mousedown preventDefault to preserve the editor selection.
+- Added editor CSS for h3/p/ul/ol/li/blockquote/checklist so formatting renders (and is
+  preserved on save/reopen, since content is stored as HTML).
+- openJr seeds an empty editor with <p><br></p> so the first command has a block to format.
+
+## Custom templates (local + synced)
+- New state.jrTpl array; wired into normState + record sync (emit 'jrtpl:*' + applySyncRecord).
+- jrAllTemplates() merges 6 built-ins + custom; Write-tab grid and in-editor picker list both,
+  with a "New template" tile and per-custom delete. Template editor sheet with its own toolbar.
+- "Save as template" helper also available from entry content.
+
+## Voice input in editor
+- Mic button in the editor toolbar; native RecognizerIntent when available (feeds
+  window._speechResult, chained with the AI-chat handler), Web Speech fallback with 2.5s
+  silence finalize; transcript inserted at the caret.
+
+## AI rewrite actions
+- Rewrite / Improve / Shorten / Expand / Make professional / Make personal.
+- Shows a preview with Replace / Copy / Discard; original is untouched until the user taps
+  Replace. Uses gemCall.
+
+## Mood sync
+- Saving a journal entry with a mood writes to state.mood[date] via JR_TO_MOOD, so it shows
+  in Stats/mood history (great->Happy, good->Calm, okay->Neutral, low->Sad, diff->Stressed).
+
+## JSON fix
+- The uploaded JSON's content was already valid HTML; the "formatting not applied" issue was
+  app-side rendering, now fixed. Also cleaned 15 entries with stray markdown (**), leftover
+  ### headers, and double-escaped <br>. Final file: 0 markdown leftovers, 221 entries.
+
+## Validation (runtime, jsdom)
+- Toolbar issues styleWithCSS + formatBlock + list commands correctly; custom template
+  saves to synced jrTpl; AI rewrite preview->replace works; mic present; journal mood syncs
+  to history; fixed JSON imports; all 7 tabs render with zero errors.
+
+## Deferred to next pass (per plan)
+- Today tab simplification (4 quick actions, compact mood card w/ insights icon), Stats
+  metric audit/trim, broader UI/UX consolidation, full AI-action audit.
