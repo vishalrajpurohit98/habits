@@ -136,31 +136,6 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 #aiInsights .askBtn:active{background:var(--card2)}
 #aiInsights .askBtn .askIco{color:var(--sPurple);font-size:16px}
 
-/* ============ AI CHAT V2: modes + voice input ============ */
-.uaiModeBar{display:flex;gap:6px;padding:10px 12px 8px;overflow-x:auto;border-bottom:1px solid rgba(255,255,255,.045);scrollbar-width:none}
-.uaiModeBar::-webkit-scrollbar{display:none}.uaiMode{border:1px solid var(--line2);background:var(--card2);color:var(--mut);border-radius:999px;padding:7px 11px;font-size:10.5px;font-weight:800;white-space:nowrap;cursor:pointer;transition:.16s}
-.uaiMode.sel{background:var(--primarySoft);border-color:rgba(78,168,255,.35);color:var(--primary)}
-.uaiMode:active{transform:scale(.97)}
-.uaiInputRow{align-items:center}.uaiInp{min-width:0}.uaiMic{width:42px;height:42px;border-radius:14px;background:var(--card2);border:1px solid var(--line2);color:var(--ink);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;cursor:pointer;transition:.18s}
-.uaiMic.listening{background:var(--primarySoft);border-color:rgba(78,168,255,.45);color:var(--primary);box-shadow:0 0 0 4px rgba(78,168,255,.07);animation:uaiMicPulse 1.5s ease-in-out infinite}
-@keyframes uaiMicPulse{50%{transform:scale(1.04);box-shadow:0 0 0 8px rgba(78,168,255,0)}}
-.uaiListenStatus{display:none;padding:7px 12px 9px;font-size:10.5px;color:var(--primary);align-items:center;gap:7px;background:rgba(78,168,255,.035)}
-.uaiListenStatus.on{display:flex}.uaiListenDot{width:7px;height:7px;border-radius:50%;background:var(--primary);box-shadow:0 0 0 4px rgba(78,168,255,.1);animation:uaiDot 1s infinite}
-@keyframes uaiDot{50%{opacity:.35;transform:scale(.75)}}
-.uaiTools{display:flex;gap:6px;align-items:center;margin-top:8px;flex-wrap:wrap}
-.uaiSpeak{border:1px solid var(--line2);background:var(--card2);color:var(--mut);border-radius:999px;padding:5px 9px;font-size:10px;font-weight:800;cursor:pointer}
-.uaiSpeak:active{transform:scale(.97)}
-.uaiSpeak.speaking{color:var(--primary);border-color:rgba(78,168,255,.35);background:var(--primarySoft)}
-.uaiCardGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:9px 0}
-.uaiInsightCard{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:9px 10px}
-.uaiInsightCard b{display:block;font-size:11px;color:var(--ink);margin-bottom:2px}
-.uaiInsightCard span{font-size:12px;color:var(--mut);line-height:1.35}
-.uaiActionBar{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px}
-.uaiActionChip{border:1px solid var(--line2);background:var(--card2);color:var(--ink);border-radius:10px;padding:7px 9px;font-size:10.5px;font-weight:800}
-.uaiBrief{margin:10px 12px 0;padding:11px 12px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,rgba(78,168,255,.07),transparent)}
-.uaiBrief b{font-size:12px}.uaiBrief span{display:block;font-size:10.5px;color:var(--mut);margin-top:3px}
-.uaiModeHint{padding:7px 12px 0;font-size:10px;color:var(--mut);line-height:1.4}.uaiPlanner{margin:10px 12px 2px;padding:12px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(135deg,rgba(78,168,255,.06),transparent)}
-.uaiPlanner b{font-size:12px}.uaiPlanner span{display:block;color:var(--mut);font-size:10.5px;margin-top:3px}
 /* ============ UNIVERSAL AI ASSISTANT ============ */
 .uaiBox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:0;overflow:hidden;margin-bottom:14px}
 .uaiLog{max-height:400px;overflow-y:auto;padding:4px 14px 0}
@@ -1162,6 +1137,94 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 .uaiCategoryRow{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.uaiCategory{border:1px solid var(--line2);background:var(--card2);color:var(--ink);border-radius:999px;padding:7px 11px;font-size:11px;font-weight:750;cursor:pointer}.uaiCategory:active{transform:translateY(1px);background:var(--card3)}
 .uaiHints{padding:8px 12px 13px;border-top:1px solid rgba(255,255,255,.035)}.uaiHint{cursor:pointer}.uaiFollowups{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 4px;padding-left:4px}.uaiFollowup{border:1px solid var(--line2);background:var(--card);color:var(--mut);border-radius:999px;padding:6px 10px;font-size:10.5px;font-weight:750;cursor:pointer}.uaiFollowup:active{background:var(--card2)}
 .uaiMsg.bot{box-shadow:0 5px 18px rgba(0,0,0,.08)}.uaiMsg.user{box-shadow:0 5px 18px rgba(0,0,0,.07)}
+
+/* ===== Journal V1.4.0 ===== */
+.jrNav{display:flex;gap:6px;margin:14px 0 16px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.jrNav::-webkit-scrollbar{display:none}
+.jrNavItem{flex:1 0 auto;min-width:64px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:.15s;color:var(--mut)}
+.jrNavItem .ic{width:22px;height:22px}
+.jrNavItem .lb{font-size:11px;font-weight:700}
+.jrNavItem.on{background:var(--amberSoft);border-color:var(--amber);color:var(--amber)}
+.jrNewBtn{width:100%;border:0;background:var(--grad-amber);color:var(--onAccent);font-weight:800;font-size:16px;padding:15px;border-radius:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 18px rgba(255,174,31,.22)}
+.jrMiniStat{display:flex;gap:8px;margin:14px 0}
+.jrMiniStat .s{flex:1;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px;text-align:center}
+.jrMiniStat .n{font-size:17px;font-weight:800}
+.jrMiniStat .l{font-size:10px;color:var(--mut2);margin-top:1px}
+.jrDayHead{font-size:13px;font-weight:800;color:var(--mut);margin:16px 2px 8px;display:flex;justify-content:space-between}
+.jrCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:10px;cursor:pointer;transition:.15s}
+.jrCard:active{transform:scale(.99)}
+.jrTop{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.jrTime{font-size:12px;font-weight:700;color:var(--amber)}
+.jrMood{font-size:15px}
+.jrFav{margin-left:auto;color:var(--amber);font-size:14px}
+.jrTt{font-weight:700;font-size:16px;margin:2px 0}
+.jrSnip{font-size:14px;color:var(--mut);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.jrTags{margin-top:8px;display:flex;flex-wrap:wrap;gap:5px}
+.jrTag{font-size:11px;color:var(--ice);background:var(--iceSoft);padding:2px 8px;border-radius:8px;font-weight:600}
+.jrAiRow{display:flex;gap:8px;margin:14px 0 4px}
+.jrAiBtn{flex:1;border:1px solid var(--line);background:var(--card2);color:var(--ink);font-weight:700;font-size:14px;padding:13px;border-radius:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.jrAiBtn.acc{background:var(--purpleSoft,rgba(155,123,255,.14));border-color:rgba(155,123,255,.3);color:var(--purple,#9B7BFF)}
+.promptCard .pq{font-size:16px;font-style:italic;color:var(--ink2);line-height:1.4;margin:8px 0 12px}
+.jrPromptRow{display:flex;gap:8px}
+.jrCtxGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
+.jrCtxItem{display:flex;align-items:center;gap:8px;font-size:13px}
+.jrCtxItem .k{color:var(--mut)}
+.jrCtxItem .v{margin-left:auto;font-weight:700}
+.jrTplGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.jrTpl{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:14px;cursor:pointer}
+.jrTpl .ti{font-size:26px}
+.jrTpl .tn{font-weight:700;font-size:14px;margin-top:5px}
+.jrTpl .td{font-size:11px;color:var(--mut2);margin-top:2px}
+.jrOtdRow{display:flex;gap:10px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line);cursor:pointer}
+.jrOtdRow:first-child{border-top:0}
+.jrOtdRow .oy{font-size:12px;font-weight:800;color:var(--amber);flex:0 0 82px}
+.jrOtdRow .ot{font-size:13px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.jrMut{color:var(--mut2);font-size:13px;text-align:center;padding:16px}
+.jrLink{color:var(--amber);cursor:pointer;text-decoration:underline}
+.jrCalHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.jrCalHead b{font-size:16px}
+.jrCalNav{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:var(--card2);color:var(--ink);cursor:pointer;font-size:16px}
+.jrCalGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.jrCalDow{text-align:center;font-size:11px;color:var(--mut2);font-weight:700;padding:4px 0}
+.jrCalCell{aspect-ratio:1;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;cursor:pointer;color:var(--ink2);position:relative}
+.jrCalCell.mut{opacity:.35;cursor:default}
+.jrCalCell.has{background:var(--amberSoft);color:var(--amber);font-weight:700}
+.jrCalCell.today{outline:2px solid var(--amber)}
+.jrCalCell .dot{width:5px;height:5px;border-radius:50%;background:var(--amber);position:absolute;bottom:6px}
+.jrMetaRow{display:flex;gap:8px;margin:10px 0}
+.jrMetaRow .inp{flex:1}
+.jrMoodRow{display:flex;gap:6px;margin:12px 0}
+.jrMoodOpt{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 0;text-align:center;font-size:20px;cursor:pointer}
+.jrMoodOpt.on{background:var(--amberSoft);border-color:var(--amber)}
+.jrMoodOpt .ml{display:block;font-size:10px;color:var(--mut);margin-top:2px}
+.jrToolbar{display:flex;gap:2px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:5px;margin:10px 0}
+.jrTb{border:0;background:transparent;color:var(--ink2);width:34px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700}
+.jrTb:active{background:var(--card3)}
+.jrEditor{width:100%;min-height:180px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:14px;font-size:15px;line-height:1.6;font-family:inherit;outline:none}
+.jrEditor:focus{border-color:var(--amber)}
+.jrEditor:empty:before{content:attr(data-ph);color:var(--mut2)}
+.jrEditor h3{font-size:18px;margin:.4em 0}
+.jrEditor blockquote{border-left:3px solid var(--amber);margin:.5em 0;padding-left:12px;color:var(--ink2)}
+.jrFavLbl{display:flex;align-items:center;gap:8px;margin:12px 2px;font-size:14px;cursor:pointer}
+.jrAiMenuBtn{width:100%;border:1px solid rgba(155,123,255,.3);background:var(--purpleSoft,rgba(155,123,255,.14));color:var(--purple,#9B7BFF);font-weight:800;font-size:14px;padding:12px;border-radius:14px;cursor:pointer;margin-top:12px}
+.jrAiMenu{display:none;flex-wrap:wrap;gap:6px;margin-top:8px}
+.jrAiMenu.on{display:flex}
+.jrAiMenu .sbtn{font-size:12px;padding:7px 11px}
+.jrAiOut{background:var(--purpleSoft,rgba(155,123,255,.14));border:1px solid rgba(155,123,255,.25);border-radius:14px;padding:14px;margin-top:12px}
+.jrAiOut .h{font-size:12px;font-weight:800;color:var(--purple,#9B7BFF);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.jrAiOut .b{font-size:14px;line-height:1.6;color:var(--ink2)}
+.jrListen{margin-top:10px;border:1px solid rgba(155,123,255,.3);background:transparent;color:var(--purple,#9B7BFF);font-weight:700;font-size:13px;padding:8px 12px;border-radius:11px;cursor:pointer}
+.jrSrc{margin-top:10px;font-size:12px}
+.jrSrc .sh{color:var(--mut2);font-weight:700;margin-bottom:5px}
+.jrSrcItem{display:flex;gap:6px;padding:4px 0;color:var(--ink2);cursor:pointer}
+.jrSrcItem .d{color:var(--amber);font-weight:700;flex:0 0 74px}
+.jrSpin{display:inline-block;width:13px;height:13px;border:2px solid rgba(155,123,255,.3);border-top-color:var(--purple,#9B7BFF);border-radius:50%;animation:jrsp .7s linear infinite}
+@keyframes jrsp{to{transform:rotate(360deg)}}
+.jrSaveRow{display:flex;gap:8px;margin-top:14px}
+.jrSaveRow .primary{flex:1}
+.jrRefProg{font-size:12px;color:var(--mut2);margin-bottom:6px}
+.jrRefQ{font-size:17px;font-weight:700;margin-bottom:12px;line-height:1.4}
+
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -1486,42 +1549,112 @@ to{opacity:1;transform:none}}
     </div>
   </div>
 
-  <!-- ============ JOURNAL ============ -->
+    <!-- ============ JOURNAL (V1.4.0) ============ -->
   <div class="page" id="pgJr">
     <div class="eyebrow">Your story</div>
     <div class="h1row">
       <h1>Journal</h1>
       <button class="srchBtn" id="jrSrchBtn" aria-label="Search journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
-    <div class="srchWrap" id="jrSrchWrap">
-      <input id="jrSrch" class="inp materialSearch" maxlength="40" placeholder="Search entries&#8230;" autocomplete="off">
-      <div class="chips" id="jrTagRow" style="margin-top:10px"></div>
+
+    <div class="jrNav" id="jrNav">
+      <div class="jrNavItem on" data-jv="timeline"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="lb">Timeline</span></div>
+      <div class="jrNavItem" data-jv="calendar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span class="lb">Calendar</span></div>
+      <div class="jrNavItem" data-jv="write"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg><span class="lb">Write</span></div>
+      <div class="jrNavItem" data-jv="memories"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg><span class="lb">Memories</span></div>
+      <div class="jrNavItem" data-jv="insights"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M20 20H3"/></svg><span class="lb">Insights</span></div>
     </div>
-    <div style="height:14px"></div>
-    <div class="promptCard">
-      <div class="lbl" style="margin:0">&#9997;&#65039; Today's prompt</div>
-      <div class="pq" id="jrPrompt"></div>
-      <button class="sbtn acc" id="jrWriteBtn">Write about it</button>
+
+    <!-- TIMELINE -->
+    <div id="jrView-timeline">
+      <button class="jrNewBtn" id="jrNewBtn"><span style="font-size:20px">&#65291;</span> New Entry</button>
+      <div class="jrMiniStat">
+        <div class="s"><div class="n" id="jrStatStreak">&#128293; 0</div><div class="l">day streak</div></div>
+        <div class="s"><div class="n" id="jrStatMonth">0</div><div class="l">this month</div></div>
+        <div class="s"><div class="n" id="jrStatDays">0</div><div class="l">days journaled</div></div>
+      </div>
+      <div id="jrList"></div>
+      <div class="empty" id="jrEmpty" hidden>
+        <div class="big">&#128214;</div>
+        <div class="t">Your journal is empty</div>
+        <div class="s">Text entries, #tags and memories &mdash; all private.</div>
+        <button class="emptyCtaBtn" id="jrEmptyCta">Write your first entry</button>
+      </div>
+      <div class="jrAiRow">
+        <button class="jrAiBtn acc" data-jrday="summary">&#10024; Summarize Day</button>
+        <button class="jrAiBtn acc" data-jrday="reflect">&#10024; Reflect on Day</button>
+      </div>
+      <div id="jrDayAiOut"></div>
     </div>
-    <div class="setCard" id="otdCard" style="padding:8px 16px;display:none">
-      <div class="lbl" style="margin:10px 0 4px">On this day</div>
-      <div id="otdList"></div>
+
+    <!-- CALENDAR -->
+    <div id="jrView-calendar" style="display:none">
+      <div class="setCard" style="padding:16px">
+        <div class="jrCalHead"><button class="jrCalNav" data-jcalmove="-1">&#8249;</button><b id="jrCalTitle">&nbsp;</b><button class="jrCalNav" data-jcalmove="1">&#8250;</button></div>
+        <div class="jrCalGrid" id="jrCalGrid"></div>
+      </div>
+      <div id="jrCalDay"></div>
     </div>
-    <div id="jrList"></div>
-    <div class="empty" id="jrEmpty" hidden>
-      <div class="big">&#128214;</div>
-      <div class="t">Your journal is empty</div>
-      <div class="s">Photos, #tags and memories &mdash;<br>all private, all offline.</div>
-      <button class="emptyCtaBtn" id="jrEmptyCta">Write your first entry</button>
+
+    <!-- WRITE -->
+    <div id="jrView-write" style="display:none">
+      <div class="promptCard">
+        <div class="lbl" style="margin:0">&#128161; Today's prompt</div>
+        <div class="pq" id="jrPromptText"></div>
+        <div class="jrPromptRow"><button class="sbtn acc" id="jrWriteBtn">Write about this</button><button class="sbtn" id="jrAnotherPrompt">Another prompt</button></div>
+      </div>
+      <button class="jrAiBtn" style="width:100%;margin-bottom:12px" id="jrTalkBtn">&#10024; Talk / Write About My Day</button>
+      <div class="setCard" style="padding:16px">
+        <div class="lbl" style="margin:0 0 8px">Today's context <span style="font-size:11px;color:var(--mut2)">&middot; read-only</span></div>
+        <div id="jrCtx"></div>
+      </div>
+      <div class="setCard" style="padding:16px">
+        <div class="lbl" style="margin:0 0 8px">Templates</div>
+        <div class="jrTplGrid" id="jrTplGrid"></div>
+      </div>
+    </div>
+
+    <!-- MEMORIES -->
+    <div id="jrView-memories" style="display:none">
+      <div class="setCard" style="padding:16px">
+        <div class="lbl" style="margin:0 0 8px">&#128280; On this day</div>
+        <div id="jrOtd"></div>
+      </div>
+      <div class="setCard" style="padding:16px">
+        <div class="lbl" style="margin:0 0 8px">&#11088; Favorites</div>
+        <div id="jrFavList"></div>
+      </div>
+    </div>
+
+    <!-- INSIGHTS -->
+    <div id="jrView-insights" style="display:none">
+      <div class="setCard" style="padding:20px;text-align:center">
+        <div style="font-size:40px;font-weight:800;color:var(--amber)" id="jrInsStreak">&#128293; 0</div>
+        <div style="font-size:13px;color:var(--mut)">day journal streak</div>
+      </div>
+      <div class="jrMiniStat">
+        <div class="s"><div class="n" id="jrInsMonth">0</div><div class="l">entries / month</div></div>
+        <div class="s"><div class="n" id="jrInsDays">0</div><div class="l">days journaled</div></div>
+      </div>
+      <button class="jrAiBtn acc" style="width:100%" id="jrWholeAiBtn">&#10024; Analyse my whole journal</button>
+      <div id="jrInsAiOut"></div>
+    </div>
+
+    <!-- SEARCH -->
+    <div id="jrView-search" style="display:none">
+      <input class="inp" id="jrSearchInp" maxlength="60" placeholder="Search title, body, #tags, mood, date&#8230;" autocomplete="off">
+      <div class="chips" id="jrTagRow" style="margin:12px 0"></div>
+      <div id="jrSearchResults"></div>
     </div>
   </div>
+
 
   <!-- ============ SETTINGS ============ -->
   <!-- ============ AI PAGE ============ -->
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can understand your tracker, answer questions, and help you make changes safely.</div>
-    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ Actionables AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div class="uaiModeBar" id="uaiModeBar"><button class="uaiMode sel" data-mode="ask">Ask</button><button class="uaiMode" data-mode="plan">Plan</button><button class="uaiMode" data-mode="analyze">Analyze</button><button class="uaiMode" data-mode="act">Act</button></div><div id="uaiModeHint" class="uaiModeHint">Ask anything about your tracker.</div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask about your habits, tasks, spending, mood, sleep, workouts, journal, or planning. I’ll ask for missing details before making changes.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div><div class="uaiActionBar"><button class="uaiActionChip uaiCategory" data-cmd="Give me my daily briefing">☀️ Daily briefing</button><button class="uaiActionChip uaiCategory" data-cmd="Plan my day using my priorities and existing tracker data">🗓️ Plan my day</button></div></div><div id="uaiLog" class="uaiLog"></div><div id="uaiListenStatus" class="uaiListenStatus"><span class="uaiListenDot"></span><span id="uaiListenText">Listening… I’ll wait for about 2.5 seconds of silence before sending.</span></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything about your tracker…" autocomplete="off"><button class="uaiMic" id="uaiMic" aria-label="Voice input" title="Speak">🎙️</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Plan my day">Plan my day</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span></div></div>
+    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ Actionables AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask about your habits, tasks, spending, mood, sleep, workouts, journal, or planning. I’ll ask for missing details before making changes.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div></div><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything about your tracker…" autocomplete="off"><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span></div></div>
     
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
@@ -1928,6 +2061,7 @@ to{opacity:1;transform:none}}
   <button class="tab" data-tab="pgMood"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.6 14.4c.9 1.1 2.1 1.7 3.4 1.7s2.5-.6 3.4-1.7M9 9.7h.01M15 9.7h.01"/></svg>Mood</button>
   <button class="tab" data-tab="pgExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3z"/><path d="M3 10h18M7 15h4"/></svg>Money</button>
   <button class="tab" data-tab="pgStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
+  <button class="tab" data-tab="pgJr"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h13a2 2 0 012 2v14l-4-2-4 2-4-2-3 2V6a2 2 0 012-2z"/></svg>Journal</button>
   <button class="tab" data-tab="pgAI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>AI</button>
   <button class="tab" data-tab="pgSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 00-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 002 1.2l.4 2.7h4l.4-2.7a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
 </div>
@@ -2095,18 +2229,51 @@ to{opacity:1;transform:none}}
 <div class="sheet" id="jrSheet">
   <div class="grab"></div>
   <h2 id="shJrTitle">New entry</h2>
-  <button class="dateBtn" id="jrDateBtn"><span class="dLbl">Date</span><span id="jrDateTxt">Today</span></button>
-  <div class="lbl">Title</div>
-  <input id="jrTitle" class="inp" maxlength="80" placeholder="Give it a title (optional)">
-  <div class="lbl">Entry</div>
-  <textarea id="jrBody" class="inp" maxlength="6000" style="min-height:150px" placeholder="Write freely&#8230; **bold**, *italic* and #tags supported"></textarea>
+  <input id="jrTitle" class="inp" maxlength="120" placeholder="Title (optional)">
+  <div class="jrMetaRow">
+    <input id="jrDate" class="inp" type="date">
+    <input id="jrTime" class="inp" type="time">
+  </div>
+  <div class="jrMoodRow" id="jrMoodRow">
+    <div class="jrMoodOpt" data-jm="great">&#128516;<span class="ml">Great</span></div>
+    <div class="jrMoodOpt" data-jm="good">&#128578;<span class="ml">Good</span></div>
+    <div class="jrMoodOpt" data-jm="okay">&#128528;<span class="ml">Okay</span></div>
+    <div class="jrMoodOpt" data-jm="low">&#128532;<span class="ml">Low</span></div>
+    <div class="jrMoodOpt" data-jm="diff">&#128547;<span class="ml">Difficult</span></div>
+  </div>
+  <div class="jrToolbar" id="jrToolbar">
+    <button class="jrTb" data-jrt="bold" style="font-weight:800">B</button>
+    <button class="jrTb" data-jrt="italic" style="font-style:italic">I</button>
+    <button class="jrTb" data-jrtblock="h3">H</button>
+    <button class="jrTb" data-jrt="insertUnorderedList">&bull;</button>
+    <button class="jrTb" data-jrt="insertOrderedList">1.</button>
+    <button class="jrTb" data-jrtblock="blockquote">&ldquo;</button>
+    <button class="jrTb" data-jrtcheck="1">&#9745;</button>
+  </div>
+  <div class="jrEditor" id="jrBody" contenteditable="true" data-ph="Write freely&#8230; use #tags anywhere"></div>
   <div class="setS" id="jrTagLine" style="margin-top:7px"></div>
-  <div class="lbl">Photos</div>
-  <div class="jrThRow" id="jrPhotos"></div>
-  <button class="addT" id="jrAddPh">+ Add photos</button>
+  <label class="jrFavLbl"><input type="checkbox" id="jrFav"> &#11088; Mark as favorite</label>
+  <button class="jrAiMenuBtn" id="jrAiMenuBtn">&#10024; AI actions &#9662;</button>
+  <div class="jrAiMenu" id="jrAiMenu">
+    <button class="sbtn" data-jrai="Improve Writing">Improve Writing</button>
+    <button class="sbtn" data-jrai="Summarize">Summarize</button>
+    <button class="sbtn" data-jrai="Suggest Title">Suggest Title</button>
+    <button class="sbtn" data-jrai="Find Insights">Find Insights</button>
+    <button class="sbtn" data-jrai="Reflect">Reflect</button>
+    <button class="sbtn" data-jrai="Extract Tasks">Extract Tasks</button>
+    <button class="sbtn" data-jrai="Ask AI About This">Ask AI About This</button>
+  </div>
+  <div id="jrEntryAiOut"></div>
   <button class="primary" id="jrSaveBtn">Save entry</button>
   <button class="danger" id="jrDelBtn" style="display:none">Delete entry</button>
 </div>
+
+<div class="sheet" id="jrReflectSheet">
+  <div class="grab"></div>
+  <h2>&#10024; Reflect on your day</h2>
+  <div id="jrReflectBody"></div>
+</div>
+
 
 
 
@@ -2322,15 +2489,7 @@ function normState(s){
   s.tasks=s.tasks.map(normTask);
   if(!(s.jr instanceof Array)) s.jr = [];
   for(var ji=0; ji<s.jr.length; ji++){
-    var je = s.jr[ji] || {};
-    je.id = je.id || (Date.now().toString(36) + Math.random().toString(36).slice(2,7));
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(je.d || '')) je.d = today();
-    je.t = String(je.t || '').slice(0,80);
-    je.b = String(je.b || '').slice(0,6000);
-    if(!(je.ph instanceof Array)) je.ph = [];
-    je.ph = je.ph.filter(function(pn){ return typeof pn === 'string' && /^[A-Za-z0-9_.-]+$/.test(pn); });
-    je.created = +je.created || 0;
-    s.jr[ji] = je;
+    s.jr[ji] = (typeof jrMigrateEntry==='function') ? jrMigrateEntry(s.jr[ji]) : (s.jr[ji]||{});
   }
   // ===== expense tracker =====
   if(!(s.accts instanceof Array)) s.accts = [];
@@ -3426,22 +3585,6 @@ function gemCall(prompt, maxTokens){
 }
 
 /* ============ UNIVERSAL AI ACTION ENGINE ============ */
-function buildAiAnalytics(){
-  var now=new Date(),ts=today(),out=[],active=state.habits.filter(function(h){return !h.arch;}),hr=[];
-  active.forEach(function(h){var due=0,done=0;for(var i=0;i<7;i++){var dd=addDays(now,-i);if(dueOn(h,dd)){due++;if(isDone(h,fmt(dd)))done++;}}if(due)hr.push({name:h.name,rate:Math.round(done/due*100),done:done,due:due});});
-  hr.sort(function(a,b){return b.rate-a.rate;});
-  if(hr.length){out.push('ANALYTICS: habit 7d average='+Math.round(hr.reduce(function(x,y){return x+y.rate;},0)/hr.length)+'%');out.push('Top habit='+hr[0].name+' '+hr[0].rate+'%; weakest habit='+hr[hr.length-1].name+' '+hr[hr.length-1].rate+'%.');}
-  var dueTasks=state.tasks.filter(function(t){return t.dueDate&&t.dueDate<=ts;});
-  var overdue=dueTasks.filter(function(t){return t.dueDate<ts&&taskEffectiveStatus(t)!=='completed';});
-  var openToday=state.tasks.filter(function(t){return t.dueDate===ts&&taskEffectiveStatus(t)!=='completed';});
-  out.push('Task analytics: overdue='+overdue.length+', due_today_open='+openToday.length+', open_total='+state.tasks.filter(function(t){return taskEffectiveStatus(t)!=='completed';}).length);
-  var seven=addDays(now,-6),sp=0,inc=0,byCat={};state.tx.forEach(function(t){if(t.d>=fmt(seven)&&t.d<=ts){if(t.kind==='exp'){sp+=Number(t.amt)||0;byCat[t.cat]=(byCat[t.cat]||0)+(Number(t.amt)||0);}else if(t.kind==='inc')inc+=Number(t.amt)||0;}});
-  var cats=Object.keys(byCat).sort(function(a,b){return byCat[b]-byCat[a];});out.push('Money analytics: last_7d_expenses='+sp+', income='+inc+(cats.length?', top_category='+cats[0]+' '+byCat[cats[0]]:'')+'.');
-  var sm=[],mo=[];for(var i=0;i<7;i++){var ds=fmt(addDays(now,-i)),sl=sleepOn(ds),mi=moodOf(ds);if(sl&&sl.mins>0)sm.push(sl.mins);if(mi>=0)mo.push(mi);}
-  if(sm.length)out.push('Sleep analytics: avg_last_7d='+Math.round(sm.reduce(function(a,b){return a+b;},0)/sm.length)+' minutes.');
-  if(mo.length)out.push('Mood analytics: recorded_days='+mo.length+', average_index='+Math.round(mo.reduce(function(a,b){return a+b;},0)/mo.length*10)/10+' (lower is better).');
-  return out.join('\n')||'No analytics available yet.';
-}
 function buildDataContext(){
   var now=new Date(), ts=today(), lines=[];
   var active=state.habits.filter(function(h){return !h.arch;});
@@ -3493,7 +3636,13 @@ function buildDataContext(){
   if(state.cats)for(var ck in state.cats)cats.push(ck);
   if(cats.length)lines.push('CATEGORIES: '+cats.join(', '));
   if(state.accts)state.accts.forEach(function(a){if(a.active!==false)lines.push('ACCOUNT: "'+a.name+'" id='+a.id+' bal='+acctBalance(a.id));});
-  lines.push(buildAiAnalytics());
+  // ===== JOURNAL (recent + retrieval note) =====
+  if(state.jr && state.jr.length){
+    var jrs=state.jr.slice().sort(function(a,b){return ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||''));});
+    lines.push('JOURNAL ('+state.jr.length+' entries total; showing recent):');
+    jrs.slice(0,12).forEach(function(e){var body=(function(h){var d=document.createElement('div');d.innerHTML=String(h||'');return (d.textContent||'').replace(/\s+/g,' ').trim();})(e.content).slice(0,220);lines.push('- '+(e.date||'')+' '+(e.time||'')+(e.mood?' ['+e.mood+']':'')+' \"'+String(e.title||'').replace(/\"/g,'')+'\": '+body);});
+    lines.push('JOURNAL RULES: Answer journal questions ONLY from the entries above. If the entries do not contain the answer, say you could not find a journal entry about it. Never invent journal history, dates, or counts. When you cite journal content, refer to the entry date.');
+  } else { lines.push('JOURNAL: (no entries yet)'); }
   return lines.join('\n');
 }
 var AI_PREF_KEY='ai_user_preferences_v1';
@@ -3545,20 +3694,11 @@ function aiResolveTask(name,id){
   if(partial.length>1)return {error:'I found multiple tasks matching “'+name+'”. Please say the exact task name.'};
   return {error:'I could not find a task named “'+name+'”.'};
 }
-var uaiMode='ask';
-function uaiModeInstruction(){
-  if(uaiMode==='plan') return 'MODE: PLAN. Help organize the user’s day/week using real tracker data. For “plan my day”, propose a practical ordered plan using due tasks, priorities, habits, and known commitments. Do not invent calendar events. Ask one question only if a key planning constraint is genuinely missing. Do not modify data merely by proposing a plan.';
-  if(uaiMode==='analyze') return 'MODE: ANALYZE. Focus on patterns, trends, bottlenecks, consistency, aging, spending, sleep, mood, workouts and habit performance. Use actual APP DATA numbers. Explain what matters and give concise actionable recommendations. Do not mutate data unless the user explicitly asks.';
-  if(uaiMode==='act') return 'MODE: ACT. The user wants the assistant to make a tracker change when sufficiently specified. Collect missing required fields one at a time, then execute. For destructive or bulk changes, require confirmation.';
-  return 'MODE: ASK. Answer questions naturally and help the user complete tracker actions conversationally.';
-}
 function uaiPrompt(text,conversationContext){
-  return 'You are the universal AI assistant for Personal Tracker. '+uaiModeInstruction()+'\n\n'
-  +'You can READ/CREATE/UPDATE/DELETE across the app: Habits, Tasks, Expenses/Transactions, Mood, Sleep, Journal, Workouts/Exercises, Settings and Navigation.\n\n'
-  +'APP DATA + DETERMINISTIC ANALYTICS:\n'+buildDataContext()+'\n\nPERSISTENT USER PREFERENCES (explicitly saved):\n'+preferenceText()+'\n\n'
+  return 'You are the universal AI assistant for Personal Tracker. You can READ/CREATE/UPDATE/DELETE across the app: Habits, Tasks, Expenses/Transactions, Mood, Sleep, Journal, Workouts/Exercises, Settings and Navigation.\n\n'
+  +'APP DATA:\n'+buildDataContext()+'\n\nPERSISTENT USER PREFERENCES (explicitly saved):\n'+preferenceText()+'\n\n'
   +'RESPOND WITH ONLY ONE JSON OBJECT (no markdown, no backticks, no extra text):\n'
-  +'{"action":"TYPE","params":{...},"message":"short natural response","cards":[{"title":"label","value":"value"}]}\n'
-  +'For compound requests you may use action=multi_action with params.actions=[{action,params,message,confirm}]. Use this only when every child action is sufficiently specified. If any child is missing required information, return clarify instead of partially executing.\n\n'
+  +'{"action":"TYPE","params":{...},"message":"short confirmation"}\n\n'
   +'ACTIONS:\n'
   +'add_expense: {amt,cat,sub,note,payee,kind("exp"/"inc"),date("YYYY-MM-DD"),acct}\n'
   +'delete_expense: {id,date,cat,amt,payee} for one matching expense; if ambiguous ask for clarification\n'
@@ -3583,12 +3723,11 @@ function uaiPrompt(text,conversationContext){
   +'update_task: {id,match,newTitle,description,dueDate,dueTime,priority,status,reminders,recurrence}\n'
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
   +'navigate: {tab(today/tasks/mood/exp/stats/ai/set)}\n'
-  +'query: {} message=answer the question from app data\n'
-  +'clarify: {} message=ask for missing info\n'
-  +'multi_action: {actions:[{action,params,message,confirm}]} execute several explicit safe actions together; destructive children require confirmation\n\n'
+  +'query: {} message=answer the question from app data. This INCLUDES journal questions; answer ONLY from JOURNAL entries in APP DATA; if nothing matches say you could not find a journal entry about it; never invent journal entries, dates, or counts.\n'
+  +'clarify: {} message=ask for missing info\n\n'
   +'For add_expense, acct must be the account ID shown in APP DATA (preferred) or the exact account name; never use a merchant/payee/category as the account. If the user does not specify an account, leave acct empty and let the app choose the active default account. Put merchant names such as Swiggy in payee, not acct.\n'
   +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep the message concise and conversational, usually 1-3 sentences.\n'
-  +'For QUERIES: answer with specific numbers from the data. For daily briefings, summarize today’s open/overdue tasks, habit progress, money and recent wellbeing, then give ONE highest-value next action. For analysis, use the deterministic analytics section as the source of truth for calculations. Never invent numbers. Prefer concise structured cards when a response contains several metrics. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n'
+  +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n'
   +'CONVERSATION RULES: Understand natural language and scenarios, not only explicit commands. Infer likely intent, but NEVER execute a create/update action while a required field is missing. The assistant must behave like a conversational form: collect required details over multiple turns, one focused question at a time, and carry every previously supplied detail forward. IMPORTANT REQUIRED-FIELD RULES: For add_habit, require the habit name AND an explicit meaningful frequency/schedule (daily, weekdays, selected days, X times, or quota); if frequency is missing, return clarify and DO NOT create the habit. For add_task, require the task title AND ask when it should be due/scheduled; if the user says no due date, that is an explicit answer and may be used. If a task is intended to repeat, also collect the recurrence/frequency; never invent a deadline or recurrence. For set_mood, require the mood before saving; if the user only says \"log my mood\" or similar, ask which mood and do not default to Neutral. For set_sleep, require both bedtime and wake time before saving; if either is missing, ask for the missing time and do not silently use 23:00/06:00. For log_workout, require the exercise and workout values/sets before saving; ask for whichever is missing. For add_journal, require meaningful title/body content before saving. For add_expense, require amount and a reliable category; ask for category when it cannot be reliably inferred rather than defaulting to Other. Account may use the explicit/default account rule already defined. Keep follow-up questions focused: normally ask ONE smallest missing detail, not a long questionnaire. Preserve context across follow-up turns. Treat scenario/problem statements as opportunities to identify the user’s likely goal. If the scenario clearly implies a useful tracker action, propose the action or ask one focused question rather than merely giving generic advice; once the user authorizes it, collect required details and execute. Do not mutate data solely from an uncertain inference. Explicit preference statements such as \"remember that...\" should be reflected in PERSISTENT USER PREFERENCES; casual temporary comments should not. If the user asks to remember or forget a preference, handle that explicitly.\n\n'
   +'RECENT CONVERSATION (active chat context):\n'+(conversationContext||'None')+'\n\nPENDING ACTION FROM PREVIOUS TURN (if any):\n'+(function(){try{var p=JSON.parse(localStorage.getItem('uai_pending_action_v1')||'null');return p?(p.action+' '+JSON.stringify(p.params||{})):'None';}catch(e){return 'None';}})()+'\n\nFOLLOW-UP RULES: If the latest user message is short (for example a category, account, amount, date, habit name, task name, yes/no answer, or correction), treat it as a continuation of the immediately preceding request/clarification. Do NOT discard the earlier request. Carry forward all already supplied fields and fill only the missing/corrected field. Never restart an expense, task, habit, or other action from scratch unless the user explicitly starts a new request. For destructive actions, use the exact named record from the conversation or APP DATA; never substitute the first/most familiar record. If a name is ambiguous, ask the user to choose instead of guessing.\n'+'CHAT RESPONSE RULES: Write for a normal text chat. Never expose internal IDs, database fields, JSON, params, action names, or implementation details unless the user explicitly asks about technical implementation. For lists and progress, use names and meaningful numbers, not raw records. When asking a follow-up, ask only the smallest missing detail. If a pending action exists, merge the user’s latest answer into that action instead of starting over. Never invent missing frequency, priority, dates, times, amounts, categories, or other required fields. Keep answers concise but useful.\n\nUser: '+text;
 }
@@ -3620,26 +3759,12 @@ function validateAIActionCompleteness(a,p){
     if(!isFinite(Number(p.amt))||Number(p.amt)<=0) return {ok:0,msg:'How much was the expense?',isClarify:1};
     if(!String(p.cat||'').trim()) return {ok:0,msg:'What category should I use for that expense?',isClarify:1};
   }
-  if(a==='add_journal'){
-    if(!String(p.title||'').trim() && !String(p.body||'').trim()) return {ok:0,msg:'What would you like to write in the journal?',isClarify:1};
-  }
-  if(a==='multi_action'){
-    if(!Array.isArray(p.actions)||!p.actions.length) return {ok:0,msg:'Tell me what you want me to do.',isClarify:1};
-    for(var i=0;i<p.actions.length;i++){var v=validateAIActionCompleteness(p.actions[i].action,p.actions[i].params||{});if(v)return v;}
-  }
   return null;
 }
 
 function executeAction(r){
   try{
     var a=r.action,p=r.params||{},msg=r.message||'Done',d=p.date||today();
-    if(a==='multi_action'){
-      if(!Array.isArray(p.actions)||!p.actions.length)return{ok:0,msg:'No actions were supplied.'};
-      var destructive=p.actions.some(function(x){return ['delete_task','delete_habit','delete_expense','delete_transactions','delete_journal','delete_workout','delete_mood','delete_sleep'].indexOf(x.action)>=0;});
-      if(destructive&&!r.confirm)return{ok:0,msg:'This will make multiple tracker changes, including a destructive action. Please confirm.',needConfirm:1,pending:{action:'multi_action',params:p,confirm:true}};
-      var results=[],undoFns=[];for(var mi=0;mi<p.actions.length;mi++){var child=executeAction({action:p.actions[mi].action,params:p.actions[mi].params||{},message:p.actions[mi].message||'Done',confirm:!!r.confirm});if(!child.ok)return{ok:0,msg:child.msg||'One of the requested actions could not be completed.'};results.push(child);if(child.undo)undoFns.push(child.undo);}
-      return{ok:1,msg:msg,detail:results.map(function(x){return x.detail||x.msg;}).filter(Boolean).join(' · '),undo:function(){undoFns.slice().reverse().forEach(function(fn){try{fn();}catch(e){}});}};
-    }
     var completeness=validateAIActionCompleteness(a,p);
     if(completeness)return completeness;
     if(!/^\d{4}-\d{2}-\d{2}$/.test(d) || (d>today() && ['add_task','update_task'].indexOf(a)<0)) return {ok:0,msg:'Use a valid date today or earlier.'};
@@ -3711,14 +3836,14 @@ function executeAction(r){
     }
 
     if(a==='add_journal'){
-      var je={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),d:p.date||today(),t:String(p.title||'').trim().slice(0,120),b:String(p.body||'').trim().slice(0,5000),ph:[],created:Date.now()};
-      if(!je.t&&!je.b)return{ok:0,msg:'Enter a journal title or body.'};state.jr.push(je);sortJr();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry saved for '+je.d};
+      var jbody=String(p.body||'').trim();var je={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),date:p.date||today(),time:(new Date()).toTimeString().slice(0,5),title:String(p.title||'').trim().slice(0,120),content:jbody?('<p>'+esc(jbody).replace(/\n/g,'</p><p>')+'</p>'):'',mood:'',tags:[],favorite:false,template:'',createdAt:Date.now(),updatedAt:Date.now()};
+      if(!je.title&&!jbody)return{ok:0,msg:'Enter a journal title or body.'};state.jr.push(je);if(typeof jrSort==='function')jrSort();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry saved for '+je.date};
     }
     if(a==='update_journal'){
-      var je2=p.id?jrFind(p.id):null;if(!je2&&p.title){je2=state.jr.find(function(x){return String(x.t||'').toLowerCase()===String(p.title).toLowerCase();})||null;}if(!je2)return{ok:0,msg:'Journal entry not found.'};var oldJ=JSON.parse(JSON.stringify(je2));if(p.date)je2.d=p.date;if(p.title!==undefined)je2.t=String(p.title).trim().slice(0,120);if(p.body!==undefined)je2.b=String(p.body).trim().slice(0,5000);sortJr();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry updated',undo:function(){var ix=state.jr.findIndex(function(x){return x.id===oldJ.id;});if(ix>=0)state.jr[ix]=oldJ;persist();}};
+      var je2=p.id?jrFind(p.id):null;if(!je2&&p.title){je2=state.jr.find(function(x){return String(x.title||'').toLowerCase()===String(p.title).toLowerCase();})||null;}if(!je2)return{ok:0,msg:'Journal entry not found.'};var oldJ=JSON.parse(JSON.stringify(je2));if(p.date)je2.date=p.date;if(p.title!==undefined)je2.title=String(p.title).trim().slice(0,120);if(p.body!==undefined)je2.content='<p>'+esc(String(p.body).trim()).replace(/\n/g,'</p><p>')+'</p>';je2.updatedAt=Date.now();if(typeof jrSort==='function')jrSort();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry updated',undo:function(){var ix=state.jr.findIndex(function(x){return x.id===oldJ.id;});if(ix>=0)state.jr[ix]=oldJ;persist();}};
     }
     if(a==='delete_journal'){
-      var jf=state.jr.filter(function(x){return (!p.id||x.id===p.id)&&(!p.date||x.d===p.date)&&(!p.title||String(x.t||'').toLowerCase().indexOf(String(p.title).toLowerCase())>=0);});if(!jf.length)return{ok:0,msg:'Journal entry not found.'};if(jf.length>1)return{ok:0,msg:'I found multiple journal entries. Specify the title or date.'};var jd=jf[0];if(!r.confirm)return{ok:0,msg:'Please confirm deleting journal entry “'+(jd.t||'Untitled')+'”.',needConfirm:1,pending:{action:'delete_journal',params:{id:jd.id},confirm:true}};state.jr=state.jr.filter(function(x){return x.id!==jd.id;});persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Deleted journal entry',undo:function(){state.jr.push(jd);persist();}};
+      var jf=state.jr.filter(function(x){return (!p.id||x.id===p.id)&&(!p.date||x.date===p.date)&&(!p.title||String(x.title||'').toLowerCase().indexOf(String(p.title).toLowerCase())>=0);});if(!jf.length)return{ok:0,msg:'Journal entry not found.'};if(jf.length>1)return{ok:0,msg:'I found multiple journal entries. Specify the title or date.'};var jd=jf[0];if(!r.confirm)return{ok:0,msg:'Please confirm deleting journal entry “'+(jd.title||'Untitled')+'”.',needConfirm:1,pending:{action:'delete_journal',params:{id:jd.id},confirm:true}};state.jr=state.jr.filter(function(x){return x.id!==jd.id;});persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Deleted journal entry',undo:function(){state.jr.push(jd);persist();}};
     }
     if(a==='log_workout'){
       var en=String(p.exercise||'').trim(),exm=state.exs.find(function(x){return String(x.name||'').toLowerCase()===en.toLowerCase();})||state.exs.find(function(x){return String(x.name||'').toLowerCase().indexOf(en.toLowerCase())>=0;});if(!exm)return{ok:0,msg:'Exercise not found.'};var sets=Array.isArray(p.sets)?p.sets.map(function(x){return Math.max(0,Number(x)||0);}):[];if(!sets.length)return{ok:0,msg:'Provide workout values/sets.'};var wd=p.date||today(),before=wlogFor(exm.id,wd);var beforeCopy=before?JSON.parse(JSON.stringify(before)):null;setExVal(exm.id,sets,wd);return{ok:1,msg:msg,detail:exm.name+' · '+wd,undo:function(){if(beforeCopy){var w=wlogFor(exm.id,wd);if(w)w.sets=beforeCopy.sets;}else{state.wlog=state.wlog.filter(function(x){return !(x.exId===exm.id&&x.d===wd);});}persist();}};
@@ -3778,35 +3903,10 @@ function uaiSuggestedFollowups(result){
   if(a==='add_habit')return ['Show my habit progress','Add another habit'];
   if(a==='add_task')return ['Show my tasks for today','Show overdue tasks'];
   if(a==='add_expense')return ['Show this week’s spending','Show my spending by category'];
-  if(a==='query')return uaiMode==='plan'?['Plan my whole week','What should I prioritize?']:uaiMode==='analyze'?['Show the biggest problem','How can I improve this?']:['What should I focus on next?','Give me a short summary'];
+  if(a==='query')return ['What should I focus on next?','Give me a short summary'];
   return ['Show me more detail','What should I do next?'];
 }
 function addUaiFollowups(items){var log=$('uaiLog');if(!log||!items||!items.length)return;var d=document.createElement('div');d.className='uaiFollowups';items.forEach(function(t){var b=document.createElement('button');b.className='uaiFollowup';b.textContent=t;b.setAttribute('data-followup',t);d.appendChild(b);});log.appendChild(d);log.scrollTop=log.scrollHeight;}
-var uaiTts={active:false,currentButton:null};
-function uaiTtsText(t){return String(t||'').replace(/https?:\/\/\S+/g,'').replace(/[`*_#]/g,'').replace(/\s+/g,' ').trim().slice(0,4000);}
-function uaiTtsState(on,btn){
-  uaiTts.active=!!on;
-  if(uaiTts.currentButton)uaiTts.currentButton.classList.remove('speaking');
-  uaiTts.currentButton=btn||null;if(btn&&on){btn.classList.add('speaking');btn.textContent='■ Stop';}else if(btn)btn.textContent='🔊 Listen';
-}
-function stopUaiTts(){
-  try{if(window.Bridge&&Bridge.stopAiTts)Bridge.stopAiTts();}catch(e){}
-  try{if(window.speechSynthesis)window.speechSynthesis.cancel();}catch(e){}
-  uaiTtsState(false,uaiTts.currentButton);
-}
-function speakUaiText(text,btn){
-  text=uaiTtsText(text);if(!text)return;
-  if(uaiTts.active&&uaiTts.currentButton===btn){stopUaiTts();return;}
-  stopUaiTts();uaiTtsState(true,btn);
-  try{if(window.Bridge&&Bridge.speakAiTts){Bridge.speakAiTts(text);return;}}catch(e){}
-  try{if(window.speechSynthesis){var u=new SpeechSynthesisUtterance(text);u.lang='en-IN';u.rate=.96;u.pitch=1;u.onend=function(){uaiTtsState(false,btn);};u.onerror=function(){uaiTtsState(false,btn);};window.speechSynthesis.speak(u);return;}}catch(e){}
-  uaiTtsState(false,btn);toastN('Text-to-speech is not available on this device.');
-}
-function uaiTtsButton(text){return '<div class="uaiTools"><button class="uaiSpeak" data-tts="'+encodeURIComponent(uaiTtsText(text))+'">🔊 Listen</button></div>';}
-function uaiRenderCards(cards){
-  if(!Array.isArray(cards)||!cards.length)return '';var a=cards.slice(0,6).map(function(c){return '<div class="uaiInsightCard"><b>'+esc(c.title||'Insight')+'</b><span>'+esc(c.value||c.text||'')+'</span></div>';}).join('');return '<div class="uaiCardGrid">'+a+'</div>';
-}
-function uaiRenderMessageText(text){var x=esc(String(text||''));return x.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
 function uaiSend(text){
   if(!text||!text.trim())return;
   text=String(text).trim();
@@ -3815,15 +3915,16 @@ function uaiSend(text){
   var prefMsg=detectPreferenceCommand(text);
   log.innerHTML+='<div class="uaiMsg user">'+esc(text)+'</div>';
   saveUaiChatTurn('user',text);
-  if(prefMsg){log.innerHTML+='<div class="uaiMsg bot">'+uaiRenderMessageText(prefMsg)+uaiTtsButton(prefMsg)+'</div>';saveUaiChatTurn('assistant',prefMsg);addUaiFollowups(['Tell me another preference','What can you help me with?']);return;}
-  log.innerHTML+='<div class="uaiMsg bot" id="uaiTyping" style="opacity:.5">Analyzing your tracker…</div>';log.scrollTop=log.scrollHeight;
+  if(prefMsg){log.innerHTML+='<div class="uaiMsg bot">'+esc(prefMsg)+'</div>';saveUaiChatTurn('assistant',prefMsg);addUaiFollowups(['Tell me another preference','What can you help me with?']);return;}
+  log.innerHTML+='<div class="uaiMsg bot" id="uaiTyping" style="opacity:.5">Thinking…</div>';log.scrollTop=log.scrollHeight;
   var context=uaiChatContext();
+  try{var _jpf=localStorage.getItem('uai_prefill_context');if(_jpf){context=_jpf+'\n\n'+context;localStorage.removeItem('uai_prefill_context');}}catch(e){}
   gemCall(uaiPrompt(text,context),500).then(function(raw){
     var el=$('uaiTyping');if(el)el.remove();
     var clean=raw.replace(/```json|```/g,'').trim(),result;
     try{result=JSON.parse(clean);}catch(e){
       var fallback=raw.replace(/<[^>]*>/g,'').replace(/\*\*(.*?)\*\*/g,'$1').trim();
-      log.innerHTML+='<div class="uaiMsg bot">'+uaiRenderMessageText(fallback)+uaiTtsButton(fallback)+'</div>';saveUaiChatTurn('assistant',fallback);addUaiFollowups(['Try asking another question','Show my data']);log.scrollTop=log.scrollHeight;return;
+      log.innerHTML+='<div class="uaiMsg bot">'+fallback.replace(/</g,'&lt;')+'</div>';saveUaiChatTurn('assistant',fallback);addUaiFollowups(['Try asking another question','Show my data']);log.scrollTop=log.scrollHeight;return;
     }
     var completeness=validateAIActionCompleteness(result.action,result.params||{});
     if(completeness){
@@ -3834,13 +3935,13 @@ function uaiSend(text){
     }
     var html='<div class="uaiMsg bot">';
     if(result.ok){
-      html+='<div class="uaiAction"><div class="uaiCheck">✓ '+esc(result.msg||'Done')+'</div>'+(result.detail?'<div class="uaiDetail">'+esc(result.detail)+'</div>':'')+uaiTtsButton(result.msg||'Done')+'</div>';
+      html+='<div class="uaiAction"><div class="uaiCheck">✓ '+esc(result.msg||'Done')+'</div>'+(result.detail?'<div class="uaiDetail">'+esc(result.detail)+'</div>':'')+'</div>';
       if(result.undo){var uid='_u'+Date.now();window[uid]=result.undo;html+='<div class="uaiBtns"><button onclick="'+uid+'();this.closest(\'.uaiMsg\').remove();reRenderCurrent();toastN(\'Undone\')">Undo</button></div>';}
     }else if(result.needConfirm&&result.pending){
       var pid='aiConfirm_'+Date.now();window[pid]=function(){var rr=executeAction(result.pending);var lg=$('uaiLog');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';saveUaiChatTurn('assistant',rr.msg||'Done');lg.scrollTop=lg.scrollHeight;}reRenderCurrent();};
-      html+='<div class="uaiAction"><div class="uaiCheck">'+esc(result.msg)+'</div>'+uaiTtsButton(result.msg||'Please confirm.')+'<div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
-    }else if(result.isQuery){html+=uaiRenderMessageText(result.msg||'')+uaiRenderCards(result.cards);html+=uaiTtsButton(result.msg||'');}
-    else{html+=uaiRenderMessageText(result.msg||'I need a little more information.')+uaiRenderCards(result.cards)+uaiTtsButton(result.msg||'I need a little more information.');}
+      html+='<div class="uaiAction"><div class="uaiCheck">'+esc(result.msg)+'</div><div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
+    }else if(result.isQuery){html+=String(result.msg||'').replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');}
+    else{html+=esc(result.msg||'I need a little more information.');}
     html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;
     var assistantText=String(result.msg||'').replace(/<[^>]+>/g,'').trim();if(assistantText)saveUaiChatTurn('assistant',assistantText);
     addUaiFollowups(uaiSuggestedFollowups(result));
@@ -4071,10 +4172,7 @@ window.dateResult = function(iso){
   }
   if(pendingDateField === 'jrDate'){
     pendingDateField = '';
-    if(jrEd){
-      jrEd.d = iso > today() ? today() : iso;
-      $('jrDateTxt').textContent = jrEd.d === today() ? 'Today' : niceDate(jrEd.d);
-    }
+    if(jrEd){ jrEd.date = iso > today() ? today() : iso; var _jd=$('jrDate'); if(_jd) _jd.value=jrEd.date; }
     return;
   }
   if(pendingDateField === 'vacUntil'){
@@ -4830,7 +4928,14 @@ function renderMood(){
 }
 
 /* ================= journal ================= */
-var PROMPTS = [
+/* ============================================================
+   JOURNAL V1 (V1.4.0) — text-only, multi-entry, rich AI.
+   Replaces the legacy photo-based journal. Schema:
+   {id,date,time,title,content,mood,tags[],favorite,template,createdAt,updatedAt}
+   Legacy {d,t,b,ph,created} entries are migrated in normState (photos dropped).
+   Uses existing gemCall(), persist(), showTab(), esc(), today(), buzz/toastN.
+   ============================================================ */
+var JR_PROMPTS = [
  'What made you smile today, even briefly?',
  'What is one thing you did today that your future self will thank you for?',
  'Describe today in three words \u2014 then explain one of them.',
@@ -4841,195 +4946,388 @@ var PROMPTS = [
  'What are you quietly proud of this week?',
  'What is worrying you? Write it down and leave it here.',
  'What did you learn today \u2014 about anything, or anyone?',
- 'If today had a soundtrack, what would it be and why?',
- 'What is something you are looking forward to?',
- 'Write a note to yourself one year from now.',
  'What felt hard today \u2014 and how did you handle it?',
  'What are three things you are grateful for right now?',
- 'Which habit helped you most today?'
+ 'Which habit helped you most today?',
+ 'What are you currently avoiding?'
 ];
-var jrEd = null, jrQ = '', jrTag = 'all', jrDelTimer2 = null, jrTimePick = false;
-var photoCache = {};
-function jrPrompt(){
-  var doy = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
-  return PROMPTS[doy % PROMPTS.length];
-}
+var JR_MOODS = {great:'\uD83D\uDE04',good:'\uD83D\uDE42',okay:'\uD83D\uDE10',low:'\uD83D\uDE14',diff:'\uD83D\uDE23'};
+var JR_MOOD_LABEL = {great:'Great',good:'Good',okay:'Okay',low:'Low',diff:'Difficult'};
+var JR_TEMPLATES = [
+  {icon:'\uD83C\uDF05',name:'Morning',body:'<h3>How am I feeling?</h3><p></p><h3>What do I want to accomplish?</h3><p></p><h3>What should I focus on?</h3><p></p>'},
+  {icon:'\uD83C\uDF19',name:'Evening',body:'<h3>Best part of today?</h3><p></p><h3>What was difficult?</h3><p></p><h3>What am I grateful for?</h3><p></p><h3>Improve tomorrow?</h3><p></p>'},
+  {icon:'\uD83D\uDCCB',name:'Daily Reflection',body:'<h3>What happened today?</h3><p></p><h3>What went well?</h3><p></p><h3>What did not go well?</h3><p></p><h3>What did I learn?</h3><p></p>'},
+  {icon:'\uD83D\uDE4F',name:'Gratitude',body:'<h3>Today I am grateful for\u2026</h3><p></p><h3>Why?</h3><p></p>'},
+  {icon:'\uD83D\uDCBC',name:'Workday',body:'<h3>What did I accomplish?</h3><p></p><h3>What remains unfinished?</h3><p></p><h3>What did I learn?</h3><p></p><h3>What next?</h3><p></p>'},
+  {icon:'\uD83D\uDCC6',name:'Weekly',body:'<h3>What went well?</h3><p></p><h3>What did not?</h3><p></p><h3>What did I learn?</h3><p></p><h3>Change next week?</h3><p></p>'}
+];
+
+var jrEd = null, jrQ = '', jrTag = 'all', jrView = 'timeline', jrCalY = 0, jrCalM = 0, jrPromptIx = -1, jrDelArmed = false, jrDelTimer2 = null;
+
+/* ---- helpers ---- */
+function jrToday(){ return today(); }
+function jrStrip(h){ var d=document.createElement('div'); d.innerHTML=String(h||''); return (d.textContent||'').replace(/\s+/g,' ').trim(); }
+function jrText(e){ return (e.title?e.title+' ':'') + jrStrip(e.content); }
 function jrTagsOf(e){
-  var m = (e.t + ' ' + e.b).match(/#[A-Za-z0-9_]+/g);
-  if(!m) return [];
-  var seen = {}, out = [];
-  for(var i=0;i<m.length;i++){
-    var t = m[i].toLowerCase();
-    if(!seen[t]){ seen[t] = 1; out.push(t); }
-  }
+  var m = ((e.title||'')+' '+jrStrip(e.content)).match(/#[A-Za-z0-9_]+/g) || [];
+  var extra = Array.isArray(e.tags)?e.tags:[];
+  var all = m.concat(extra.map(function(t){return t.charAt(0)==='#'?t:'#'+t;}));
+  var seen={},out=[];
+  all.forEach(function(t){ t=t.toLowerCase(); if(!seen[t]){seen[t]=1;out.push(t);} });
   return out;
 }
 function jrAllTags(){
-  var cnt = {};
-  for(var i=0;i<state.jr.length;i++){
-    var ts = jrTagsOf(state.jr[i]);
-    for(var j=0;j<ts.length;j++) cnt[ts[j]] = (cnt[ts[j]]||0)+1;
-  }
-  var arr = [];
-  for(var k in cnt) arr.push([k, cnt[k]]);
-  arr.sort(function(a,b){ return b[1]-a[1]; });
-  return arr.slice(0,8).map(function(x){ return x[0]; });
+  var c={}; state.jr.forEach(function(e){ jrTagsOf(e).forEach(function(t){c[t]=(c[t]||0)+1;}); });
+  return Object.keys(c).sort(function(a,b){return c[b]-c[a];}).slice(0,12);
 }
-function sortJr(){
+function jrSort(){
   state.jr.sort(function(a,b){
-    if(a.d !== b.d) return a.d < b.d ? 1 : -1;
-    return (b.created||0) - (a.created||0);
+    var ka=(a.date||'')+(a.time||''), kb=(b.date||'')+(b.time||'');
+    if(ka!==kb) return ka<kb?1:-1;
+    return (b.createdAt||0)-(a.createdAt||0);
   });
 }
-function jrFind(id){
-  for(var i=0;i<state.jr.length;i++) if(state.jr[i].id === id) return state.jr[i];
-  return null;
+function jrFind(id){ for(var i=0;i<state.jr.length;i++) if(state.jr[i].id===id) return state.jr[i]; return null; }
+function jrNiceDay(d){
+  if(d===jrToday()) return 'Today';
+  var y=fmt(addDays(new Date(),-1)); if(d===y) return 'Yesterday';
+  try{ return new Date(d+'T00:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}); }catch(e){ return d; }
 }
-function onThisDay(){
-  var t = toDate(today()), out = [];
-  for(var i=0;i<state.jr.length;i++){
-    var e = state.jr[i];
-    if(e.d === today()) continue;
-    var dd = toDate(e.d);
-    if(dd.getDate() !== t.getDate()) continue;
-    if(dd.getMonth() === t.getMonth() && dd.getFullYear() < t.getFullYear()){
-      var yy = t.getFullYear() - dd.getFullYear();
-      out.push([e, yy + (yy===1 ? ' yr ago' : ' yrs ago')]);
-    } else {
-      var months = (t.getFullYear()-dd.getFullYear())*12 + (t.getMonth()-dd.getMonth());
-      if(months >= 1 && months < 12) out.push([e, months + ' mo ago']);
-    }
-  }
-  return out.slice(0,3);
+function jrPromptText(){
+  if(jrPromptIx<0){ var doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/86400000); jrPromptIx=doy%JR_PROMPTS.length; }
+  return JR_PROMPTS[jrPromptIx%JR_PROMPTS.length];
 }
-function fillPhotos(root){
-  var imgs = root.querySelectorAll('img[data-pn]');
-  for(var i=0;i<imgs.length;i++){
-    var pn = imgs[i].getAttribute('data-pn');
-    if(photoCache[pn]){ imgs[i].src = photoCache[pn]; continue; }
-    var b = '';
-    if(nat && nat.readPhoto){ try{ b = nat.readPhoto(pn) || ''; }catch(e){} }
-    if(b){
-      photoCache[pn] = 'data:image/jpeg;base64,' + b;
-      imgs[i].src = photoCache[pn];
-    } else imgs[i].style.display = 'none';
-  }
+function jrStreak(){
+  var days={}; state.jr.forEach(function(e){ days[e.date]=1; });
+  var n=0, d=new Date();
+  if(!days[fmt(d)]) d=addDays(d,-1); /* today optional */
+  while(days[fmt(d)]){ n++; d=addDays(d,-1); }
+  return n;
 }
-function mdLite(t){
-  return esc(t)
-    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
-    .replace(/\*([^*]+)\*/g, '<i>$1</i>');
+function jrMonthCount(){
+  var p=jrToday().slice(0,7), n=0; state.jr.forEach(function(e){ if((e.date||'').slice(0,7)===p) n++; }); return n;
 }
-function jrCardHTML(e){
-  var dt = toDate(e.d).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-  var html = '<div class="jrCard" data-jid="'+e.id+'">'
-    + '<div class="jrDt">'+dt+'</div>'
-    + (e.t ? '<div class="jrTt">'+esc(e.t)+'</div>' : '')
-    + (e.b ? '<div class="jrSnip">'+mdLite(e.b)+'</div>' : '');
-  if(e.ph.length){
-    html += '<div class="jrThRow">';
-    for(var i=0;i<Math.min(4,e.ph.length);i++) html += '<img class="jrTh" data-pn="'+e.ph[i]+'" alt="">';
-    html += '</div>';
-  }
-  var tg = jrTagsOf(e);
-  if(tg.length){
-    html += '<div class="jrTags">';
-    for(var j2=0;j2<tg.length;j2++) html += '<span class="jrTag">'+esc(tg[j2])+'</span>';
-    html += '</div>';
-  }
-  return html + '</div>';
+function jrDaysJournaled(){
+  var p=jrToday().slice(0,7), s={}; state.jr.forEach(function(e){ if((e.date||'').slice(0,7)===p) s[e.date]=1; }); return Object.keys(s).length;
 }
+
+/* ---- entry card ---- */
+function jrCard(e){
+  var tg=jrTagsOf(e);
+  var snip=jrStrip(e.content).replace(/#[A-Za-z0-9_]+/g,'').trim();
+  return '<div class="jrCard" data-jid="'+e.id+'">'
+    + '<div class="jrTop"><span class="jrTime">'+esc(e.time||'')+'</span>'
+    + (e.mood?'<span class="jrMood">'+(JR_MOODS[e.mood]||'')+'</span>':'')
+    + (e.favorite?'<span class="jrFav">\u2B50</span>':'')+'</div>'
+    + (e.title?'<div class="jrTt">'+esc(e.title)+'</div>':'')
+    + (snip?'<div class="jrSnip">'+esc(snip)+'</div>':'')
+    + (tg.length?'<div class="jrTags">'+tg.map(function(t){return'<span class="jrTag">'+esc(t)+'</span>';}).join('')+'</div>':'')
+    + '</div>';
+}
+
+/* ---- master render ---- */
 function renderJr(){
-  $('jrPrompt').textContent = '\u201C' + jrPrompt() + '\u201D';
-  var tags = jrAllTags(), th = '<button class="chip'+(jrTag==='all'?' sel':'')+'" data-jt="all">All</button>';
-  for(var i=0;i<tags.length;i++)
-    th += '<button class="chip'+(jrTag===tags[i]?' sel':'')+'" data-jt="'+esc(tags[i])+'">'+esc(tags[i])+'</button>';
-  $('jrTagRow').innerHTML = th;
-  var otd = onThisDay(), oh = '';
-  for(var o=0;o<otd.length;o++){
-    var oe = otd[o][0];
-    oh += '<div class="otdRow" data-jid="'+oe.id+'"><span class="oy">'+otd[o][1]+'</span>'
-      + '<span class="ot">'+esc(oe.t || oe.b.slice(0,60) || 'Untitled entry')+'</span></div>';
+  if(!$('pgJr')) return;
+  var s=jrStreak();
+  setText('jrStatStreak','\uD83D\uDD25 '+s);
+  setText('jrStatMonth', jrMonthCount());
+  setText('jrStatDays', jrDaysJournaled());
+  setText('jrInsStreak','\uD83D\uDD25 '+s);
+  setText('jrInsMonth', jrMonthCount());
+  setText('jrInsDays', jrDaysJournaled());
+  jrRenderTimeline();
+  jrRenderTpl();
+  jrRenderPrompt();
+  jrRenderCtx();
+  jrRenderMemories();
+  jrRenderTags();
+  if(jrView==='calendar') jrRenderCal();
+  if(jrView==='search') jrRenderSearch();
+}
+function setText(id,v){ var el=$(id); if(el) el.textContent=v; }
+
+function jrGo(v){
+  jrView=v;
+  ['timeline','calendar','write','memories','insights','search'].forEach(function(x){
+    var vw=$('jrView-'+x); if(vw) vw.style.display = (x===v)?'':'none';
+  });
+  var nav=$('jrNav'); if(nav){ Array.prototype.forEach.call(nav.children,function(n){ n.classList.toggle('on', n.getAttribute('data-jv')===v); }); }
+  if(v==='calendar') jrRenderCal();
+  if(v==='search'){ jrRenderSearch(); var si=$('jrSearchInp'); if(si) setTimeout(function(){si.focus();},50); }
+  var app=$('app'); if(app) app.scrollTop=0;
+}
+
+function jrRenderTimeline(){
+  jrSort();
+  var byDay={},order=[];
+  state.jr.forEach(function(e){ if(!byDay[e.date]){byDay[e.date]=[];order.push(e.date);} byDay[e.date].push(e); });
+  var html='';
+  order.forEach(function(d){
+    html+='<div class="jrDayHead"><span>'+esc(jrNiceDay(d))+'</span><span>'+byDay[d].length+' '+(byDay[d].length===1?'entry':'entries')+'</span></div>';
+    byDay[d].forEach(function(e){ html+=jrCard(e); });
+  });
+  var list=$('jrList'); if(list) list.innerHTML=html;
+  var emp=$('jrEmpty'); if(emp) emp.hidden = state.jr.length>0;
+}
+function jrRenderTpl(){
+  var g=$('jrTplGrid'); if(!g) return;
+  g.innerHTML=JR_TEMPLATES.map(function(t,i){return '<div class="jrTpl" data-jtpl="'+i+'"><div class="ti">'+t.icon+'</div><div class="tn">'+esc(t.name)+'</div><div class="td">Tap to start</div></div>';}).join('');
+}
+function jrRenderPrompt(){
+  var p=$('jrPromptText'); if(p) p.textContent='\u201C'+jrPromptText()+'\u201D';
+}
+function jrRenderCtx(){
+  var box=$('jrCtx'); if(!box) return;
+  var ts=jrToday(), items=[];
+  /* sleep */
+  var sl=(state.sleep||[]).find(function(x){return x.d===ts;});
+  if(sl && sl.mins){ items.push(['\uD83D\uDE34','Sleep',Math.floor(sl.mins/60)+'h '+(sl.mins%60)+'m']); }
+  /* mood */
+  if(state.mood && state.mood[ts]!==undefined){ var ml=['Excellent','Happy','Calm','Neutral','Tired','Sad','Stressed'][state.mood[ts]]||''; if(ml) items.push(['\uD83D\uDE0A','Mood',ml]); }
+  /* tasks */
+  try{ var tks=(taskAllVisible?taskAllVisible():[]).filter(function(t){return t.dueDate===ts&&!t.virtualHabit;}); if(tks.length){ var done=tks.filter(function(t){return taskEffectiveStatus(t)==='completed';}).length; items.push(['\u2705','Tasks',done+' / '+tks.length]); } }catch(e){}
+  /* habits */
+  try{ var now=new Date(),due=0,hd=0; state.habits.forEach(function(h){ if(!h.arch&&dueOn(h,now)){due++; if(isDone(h,ts))hd++;} }); if(due) items.push(['\uD83D\uDD25','Habits',hd+' / '+due]); }catch(e){}
+  /* workout */
+  try{ var w=(state.wlog||[]).find(function(x){return x.d===ts;}); if(w) items.push(['\uD83C\uDFCB\uFE0F','Workout','Done']); }catch(e){}
+  /* spending */
+  try{ var sp=(state.tx||[]).filter(function(x){return x.d===ts&&x.kind==='exp';}).reduce(function(a,x){return a+(+x.amt||0);},0); if(sp>0) items.push(['\uD83D\uDCB0','Spending',(state.set&&state.set.curr||'\u20B9')+Math.round(sp)]); }catch(e){}
+  if(!items.length){ box.innerHTML='<div class="jrMut" style="padding:6px">No tracker data logged today yet.</div>'; return; }
+  box.innerHTML='<div class="jrCtxGrid">'+items.map(function(it){return '<div class="jrCtxItem"><span>'+it[0]+'</span><span class="k">'+esc(it[1])+'</span><span class="v">'+esc(it[2])+'</span></div>';}).join('')+'</div>';
+}
+function jrCtxSummaryText(){
+  var box=$('jrCtx'); return box?jrStrip(box.textContent):'';
+}
+function jrRenderMemories(){
+  var td=new Date(jrToday()+'T00:00'), out=[];
+  state.jr.forEach(function(e){
+    if(e.date===jrToday()) return;
+    var d=new Date(e.date+'T00:00');
+    if(d.getDate()===td.getDate() && d.getMonth()===td.getMonth() && d.getFullYear()<td.getFullYear()){
+      var y=td.getFullYear()-d.getFullYear(); out.push([e,y+(y===1?' year ago':' years ago')]);
+    }
+  });
+  var otd=$('jrOtd'); if(otd) otd.innerHTML=out.length?out.map(function(o){return '<div class="jrOtdRow" data-jid="'+o[0].id+'"><span class="oy">'+o[1]+'</span><span class="ot">'+esc(o[0].title||jrStrip(o[0].content).slice(0,50)||'Untitled')+'</span></div>';}).join(''):'<div class="jrMut" style="padding:6px">No memories from earlier years yet.</div>';
+  var f=state.jr.filter(function(e){return e.favorite;});
+  var fav=$('jrFavList'); if(fav) fav.innerHTML=f.length?f.map(jrCard).join(''):'<div class="jrMut" style="padding:6px">Tap \u2B50 on an entry to keep it here.</div>';
+}
+function jrRenderTags(){
+  var row=$('jrTagRow'); if(!row) return;
+  var t=jrAllTags();
+  row.innerHTML='<button class="chip'+(jrTag==='all'?' sel':'')+'" data-jt="all">All</button>'+
+    t.map(function(x){return '<button class="chip'+(jrTag===x?' sel':'')+'" data-jt="'+esc(x)+'">'+esc(x)+'</button>';}).join('');
+}
+function jrRenderSearch(){
+  var q=jrQ.toLowerCase();
+  var r=state.jr.filter(function(e){
+    if(jrTag!=='all' && jrTagsOf(e).indexOf(jrTag)<0) return false;
+    if(!q) return true;
+    return (jrText(e)+' '+(e.mood||'')+' '+(e.date||'')).toLowerCase().indexOf(q)>=0;
+  });
+  r.sort(function(a,b){ return ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||'')); });
+  var box=$('jrSearchResults'); if(box) box.innerHTML=r.length?r.map(jrCard).join(''):'<div class="jrMut">No entries match.</div>';
+}
+
+/* ---- calendar ---- */
+function jrRenderCal(){
+  if(!jrCalY){ var n=new Date(); jrCalY=n.getFullYear(); jrCalM=n.getMonth(); }
+  setText('jrCalTitle', new Date(jrCalY,jrCalM,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}));
+  var start=(new Date(jrCalY,jrCalM,1).getDay()+6)%7, days=new Date(jrCalY,jrCalM+1,0).getDate();
+  var has={}; state.jr.forEach(function(e){ var d=new Date(e.date+'T00:00'); if(d.getFullYear()===jrCalY&&d.getMonth()===jrCalM) has[d.getDate()]=1; });
+  var h=['Mo','Tu','We','Th','Fr','Sa','Su'].map(function(d){return'<div class="jrCalDow">'+d+'</div>';}).join('');
+  for(var i=0;i<start;i++) h+='<div class="jrCalCell mut"></div>';
+  for(var d=1;d<=days;d++){
+    var iso=jrCalY+'-'+String(jrCalM+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var cls='jrCalCell'+(has[d]?' has':'')+(iso===jrToday()?' today':'');
+    h+='<div class="'+cls+'" data-jcal="'+iso+'">'+d+(has[d]?'<span class="dot"></span>':'')+'</div>';
   }
-  $('otdCard').style.display = oh ? '' : 'none';
-  $('otdList').innerHTML = oh;
-  sortJr();
-  var html = '', shown = 0;
-  for(var e2=0;e2<state.jr.length;e2++){
-    var en = state.jr[e2];
-    if(jrTag !== 'all' && jrTagsOf(en).indexOf(jrTag) < 0) continue;
-    if(jrQ && (en.t + ' ' + en.b).toLowerCase().indexOf(jrQ) < 0) continue;
-    html += jrCardHTML(en);
-    shown++;
-  }
-  if(state.jr.length && !shown) html = '<div class="setS" style="text-align:center;padding:24px 0">No entries match.</div>';
-  $('jrList').innerHTML = html;
-  $('jrEmpty').hidden = state.jr.length > 0;
-  fillPhotos($('jrList'));
-  fillPhotos($('otdList'));
+  var g=$('jrCalGrid'); if(g) g.innerHTML=h;
+  var de=$('jrCalDay'); if(de) de.innerHTML='';
 }
-function renderJrTags(){
-  var fake = {t: $('jrTitle').value, b: $('jrBody').value, ph:[]};
-  var tg = jrTagsOf(fake);
-  $('jrTagLine').textContent = tg.length ? 'Tags: ' + tg.join('  ') : 'Add #tags anywhere in your text';
+function jrCalPick(iso){
+  var es=state.jr.filter(function(e){return e.date===iso;}).sort(function(a,b){return (a.time||'').localeCompare(b.time||'');});
+  var de=$('jrCalDay'); if(de) de.innerHTML='<div class="jrDayHead"><span>'+esc(jrNiceDay(iso))+'</span></div>'+(es.length?es.map(jrCard).join(''):'<div class="jrMut">No entries this day. <a class="jrLink" data-jnew="'+iso+'">Write one</a></div>');
 }
-function renderJrPhotos(){
-  var html = '';
-  for(var i=0;i<jrEd.ph.length;i++)
-    html += '<div class="jrPhW"><img class="jrTh" data-pn="'+jrEd.ph[i]+'" alt=""><button class="jrPhX" data-rp="'+i+'">\u00D7</button></div>';
-  $('jrPhotos').innerHTML = html || '<div class="setS">No photos yet.</div>';
-  fillPhotos($('jrPhotos'));
-}
-function openJr(id){
+
+/* ---- editor ---- */
+function openJr(id, prompt, tplBody, forceDate){
   var src = id ? jrFind(id) : null;
-  jrEd = src ? JSON.parse(JSON.stringify(src)) : {id:'', d: today(), t:'', b:'', ph:[], created: Date.now()};
-  jrEd._edit = id || '';
-  $('shJrTitle').textContent = id ? 'Edit entry' : 'New entry';
-  $('jrDateTxt').textContent = jrEd.d === today() ? 'Today' : niceDate(jrEd.d);
-  $('jrTitle').value = jrEd.t;
-  $('jrBody').value = jrEd.b;
-  $('jrBody').placeholder = id ? 'Write freely\u2026 use #tags anywhere' : jrPrompt();
-  $('jrDelBtn').style.display = id ? '' : 'none';
-  resetJrDel();
-  renderJrTags();
-  renderJrPhotos();
+  var now=new Date();
+  jrEd = src ? JSON.parse(JSON.stringify(src)) : {id:'',date:(forceDate||jrToday()),time:now.toTimeString().slice(0,5),title:'',content:'',mood:'',tags:[],favorite:false,template:'',createdAt:Date.now(),updatedAt:Date.now()};
+  jrEd._edit = id||'';
+  setText('shJrTitle', id?'Edit entry':'New entry');
+  $('jrTitle').value = jrEd.title||'';
+  $('jrDate').value = jrEd.date;
+  $('jrTime').value = jrEd.time||now.toTimeString().slice(0,5);
+  $('jrBody').innerHTML = src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
+  $('jrFav').checked = !!jrEd.favorite;
+  jrSyncMood();
+  $('jrDelBtn').style.display = id?'':'none';
+  jrResetDel();
+  var menu=$('jrAiMenu'); if(menu) menu.classList.remove('on');
+  var out=$('jrEntryAiOut'); if(out) out.innerHTML='';
+  jrUpdTagLine();
   openSheet('jrSheet');
 }
+function jrSyncMood(){
+  var row=$('jrMoodRow'); if(!row) return;
+  Array.prototype.forEach.call(row.children,function(o){ o.classList.toggle('on', o.getAttribute('data-jm')===(jrEd&&jrEd.mood)); });
+}
+function jrRt(c){ document.execCommand(c,false,null); $('jrBody').focus(); }
+function jrRtBlock(t){ document.execCommand('formatBlock',false,t); $('jrBody').focus(); }
+function jrRtCheck(){ document.execCommand('insertHTML',false,'<div>\u2610 </div>'); $('jrBody').focus(); }
+function jrUpdTagLine(){
+  var m=(($('jrTitle').value)+' '+jrStrip($('jrBody').innerHTML)).match(/#[A-Za-z0-9_]+/g);
+  setText('jrTagLine', m&&m.length?'Tags: '+Array.from(new Set(m.map(function(x){return x.toLowerCase();}))).join('  '):'Add #tags anywhere in your text');
+}
 function saveJr(){
-  jrEd.t = $('jrTitle').value.replace(/^\s+|\s+$/g,'');
-  jrEd.b = $('jrBody').value.replace(/^\s+|\s+$/g,'');
-  if(!jrEd.t && !jrEd.b && !jrEd.ph.length){ $('jrBody').focus(); return; }
+  jrEd.title = $('jrTitle').value.trim().slice(0,120);
+  jrEd.content = $('jrBody').innerHTML.slice(0,20000);
+  jrEd.date = $('jrDate').value || jrToday();
+  jrEd.time = $('jrTime').value || '';
+  jrEd.mood = jrEd.mood||'';
+  jrEd.favorite = $('jrFav').checked;
+  jrEd.tags = Array.from(new Set((jrText(jrEd).match(/#[A-Za-z0-9_]+/g)||[]).map(function(x){return x.toLowerCase();})));
+  if(!jrEd.title && !jrStrip(jrEd.content)){ $('jrBody').focus(); return; }
+  jrEd.updatedAt = Date.now();
   if(jrEd._edit){
-    var ex = jrFind(jrEd._edit);
-    var idx = state.jr.indexOf(ex);
-    delete jrEd._edit;
-    state.jr[idx] = jrEd;
+    var ex=jrFind(jrEd._edit), idx=state.jr.indexOf(ex); delete jrEd._edit;
+    if(idx>=0) state.jr[idx]=jrEd; else state.jr.push(jrEd);
   } else {
     delete jrEd._edit;
-    jrEd.id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+    jrEd.id = Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+    jrEd.createdAt = Date.now();
     state.jr.push(jrEd);
   }
-  sortJr(); persist(); closeSheet(); renderJr(); buzz(14);
+  jrSort(); persist(); closeSheet(); renderJr(); if(typeof buzz==='function') buzz(14);
 }
-function resetJrDel(){
-  if(jrDelTimer2){ clearTimeout(jrDelTimer2); jrDelTimer2 = null; }
-  var b = $('jrDelBtn');
-  b.classList.remove('armed'); b.textContent = 'Delete entry';
-}
+function jrResetDel(){ jrDelArmed=false; if(jrDelTimer2){clearTimeout(jrDelTimer2);jrDelTimer2=null;} var b=$('jrDelBtn'); if(b){b.classList.remove('armed');b.textContent='Delete entry';} }
+function resetJrDel(){ jrResetDel(); } /* back-compat alias for closeSheet() */
 function onJrDelete(){
-  var b = $('jrDelBtn');
-  if(!b.classList.contains('armed')){
-    b.classList.add('armed'); b.textContent = 'Tap again to delete';
-    jrDelTimer2 = setTimeout(resetJrDel, 2600);
-    return;
-  }
-  var ex = jrFind(jrEd._edit || jrEd.id);
-  if(ex){
-    for(var i=0;i<ex.ph.length;i++){ if(nat){ try{ nat.deletePhoto(ex.ph[i]); }catch(e){} } delete photoCache[ex.ph[i]]; }
-    state.jr.splice(state.jr.indexOf(ex), 1);
-  }
+  var b=$('jrDelBtn');
+  if(!jrDelArmed){ jrDelArmed=true; b.classList.add('armed'); b.textContent='Tap again to delete'; jrDelTimer2=setTimeout(jrResetDel,2600); return; }
+  var ex=jrFind(jrEd._edit||jrEd.id);
+  if(ex) state.jr.splice(state.jr.indexOf(ex),1);
   persist(); closeSheet(); renderJr();
 }
+
+/* ---- AI plumbing (uses existing gemCall) ---- */
+function jrAiBox(target,label){
+  var el=$(target); if(!el) return null;
+  el.innerHTML='<div class="jrAiOut"><div class="h">'+esc(label)+' <span class="jrSpin"></span></div><div class="b">Thinking\u2026</div></div>';
+  return el;
+}
+function jrAiShow(target,label,text,sources){
+  var el=$(target); if(!el) return;
+  var safe=String(text||'').replace(/</g,'&lt;').replace(/&lt;br&gt;/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+  var src='';
+  if(sources && sources.length){
+    src='<div class="jrSrc"><div class="sh">Based on '+sources.length+' journal '+(sources.length===1?'entry':'entries')+' \u00B7 Sources</div>'
+      + sources.map(function(e){return '<div class="jrSrcItem" data-jid="'+e.id+'"><span class="d">'+esc(jrShortDate(e.date))+'</span><span>'+esc(e.title||jrStrip(e.content).slice(0,40)||'Untitled')+'</span></div>';}).join('')
+      + '</div>';
+  }
+  el.innerHTML='<div class="jrAiOut"><div class="h">'+esc(label)+'</div><div class="b">'+safe+'</div>'+src+'<button class="jrListen" data-jrtts="'+esc(jrStrip(safe)).replace(/"/g,'&quot;')+'">\uD83D\uDD0A Listen</button></div>';
+}
+function jrShortDate(d){ try{ return new Date(d+'T00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'}); }catch(e){ return d; } }
+function jrAiErr(target,label,e){ var el=$(target); if(el) el.innerHTML='<div class="jrAiOut"><div class="h">'+esc(label)+'</div><div class="b">'+esc((e&&e.message)||'AI request failed. Add an API key in Settings.')+'</div></div>'; }
+
+/* Text-to-speech reuses the same mechanism the AI Chat uses (native TTS if present, else Web Speech). */
+function jrSpeak(text){
+  if(!text) return;
+  if(nat && nat.speak){ try{ nat.speak(text); return; }catch(e){} }
+  if(window.speechSynthesis){ try{ speechSynthesis.cancel(); speechSynthesis.speak(new SpeechSynthesisUtterance(text)); return; }catch(e){} }
+  toastN('Text-to-speech unavailable here');
+}
+
+function jrEntriesForDate(d){ return state.jr.filter(function(e){return e.date===d;}).sort(function(a,b){return (a.time||'').localeCompare(b.time||'');}); }
+
+function jrDayAi(kind){
+  var d=jrToday(), es=jrEntriesForDate(d);
+  if(!es.length){ jrAiShow('jrDayAiOut', kind==='summary'?"Today's Summary":'Reflection', 'You have no journal entries for today yet. Write one, then I can '+(kind==='summary'?'summarize':'reflect on')+' your day.'); return; }
+  jrAiBox('jrDayAiOut', kind==='summary'?"Today's Summary":'Reflection');
+  var joined=es.map(function(e,i){return (i+1)+'. ['+(e.time||'')+(e.mood?' '+JR_MOOD_LABEL[e.mood]:'')+'] '+(e.title?e.title+': ':'')+jrStrip(e.content);}).join('\n');
+  var prompt = kind==='summary'
+    ? 'You are a supportive journaling assistant. Summarize the user\u2019s day from these journal entries. Write 2-3 sentences, then a short "Key moments" list (3-4 bullets using \u2022). Use only what is written; never invent events. Keep it warm and concrete.\n\nENTRIES:\n'+joined
+    : 'You are a reflective journaling assistant. Do NOT just summarize \u2014 interpret what the day may MEAN for the user, gently. Clearly separate facts from interpretation, and use tentative language ("may", "appears") for anything inferred. 2-4 sentences. Never state speculation as fact.\n\nENTRIES:\n'+joined;
+  gemCall(prompt, 320).then(function(r){ jrAiShow('jrDayAiOut', kind==='summary'?"Today's Summary":'Reflection', r, es); }).catch(function(e){ jrAiErr('jrDayAiOut', kind==='summary'?"Today's Summary":'Reflection', e); });
+}
+
+function jrEntryAi(kind){
+  var body=jrStrip($('jrBody').innerHTML), title=$('jrTitle').value.trim();
+  if(!body && !title){ jrAiShow('jrEntryAiOut', kind, 'Write something first, then I can help.'); return; }
+  if(kind==='Ask AI About This'){
+    /* hand the entry to the existing AI Chat */
+    try{ localStorage.setItem('uai_prefill_context', 'JOURNAL ENTRY ('+jrEd.date+'):\n'+(title?title+'\n':'')+body); }catch(e){}
+    closeSheet(); showTab('pgAI');
+    var inp=$('uaiInput'); if(inp){ inp.value='About my journal entry from '+jrEd.date+': '; inp.focus(); }
+    toastN('Opened in AI Chat with this entry as context');
+    return;
+  }
+  jrAiBox('jrEntryAiOut', kind);
+  var base='Journal entry'+(title?' titled "'+title+'"':'')+':\n'+body+'\n\n';
+  var prompts={
+    'Improve Writing':'Rewrite the following journal entry to read more clearly while keeping the author\u2019s voice, meaning and first person. Return only the improved text. The original will NOT be overwritten.\n\n'+base,
+    'Summarize':'Summarize this journal entry in 1-2 sentences. Use only what is written.\n\n'+base,
+    'Suggest Title':'Suggest 2-3 short, evocative titles for this journal entry, one per line with a leading \u2022. Nothing else.\n\n'+base,
+    'Find Insights':'Read this journal entry and note 1-2 observations or patterns. Be tentative ("appears", "may"); do not state speculation as fact.\n\n'+base,
+    'Reflect':'Reflect on what this entry might mean for the writer. 1-2 gentle, tentative sentences. Separate fact from interpretation.\n\n'+base,
+    'Extract Tasks':'Extract any actionable to-dos implied by this journal entry as a checklist (each line starting with \u2610). If none, say "No clear tasks found." Do not invent tasks.\n\n'+base
+  };
+  gemCall(prompts[kind]||('Respond to this journal entry.\n\n'+base), 400).then(function(r){ jrAiShow('jrEntryAiOut', kind, r); }).catch(function(e){ jrAiErr('jrEntryAiOut', kind, e); });
+}
+
+function jrWholeAi(){
+  if(!state.jr.length){ jrAiShow('jrInsAiOut','Whole-journal analysis','Your journal is empty. Write a few entries and I can look for themes and patterns.'); return; }
+  jrAiBox('jrInsAiOut','Whole-journal analysis');
+  var sample=state.jr.slice().sort(function(a,b){return ((b.date||'')).localeCompare(a.date||'');}).slice(0,40);
+  var joined=sample.map(function(e){return e.date+': '+(e.title?e.title+' \u2014 ':'')+jrStrip(e.content).slice(0,300);}).join('\n');
+  var prompt='You are analyzing a user\u2019s journal. From these entries, identify recurring themes, what recurs positively, and what recurs as a struggle. Clearly separate OBSERVED patterns from INFERENCE, and use tentative language for inference. Never invent entries or counts. 3-5 sentences.\n\nENTRIES ('+sample.length+'):\n'+joined;
+  gemCall(prompt, 450).then(function(r){ jrAiShow('jrInsAiOut','Whole-journal analysis', r, sample.slice(0,5)); }).catch(function(e){ jrAiErr('jrInsAiOut','Whole-journal analysis', e); });
+}
+
+/* ---- guided reflection ---- */
+var jrReflectQs=['How was your day overall?','What was the best part?','What was difficult?','What did you learn?','What would you change tomorrow?'];
+var jrReflectAns=[], jrReflectStep=0;
+function openJrReflect(){ jrReflectStep=0; jrReflectAns=[]; openSheet('jrReflectSheet'); jrRenderReflect(); }
+function jrRenderReflect(){
+  var b=$('jrReflectBody'); if(!b) return;
+  if(jrReflectStep<jrReflectQs.length){
+    b.innerHTML='<div class="jrRefProg">Step '+(jrReflectStep+1)+' of '+jrReflectQs.length+'</div><div class="jrRefQ">'+esc(jrReflectQs[jrReflectStep])+'</div><textarea class="inp" id="jrRefInp" rows="4" placeholder="Type your answer\u2026"></textarea><button class="primary" id="jrRefNext" style="margin-top:12px">'+(jrReflectStep===jrReflectQs.length-1?'Finish':'Next')+'</button>';
+    var inp=$('jrRefInp'); if(inp) setTimeout(function(){inp.focus();},50);
+  } else {
+    b.innerHTML='<div class="jrAiOut"><div class="h">\u2728 Your Reflection <span class="jrSpin"></span></div><div class="b">Composing a draft\u2026</div></div>';
+    var qa=jrReflectQs.map(function(q,i){return q+'\n'+(jrReflectAns[i]||'(skipped)');}).join('\n\n');
+    var prompt='Turn this guided daily reflection Q&A into a warm, first-person journal entry of 3-5 sentences. Use only what the user said; do not invent. Then on a new line after "---PLAN---" give 3-4 short, practical suggestions for tomorrow, each on its own line.\n\n'+qa;
+    gemCall(prompt, 400).then(function(r){
+      var parts=String(r).split('---PLAN---');
+      var draft=(parts[0]||'').trim(), plan=(parts[1]||'').trim();
+      window._jrReflectDraft=draft;
+      b.innerHTML='<div class="jrAiOut"><div class="h">\u2728 Your Reflection</div><div class="b">'+esc(draft).replace(/\n/g,'<br>')+'</div><button class="jrListen" data-jrtts="'+esc(draft).replace(/"/g,'&quot;')+'">\uD83D\uDD0A Listen</button></div>'
+        + (plan?'<div class="jrCard" style="margin-top:12px"><div class="jrTt">\uD83C\uDF05 Tomorrow\u2019s Plan</div><div class="jrSnip" style="-webkit-line-clamp:unset;white-space:pre-wrap">'+esc(plan)+'</div></div>':'')
+        + '<div class="jrSaveRow"><button class="primary" id="jrRefSave">Save to Journal</button><button class="ghost" id="jrRefDiscard">Discard</button></div>';
+    }).catch(function(e){ jrAiErr('jrReflectBody','Your Reflection', e); });
+  }
+}
+
+/* ---- migration helper (called from normState) ---- */
+function jrMigrateEntry(je){
+  je = je || {};
+  /* legacy fields: d,t,b,ph,created -> new schema */
+  var out = {};
+  out.id = je.id || (Date.now().toString(36)+Math.random().toString(36).slice(2,7));
+  out.date = /^\d{4}-\d{2}-\d{2}$/.test(je.date||je.d||'') ? (je.date||je.d) : today();
+  out.time = /^\d{2}:\d{2}$/.test(je.time||'') ? je.time : (je.created?new Date(je.created).toTimeString().slice(0,5):'');
+  out.title = String(je.title!==undefined?je.title:(je.t||'')).slice(0,120);
+  out.content = String(je.content!==undefined?je.content:(je.b||'')).slice(0,20000);
+  var m=je.mood; out.mood = (m && JR_MOODS[m])?m:'';
+  out.tags = Array.isArray(je.tags)?je.tags.map(function(x){return String(x).toLowerCase();}).slice(0,30):[];
+  out.favorite = !!(je.favorite);
+  out.template = String(je.template||'').slice(0,40);
+  out.createdAt = +je.createdAt || +je.created || Date.now();
+  out.updatedAt = +je.updatedAt || out.createdAt;
+  return out;
+}
+
 function maybeAskFullscreen(){
   if(!nat || !nat.fsCheck || state.set.fsAsked) return;
   try{
@@ -5118,9 +5416,7 @@ window.photoResult = function(name){
     if(receiptScanData) scanReceiptWithAi(); else toastN('Could not read receipt');
     return;
   }
-  if(jrEd && /^[A-Za-z0-9_.-]+$/.test(name)){
-    jrEd.ph.push(name); renderJrPhotos(); toastN('Photo added');
-  }
+  /* Journal is text-only in V1.4.0; photo attachments are no longer supported. */
 };
 
 /* ================= combined day view ================= */
@@ -6640,10 +6936,10 @@ function buildXlsx(){
     if(typeof mmi === 'number' && MOODS[mmi]) mrows.push([mkeys[mq], MOODS[mmi].l, MOODS[mmi].s, state.moodNotes[mkeys[mq]] || '']);
   }
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mrows), 'Mood');
-  var jrows = [['Date','Title','Entry','Tags','Photos']];
+  var jrows = [['Date','Time','Title','Entry','Mood','Tags','Favorite']];
   for(var jq=0; jq<state.jr.length; jq++){
     var jen = state.jr[jq];
-    jrows.push([jen.d, jen.t, jen.b, jrTagsOf(jen).join(' '), jen.ph.length]);
+    jrows.push([jen.date, jen.time||'', jen.title||'', (typeof jrStrip==='function'?jrStrip(jen.content):(jen.content||'')), jen.mood||'', jrTagsOf(jen).join(' '), jen.favorite?'yes':'']);
   }
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(jrows), 'Journal');
   if(state.tasks&&state.tasks.length){var trows=[['Task','Description','Due date','Due time','Priority','Status','Subtask progress','Comments']];state.tasks.forEach(function(t){var tsp=taskSubProgress(t);trows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),tsp.done+'/'+tsp.total,(t.comments||[]).map(function(c){return c.text;}).join(' || ')]);});XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(trows),'Tasks');}
@@ -6795,7 +7091,7 @@ function handleAddAction(kind){
 
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
-  var pgs = ['pgToday','pgTasks','pgMood','pgExp','pgStats','pgAI','pgSet'];
+  var pgs = ['pgToday','pgTasks','pgMood','pgExp','pgStats','pgJr','pgAI','pgSet'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
@@ -6805,6 +7101,7 @@ function showTab(id){
   if(id==='pgMood') renderMood();
   if(id==='pgExp') renderExp();
   if(id==='pgSet') renderSet();
+  if(id==='pgJr'){ if(typeof jrCalY!=='undefined'&&!jrCalY){var _n=new Date();jrCalY=_n.getFullYear();jrCalM=_n.getMonth();} renderJr(); jrGo(jrView||'timeline'); }
   if(id==='pgAI') renderAI();
   $('fab').style.display = (id==='pgToday'||id==='pgExp'||id==='pgTasks') ? '' : 'none';
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : id==='pgTasks' ? 'Add task' : 'Add anything';
@@ -7356,55 +7653,55 @@ function init(){
   });
 
   /* journal */
-  $('jrSrchBtn').addEventListener('click', function(){
-    var w2 = $('jrSrchWrap'), on = !w2.classList.contains('on');
-    w2.classList.toggle('on', on);
-    this.classList.toggle('on', on);
-    if(on){ setTimeout(function(){ $('jrSrch').focus(); }, 80); }
-    else { jrQ=''; jrTag='all'; $('jrSrch').value=''; renderJr(); }
+  /* ===== Journal V1.4.0 wiring ===== */
+  $('jrSrchBtn').addEventListener('click', function(){ jrGo('search'); });
+  $('jrNav').addEventListener('click', function(e){
+    var b=climb(e.target,this,'data-jv'); if(b) jrGo(b.getAttribute('data-jv'));
   });
-  $('jrSrch').addEventListener('input', function(){
-    jrQ = this.value.toLowerCase().replace(/^\s+/,'');
-    renderJr();
+  $('jrNewBtn').addEventListener('click', function(){ openJr(null); });
+  $('jrEmptyCta').addEventListener('click', function(){ openJr(null); });
+  $('jrList').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jid'); if(b) openJr(b.getAttribute('data-jid')); });
+  $('jrFavList').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jid'); if(b) openJr(b.getAttribute('data-jid')); });
+  $('jrOtd').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jid'); if(b) openJr(b.getAttribute('data-jid')); });
+  $('jrSearchResults').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jid'); if(b) openJr(b.getAttribute('data-jid')); });
+  $('jrSearchInp').addEventListener('input', function(){ jrQ=this.value.replace(/^\s+/,''); jrRenderSearch(); });
+  $('jrTagRow').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jt'); if(!b) return; jrTag=b.getAttribute('data-jt'); jrRenderTags(); jrRenderSearch(); });
+  $('jrTplGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jtpl'); if(!b) return; var t=JR_TEMPLATES[+b.getAttribute('data-jtpl')]; if(t) openJr(null,'',t.body); });
+  $('jrPromptText').addEventListener('click', function(){});
+  $('jrWriteBtn').addEventListener('click', function(){ openJr(null, jrPromptText()); });
+  $('jrAnotherPrompt').addEventListener('click', function(){ jrPromptIx=(jrPromptIx<0?0:jrPromptIx+1)%JR_PROMPTS.length; jrRenderPrompt(); });
+  $('jrTalkBtn').addEventListener('click', openJrReflect);
+  $('jrWholeAiBtn').addEventListener('click', jrWholeAi);
+  var jrDayRow=$('jrDayAiOut'); /* day AI buttons are in timeline view */
+  document.querySelectorAll('[data-jrday]').forEach(function(b){ b.addEventListener('click', function(){ jrDayAi(this.getAttribute('data-jrday')); }); });
+  $('jrCalGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jcal'); if(b) jrCalPick(b.getAttribute('data-jcal')); });
+  $('jrCalDay').addEventListener('click', function(e){ var n=climb(e.target,this,'data-jnew'); if(n){ openJr(null,'','',n.getAttribute('data-jnew')); return; } var b=climb(e.target,this,'data-jid'); if(b) openJr(b.getAttribute('data-jid')); });
+  document.querySelectorAll('[data-jcalmove]').forEach(function(b){ b.addEventListener('click', function(){ var n=+this.getAttribute('data-jcalmove'); if(!jrCalY){var d=new Date();jrCalY=d.getFullYear();jrCalM=d.getMonth();} jrCalM+=n; if(jrCalM<0){jrCalM=11;jrCalY--;} if(jrCalM>11){jrCalM=0;jrCalY++;} jrRenderCal(); }); });
+  /* editor */
+  $('jrMoodRow').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jm'); if(!b||!jrEd) return; var m=b.getAttribute('data-jm'); jrEd.mood=(jrEd.mood===m)?'':m; jrSyncMood(); });
+  $('jrToolbar').addEventListener('click', function(e){
+    var b=climb(e.target,this,'data-jrt'); if(b){ jrRt(b.getAttribute('data-jrt')); return; }
+    b=climb(e.target,this,'data-jrtblock'); if(b){ jrRtBlock(b.getAttribute('data-jrtblock')); return; }
+    b=climb(e.target,this,'data-jrtcheck'); if(b){ jrRtCheck(); }
   });
-  $('jrTagRow').addEventListener('click', function(e){
-    var b = climb(e.target, this, 'data-jt'); if(!b) return;
-    jrTag = b.getAttribute('data-jt');
-    renderJr();
-  });
-  $('jrWriteBtn').addEventListener('click', function(){ openJr(null); });
-  $('jrList').addEventListener('click', function(e){
-    var b = climb(e.target, this, 'data-jid'); if(!b) return;
-    openJr(b.getAttribute('data-jid'));
-  });
-  $('otdList').addEventListener('click', function(e){
-    var b = climb(e.target, this, 'data-jid'); if(!b) return;
-    openJr(b.getAttribute('data-jid'));
-  });
-  $('jrDateBtn').addEventListener('click', function(){
-    pendingDateField = 'jrDate';
-    var pcur = (jrEd && jrEd.d) || today(), pp = pcur.split('-');
-    if(nat && nat.pickDate){ try{ nat.pickDate(+pp[0], +pp[1]-1, +pp[2]); return; }catch(e){} }
-    var v = prompt('Date (YYYY-MM-DD)', pcur);
-    if(v) window.dateResult(v); else pendingDateField = '';
-  });
-  $('jrTitle').addEventListener('input', renderJrTags);
-  $('jrBody').addEventListener('input', renderJrTags);
-  $('jrAddPh').addEventListener('click', function(){
-    if(nat && nat.pickPhoto){ try{ nat.pickPhoto(); }catch(e){ toastN('Photo picker unavailable'); } }
-    else toastN('Photos work in the Android app');
-  });
-  $('jrPhotos').addEventListener('click', function(e){
-    var b = climb(e.target, this, 'data-rp'); if(!b) return;
-    var i = +b.getAttribute('data-rp');
-    var pn = jrEd.ph[i];
-    jrEd.ph.splice(i, 1);
-    if(nat){ try{ nat.deletePhoto(pn); }catch(e2){} }
-    delete photoCache[pn];
-    renderJrPhotos();
-  });
+  $('jrBody').addEventListener('input', jrUpdTagLine);
+  $('jrTitle').addEventListener('input', jrUpdTagLine);
+  $('jrAiMenuBtn').addEventListener('click', function(){ $('jrAiMenu').classList.toggle('on'); });
+  $('jrAiMenu').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jrai'); if(b) jrEntryAi(b.getAttribute('data-jrai')); });
   $('jrSaveBtn').addEventListener('click', saveJr);
   $('jrDelBtn').addEventListener('click', onJrDelete);
+  /* Listen (TTS) + source links, delegated on the page + sheets */
+  document.addEventListener('click', function(e){
+    var t=climb(e.target,document.body,'data-jrtts'); if(t){ jrSpeak(t.getAttribute('data-jrtts')); return; }
+    var s=climb(e.target,document.body,'data-jid'); if(s && s.classList.contains('jrSrcItem')){ openJr(s.getAttribute('data-jid')); }
+  });
+  /* reflect sheet (delegated: buttons are rendered dynamically) */
+  $('jrReflectBody').addEventListener('click', function(e){
+    if(e.target && e.target.id==='jrRefNext'){ var inp=$('jrRefInp'); jrReflectAns.push(inp?inp.value:''); jrReflectStep++; jrRenderReflect(); return; }
+    if(e.target && e.target.id==='jrRefSave'){ var d=window._jrReflectDraft||''; if(d){ var now=new Date(); state.jr.push({id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),date:jrToday(),time:now.toTimeString().slice(0,5),title:'Daily reflection',content:'<p>'+esc(d).replace(/\n/g,'</p><p>')+'</p>',mood:'',tags:['#reflection'],favorite:false,template:'reflection',createdAt:Date.now(),updatedAt:Date.now()}); jrSort(); persist(); } closeSheet(); renderJr(); toastN('Saved to Journal'); return; }
+    if(e.target && e.target.id==='jrRefDiscard'){ closeSheet(); }
+  });
+
   $('btnWebNotif').addEventListener('click', function(){
     if(!webNotifSupported()) return;
     if(Notification.permission === 'granted'){
@@ -7620,25 +7917,9 @@ function init(){
     });
   });
 
-  // ---- AI Chat voice input: segmented capture + 2.6s grace window ----
-  var uaiSpeech={active:false,recognition:null,silenceTimer:null,parts:[],starting:false,hadSpeech:false,finalizing:false};
-  function setUaiListening(on,msg){var b=$('uaiMic'),st=$('uaiListenStatus'),tx=$('uaiListenText');if(b)b.classList.toggle('listening',!!on);if(st)st.classList.toggle('on',!!on);if(tx&&msg)tx.textContent=msg;if(b){b.textContent=on?'■':'🎙️';b.title=on?'Stop listening':'Speak';}}
-  function uaiResetSilence(){if(uaiSpeech.silenceTimer)clearTimeout(uaiSpeech.silenceTimer);uaiSpeech.silenceTimer=setTimeout(function(){finalizeUaiSpeech();},2600);setUaiListening(true,'Listening… speak again within 2.6 seconds to add more.');}
-  function finalizeUaiSpeech(){if(uaiSpeech.finalizing)return;uaiSpeech.finalizing=true;if(uaiSpeech.silenceTimer){clearTimeout(uaiSpeech.silenceTimer);uaiSpeech.silenceTimer=null;}var text=uaiSpeech.parts.join(' ').replace(/\s+/g,' ').trim();uaiSpeech.active=false;try{if(window.Bridge&&Bridge.stopAiSpeech)Bridge.stopAiSpeech();}catch(e){}try{if(uaiSpeech.recognition)uaiSpeech.recognition.stop();}catch(e){}uaiSpeech.recognition=null;setUaiListening(false,'');if(!text){uaiSpeech.finalizing=false;toastN('I didn’t catch anything. Please try again.');return;}$('uaiInput').value=text;uaiSpeech.parts=[];uaiSpeech.hadSpeech=false;uaiSpeech.finalizing=false;doUaiSend();}
-  function addUaiSpeechPart(text){text=String(text||'').trim();if(!text)return;var prev=uaiSpeech.parts[uaiSpeech.parts.length-1]||'';if(prev&&prev.toLowerCase()===text.toLowerCase())return;uaiSpeech.parts.push(text);uaiSpeech.hadSpeech=true;$('uaiInput').value=uaiSpeech.parts.join(' ');uaiResetSilence();}
-  function stopUaiSpeech(){uaiSpeech.active=false;uaiSpeech.finalizing=false;uaiSpeech.parts=[];uaiSpeech.hadSpeech=false;if(uaiSpeech.silenceTimer){clearTimeout(uaiSpeech.silenceTimer);uaiSpeech.silenceTimer=null;}try{if(window.Bridge&&Bridge.stopAiSpeech)Bridge.stopAiSpeech();}catch(e){}try{if(uaiSpeech.recognition)uaiSpeech.recognition.stop();}catch(e){}uaiSpeech.recognition=null;setUaiListening(false,'');}
-  function startBrowserUaiSpeech(){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR){setUaiListening(false,'');toastN('Voice input is not available on this device.');return;}if(!uaiSpeech.active){uaiSpeech.active=true;uaiSpeech.parts=[];uaiSpeech.hadSpeech=false;uaiSpeech.finalizing=false;}var r=new SR();uaiSpeech.recognition=r;r.continuous=false;r.interimResults=true;r.lang='en-IN';var finalText='';r.onstart=function(){setUaiListening(true,'Listening… keep speaking; after each pause I’ll wait 2.6 seconds for more.');};r.onresult=function(ev){var interim='';for(var i=ev.resultIndex;i<ev.results.length;i++){var tx=ev.results[i][0].transcript||'';if(ev.results[i].isFinal)finalText+=(finalText?' ':'')+tx;else interim+=(interim?' ':'')+tx;}if(interim)$('uaiInput').value=uaiSpeech.parts.concat([interim]).join(' ');if(finalText){addUaiSpeechPart(finalText);finalText='';}};r.onerror=function(ev){if(!uaiSpeech.active)return;if(ev&&['no-speech','aborted'].indexOf(ev.error)>=0){if(uaiSpeech.hadSpeech){uaiResetSilence();return;}setUaiListening(true,'Still listening…');return;}toastN('Could not capture voice input. Please try again.');stopUaiSpeech();};r.onend=function(){if(uaiSpeech.active&&!uaiSpeech.finalizing){if(uaiSpeech.hadSpeech){setTimeout(function(){if(uaiSpeech.active)startBrowserUaiSpeech();},120);uaiResetSilence();}else{setUaiListening(true,'Still listening…');setTimeout(function(){if(uaiSpeech.active)startBrowserUaiSpeech();},180);}}};try{r.start();}catch(e){uaiSpeech.active=false;setUaiListening(false,'');toastN('Could not start voice input.');}}
-  window._aiSpeechState=function(state,msg){if(state==='listening'||state==='starting'||state==='ready'){uaiSpeech.active=true;setUaiListening(true,msg||'Listening… keep speaking; after each pause I’ll wait 2.6 seconds for more.');}else if(state==='processing'){setUaiListening(true,'Pause detected… I’ll wait 2.6 seconds for more speech.');}};
-  window._aiSpeechPartial=function(text){if(uaiSpeech.active&&String(text||'').trim())$('uaiInput').value=uaiSpeech.parts.concat([String(text).trim()]).join(' ');};
-  window._aiSpeechResult=function(text){if(uaiSpeech.active)addUaiSpeechPart(text);};
-  window._aiSpeechError=function(msg){if(uaiSpeech.active&&uaiSpeech.hadSpeech){uaiResetSilence();return;}stopUaiSpeech();toastN(String(msg||'Voice input failed.'));};
-  function startUaiSpeech(){if(uaiSpeech.active){stopUaiSpeech();return;}if(window.Bridge&&Bridge.startAiSpeech){uaiSpeech.active=true;uaiSpeech.parts=[];uaiSpeech.hadSpeech=false;setUaiListening(true,'Listening… keep speaking; after each pause I’ll wait 2.6 seconds for more.');try{Bridge.startAiSpeech();return;}catch(e){uaiSpeech.active=false;}}startBrowserUaiSpeech();}
-
   // ---- Ask Your Data chat ----
   // ---- Universal AI Assistant wiring ----
-  function doUaiSend(){ var v=$('uaiInput').value.trim();if(!v)return;stopUaiSpeech();$('uaiInput').value='';uaiSend(v); }
-  $('uaiMic').addEventListener('click',function(){startUaiSpeech();});
-  document.querySelectorAll('.uaiMode').forEach(function(b){b.addEventListener('click',function(){uaiMode=this.getAttribute('data-mode')||'ask';document.querySelectorAll('.uaiMode').forEach(function(x){x.classList.toggle('sel',x===b);});var hints={ask:'Ask anything about your tracker.',plan:'Plan my day, organize priorities, or build a practical week.',analyze:'Find patterns, trends, bottlenecks, spending or consistency issues.',act:'Make changes to my tracker; I’ll collect missing details safely.'};$('uaiModeHint').textContent=hints[uaiMode]||hints.ask;$('uaiInput').focus();});});
+  function doUaiSend(){ var v=$('uaiInput').value.trim();if(!v)return;$('uaiInput').value='';uaiSend(v); }
   $('uaiSend').addEventListener('click', doUaiSend);
   $('uaiClear').addEventListener('click', function(){
     var log=$('uaiLog');
@@ -7662,8 +7943,6 @@ function init(){
   });
   document.querySelectorAll('.uaiCategory').forEach(function(el){ el.addEventListener('click',function(){ $('uaiInput').value=this.getAttribute('data-cmd'); doUaiSend(); }); });
   $('uaiLog').addEventListener('click',function(e){var b=e.target.closest('[data-followup]');if(!b)return;$('uaiInput').value=b.getAttribute('data-followup');doUaiSend();});
-  $('uaiLog').addEventListener('click',function(e){var b=e.target.closest('[data-tts]');if(!b)return;e.preventDefault();speakUaiText(decodeURIComponent(b.getAttribute('data-tts')||''),b);});
-  window._aiTtsState=function(state){if(state==='done'||state==='error')uaiTtsState(false,uaiTts.currentButton);};
 
   // ---- Natural language expense entry ----
   // Wire the AI page NL expense (nlExpInput2/nlExpSend2)
@@ -7894,8 +8173,6 @@ function init(){
     var ds=climb(e.target,this,'data-delsub'); if(ds){ var pr=ds.getAttribute('data-delsub').split('|'); var arr=state.cats[pr[0]]||[]; var ix=arr.indexOf(pr[1]); if(ix>=0){ arr.splice(ix,1); persist(); renderCatEditor(); } return; }
     var as=climb(e.target,this,'data-addsub'); if(as){ var cc=as.getAttribute('data-addsub'); var nm=prompt('New subcategory for '+cc); if(nm&&nm.trim()){ state.cats[cc].push(nm.trim().slice(0,30)); persist(); renderCatEditor(); } return; }
   });
-
-  $('jrEmptyCta').addEventListener('click', function(){ openJr(null); });
 
   document.addEventListener('visibilitychange', function(){
     if(document.hidden){

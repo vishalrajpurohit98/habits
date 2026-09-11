@@ -12,11 +12,6 @@ import android.provider.Settings;
 import android.text.TextUtils;
 import android.view.*;
 import android.webkit.*;
-import android.speech.RecognitionListener;
-import android.speech.SpeechRecognizer;
-import android.speech.RecognizerIntent;
-import android.speech.tts.TextToSpeech;
-import android.speech.tts.UtteranceProgressListener;
 import android.widget.Toast;
 
 import org.json.JSONArray;
@@ -34,7 +29,6 @@ public class MainActivity extends Activity {
     static final int REQ_IMPORT = 403;
     static final int REQ_PHOTO = 404;
     static final int REQ_CAMERA = 406;
-    static final int REQ_SPEECH = 407;
 
     static final String APP_HOST = "personal-tracker.local";
     WebView web;
@@ -44,10 +38,6 @@ public class MainActivity extends Activity {
     String pendingPhotoDir = "photos";
     Uri pendingCameraUri = null;
     boolean pendingCameraPermission = false;
-    SpeechRecognizer aiSpeechRecognizer = null;
-    TextToSpeech aiTts = null;
-    boolean aiTtsReady = false;
-    final Handler aiSpeechHandler = new Handler(Looper.getMainLooper());
 
     @Override public void onCreate(Bundle b) {
         super.onCreate(b);
@@ -167,102 +157,6 @@ public class MainActivity extends Activity {
             web.postDelayed(() -> web.evaluateJavascript("window.onNativeResume&&window.onNativeResume()", null), 200);
         }
         NativeAlarms.restore(this);
-    }
-
-    void initAiTts(){
-        if(aiTts!=null)return;
-        aiTts = new TextToSpeech(this, status -> {
-            aiTtsReady = status == TextToSpeech.SUCCESS;
-            if(aiTtsReady){
-                try{aiTts.setLanguage(new java.util.Locale("en","IN"));}catch(Exception ignored){}
-                try{aiTts.setSpeechRate(0.96f);aiTts.setPitch(1.0f);}catch(Exception ignored){}
-            }
-        });
-        aiTts.setOnUtteranceProgressListener(new UtteranceProgressListener(){
-            @Override public void onStart(String id){ js("window._aiTtsState&&window._aiTtsState('speaking')"); }
-            @Override public void onDone(String id){ js("window._aiTtsState&&window._aiTtsState('done')"); }
-            @Override public void onError(String id){ js("window._aiTtsState&&window._aiTtsState('error')"); }
-        });
-    }
-    void speakAiTts(String text){
-        final String t = text==null?"":text.trim(); if(t.isEmpty())return;
-        runOnUiThread(() -> {
-            initAiTts();
-            try{ if(!aiTtsReady){ new Handler(Looper.getMainLooper()).postDelayed(() -> speakAiTts(t), 180); return; }
-                aiTts.stop();
-                android.os.Bundle params = new android.os.Bundle();
-                aiTts.speak(t, TextToSpeech.QUEUE_FLUSH, params, "ai_"+System.currentTimeMillis());
-            }catch(Exception e){ js("window._aiTtsState&&window._aiTtsState('error')"); }
-        });
-    }
-    void stopAiTts(){ runOnUiThread(() -> { try{if(aiTts!=null)aiTts.stop();}catch(Exception ignored){} js("window._aiTtsState&&window._aiTtsState('done')"); }); }
-
-    void stopAiSpeech(){
-        try{if(aiSpeechRecognizer!=null){aiSpeechRecognizer.stopListening();aiSpeechRecognizer.cancel();aiSpeechRecognizer.destroy();}}catch(Exception ignored){}
-        aiSpeechRecognizer=null;
-    }
-
-    Intent buildAiSpeechIntent(){
-        Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN");
-        i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
-        i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
-        i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,900);
-        i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,1200);
-        i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,1400);
-        return i;
-    }
-
-    void startAiSpeech(){
-        if(Build.VERSION.SDK_INT>=23 && checkSelfPermission(Manifest.permission.RECORD_AUDIO)!=PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO},REQ_SPEECH); return;
-        }
-        if(!SpeechRecognizer.isRecognitionAvailable(this)){
-            js("window._aiSpeechError&&window._aiSpeechError("+JSONObject.quote("Speech recognition is not available on this device.")+")"); return;
-        }
-        stopAiSpeech();
-        aiSpeechHandler.postDelayed(()->{
-            try{
-                aiSpeechRecognizer=SpeechRecognizer.createSpeechRecognizer(MainActivity.this);
-                aiSpeechRecognizer.setRecognitionListener(new RecognitionListener(){
-                    public void onReadyForSpeech(Bundle p){js("window._aiSpeechState&&window._aiSpeechState('ready')");}
-                    public void onBeginningOfSpeech(){js("window._aiSpeechState&&window._aiSpeechState('listening')");}
-                    public void onRmsChanged(float v){} public void onBufferReceived(byte[] b){}
-                    public void onEndOfSpeech(){js("window._aiSpeechState&&window._aiSpeechState('processing')");}
-                    public void onError(int e){
-                        if(e==SpeechRecognizer.ERROR_SPEECH_TIMEOUT||e==SpeechRecognizer.ERROR_NO_MATCH){
-                            js("window._aiSpeechState&&window._aiSpeechState('processing')");
-                            aiSpeechHandler.postDelayed(() -> { if(aiSpeechRecognizer!=null) try{ aiSpeechRecognizer.startListening(buildAiSpeechIntent()); }catch(Exception ignored){} }, 180);
-                        }else{
-                            js("window._aiSpeechError&&window._aiSpeechError("+JSONObject.quote("Voice input error: "+e)+")");
-                            stopAiSpeech();
-                        }
-                    }
-                    public void onResults(Bundle r){
-                        ArrayList<String> a=r==null?null:r.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                        String text=a!=null&&!a.isEmpty()?a.get(0):"";
-                        js("window._aiSpeechResult&&window._aiSpeechResult("+JSONObject.quote(text)+")");
-                        aiSpeechHandler.postDelayed(() -> { if(aiSpeechRecognizer!=null) try{ aiSpeechRecognizer.startListening(buildAiSpeechIntent()); }catch(Exception ignored){} }, 180);
-                    }
-                    public void onPartialResults(Bundle r){
-                        ArrayList<String> a=r==null?null:r.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
-                        if(a!=null&&!a.isEmpty())js("window._aiSpeechPartial&&window._aiSpeechPartial("+JSONObject.quote(a.get(0))+ ")");
-                    }
-                    public void onEvent(int t,Bundle p){}
-                });
-                Intent i=new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-                i.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-                i.putExtra(RecognizerIntent.EXTRA_LANGUAGE,"en-IN");
-                i.putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS,true);
-                i.putExtra(RecognizerIntent.EXTRA_MAX_RESULTS,3);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_MINIMUM_LENGTH_MILLIS,1200);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
-                i.putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS,2500);
-                aiSpeechRecognizer.startListening(i);
-                js("window._aiSpeechState&&window._aiSpeechState('starting')");
-            }catch(Exception e){stopAiSpeech();js("window._aiSpeechError&&window._aiSpeechError("+JSONObject.quote("Could not start voice input: "+(e.getMessage()==null?e.getClass().getSimpleName():e.getMessage()))+")");}
-        },300);
     }
 
     @Override public void onBackPressed() {
@@ -399,9 +293,6 @@ public class MainActivity extends Activity {
             boolean ok = grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED;
             pendingCameraPermission = false;
             if (ok) launchCamera(); else toast("Camera permission denied");
-        } else if (req == REQ_SPEECH) {
-            boolean ok = grants.length > 0 && grants[0] == PackageManager.PERMISSION_GRANTED;
-            if (ok) startAiSpeech(); else js("window._aiSpeechError&&window._aiSpeechError("+JSONObject.quote("Microphone permission was denied.")+")");
         }
     }
 
@@ -454,12 +345,16 @@ public class MainActivity extends Activity {
             } catch(Exception e){ toast("Could not save photo"); }
         }
      else if (req == REQ_SPEECH) {
-            if(result == RESULT_OK && data != null){
-                ArrayList<String> r=data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-                String text=r!=null&&!r.isEmpty()?r.get(0):"";
-                js("window._aiSpeechResult&&window._aiSpeechResult("+JSONObject.quote(text)+")");
-            } else {
-                js("window._aiSpeechError&&window._aiSpeechError("+JSONObject.quote("Voice input was cancelled.")+")");
+            String current = pendingSpeechId;
+            pendingSpeechId=null;
+            if (current != null) {
+                if (result == RESULT_OK && data != null) {
+                    ArrayList<String> r = data.getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+                    String text = r != null && !r.isEmpty() ? r.get(0) : "";
+                    js("window._speechResult&&window._speechResult("+JSONObject.quote(current)+","+JSONObject.quote(text)+",null)");
+                } else {
+                    js("window._speechResult&&window._speechResult("+JSONObject.quote(current)+",'',"+JSONObject.quote("cancelled")+")");
+                }
             }
         }}
 
@@ -514,13 +409,6 @@ public class MainActivity extends Activity {
 
     void toast(String s){ runOnUiThread(()->Toast.makeText(this,s,Toast.LENGTH_SHORT).show()); }
 
-    @Override protected void onDestroy(){
-        try{stopAiSpeech();}catch(Exception ignored){}
-        try{if(aiTts!=null){aiTts.stop();aiTts.shutdown();}}catch(Exception ignored){}
-        aiTts=null;
-        super.onDestroy();
-    }
-
     public class Bridge {
         @JavascriptInterface public String getState(){return prefs.getString("state","");}
         @JavascriptInterface public void saveState(String s){if(s!=null){prefs.edit().putString("state",s).apply();WidgetHub.refreshAllDebounced(MainActivity.this);}}
@@ -550,10 +438,6 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){String[] keys={"habit","task","tab","add","acct","addTask","addHabit","workout","fromWidget"};for(String k:keys){String v=i.getStringExtra(k);if(v!=null){o.put(k,v);i.removeExtra(k);}}}}catch(Exception ignored){}return o.toString();}
         @JavascriptInterface public boolean bioAvail(){return false;}
         @JavascriptInterface public void bio(){}
-        @JavascriptInterface public void startAiSpeech(){MainActivity.this.startAiSpeech();}
-        @JavascriptInterface public void stopAiSpeech(){MainActivity.this.stopAiSpeech();}
-        @JavascriptInterface public void speakAiTts(String text){MainActivity.this.speakAiTts(text);}
-        @JavascriptInterface public void stopAiTts(){MainActivity.this.stopAiTts();}
         @JavascriptInterface public void pickDate(int y,int m,int d){MainActivity.this.pickDate(y,m,d);}
         @JavascriptInterface public void pickTime(int h,int m){MainActivity.this.pickTime(h,m);}
         @JavascriptInterface public void pickImport(){MainActivity.this.importFile("backup");}
