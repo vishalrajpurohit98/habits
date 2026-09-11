@@ -404,3 +404,56 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 ## Process note
 - jsdom testing gave false confidence (it builds DOM content but does not do CSS layout, so
   0x0 collapsed pages read as "has content"). Switched to real-browser rendering checks.
+
+---
+
+# V1.5.0 Phase 1 — Navigation restructure (IA redesign)
+- Bottom nav reduced to 5: Today / Tasks / Money / Journal / More.
+- New pgMore hub: Health (Mood/Sleep/Workout), Analytics (Stats/AI), Data (Export/Settings).
+- Stats/AI/Settings are no longer primary tabs; reached via More. Sub-pages highlight "More".
+- Global "Ask AI" button (#aiFab) opens the full AI page (kept intact: voice, context, 32 actions).
+  Hidden while on the AI page.
+- showTab handles pgMore + sub-page highlight mapping.
+- Verified in real Chromium: all pages reachable and full-size, More cards route correctly,
+  AI fab works, zero page errors.
+
+---
+
+# V1.5.0 Phase 2 — Today dashboard
+- Added "Today's progress" summary card (Habits / Tasks / Mood / Sleep at a glance) at the top
+  of Today, computed from live data (renderTodayProgress).
+- Kept existing Today content (momentum, weekly pulse, tasks, quick actions, sleep, habit list).
+- Verified in real Chromium: progress card renders with values; all pages still render; no errors.
+
+## Status of the full 21-point IA plan
+- DONE + tested: Phase 1 (navigation) and Phase 2 core (Today progress card).
+- REMAINING (larger, deferred to avoid quality/regression risk): consolidate all Insights into
+  Analytics; simplify Journal top-nav; group Settings into sections; progressive disclosure on
+  habit/money creation; full visual-system standardization.
+
+---
+
+# V1.5.0 Phase 3+4 — consolidation & polish
+
+## Phase 3 (scoped to non-conflicting items, per user)
+- Journal AI buttons merged: timeline's "Summarize Day" + "Reflect Day" now live under one
+  "✦ Ask about my day" menu (Summarize / Reflect / Talk). Uses existing handlers.
+- Journal sub-nav LEFT AS-IS (icon nav was the user's earlier explicit request).
+- Settings LEFT AS-IS (already grouped into 9 labeled sections; re-grouping = high risk, low gain).
+
+## Phase 4 — visual polish + progressive disclosure
+- Habit creation form: progressive disclosure. New habits show only Name / Quick start / Type /
+  Repeat + "More options ▾". Advanced fields (Icon, Color, Category, Time of day, Reminders,
+  Dates, Notes, Quote) are hidden until expanded. Editing an existing habit shows them expanded.
+- Consistent card/menu styling reused across new elements.
+
+## Verified (real Chromium)
+- All pages render full-size incl. sub-pages via More; habit progressive disclosure works
+  (hidden for new, expands on More options, shown when editing); journal ask-day menu opens;
+  zero page errors. Screenshots captured.
+
+## Honest note on the 21-point plan
+- Some Phase 3 items (simplify Journal nav, re-group Settings) were NOT done because they would
+  reverse decisions the user made earlier or re-architect already-organized code for little gain.
+  Flagged to the user; user agreed to skip. Insight-consolidation across Money/Journal/Stats was
+  not done as it needs an Analytics rebuild (large, deferred).

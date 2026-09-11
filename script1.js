@@ -1689,10 +1689,33 @@ function getHabitCoaching(h){
   return gemCall(prompt,120);
 }
 
+function renderTodayProgress(){
+  var box=$('todayProgress'); if(!box) return;
+  var now=new Date(), ts=today();
+  /* habits */
+  var due=0, doneH=0;
+  for(var i=0;i<state.habits.length;i++){ var h=state.habits[i]; if(!h.arch && dueOn(h,now)){ due++; if(isDone(h,ts)||isFroz(h,ts)) doneH++; } }
+  /* tasks */
+  var tdone=0, ttot=0;
+  try{ var tks=taskAllVisible().filter(function(t){return t.dueDate===ts && !t.virtualHabit;}); ttot=tks.length; tdone=tks.filter(function(t){return taskEffectiveStatus(t)==='completed';}).length; }catch(e){}
+  /* mood */
+  var moodStr='—';
+  if(state.mood && state.mood[ts]!==undefined){ var ml=['Excellent','Happy','Calm','Neutral','Tired','Sad','Stressed'][state.mood[ts]]; var me=['\uD83E\uDD29','\uD83D\uDE04','\uD83D\uDE0C','\uD83D\uDE10','\uD83D\uDE2A','\uD83D\uDE14','\uD83D\uDE30'][state.mood[ts]]; if(ml) moodStr=(me||'')+' '+ml; }
+  /* sleep */
+  var sleepStr='—';
+  try{ var sl=(state.sleep||[]).find(function(x){return x.d===ts;}); if(sl&&sl.mins) sleepStr=Math.floor(sl.mins/60)+'h '+(sl.mins%60)+'m'; }catch(e){}
+  box.innerHTML='<div class="tpTitle">Today\u2019s progress</div><div class="tpGrid">'
+    +'<div class="tpItem"><span class="k">Habits</span><span class="v">'+(due?doneH+' / '+due:'\u2014')+'</span></div>'
+    +'<div class="tpItem"><span class="k">Tasks</span><span class="v">'+(ttot?tdone+' / '+ttot:'\u2014')+'</span></div>'
+    +'<div class="tpItem"><span class="k">Mood</span><span class="v">'+moodStr+'</span></div>'
+    +'<div class="tpItem"><span class="k">Sleep</span><span class="v">'+sleepStr+'</span></div>'
+    +'</div>';
+}
 function renderTaskDashboard(){var b=$('taskDashSummary');if(!b)return;var all=taskAllVisible(),over=all.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,todayN=all.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=all.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;b.innerHTML='<div class="taskDashHead"><b>Tasks</b><button id="taskDashView">View Tasks</button></div><div class="taskDashLine"><span class="red">🔴 <b>'+over+'</b> overdue</span><span class="orange">🟠 <b>'+todayN+'</b> due today</span><span class="blue">🔵 <b>'+up+'</b> upcoming</span><span class="green">✅ <b>'+done+'</b> completed</span></div>';}
 
 function renderToday(){
   renderTaskDashboard();
+  try{ renderTodayProgress(); }catch(e){}
   try{ if($('sleepCard')) renderSleepCard(); }catch(e){}
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
@@ -1983,6 +2006,11 @@ function openEdit(id){
   ed._edit = id || '';
   $('shTitle').textContent = id ? 'Edit habit' : 'Add habit';
   $('saveBtn').textContent = id ? 'Save changes' : 'Add habit';
+  var advOpen = !!id; /* editing existing -> show advanced; new habit -> hide */
+  var a1=$('habitAdv1'), a2=$('habitAdv2'), mb=$('habitMoreBtn');
+  if(a1) a1.style.display = advOpen ? '' : 'none';
+  if(a2) a2.style.display = advOpen ? '' : 'none';
+  if(mb) mb.style.display = advOpen ? 'none' : '';
   syncForm();
   openSheet('addSheet');
 }
@@ -5287,10 +5315,13 @@ function handleAddAction(kind){
 
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
-  var pgs = ['pgToday','pgTasks','pgExp','pgStats','pgJr','pgAI','pgSet'];
+  var pgs = ['pgToday','pgTasks','pgExp','pgStats','pgJr','pgAI','pgSet','pgMore'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
-  for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
+  var subPages = {pgStats:1, pgAI:1, pgSet:1, pgMore:1};
+  var navFor = subPages[id] ? 'pgMore' : id;
+  for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===navFor);
+  var _aif=$('aiFab'); if(_aif) _aif.style.display = (id==='pgAI') ? 'none' : '';
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
   if(id==='pgStats') renderStats();
   if(id==='pgTasks') renderTasks();
@@ -5582,6 +5613,7 @@ function init(){
   $('btnEndClr').addEventListener('click', function(e){ e.stopPropagation(); ed.end=''; refreshDateBtns(); });
 
   $('saveBtn').addEventListener('click', saveHabit);
+  var _hMore=$('habitMoreBtn'); if(_hMore) _hMore.addEventListener('click', function(){ var a1=$('habitAdv1'),a2=$('habitAdv2'); if(a1)a1.style.display=''; if(a2)a2.style.display=''; this.style.display='none'; });
   $('swRepeat').addEventListener('click', function(){ this.classList.toggle('on'); });
   $('swMissed').addEventListener('click', function(){ this.classList.toggle('on'); });
 
@@ -5874,6 +5906,19 @@ function init(){
     else if(kind==='journal'){ showTab('pgJr'); setTimeout(function(){ openJr(null); },60); }
     else if(kind==='sleep'){ if(typeof openSleep==='function') openSleep(today()); }
   });
+  /* ===== More hub + global AI (Phase 1) ===== */
+  var _aiFab=$('aiFab'); if(_aiFab) _aiFab.addEventListener('click', function(){ showTab('pgAI'); });
+  var _more=$('pgMore'); if(_more) _more.addEventListener('click', function(e){
+    var b=climb(e.target,this,'data-more'); if(!b) return;
+    var m=b.getAttribute('data-more');
+    if(m==='stats') showTab('pgStats');
+    else if(m==='ai') showTab('pgAI');
+    else if(m==='settings') showTab('pgSet');
+    else if(m==='export'){ showTab('pgSet'); setTimeout(function(){ var el=$('btnBk')||$('btnJrExport'); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'center'}); },120); }
+    else if(m==='health-mood'){ showTab('pgJr'); setTimeout(function(){ jrGo('insights'); var mb=$('jrMoodInsBtn'); if(mb){ var p=$('jrMoodPanel'); if(p&&p.style.display==='none') mb.click(); } },120); }
+    else if(m==='health-sleep'){ showTab('pgToday'); setTimeout(function(){ if(typeof openSleep==='function') openSleep(today()); },120); }
+    else if(m==='health-workout'){ showTab('pgStats'); setTimeout(function(){ var f=$('fitSection'); if(f&&f.scrollIntoView) f.scrollIntoView({behavior:'smooth',block:'start'}); },150); }
+  });
   /* ===== Journal V1.4.0 wiring ===== */
   var _moodIns=$('jrMoodInsBtn'); if(_moodIns) _moodIns.addEventListener('click', function(){
     var p=$('jrMoodPanel'); if(!p) return;
@@ -5920,6 +5965,9 @@ function init(){
   $('jrWriteBtn').addEventListener('click', function(){ openJr(null, jrPromptText()); });
   $('jrAnotherPrompt').addEventListener('click', function(){ jrPromptIx=(jrPromptIx<0?0:jrPromptIx+1)%JR_PROMPTS.length; jrRenderPrompt(); });
   $('jrTalkBtn').addEventListener('click', openJrReflect);
+  var _askDay=$('jrAskDayBtn'); if(_askDay) _askDay.addEventListener('click', function(){ var m=$('jrAskDayMenu'); if(m) m.classList.toggle('on'); });
+  var _askTalk=$('jrAskTalk'); if(_askTalk) _askTalk.addEventListener('click', function(){ var m=$('jrAskDayMenu'); if(m) m.classList.remove('on'); openJrReflect(); });
+  var _askMenu=$('jrAskDayMenu'); if(_askMenu) _askMenu.addEventListener('click', function(e){ if(climb(e.target,this,'data-jrday')) this.classList.remove('on'); });
   $('jrWholeAiBtn').addEventListener('click', jrWholeAi);
   var jrDayRow=$('jrDayAiOut'); /* day AI buttons are in timeline view */
   document.querySelectorAll('[data-jrday]').forEach(function(b){ b.addEventListener('click', function(){ jrDayAi(this.getAttribute('data-jrday')); }); });
