@@ -847,6 +847,23 @@ html:not(.light) .srchBtn.on{color:var(--amber)}
 .mdRow .mdc{width:24px;text-align:right;color:var(--mut);flex-shrink:0}
 
 /* ============ JOURNAL ============ */
+.jrHero{background:linear-gradient(145deg,var(--card),rgba(78,168,255,.045));border:1px solid var(--line);border-radius:20px;padding:16px;margin:12px 0 14px;box-shadow:var(--shadow)}
+.jrHeroTop{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.jrHeroTitle{font-family:var(--fDisp);font-size:20px;font-weight:800;letter-spacing:-.5px}.jrHeroSub{font-size:11px;color:var(--mut);margin-top:3px}
+.jrNewBtn{border:0;border-radius:13px;background:var(--amber);color:var(--onAccent);font-weight:900;padding:10px 13px;white-space:nowrap}
+.jrStatRow{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:13px}.jrStat{background:var(--card2);border:1px solid var(--line);border-radius:13px;padding:9px}.jrStat b{display:block;font-family:var(--fDisp);font-size:16px}.jrStat span{font-size:9px;color:var(--mut);text-transform:uppercase;letter-spacing:.7px}
+.jrToolbar{display:flex;gap:6px;margin:0 0 12px}.jrViewBtn{flex:1;border:1px solid var(--line2);background:var(--card2);color:var(--mut);border-radius:11px;padding:8px;font-size:11px;font-weight:800}.jrViewBtn.sel{background:var(--amberSoft);border-color:var(--amber);color:var(--amberDeep)}html:not(.light) .jrViewBtn.sel{color:var(--amber)}
+.jrContext{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px}.jrCtx{background:var(--card2);border-radius:11px;padding:8px;text-align:center}.jrCtx b{display:block;font-size:13px}.jrCtx span{font-size:8.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px}
+.jrTemplateRow{display:flex;gap:7px;overflow:auto;padding:2px 0 5px}.jrTemplate{flex:none;border:1px solid var(--line2);background:var(--card2);color:var(--ink2);border-radius:11px;padding:8px 10px;font-size:10.5px;font-weight:800}
+.jrEditorMeta{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin:8px 0}.jrMoodPick{border:1px solid var(--line2);background:var(--card2);border-radius:10px;padding:7px 9px;color:var(--ink2);font-size:11px}
+.jrBodyEdit{min-height:220px!important;line-height:1.65!important;font-size:15px!important;resize:vertical}
+.jrFormatBar{display:flex;gap:5px;flex-wrap:wrap;padding:7px;background:var(--card2);border:1px solid var(--line);border-radius:12px 12px 0 0;border-bottom:0}.jrFmt{min-width:34px;height:32px;border:1px solid var(--line2);background:var(--card);color:var(--ink);border-radius:9px;font-weight:800;font-size:12px}.jrFmt.wide{padding:0 9px}.jrEditorSurface{min-height:220px!important;line-height:1.65!important;font-size:15px!important;outline:none;overflow:auto;white-space:pre-wrap;word-break:break-word;border-radius:0 0 12px 12px!important}.jrEditorSurface:empty:before{content:attr(data-placeholder);color:var(--mut2)}.jrEditorSurface blockquote{margin:8px 0;padding-left:12px;border-left:3px solid var(--amber);color:var(--mut)}.jrTplManage{border:1px dashed var(--line2);background:transparent;color:var(--mut);border-radius:11px;padding:8px 10px;font-size:10.5px;font-weight:800;white-space:nowrap}
+.jrEditorHint{font-size:10px;color:var(--mut);line-height:1.45;margin-top:6px}
+.jrAiBar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0}.jrAiBtn{border:1px solid var(--line2);background:var(--card2);color:var(--ink2);border-radius:10px;padding:7px 9px;font-size:10px;font-weight:800}
+.jrCal{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:14px}.jrCalHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}.jrCalHead b{font-family:var(--fDisp);font-size:13px}.jrCalHead button{width:32px;height:32px;border:1px solid var(--line2);background:var(--card2);color:var(--ink);border-radius:9px}
+.jrCalGrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.jrCalDow{text-align:center;font-size:8px;color:var(--mut2);padding:2px}.jrCalDay{min-height:42px;border:1px solid transparent;background:var(--card2);border-radius:9px;position:relative;padding:6px;font-size:10px;color:var(--mut)}.jrCalDay.has{color:var(--ink);border-color:var(--line2)}.jrCalDay.today{border-color:var(--amber)}.jrCalDay.sel{background:var(--amberSoft);color:var(--amberDeep)}html:not(.light) .jrCalDay.sel{color:var(--amber)}.jrCalDay i{position:absolute;right:5px;bottom:5px;width:5px;height:5px;border-radius:50%;background:var(--amber)}
+.jrMonthEntries{margin-top:8px}.jrMonthDate{font-size:10px;font-weight:900;letter-spacing:1px;color:var(--mut);text-transform:uppercase;margin:15px 2px 7px}
+.jrCountBadge{font-size:9px;color:var(--mut);background:var(--card2);border-radius:999px;padding:4px 7px}
+
 .jrCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;
   margin-bottom:13px;box-shadow:var(--shadow)}
 .jrCard:active{transform:scale(.985)}
@@ -1494,24 +1511,48 @@ to{opacity:1;transform:none}}
       <button class="srchBtn" id="jrSrchBtn" aria-label="Search journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
     <div class="srchWrap" id="jrSrchWrap">
-      <input id="jrSrch" class="inp materialSearch" maxlength="40" placeholder="Search entries&#8230;" autocomplete="off">
+      <input id="jrSrch" class="inp materialSearch" maxlength="60" placeholder="Search your journal…" autocomplete="off">
       <div class="chips" id="jrTagRow" style="margin-top:10px"></div>
     </div>
-    <div style="height:14px"></div>
+    <div class="jrHero">
+      <div class="jrHeroTop">
+        <div><div class="jrHeroTitle">Write about today</div><div class="jrHeroSub" id="jrHeroSub">A private place to think, remember and reflect.</div></div>
+        <button class="jrNewBtn" id="jrWriteBtn">+ New entry</button>
+      </div>
+      <div class="jrStatRow">
+        <div class="jrStat"><b id="jrStreak">0</b><span>Day streak</span></div>
+        <div class="jrStat"><b id="jrMonthCount">0</b><span>This month</span></div>
+        <div class="jrStat"><b id="jrTotalCount">0</b><span>Total entries</span></div>
+      </div>
+    </div>
+    <div class="jrToolbar">
+      <button class="jrViewBtn sel" data-jrv="timeline">Timeline</button>
+      <button class="jrViewBtn" data-jrv="calendar">Calendar</button>
+    </div>
     <div class="promptCard">
-      <div class="lbl" style="margin:0">&#9997;&#65039; Today's prompt</div>
+      <div class="lbl" style="margin:0">✍️ Today's prompt</div>
       <div class="pq" id="jrPrompt"></div>
-      <button class="sbtn acc" id="jrWriteBtn">Write about it</button>
+      <button class="sbtn acc" id="jrPromptBtn">Write about it</button>
+    </div>
+    <div class="setCard" id="jrContextCard" style="padding:12px 14px;margin-bottom:14px">
+      <div class="lbl" style="margin:0 0 2px">Today's context</div>
+      <div class="setS">Your tracker can provide context without writing it into your journal automatically.</div>
+      <div class="jrContext" id="jrContext"></div>
+      <div class="jrAiBar">
+        <button class="jrAiBtn" id="jrReflectBtn">✨ Reflect on my day</button>
+        <button class="jrAiBtn" id="jrPlanBtn">🗓️ Plan tomorrow</button>
+      </div>
     </div>
     <div class="setCard" id="otdCard" style="padding:8px 16px;display:none">
-      <div class="lbl" style="margin:10px 0 4px">On this day</div>
+      <div class="lbl" style="margin:10px 0 4px">↩ On this day</div>
       <div id="otdList"></div>
     </div>
+    <div id="jrCalendarWrap" style="display:none"></div>
     <div id="jrList"></div>
     <div class="empty" id="jrEmpty" hidden>
-      <div class="big">&#128214;</div>
+      <div class="big">📖</div>
       <div class="t">Your journal is empty</div>
-      <div class="s">Photos, #tags and memories &mdash;<br>all private, all offline.</div>
+      <div class="s">Write privately, revisit old days, and use AI when you want a deeper reflection.</div>
       <button class="emptyCtaBtn" id="jrEmptyCta">Write your first entry</button>
     </div>
   </div>
@@ -1521,594 +1562,50 @@ to{opacity:1;transform:none}}
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can understand your tracker, answer questions, and help you make changes safely.</div>
-    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ Actionables AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div class="uaiModeBar" id="uaiModeBar"><button class="uaiMode sel" data-mode="ask">Ask</button><button class="uaiMode" data-mode="plan">Plan</button><button class="uaiMode" data-mode="analyze">Analyze</button><button class="uaiMode" data-mode="act">Act</button></div><div id="uaiModeHint" class="uaiModeHint">Ask anything about your tracker.</div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask about your habits, tasks, spending, mood, sleep, workouts, journal, or planning. I’ll ask for missing details before making changes.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div><div class="uaiActionBar"><button class="uaiActionChip uaiCategory" data-cmd="Give me my daily briefing">☀️ Daily briefing</button><button class="uaiActionChip uaiCategory" data-cmd="Plan my day using my priorities and existing tracker data">🗓️ Plan my day</button></div></div><div id="uaiLog" class="uaiLog"></div><div id="uaiListenStatus" class="uaiListenStatus"><span class="uaiListenDot"></span><span id="uaiListenText">Listening… I’ll wait for about 2.5 seconds of silence before sending.</span></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything about your tracker…" autocomplete="off"><button class="uaiMic" id="uaiMic" aria-label="Voice input" title="Speak">🎙️</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Plan my day">Plan my day</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span></div></div>
-    
-    <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
-      <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
-      <div class="setRow"><div class="setInfo"><div class="setT">Model</div><div class="setS" id="aiModelHint">Select a provider first</div></div></div><select class="inp" id="aiModel" style="margin:6px 0 10px;padding:12px 14px"></select><div class="setRow"><div class="setInfo"><div class="setT">API key</div><div class="setS" id="aiKeyHint">Paste your key</div></div></div><input class="inp" id="aiApiKey" type="password" placeholder="Paste your API key" style="margin:6px 0 8px"><div class="half"><button class="sbtn acc" id="btnAiSave">Save</button><button class="sbtn" id="btnAiClear">Remove</button><button class="sbtn" id="btnAiFetch">↻ Models</button></div><div id="aiStatus" class="aiStatusLine"></div>
-    </div></div>
-  </div>
-  <div class="page" id="pgSet">
-    <div class="eyebrow">Make it yours</div>
-    <h1>Settings</h1>
-    <div style="height:16px"></div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Profile</div>
-    <div class="setCard">
-      <div class="setCol">
-        <div class="setT" style="margin-bottom:4px">Your name</div>
-        <div class="setS" style="margin-bottom:10px">Used for your daily greeting</div>
-        <div class="jrIn" style="margin-bottom:6px"><input class="inp" id="unameIn" maxlength="24" placeholder="e.g. Suyash"><button id="unameSave">&#10003;</button></div>
-      </div>
-    </div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--sPurple)"></i>Appearance</div>
-    <div class="setCard">
-      <div class="setCol">
-        <div class="setT" style="margin-bottom:4px">Theme</div>
-        <div class="setS" style="margin-bottom:10px">Choose how Habits looks</div>
-        <div class="chips" id="thRow">
-          <button class="chip" data-th="dark">&#127769; Dark</button>
-          <button class="chip" data-th="amoled">&#9899; AMOLED</button>
-          <button class="chip" data-th="light">&#9728;&#65039; Light</button>
-          <button class="chip" data-th="auto">Auto</button>
-        </div>
-      </div>
-      <div class="setCol">
-        <div class="setT" style="margin-bottom:4px">Palette</div>
-        <div class="setS" style="margin-bottom:10px">Accent color across the whole app</div>
-        <div class="chips" id="palRow">
-          <button class="chip" data-pal="ember"><i class="pd" style="background:#FFAE1F"></i>Ember</button>
-          <button class="chip" data-pal="lagoon"><i class="pd" style="background:#2FC6A0"></i>Lagoon</button>
-          <button class="chip" data-pal="frost"><i class="pd" style="background:#58A9FF"></i>Frost</button>
-          <button class="chip" data-pal="sakura"><i class="pd" style="background:#F06BB3"></i>Sakura</button>
-          <button class="chip" data-pal="violet"><i class="pd" style="background:#9B7BFF"></i>Violet</button>
-          <button class="chip" data-pal="mono"><i class="pd" style="background:#B9B4AA"></i>Mono</button>
-        </div>
-      </div>
-      <div class="setCol" style="padding:12px 0 4px">
-        <div class="setT" style="margin-bottom:2px">Font style</div>
-        <div class="setS" style="margin-bottom:10px">Typography across the whole app</div>
-        <div class="chips" id="fontRow">
-          <button class="chip" data-font="nothing" style="font-family:'Unbounded',sans-serif">Nothing</button>
-          <button class="chip" data-font="apple" style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif">Apple</button>
-          <button class="chip" data-font="google" style="font-family:'Space Grotesk','Roboto',sans-serif">Google</button>
-          <button class="chip" data-font="space" style="font-family:'Space Grotesk',sans-serif">Space</button>
-          <button class="chip" data-font="bricolage" style="font-family:'Bricolage',sans-serif">Bricolage</button>
-          <button class="chip" data-font="serif" style="font-family:'Fraunces',serif">Serif</button>
-          <button class="chip" data-font="system" style="font-family:-apple-system,sans-serif">System</button>
-        </div>
-      </div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Greyscale mode</div><div class="setS">Calmer, distraction-free colors</div></div><div class="tog" id="greyTog"></div></div>
-    </div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Money &amp; currency</div>
-    <div class="setCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">Currency settings</div><div class="setS" id="stCurrency">Base currency and exchange rates</div></div><button class="sbtn acc" id="btnCurrency">Open</button></div>
-    </div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--sBlue)"></i>Reminders</div>
-    <div class="setCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">Notifications</div><div class="setS" id="stNotif"></div></div><button class="sbtn acc" id="btnNotif">Allow</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Exact timing</div><div class="setS" id="stExact"></div></div><button class="sbtn" id="btnExact">Allow</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Test reminder</div><div class="setS">Fires the real pipeline in ~5 seconds</div></div><button class="sbtn" id="btnTestRem">Run</button></div>
-      <div class="setRow" id="rowFs" style="display:none"><div class="setInfo"><div class="setT">Full-screen reminders</div><div class="setS">Show reminders as an alarm-style screen</div></div><button class="sbtn acc" id="btnFs">Allow</button></div>
-      <div class="setRow" id="rowWebNotif" style="display:none"><div class="setInfo"><div class="setT">Browser notifications</div><div class="setS" id="stWebNotif">Get habit reminders in this browser</div></div><button class="sbtn acc" id="btnWebNotif">Enable</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Notification sound</div><div class="setS">Pick a custom sound in system settings</div></div><button class="sbtn" id="btnSound">Open</button></div>
-    </div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--coral)"></i>Privacy &amp; security</div>
-    <div class="setCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">PIN lock</div><div class="setS" id="stPin"></div></div><button class="sbtn acc" id="btnPin">Set</button><button class="sbtn warn" id="btnPinOff" style="display:none">Remove</button></div>
-      <div class="setRow" id="rowBio"><div class="setInfo"><div class="setT">Fingerprint unlock</div><div class="setS">Use biometrics to unlock</div></div><div class="tog" id="bioTog"></div></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Offline &amp; private</div><div class="setS">Local data remains available offline. Cloud sync is optional and can be enabled below.</div></div></div>
-    </div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--sOrange)"></i>Routine stack</div>
-    <div class="setCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">Habit stack</div><div class="setS" id="stStack">Chain habits in order</div></div><button class="sbtn acc" id="btnStack">Edit</button></div>
-    </div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--ice)"></i>Pause</div>
-    <div class="setCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">Vacation mode</div><div class="setS" id="stVac">Pause every habit &mdash; chains stay safe</div></div><button class="sbtn acc" id="btnVac">Start</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Archived habits</div><div class="setS" id="stArch">Nothing archived</div></div><button class="sbtn" id="btnArch">View</button></div>
-    </div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--sBlue)"></i>Cloud sync</div>
-    <div class="setCard" id="syncCard">
-      <!-- state 1: not configured -->
-      <div id="syncSetup">
-        <div class="setRow"><div class="setInfo"><div class="setT">Sync across devices</div><div class="setS">Sign in to sync your data across devices with Cloud Firestore</div></div><button class="sbtn acc" id="syncConfigBtn">Set up</button></div>
-        <div id="syncCfgForm" style="display:none;margin-top:6px">
-          <div class="setS" style="margin-bottom:8px">This build is preconfigured for <strong>Cloud Firestore + Firebase Authentication</strong>. Reconfigure only if you want to use another Firebase project.</div>
-          <textarea id="syncCfgIn" class="inp" style="min-height:120px;font-family:ui-monospace,monospace;font-size:12px;resize:vertical" placeholder='{
-  "apiKey": "…",
-  "authDomain": "…",
-  "projectId": "…",
-  "appId": "…"
-}'></textarea>
-          <div style="display:flex;gap:8px;margin-top:10px"><button class="sbtn" id="syncCfgCancel">Cancel</button><button class="sbtn acc" id="syncCfgSave">Save config</button></div>
-        </div>
-      </div>
-      <!-- state 2: configured, signed out -->
-      <div id="syncAuth" style="display:none">
-        <div class="setS" style="margin-bottom:10px">Sign in on each device with the same email to sync.</div>
-        <input id="syncEmail" class="inp" type="email" autocomplete="email" placeholder="Email" style="margin-bottom:8px">
-        <input id="syncPw" class="inp" type="password" autocomplete="current-password" placeholder="Password (6+ characters)" style="margin-bottom:10px">
-        <div style="display:flex;gap:8px"><button class="sbtn" id="syncSignup">Create account</button><button class="sbtn acc" id="syncSignin">Sign in</button></div>
-        <div class="setS" id="syncAuthMsg" style="margin-top:8px;display:none"></div>
-        <div class="setRow" style="margin-top:6px"><div class="setInfo"><div class="setT" style="color:var(--mut)">Reconfigure</div></div><button class="sbtn" id="syncReconfig">Change config</button></div>
-      </div>
-      <!-- state 3: signed in -->
-      <div id="syncOn" style="display:none">
-        <div class="setRow"><div class="setInfo"><div class="setT">Synced</div><div class="setS" id="syncWho"></div></div><span class="syncDot" id="syncDot"></span></div>
-        <div class="setRow"><div class="setInfo"><div class="setT">Last synced</div><div class="setS" id="syncLast">—</div></div><button class="sbtn acc" id="syncNow">Sync now</button></div>
-        <div class="setRow"><div class="setInfo"><div class="setT" style="color:var(--coral)">Sign out</div><div class="setS">Stops syncing on this device</div></div><button class="sbtn" id="syncSignout">Sign out</button></div>
-      </div>
-      <div class="setS" id="syncOffline" style="display:none;color:var(--mut)">You're offline — sync will resume when you're back online.</div>
-    </div>
-
-    <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Data</div>
-    <div class="setCard">
-      <div class="setRow"><div class="setInfo"><div class="setT">Export to Excel</div><div class="setS">Full log + stats as .xlsx</div></div><button class="sbtn" id="btnXlsxShare">Share</button><button class="sbtn acc" id="btnXlsx">Save</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Monthly PDF report</div><div class="setS">Habits, mood, sleep, spending summary</div></div><button class="sbtn acc" id="btnPdfReport">Generate</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Backup (JSON)</div><div class="setS">Complete backup you can re-import</div></div><button class="sbtn acc" id="btnBk">Save</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Back up to Google Drive</div><div class="setS">Opens the share sheet &mdash; pick Drive</div></div><button class="sbtn acc" id="btnDrive">Share</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Import backup</div><div class="setS">Restore from a JSON backup file</div></div><button class="sbtn" id="btnImport">Choose</button></div>
-      <div class="setRow"><div class="setInfo"><div class="setT">Automatic backup</div><div class="setS" id="stBk">A local backup is saved once a day</div></div></div>
-    </div>
-
-    <div class="setS" style="text-align:center;padding:8px 0 4px" id="verLine">Habits</div>
-    <div class="setS" style="text-align:center;padding:0 0 4px;font-size:11px;color:var(--mut2)">Developed by Vishal</div>
-    <div class="setS" style="text-align:center;padding:0 0 10px;font-size:10px;color:var(--mut2)">For personal use only · Not for commercial distribution</div>
-  </div>
-</div>
-
-<button id="fab" aria-label="Add">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
-  <span id="fabLbl" class="srOnly">Add anything</span>
-</button>
-
-
-<!-- ============ TASK SHEET ============ -->
-<div class="sheet" id="taskSheet">
-  <div class="grab"></div>
-  <h2 id="taskSheetTitle">Add task</h2>
-  <div class="lbl">Task name</div><input id="taskTitleIn" class="inp" maxlength="100" placeholder="e.g. Finish API testing" autocomplete="off">
-  <div class="lbl">Description</div><textarea id="taskDescIn" class="inp" maxlength="1000" placeholder="What needs to be done?"></textarea>
-  <div class="lbl">Due</div><div class="taskFormGrid"><input id="taskDueDateIn" class="inp" type="date"><input id="taskDueTimeIn" class="inp" type="time"></div>
-  <div class="lbl">Priority</div><div class="chips" id="taskPriorityRow"><button class="chip sel" data-tp="medium">Medium</button><button class="chip" data-tp="high">High</button><button class="chip" data-tp="low">Low</button></div>
-  <div class="lbl">Reminder</div><div class="taskReminderChips" id="taskReminderRow"><button class="chip sel" data-tr="none">None</button><button class="chip" data-tr="1">1 day before</button><button class="chip" data-tr="2">2 days before</button><button class="chip" data-tr="both">Both</button></div>
-  <div class="lbl">Recurrence</div><div class="chips" id="taskRecRow"><button class="chip sel" data-trec="none">Does not repeat</button><button class="chip" data-trec="daily">Daily</button><button class="chip" data-trec="weekdays">Weekdays</button><button class="chip" data-trec="weekly">Weekly</button><button class="chip" data-trec="monthly">Monthly</button><button class="chip" data-trec="custom">Custom</button></div>
-  <div class="taskRecCustom" id="taskRecCustom"><input id="taskRecInterval" class="inp" type="number" min="1" max="365" value="2"><span class="setS">days apart</span></div>
-  <div class="taskRecEnd" id="taskRecEnd"><div class="lbl">Recurrence end date</div><input id="taskRecEndDate" class="inp" type="date"></div>
-  <div class="lbl">Subtasks</div>
-  <div class="taskSubEditor"><input id="taskSubInput" class="inp" maxlength="120" placeholder="Add a subtask"><button class="sbtn" id="taskSubAdd">Add</button></div>
-  <div class="taskSubList" id="taskSubList"></div>
-  <div class="taskComments" id="taskComments" style="display:none">
-    <div class="taskCommentsHead"><b>Comments</b><span class="taskCommentCount" id="taskCommentCount">0</span></div>
-    <div class="taskCommentList" id="taskCommentList"></div>
-    <div class="taskCommentComposer">
-      <textarea id="taskCommentInput" class="inp" maxlength="1000" placeholder="Add a comment…"></textarea>
-      <button class="sbtn acc" id="taskCommentAdd">Add</button>
-    </div>
-    <div class="setS" style="margin-top:6px">Comments are saved to this task. AI rephrase creates a preview before replacing your wording.</div>
-  </div>
-  <div class="lbl" id="taskStatusLbl" style="display:none">Status</div><div class="chips" id="taskStatusRow" style="display:none"><button class="chip sel" data-ts="open">Open</button><button class="chip" data-ts="inprogress">In Progress</button><button class="chip" data-ts="completed">Completed</button></div>
-  <div class="half" style="margin-top:18px"><button class="ghost" id="taskCancel">Cancel</button><button class="primary" id="taskSave">Add task</button></div>
-  <button class="danger" id="taskDelete" style="display:none;margin-top:9px">Delete task</button>
-</div>
-
-<!-- ============ MATERIAL ADD ACTION SHEET ============ -->
-<div class="sheet materialActionSheet" id="actionSheet">
-  <div class="grab"></div>
-  <h2>Add anything</h2>
-  <div class="actionIntro">Choose what you want to add. You can continue without leaving the current screen.</div>
-  <div class="actionGrid">
-    <button class="actionItem" data-add-action="habit"><span class="actionIcon">💪</span><span class="actionText"><span class="actionTitle">Habit</span></span></button>
-    <button class="actionItem" data-add-action="task"><span class="actionIcon">✓</span><span class="actionText"><span class="actionTitle">Task</span></span></button>
-    <button class="actionItem" data-add-action="expense"><span class="actionIcon">💰</span><span class="actionText"><span class="actionTitle">Expense</span></span></button>
-    <button class="actionItem" data-add-action="mood"><span class="actionIcon">😊</span><span class="actionText"><span class="actionTitle">Mood</span></span></button>
-    <button class="actionItem" data-add-action="sleep"><span class="actionIcon">😴</span><span class="actionText"><span class="actionTitle">Sleep</span></span></button>
-  </div>
-</div>
-
-<div class="snack" id="materialSnack"><div class="snackMsg" id="materialSnackMsg"></div><button class="snackAction" id="materialSnackAction" style="display:none">UNDO</button></div>
-
-<!-- ============ EXPENSE SHEET ============ -->
-<div class="sheet" id="expSheet">
-  <div class="grab"></div>
-  <h2 id="expSheetT">Add expense</h2>
-  <div class="kindSeg" id="expKind">
-    <button data-k="exp" class="sel">Expense</button>
-    <button data-k="inc">Income</button>
-    <button data-k="xfer">Transfer</button>
-  </div>
-  <input id="expAmt" class="inp numPad" type="number" inputmode="decimal" step="any" min="0" placeholder="0">
-  <div class="lbl" id="expCatLbl">Category</div>
-  <div class="pickGrid" id="expCatGrid"></div>
-  <div class="newCatRow" id="expNewCatRow" style="display:none">
-    <input id="expNewCat" class="inp" maxlength="24" placeholder="New category name">
-    <button class="ncOk" id="expNewCatOk">&#10003;</button>
-    <button class="ncX" id="expNewCatX">&#10005;</button>
-  </div>
-  <div class="lbl" id="expSubLbl" style="display:none">Subcategory</div>
-  <div class="pickGrid" id="expSubGrid" style="display:none"></div>
-  <div class="newCatRow" id="expNewSubRow" style="display:none">
-    <input id="expNewSub" class="inp" maxlength="24" placeholder="New subcategory name">
-    <button class="ncOk" id="expNewSubOk">&#10003;</button>
-    <button class="ncX" id="expNewSubX">&#10005;</button>
-  </div>
-  <div class="lbl" id="expAcctLbl">Account</div>
-  <div class="pickGrid" id="expAcctGrid"></div>
-  <div class="lbl" id="expToLbl" style="display:none">To account</div>
-  <div class="pickGrid" id="expToGrid" style="display:none"></div>
-  <a class="miniLink" id="expMore">+ Date, payee, note, tags</a>
-  <div id="expMoreBox" style="display:none">
-    <div class="lbl">Date</div>
-    <button class="dateBtn" id="expDateBtn"><span class="dLbl">Date</span><span id="expDateTxt">Today</span></button>
-    <div class="lbl">Payee / merchant</div>
-    <input id="expPayee" class="inp" maxlength="60" placeholder="e.g. Big Bazaar">
-    <div class="lbl">Payment method</div>
-    <input id="expMethod" class="inp" maxlength="24" placeholder="e.g. UPI, Card">
-    <div class="lbl">Note</div>
-    <input id="expNote" class="inp" maxlength="200" placeholder="Optional note">
-    <div class="lbl">Tags</div>
-    <input id="expTags" class="inp" maxlength="80" placeholder="#work #trip">
-  </div>
-    <div class="lbl">Receipt</div>
-    <div class="receiptBox" id="expReceiptBox">
-      <div id="expReceiptPreview" class="receiptPreview"><div class="setS">Receipt images are used only to extract expense details and are not saved.</div></div>
-      <div class="receiptActions">
-        <button class="sbtn" id="expReceiptAdd">Upload & Scan</button>
-        <button class="sbtn" id="expReceiptCamera">Camera & Scan</button>
-      </div>
-      <input id="expReceiptFile" type="file" accept="image/*" style="display:none">
-    </div>
-  <button class="primary" id="expSave">Save</button>
-  <button class="danger" id="expDel" style="display:none">Delete</button>
-</div>
-
-<!-- ============ RECURRING EXPENSE SHEET ============ -->
-<div class="sheet" id="recurSheet" style="display:none!important">
-  <div class="grab"></div>
-  <h2 id="recurSheetT">Add recurring expense</h2>
-  <div class="lbl">Type</div><div class="pickGrid" id="recurKindGrid"><button class="chip sel" data-rkind="exp">Expense</button><button class="chip" data-rkind="inc">Income</button></div>
-  <div class="lbl">Name</div>
-  <input id="recurName" class="inp" maxlength="40" placeholder="e.g. Netflix, Rent, Electricity">
-  <div class="lbl">Amount</div>
-  <input id="recurAmt" class="inp" type="number" inputmode="decimal" step="any" placeholder="0">
-  <div class="lbl">Frequency</div>
-  <div class="pickGrid" id="recurFreqGrid"><button class="chip sel" data-rf="monthly">Monthly</button><button class="chip" data-rf="weekly">Weekly</button><button class="chip" data-rf="yearly">Yearly</button></div>
-  <div id="recurMonthlyFields"><div class="lbl">Day of month</div><input id="recurDay" class="inp" type="number" min="1" max="31" value="1"></div>
-  <div id="recurWeeklyFields" style="display:none"><div class="lbl">Day of week</div><div class="pickGrid" id="recurWeekGrid"><button class="chip" data-rw="1">Mon</button><button class="chip" data-rw="2">Tue</button><button class="chip" data-rw="3">Wed</button><button class="chip" data-rw="4">Thu</button><button class="chip" data-rw="5">Fri</button><button class="chip" data-rw="6">Sat</button><button class="chip" data-rw="0">Sun</button></div></div>
-  <div id="recurYearlyFields" style="display:none"><div class="lbl">Month / day</div><div style="display:flex;gap:8px"><select id="recurMonth" class="inp"><option value="1">January</option><option value="2">February</option><option value="3">March</option><option value="4">April</option><option value="5">May</option><option value="6">June</option><option value="7">July</option><option value="8">August</option><option value="9">September</option><option value="10">October</option><option value="11">November</option><option value="12">December</option></select><input id="recurYearDay" class="inp" type="number" min="1" max="31" value="1"></div></div>
-  <div class="lbl">Category</div><div class="pickGrid" id="recurCatGrid"></div>
-  <div class="lbl">Account</div><div class="pickGrid" id="recurAcctGrid"></div>
-  <div class="lbl">Starts</div><input id="recurStart" class="inp" type="date">
-  <div class="setRow" style="padding:12px 0"><div class="setInfo"><div class="setT">Active</div><div class="setS">Automatically add the transaction when due</div></div><div class="tog on" id="recurActive"></div></div>
-  <button class="primary" id="recurSave">Save recurring</button><button class="danger" id="recurDel" style="display:none">Delete recurring</button>
-</div>
-<!-- ============ EXPENSE EXPORT RANGE SHEET ============ -->
-<div class="sheet" id="expExportSheet"><div class="grab"></div><h2>Export expense data</h2><div class="setS" style="margin-bottom:12px">All transaction fields are included. Choose the date range and format.</div><div class="lbl">From</div><input id="expExportFrom" class="inp" type="date"><div class="lbl">To</div><input id="expExportTo" class="inp" type="date"><div class="lbl">Format</div><div style="display:flex;gap:8px"><button class="sbtn acc" id="expExportXlsx">Excel</button><button class="sbtn" id="expExportPdf">PDF</button></div></div>
-
-<!-- ============ ACCOUNT SHEET ============ -->
-<div class="sheet" id="acctSheet">
-  <div class="grab"></div>
-  <h2 id="acctSheetT">Add account</h2>
-  <div class="lbl">Name</div>
-  <input id="acctName" class="inp" maxlength="40" placeholder="e.g. HDFC Bank">
-  <div class="lbl">Type</div>
-  <div class="pickGrid" id="acctTypeGrid"></div>
-  <div class="lbl">Opening balance</div>
-  <input id="acctOpen" class="inp" type="number" inputmode="decimal" step="any" placeholder="0">
-  <div id="acctCreditFields" style="display:none">
-    <div class="lbl">Credit limit</div>
-    <input id="acctCreditLimit" class="inp" type="number" inputmode="decimal" step="any" placeholder="Optional">
-    <div style="display:flex;gap:8px">
-      <div style="flex:1"><div class="lbl">Billing day</div><input id="acctBillDay" class="inp" type="number" min="1" max="31" placeholder="1"></div>
-      <div style="flex:1"><div class="lbl">Payment due day</div><input id="acctDueDay" class="inp" type="number" min="1" max="31" placeholder="15"></div>
-    </div>
-  </div>
-  <div class="setRow" style="padding:12px 0"><div class="setInfo"><div class="setT">Active</div></div><div class="tog on" id="acctActive"></div></div>
-  <button class="primary" id="acctSave">Save account</button>
-  <button class="danger" id="acctDel" style="display:none">Delete account</button>
-</div>
-
-<!-- ============ BUDGET SHEET ============ -->
-<div class="sheet" id="budgSheet">
-  <div class="grab"></div>
-  <h2>Set budgets</h2>
-  <div class="setS" style="margin-bottom:12px">Leave blank for no budget. Amounts are monthly.</div>
-  <div class="lbl">Overall monthly</div>
-  <input id="budgTotal" class="inp" type="number" inputmode="decimal" step="any" placeholder="0">
-  <div id="budgCatList"></div>
-  <button class="primary" id="budgSave">Save budgets</button>
-</div>
-
-<!-- ============ CATEGORY EDITOR ============ -->
-<div class="sheet" id="catSheet">
-  <div class="grab"></div>
-  <h2>Categories</h2>
-  <div id="catList"></div>
-  <div class="jrIn" style="margin-top:12px"><input class="inp" id="catNew" maxlength="30" placeholder="New category"><button id="catAdd">+</button></div>
-  <button class="primary" id="catDone">Done</button>
-</div>
-
-<!-- ============ WORKOUT MODULE ============ -->
-<div id="wkModule">
-  <div class="wkHead">
-    <button class="wkBack" id="wkClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
-    <div class="wkHt">Workouts</div>
-    <button class="wkAddBtn" id="wkAdd"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>
-  </div>
-  <div class="wkBody" id="wkBody"></div>
-</div>
-
-<!-- exercise create/edit sheet -->
-<div class="sheet" id="exSheet">
-  <div class="grab"></div>
-  <h2 id="exSheetT">New exercise</h2>
-  <div class="lbl">Name</div>
-  <input id="exName" class="inp" maxlength="40" placeholder="e.g. Push-ups">
-  <div class="lbl">What are you measuring?</div>
-  <div class="pickGrid" id="exTypeGrid"></div>
-  <div class="lbl">Unit <span style="color:var(--mut);font-weight:600">(optional)</span></div>
-  <input id="exUnit" class="inp" maxlength="12" placeholder="reps">
-  <div class="lbl">Daily goal <span style="color:var(--mut);font-weight:600">(optional)</span></div>
-  <input id="exGoal" class="inp" type="number" inputmode="decimal" step="any" min="0" placeholder="e.g. 50">
-  <div class="setRow" style="padding:14px 0"><div class="setInfo"><div class="setT">Log individual sets</div><div class="setS">Track each set separately (e.g. 3 sets of 10)</div></div><div class="tog" id="exSets"></div></div>
-  <button class="primary" id="exSave">Save exercise</button>
-  <button class="danger" id="exDel" style="display:none">Delete exercise</button>
-</div>
-
-<!-- exercise history sheet -->
-<div class="sheet" id="histSheet">
-  <div class="grab"></div>
-  <h2 id="histT">History</h2>
-  <div class="histSummary" id="histSummary"></div>
-  <div id="histList"></div>
-  <div class="lbl" id="histExpLbl" style="margin-top:16px">Export this log</div>
-  <div style="display:flex;gap:8px" id="histExpRow">
-    <button class="sbtn" id="histCsv">CSV</button>
-    <button class="sbtn" id="histXlsx">Excel</button>
-    <button class="sbtn" id="histPdf">PDF</button>
-  </div>
-</div>
-
-<!-- log sheet -->
-<div class="sheet" id="logSheet">
-  <div class="grab"></div>
-  <h2 id="logT">Log</h2>
-  <div class="logGoal" id="logGoal"></div>
-  <div id="logSetWrap"></div>
-  <div id="logSingleWrap">
-    <div class="lbl" id="logLbl">Amount</div>
-    <div class="logStepRow">
-      <button class="logStep" id="logMinus">&minus;</button>
-      <input id="logVal" class="inp" type="number" inputmode="decimal" step="any" min="0" placeholder="0" style="text-align:center;font-family:var(--fDisp);font-size:26px">
-      <button class="logStep" id="logPlus">+</button>
-    </div>
-  </div>
-  <div class="prNote" id="logPr" style="display:none"></div>
-  <button class="primary" id="logSave">Save</button>
-</div>
-
-<div id="achvModal">
-  <div class="achvSheet">
-    <div class="grab"></div>
-    <h2>Achievements</h2>
-    <div class="setS" id="achvModalSub" style="margin-bottom:14px"></div>
-    <div class="achvFullGrid" id="achvFullGrid"></div>
-    <button class="primary" id="achvModalClose" style="margin-top:16px">Done</button>
-  </div>
-</div>
-
-<!-- ============ SLEEP SHEET ============ -->
-<div class="sheet" id="sleepSheet">
-  <div class="grab"></div>
-  <h2 id="sleepSheetT">Log sleep</h2>
-  <div class="setS" id="sleepDateLbl" style="margin-bottom:14px"></div>
-  <div class="sleepTimes">
-    <button class="sleepTime" id="bedBtn"><span class="stl">Went to bed</span><span class="stv" id="bedTxt">—</span></button>
-    <button class="sleepTime" id="wakeBtn"><span class="stl">Woke up</span><span class="stv" id="wakeTxt">—</span></button>
-  </div>
-  <div class="sleepDur" id="sleepDur">—</div>
-  <div class="lbl">Note <span style="color:var(--mut);font-weight:600">(optional)</span></div>
-  <input id="sleepNote" class="inp" maxlength="160" placeholder="e.g. woke up once, restless…">
-  <button class="primary" id="sleepSave">Save</button>
-  <button class="danger" id="sleepDel" style="display:none">Clear this night</button>
-</div>
-
-<div class="dock" id="tabbar">
-  <div class="navBrand"><span class="navLogo">✦</span>Personal Tracker</div>
-  <button class="tab on" data-tab="pgToday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.5 12.5l2.5 2.5 5-5.5"/></svg>Today</button>
-  <button class="tab" data-tab="pgTasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.5 2.5L16 9"/></svg>Tasks</button>
-  <button class="tab" data-tab="pgMood"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8.6 14.4c.9 1.1 2.1 1.7 3.4 1.7s2.5-.6 3.4-1.7M9 9.7h.01M15 9.7h.01"/></svg>Mood</button>
-  <button class="tab" data-tab="pgExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3z"/><path d="M3 10h18M7 15h4"/></svg>Money</button>
-  <button class="tab" data-tab="pgStats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Stats</button>
-  <button class="tab" data-tab="pgAI"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L9.5 9.5 2 12l7.5 2.5L12 22l2.5-7.5L22 12l-7.5-2.5z"/></svg>AI</button>
-  <button class="tab" data-tab="pgSet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19 12a7 7 0 00-.1-1.2l2-1.5-2-3.4-2.3 1a7 7 0 00-2-1.2L14.2 3h-4l-.4 2.7a7 7 0 00-2 1.2l-2.3-1-2 3.4 2 1.5A7 7 0 005 12c0 .4 0 .8.1 1.2l-2 1.5 2 3.4 2.3-1a7 7 0 002 1.2l.4 2.7h4l.4-2.7a7 7 0 002-1.2l2.3 1 2-3.4-2-1.5c.1-.4.1-.8.1-1.2z"/></svg>Settings</button>
-</div>
-
-<div id="scrim"></div>
-
-<!-- ============ ADD / EDIT SHEET ============ -->
-<div class="sheet" id="addSheet">
-  <div class="grab"></div>
-  <h2 id="shTitle">New habit</h2>
-  <input id="fName" class="inp" maxlength="30" placeholder="e.g. Read 10 pages" autocomplete="off">
-
-  <div class="lbl">Quick start</div>
-  <div class="tplRow" id="tplRow"></div>
-
-  <div class="lbl">Type</div>
-  <div class="chips" id="typeRow">
-    <button class="chip sel" data-ty="check">Yes / No</button>
-    <button class="chip" data-ty="count">Count</button>
-    <button class="chip" data-ty="time">Time</button>
-    <button class="chip" data-ty="neg">Negative</button>
-    <button class="chip" data-ty="money">Money</button>
-  </div>
-  <div class="numRow" id="tRow" style="display:none">
-    <input id="fTarget" class="inp" type="number" min="1" value="8">
-    <input id="fUnit" class="inp" style="width:130px;flex:none" maxlength="12" placeholder="unit">
-    <span id="tLbl">per day</span>
-  </div>
-
-  <div class="lbl">Icon</div>
-  <div class="egrid" id="egrid"></div>
-  <div class="lbl">Color</div>
-  <div class="cgrid" id="cgrid"></div>
-
-  <div class="lbl">Category</div>
-  <div class="chips" id="catRow">
-    <button class="chip sel" data-cat="Health">Health</button>
-    <button class="chip" data-cat="Fitness">Fitness</button>
-    <button class="chip" data-cat="Study">Study</button>
-    <button class="chip" data-cat="Finance">Finance</button>
-    <button class="chip" data-cat="Mind">Mind</button>
-    <button class="chip" data-cat="Other">Other</button>
-  </div>
-
-  <div class="lbl">Time of day</div>
-  <div class="chips" id="secRow">
-    <button class="chip sel" data-sec="any">Anytime</button>
-    <button class="chip" data-sec="morning">Morning</button>
-    <button class="chip" data-sec="afternoon">Afternoon</button>
-    <button class="chip" data-sec="evening">Night</button>
-  </div>
-
-  <div class="lbl">Repeat</div>
-  <div class="chips" id="schRow">
-    <button class="chip sel" data-sk="daily">Daily</button>
-    <button class="chip" data-sk="dow">Weekdays&#8230;</button>
-    <button class="chip" data-sk="everyx">Every X days</button>
-    <button class="chip" data-sk="weekend">Weekends</button>
-    <button class="chip" data-sk="odd">Odd days</button>
-    <button class="chip" data-sk="even">Even days</button>
-    <button class="chip" data-sk="wquota">X / week</button>
-    <button class="chip" data-sk="mquota">X / month</button>
-  </div>
-  <div class="dows" id="dowRow" style="display:none">
-    <button class="dw" data-dw="1">M</button><button class="dw" data-dw="2">T</button><button class="dw" data-dw="3">W</button>
-    <button class="dw" data-dw="4">T</button><button class="dw" data-dw="5">F</button><button class="dw" data-dw="6">S</button>
-    <button class="dw" data-dw="0">S</button>
-  </div>
-  <div class="numRow" id="xRow" style="display:none"><input id="fX" class="inp" type="number" min="2" value="2"><span>days apart</span></div>
-  <div class="numRow" id="qRow" style="display:none"><input id="fQ" class="inp" type="number" min="1" value="3"><span id="qLbl">times per week</span></div>
-
-  <div class="lbl">&#9200; Reminders</div>
-  <div id="remList"></div>
-  <button class="addT" id="btnAddTime">+ Add reminder time</button>
-  <div class="swRow"><div>Repeat until completed<small>Re-nudges every 30 min until done</small></div><div class="tog" id="swRepeat"></div></div>
-  <div class="swRow"><div>Evening check if missed<small>9:30 PM reminder if still pending</small></div><div class="tog" id="swMissed"></div></div>
-
-  <div class="lbl">Dates</div>
-  <div class="half">
-    <button class="dateBtn" id="btnStart"><span class="dLbl">Start</span><span id="startTxt">Today</span></button>
-    <div class="endWrap" style="flex:1">
-      <button class="dateBtn" id="btnEnd" style="width:100%"><span class="dLbl">End (optional)</span><span id="endTxt">None</span></button>
-      <button class="endClr" id="btnEndClr" style="display:none">&#215;</button>
-    </div>
-  </div>
-
-  <div class="lbl">Notes</div>
-  <textarea id="fNotes" class="inp" maxlength="200" placeholder="Anything to remember&#8230;"></textarea>
-  <div class="lbl">Motivation quote</div>
-  <input id="fQuote" class="inp" maxlength="120" placeholder="Why this habit matters to you">
-
-  <button class="primary" id="saveBtn">Add habit</button>
-</div>
-
-<!-- ============ DETAIL SHEET ============ -->
-<div class="sheet" id="detailSheet">
-  <div class="grab"></div>
-  <div class="drow">
-    <div class="emo bigE" id="dEmo"></div>
-    <div style="min-width:0;flex:1">
-      <div class="dname" id="dName"></div>
-      <div class="dsub" id="dSub"></div>
-    </div>
-    <button class="sbtn" id="btnEdit">Edit</button>
-  </div>
-  <div class="dquote" id="dQuote"></div>
-  <div class="stats">
-    <div class="stat"><div class="sv" id="sStreak"></div><div class="sl">Chain</div></div>
-    <div class="stat"><div class="sv" id="sBest"></div><div class="sl">Best</div></div>
-    <div class="stat"><div class="sv" id="sTotal"></div><div class="sl">Total</div></div>
-    <div class="stat"><div class="sv" id="sRate"></div><div class="sl">30 days</div></div>
-  </div>
-  <div class="hm" id="hmHab" style="grid-auto-flow:column;grid-template-rows:repeat(7,10px);grid-template-columns:repeat(20,1fr);gap:3px;max-width:360px;margin:0 0 10px"></div>
-  <div class="tmr" id="tmrBox" style="display:none">
-    <div class="tmrVal" id="tmrVal">00:00</div>
-    <button class="tmrB" id="tmrGo">Start</button>
-    <button class="tmrB" id="tmrLog">Log</button>
-  </div>
-  <div class="fzRow"><span>&#10052;&#65039;</span><div style="flex:1"><b id="fzN"></b> streak freezes left &middot; tap a missed day below to use one</div></div>
-  <div class="lbl" id="valLbl" style="display:none">Log today's amount</div>
-  <div class="jrIn" id="valRow" style="display:none;margin-bottom:4px">
-    <input class="inp" id="valIn" type="number" inputmode="decimal" step="any" min="0" placeholder="0">
-    <button id="valSave">&#10003;</button>
-  </div>
-  <div class="setS" id="valState" style="display:none;margin:2px 2px 12px"></div>
-  <div class="mnav">
-    <button id="mPrev">&#8249;</button>
-    <div id="mTitle"></div>
-    <button id="mNext">&#8250;</button>
-  </div>
-  <div class="dow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
-  <div class="mgrid" id="mgrid"></div>
-  <div class="fzBar" id="fzBar">
-    <div class="ft" id="fzTxt"></div>
-    <div class="fbtns"><button class="bFz" id="btnFz">Use freeze &#10052;&#65039;</button><button class="bMk" id="btnMk">Mark done</button></div>
-  </div>
-  <div class="lbl">Journal</div>
-  <div class="jrIn"><input class="inp" id="jrTxt" maxlength="140" placeholder="Note for today&#8230;"><button id="jrSave">&#10003;</button></div>
-  <div id="habitJrList" style="margin-bottom:10px"></div>
-  <div class="setS" id="dNotes" style="margin-bottom:8px"></div>
-  <button class="ghost" id="archBtn">Archive habit</button>
-  <button class="danger" id="delBtn">Delete habit</button>
-</div>
-
-<!-- ============ STACK SHEET ============ -->
-<div class="sheet" id="stackSheet">
-  <div class="grab"></div>
-  <h2>Routine stack</h2>
-  <div class="setS" style="margin-bottom:12px">Tap habits in the order you do them. Completing one points to the next.</div>
-  <div id="stackList"></div>
-  <button class="ghost" id="btnStackClear">Clear stack</button>
-  <button class="primary" id="btnStackDone">Done</button>
-</div>
-
-<!-- ============ ARCHIVED SHEET ============ -->
-<div class="sheet" id="archSheet">
-  <div class="grab"></div>
-  <h2>Archived</h2>
-  <div class="setS" style="margin-bottom:12px">Paused habits keep all their history. Restore anytime.</div>
-  <div id="archList"></div>
-  <button class="primary" id="archDone">Done</button>
-</div>
+    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ Actionables AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask naturally. I can answer questions, analyze your tracker, plan your day, or make changes such as adding habits, tasks, expenses, journal entries and more.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div></div><div id="uaiLog" class="uaiLog"></div><div id="uaiListenStatus" class="uaiListenStatus"><span class="uaiListenDot"></span><span id="uaiListenText">Listening… I’ll wait for about 2.6 seconds of silence before sending.</span></div><div class="uaiInputRow"><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything or tell me what to change…" autocomplete="off"><button class="uaiMic" id="uaiMic" aria-label="Voice input" title="Speak">🎙️</button><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water every day">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John with no due date and medium priority">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500 for food">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span></div></div>
 
 <!-- ============ JOURNAL ENTRY SHEET ============ -->
 <div class="sheet" id="jrSheet">
   <div class="grab"></div>
   <h2 id="shJrTitle">New entry</h2>
   <button class="dateBtn" id="jrDateBtn"><span class="dLbl">Date</span><span id="jrDateTxt">Today</span></button>
+  <div class="lbl">Template</div>
+  <div class="jrTemplateRow" id="jrTemplateRow"></div>
   <div class="lbl">Title</div>
-  <input id="jrTitle" class="inp" maxlength="80" placeholder="Give it a title (optional)">
+  <input id="jrTitle" class="inp" maxlength="100" placeholder="Give this day a title">
   <div class="lbl">Entry</div>
-  <textarea id="jrBody" class="inp" maxlength="6000" style="min-height:150px" placeholder="Write freely&#8230; **bold**, *italic* and #tags supported"></textarea>
-  <div class="setS" id="jrTagLine" style="margin-top:7px"></div>
-  <div class="lbl">Photos</div>
-  <div class="jrThRow" id="jrPhotos"></div>
-  <button class="addT" id="jrAddPh">+ Add photos</button>
+  <div class="jrFormatBar" id="jrFormatBar" aria-label="Journal formatting">
+    <button type="button" class="jrFmt" data-fmt="bold"><b>B</b></button>
+    <button type="button" class="jrFmt" data-fmt="italic"><i>I</i></button>
+    <button type="button" class="jrFmt" data-fmt="underline"><u>U</u></button>
+    <button type="button" class="jrFmt wide" data-fmt="insertUnorderedList">• List</button>
+    <button type="button" class="jrFmt wide" data-fmt="insertOrderedList">1. List</button>
+    <button type="button" class="jrFmt wide" data-fmt="formatBlock" data-value="blockquote">Quote</button>
+    <button type="button" class="jrFmt wide" data-fmt="removeFormat">Clear</button>
+  </div>
+  <div id="jrBody" class="inp jrBodyEdit jrEditorSurface" contenteditable="true" role="textbox" aria-multiline="true" data-placeholder="Write freely…"></div>
+  <div class="jrEditorMeta">
+    <select id="jrMood" class="jrMoodPick"><option value="">Mood: not set</option><option value="0">😄 Great</option><option value="1">🙂 Good</option><option value="2">😐 Okay</option><option value="3">😔 Low</option><option value="4">😣 Difficult</option></select>
+    <span class="jrCountBadge" id="jrWordCount">0 words</span>
+  </div>
+  <div class="setS" id="jrTagLine" style="margin-top:4px"></div>
+  <div class="jrEditorHint">Use #tags anywhere in your entry. Formatting is saved with the text and synced as journal data. No media or attachments are stored.</div>
+  <div class="jrAiBar"><button class="jrAiBtn" id="jrImproveBtn">✨ Improve writing</button><button class="jrAiBtn" id="jrSummarizeBtn">📝 Summarize</button><button class="jrAiBtn" id="jrEntryAiBtn">💡 Ask AI about this</button></div>
   <button class="primary" id="jrSaveBtn">Save entry</button>
   <button class="danger" id="jrDelBtn" style="display:none">Delete entry</button>
 </div>
 
-
+<div class="sheet" id="jrTplSheet">
+  <div class="grab"></div>
+  <h2 id="jrTplSheetTitle">Custom template</h2>
+  <div class="lbl">Template name</div>
+  <input id="jrTplName" class="inp" maxlength="60" placeholder="e.g. Sunday reset">
+  <div class="lbl">Template content</div>
+  <textarea id="jrTplBody" class="inp jrBodyEdit" maxlength="8000" placeholder="Write the questions or structure you want to reuse…"></textarea>
+  <button class="primary" id="jrTplSaveBtn">Save template</button>
+  <button class="danger" id="jrTplDeleteBtn" style="display:none">Delete template</button>
+  <div class="setS" style="margin-top:8px">Custom templates are saved with your app data and included in normal Cloud Firestore sync.</div>
+</div>
 
 <!-- Natural language expense bar (in Money tab, injected by JS) -->
 
@@ -2325,11 +1822,15 @@ function normState(s){
     var je = s.jr[ji] || {};
     je.id = je.id || (Date.now().toString(36) + Math.random().toString(36).slice(2,7));
     if(!/^\d{4}-\d{2}-\d{2}$/.test(je.d || '')) je.d = today();
-    je.t = String(je.t || '').slice(0,80);
-    je.b = String(je.b || '').slice(0,6000);
-    if(!(je.ph instanceof Array)) je.ph = [];
-    je.ph = je.ph.filter(function(pn){ return typeof pn === 'string' && /^[A-Za-z0-9_.-]+$/.test(pn); });
-    je.created = +je.created || 0;
+    je.t = String(je.t || '').slice(0,100);
+    je.b = String(je.b || '').slice(0,12000);
+    je.mood = (je.mood===undefined || je.mood==='') ? '' : String(je.mood);
+    if(['0','1','2','3','4'].indexOf(je.mood)<0) je.mood='';
+    je.template = String(je.template || '').slice(0,40);
+    je.created = +je.created || Date.now();
+    je.updated = +je.updated || je.created;
+    /* Journal is text-only in V1.4.1; legacy media references are ignored. */
+    je.ph = [];
     s.jr[ji] = je;
   }
   // ===== expense tracker =====
@@ -2438,6 +1939,8 @@ function normState(s){
   if(!(d.vacPeriods instanceof Array)) d.vacPeriods=[];
   if(d.vacFrom && d.vacUntil && !d.vacPeriods.some(function(v){return v.from===d.vacFrom&&v.until===d.vacUntil;})) d.vacPeriods.push({from:d.vacFrom,until:d.vacUntil});
   d.jrRem = (typeof d.jrRem === 'string' && /^\d{2}:\d{2}$/.test(d.jrRem)) ? d.jrRem : '';
+  if(!(d.jrTemplates instanceof Array)) d.jrTemplates=[];
+  d.jrTemplates=d.jrTemplates.map(function(t){t=t||{};return{id:String(t.id||('jt'+Date.now().toString(36)+Math.random().toString(36).slice(2,6))),name:String(t.name||'Custom template').slice(0,60),body:String(t.body||'').slice(0,8000),created:+t.created||Date.now(),updated:+t.updated||Date.now()};}).filter(function(t){return t.body.trim();}).slice(0,30);
   d.uname = typeof d.uname === 'string' ? d.uname.slice(0,24) : '';
   d.curr = d.curr || '\u20B9';
   d.lastAutoBk = d.lastAutoBk || ''; d.lastGrant = d.lastGrant || ''; d.lastBkPath = d.lastBkPath || '';
@@ -3545,15 +3048,8 @@ function aiResolveTask(name,id){
   if(partial.length>1)return {error:'I found multiple tasks matching “'+name+'”. Please say the exact task name.'};
   return {error:'I could not find a task named “'+name+'”.'};
 }
-var uaiMode='ask';
-function uaiModeInstruction(){
-  if(uaiMode==='plan') return 'MODE: PLAN. Help organize the user’s day/week using real tracker data. For “plan my day”, propose a practical ordered plan using due tasks, priorities, habits, and known commitments. Do not invent calendar events. Ask one question only if a key planning constraint is genuinely missing. Do not modify data merely by proposing a plan.';
-  if(uaiMode==='analyze') return 'MODE: ANALYZE. Focus on patterns, trends, bottlenecks, consistency, aging, spending, sleep, mood, workouts and habit performance. Use actual APP DATA numbers. Explain what matters and give concise actionable recommendations. Do not mutate data unless the user explicitly asks.';
-  if(uaiMode==='act') return 'MODE: ACT. The user wants the assistant to make a tracker change when sufficiently specified. Collect missing required fields one at a time, then execute. For destructive or bulk changes, require confirmation.';
-  return 'MODE: ASK. Answer questions naturally and help the user complete tracker actions conversationally.';
-}
 function uaiPrompt(text,conversationContext){
-  return 'You are the universal AI assistant for Personal Tracker. '+uaiModeInstruction()+'\n\n'
+  return 'You are the universal AI assistant for Personal Tracker. Use one simple conversational interface. Answer questions, analyze real tracker data, plan, and make requested changes. When a requested change is sufficiently specified, ALWAYS return the corresponding action JSON so the app can execute it. Do not merely describe what to do.\n\n'
   +'You can READ/CREATE/UPDATE/DELETE across the app: Habits, Tasks, Expenses/Transactions, Mood, Sleep, Journal, Workouts/Exercises, Settings and Navigation.\n\n'
   +'APP DATA + DETERMINISTIC ANALYTICS:\n'+buildDataContext()+'\n\nPERSISTENT USER PREFERENCES (explicitly saved):\n'+preferenceText()+'\n\n'
   +'RESPOND WITH ONLY ONE JSON OBJECT (no markdown, no backticks, no extra text):\n'
@@ -3582,10 +3078,10 @@ function uaiPrompt(text,conversationContext){
   +'delete_task: {id,title}\n'
   +'update_task: {id,match,newTitle,description,dueDate,dueTime,priority,status,reminders,recurrence}\n'
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
-  +'navigate: {tab(today/tasks/mood/exp/stats/ai/set)}\n'
+  +'navigate: {tab(today/tasks/mood/exp/stats/ai/set/journal)}\n'
   +'query: {} message=answer the question from app data\n'
   +'clarify: {} message=ask for missing info\n'
-  +'multi_action: {actions:[{action,params,message,confirm}]} execute several explicit safe actions together; destructive children require confirmation\n\n'
+  +'multi_action: {actions:[{action,params,message,confirm}]} execute several explicit safe actions together; destructive children require confirmation\n\n'  +'EXECUTION CONTRACT: If the user explicitly asks to add, update, complete, log, save, delete, or change something, return the matching action JSON. Do not answer with a generic plan or query when an executable action is appropriate. The app will execute valid actions and re-render the affected section.\n'
   +'For add_expense, acct must be the account ID shown in APP DATA (preferred) or the exact account name; never use a merchant/payee/category as the account. If the user does not specify an account, leave acct empty and let the app choose the active default account. Put merchant names such as Swiggy in payee, not acct.\n'
   +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep the message concise and conversational, usually 1-3 sentences.\n'
   +'For QUERIES: answer with specific numbers from the data. For daily briefings, summarize today’s open/overdue tasks, habit progress, money and recent wellbeing, then give ONE highest-value next action. For analysis, use the deterministic analytics section as the source of truth for calculations. Never invent numbers. Prefer concise structured cards when a response contains several metrics. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n'
@@ -3633,6 +3129,7 @@ function validateAIActionCompleteness(a,p){
 function executeAction(r){
   try{
     var a=r.action,p=r.params||{},msg=r.message||'Done',d=p.date||today();
+    try{window.dispatchEvent(new CustomEvent('tracker:ai-action',{detail:{action:a,params:p,confirm:!!r.confirm}}));}catch(ev){}
     if(a==='multi_action'){
       if(!Array.isArray(p.actions)||!p.actions.length)return{ok:0,msg:'No actions were supplied.'};
       var destructive=p.actions.some(function(x){return ['delete_task','delete_habit','delete_expense','delete_transactions','delete_journal','delete_workout','delete_mood','delete_sleep'].indexOf(x.action)>=0;});
@@ -3647,7 +3144,7 @@ function executeAction(r){
       var title=String(p.title||'').trim();if(!title)return{ok:0,msg:'Enter a task name.'};
       var td=String(p.dueDate||'');if(td&&!/^\d{4}-\d{2}-\d{2}$/.test(td))return{ok:0,msg:'Use a valid task due date.'};
       var nt=normTask({title:title,description:String(p.description||''),dueDate:td,dueTime:String(p.dueTime||''),priority:['high','medium','low'].indexOf(p.priority)>=0?p.priority:'medium',reminders:Array.isArray(p.reminders)?p.reminders:[],recurrence:p.recurrence||{freq:'none'},subtasks:Array.isArray(p.subtasks)?p.subtasks.map(function(x){return typeof x==='string'?{title:x}:x;}):[],createdAt:Date.now(),updatedAt:Date.now()});
-      state.tasks.push(nt);persist();taskReminderPermissionNotice(nt);if($('pgTasks').classList.contains('on'))renderTasks();return{ok:1,msg:msg,detail:'Task created · '+(td||'no due date'),undo:function(){state.tasks=state.tasks.filter(function(x){return x.id!==nt.id;});persist();}};
+      state.tasks.push(nt);persist();if(!state.tasks.some(function(x){return x.id===nt.id;}))return{ok:0,msg:'The task could not be saved.'};taskReminderPermissionNotice(nt);if($('pgTasks').classList.contains('on'))renderTasks();return{ok:1,msg:msg,detail:'Task created · '+(td||'no due date'),undo:function(){state.tasks=state.tasks.filter(function(x){return x.id!==nt.id;});persist();}};
     }
     if(a==='complete_task'||a==='reopen_task'){
       var q=String(p.title||'').trim(),tt=p.id?state.tasks.find(function(x){return x.id===p.id;}):taskFindByQuery(q);if(!tt){var cands=state.tasks.filter(function(x){return q&&x.title.toLowerCase().indexOf(q.toLowerCase())>=0;});if(cands.length>1)return{ok:0,msg:'I found multiple matching tasks. Specify the task name more clearly.'};tt=cands[0];}
@@ -3678,7 +3175,7 @@ function executeAction(r){
       var cat=String(p.cat||'Other').slice(0,40), known=kind==='inc'?(state.incCats||[]):Object.keys(state.cats||{});
       if(known.length && known.indexOf(cat)<0)cat='Other';
       var tx=normTx({d:d,kind:kind,amt:amt,acct:acct,cat:cat,sub:String(p.sub||'').slice(0,40),payee:String(p.payee||'').slice(0,60),note:String(p.note||'').slice(0,200),created:Date.now()});
-      state.tx.push(tx);persist();
+      state.tx.push(tx);persist();if(!state.tx.some(function(x){return x.id===tx.id;}))return{ok:0,msg:'The expense could not be saved.'};
       return{ok:1,msg:msg,detail:(kind==='inc'?'+':'−')+inr(amt)+' · '+cat+' · '+d,undo:function(){state.tx=state.tx.filter(function(t){return t.id!==tx.id;});persist();}};
     }
     if(a==='delete_expense'){
@@ -3711,11 +3208,11 @@ function executeAction(r){
     }
 
     if(a==='add_journal'){
-      var je={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),d:p.date||today(),t:String(p.title||'').trim().slice(0,120),b:String(p.body||'').trim().slice(0,5000),ph:[],created:Date.now()};
+      var je={id:Date.now().toString(36)+Math.random().toString(36).slice(2,7),d:p.date||today(),t:String(p.title||'').trim().slice(0,120),b:String(p.body||'').trim().slice(0,8000),mood:'',template:'',ph:[],created:Date.now(),updated:Date.now()};
       if(!je.t&&!je.b)return{ok:0,msg:'Enter a journal title or body.'};state.jr.push(je);sortJr();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry saved for '+je.d};
     }
     if(a==='update_journal'){
-      var je2=p.id?jrFind(p.id):null;if(!je2&&p.title){je2=state.jr.find(function(x){return String(x.t||'').toLowerCase()===String(p.title).toLowerCase();})||null;}if(!je2)return{ok:0,msg:'Journal entry not found.'};var oldJ=JSON.parse(JSON.stringify(je2));if(p.date)je2.d=p.date;if(p.title!==undefined)je2.t=String(p.title).trim().slice(0,120);if(p.body!==undefined)je2.b=String(p.body).trim().slice(0,5000);sortJr();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry updated',undo:function(){var ix=state.jr.findIndex(function(x){return x.id===oldJ.id;});if(ix>=0)state.jr[ix]=oldJ;persist();}};
+      var je2=p.id?jrFind(p.id):null;if(!je2&&p.title){je2=state.jr.find(function(x){return String(x.t||'').toLowerCase()===String(p.title).toLowerCase();})||null;}if(!je2)return{ok:0,msg:'Journal entry not found.'};var oldJ=JSON.parse(JSON.stringify(je2));if(p.date)je2.d=p.date;if(p.title!==undefined)je2.t=String(p.title).trim().slice(0,120);if(p.body!==undefined)je2.b=String(p.body).trim().slice(0,8000);sortJr();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry updated',undo:function(){var ix=state.jr.findIndex(function(x){return x.id===oldJ.id;});if(ix>=0)state.jr[ix]=oldJ;persist();}};
     }
     if(a==='delete_journal'){
       var jf=state.jr.filter(function(x){return (!p.id||x.id===p.id)&&(!p.date||x.d===p.date)&&(!p.title||String(x.t||'').toLowerCase().indexOf(String(p.title).toLowerCase())>=0);});if(!jf.length)return{ok:0,msg:'Journal entry not found.'};if(jf.length>1)return{ok:0,msg:'I found multiple journal entries. Specify the title or date.'};var jd=jf[0];if(!r.confirm)return{ok:0,msg:'Please confirm deleting journal entry “'+(jd.t||'Untitled')+'”.',needConfirm:1,pending:{action:'delete_journal',params:{id:jd.id},confirm:true}};state.jr=state.jr.filter(function(x){return x.id!==jd.id;});persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Deleted journal entry',undo:function(){state.jr.push(jd);persist();}};
@@ -3735,7 +3232,7 @@ function executeAction(r){
       if(p.scheduleKind){var sk=String(p.scheduleKind).toLowerCase(),mapSk={daily:'daily',weekdays:'weekdays',custom:'custom',x_times:'x'};var btn=document.querySelector('#schRow [data-sk=\"'+(mapSk[sk]||sk)+'\"]');if(btn)btn.click();}
       if(Array.isArray(p.dows)&&p.dows.length){ed.sched.dows=p.dows.map(Number).filter(function(n){return n>=0&&n<=6;});}
       if(p.goal)ed.target=Math.max(1,Number(p.goal)||1);if(p.start)ed.start=String(p.start);if(p.end)ed.end=String(p.end);
-      saveHabit();if(sheetOpen)closeSheet();persist();
+      saveHabit();if(sheetOpen)closeSheet();persist();if(!state.habits.some(function(x){return String(x.name||'').toLowerCase()===String(p.name||'').toLowerCase();}))return{ok:0,msg:'The habit could not be saved.'};
       return{ok:1,msg:msg,detail:'“'+p.name+'” created'};
     }
     if(a==='complete_habit'||a==='uncomplete_habit'){
@@ -3762,7 +3259,7 @@ function executeAction(r){
     }
     if(a==='delete_sleep'){var oldSleep=state.sleep.find(function(s){return s.d===d;});if(!oldSleep)return{ok:0,msg:'No sleep record found for '+d};if(!r.confirm)return{ok:0,msg:'Please confirm deleting the sleep record for '+d+'.',needConfirm:1,pending:{action:'delete_sleep',params:{date:d},confirm:true}};state.sleep=state.sleep.filter(function(s){return s.d!==d;});persist();return{ok:1,msg:msg,detail:'Sleep record deleted for '+d,undo:function(){state.sleep.push(oldSleep);persist();}};}
     if(a==='change_setting'){if(p.key==='theme'&&['dark','light','auto','amoled'].indexOf(p.value)<0)return{ok:0,msg:'Unsupported theme.'};if(p.key==='theme'){state.set.theme=p.value;applyTheme();}else if(p.key==='curr'){var c=String(p.value||'');if(!c)return{ok:0,msg:'Currency cannot be empty.'};state.set.curr=c.slice(0,4);}else return{ok:0,msg:'Unsupported setting.'};persist();return{ok:1,msg:msg};}
-    if(a==='navigate'){var tabs={today:'pgToday',tasks:'pgTasks',mood:'pgMood',exp:'pgExp',stats:'pgStats',ai:'pgAI',set:'pgSet'};var tid=tabs[String(p.tab||'').toLowerCase()];if(!tid)return{ok:0,msg:'I could not identify that section.'};showTab(tid);return{ok:1,msg:msg||('Opening '+String(p.tab||'section'))};}
+    if(a==='navigate'){var tabs={today:'pgToday',tasks:'pgTasks',mood:'pgMood',money:'pgExp',exp:'pgExp',journal:'pgJr',jr:'pgJr',stats:'pgStats',ai:'pgAI',set:'pgSet'};var tid=tabs[String(p.tab||'').toLowerCase()];if(!tid)return{ok:0,msg:'I could not identify that section.'};showTab(tid);return{ok:1,msg:msg||('Opening '+String(p.tab||'section'))};}
     if(a==='query')return{ok:1,msg:msg,isQuery:1};
     if(a==='clarify')return{ok:0,msg:msg,isClarify:1};
     return{ok:0,msg:'Unsupported AI action.'};
@@ -3778,7 +3275,7 @@ function uaiSuggestedFollowups(result){
   if(a==='add_habit')return ['Show my habit progress','Add another habit'];
   if(a==='add_task')return ['Show my tasks for today','Show overdue tasks'];
   if(a==='add_expense')return ['Show this week’s spending','Show my spending by category'];
-  if(a==='query')return uaiMode==='plan'?['Plan my whole week','What should I prioritize?']:uaiMode==='analyze'?['Show the biggest problem','How can I improve this?']:['What should I focus on next?','Give me a short summary'];
+  if(a==='query')return ['What should I focus on next?','Give me a short summary'];
   return ['Show me more detail','What should I do next?'];
 }
 function addUaiFollowups(items){var log=$('uaiLog');if(!log||!items||!items.length)return;var d=document.createElement('div');d.className='uaiFollowups';items.forEach(function(t){var b=document.createElement('button');b.className='uaiFollowup';b.textContent=t;b.setAttribute('data-followup',t);d.appendChild(b);});log.appendChild(d);log.scrollTop=log.scrollHeight;}
@@ -3807,6 +3304,31 @@ function uaiRenderCards(cards){
   if(!Array.isArray(cards)||!cards.length)return '';var a=cards.slice(0,6).map(function(c){return '<div class="uaiInsightCard"><b>'+esc(c.title||'Insight')+'</b><span>'+esc(c.value||c.text||'')+'</span></div>';}).join('');return '<div class="uaiCardGrid">'+a+'</div>';
 }
 function uaiRenderMessageText(text){var x=esc(String(text||''));return x.replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');}
+function uaiLooksLikeMutation(t){return /\b(add|create|save|log|record|complete|finish|mark|update|change|edit|delete|remove|clear|set|track|schedule)\b/i.test(String(t||''));}
+function uaiMutationAction(a){return ['add_habit','add_task','add_expense','complete_task','reopen_task','update_task','delete_task','complete_habit','uncomplete_habit','delete_habit','set_mood','delete_mood','set_sleep','delete_sleep','add_journal','update_journal','delete_journal','log_workout','delete_workout','change_setting','multi_action'].indexOf(String(a||''))>=0;}
+function uaiHandleResult(text,result,log){
+var completeness=validateAIActionCompleteness(result.action,result.params||{});
+if(completeness){
+  try{localStorage.setItem('uai_pending_action_v1',JSON.stringify({action:result.action,params:result.params||{},missing:completeness.msg,ts:Date.now()}));}catch(e){}
+  result=completeness;result.isClarify=true;
+} else if(result && result.action && result.action!=='clarify' && result.action!=='query'){
+  try{localStorage.removeItem('uai_pending_action_v1');}catch(e){}
+}
+var html='<div class="uaiMsg bot">';
+if(result.ok){
+  html+='<div class="uaiAction"><div class="uaiCheck">✓ '+esc(result.msg||'Done')+'</div>'+(result.detail?'<div class="uaiDetail">'+esc(result.detail)+'</div>':'')+uaiTtsButton(result.msg||'Done')+'</div>';
+  if(result.undo){var uid='_u'+Date.now();window[uid]=result.undo;html+='<div class="uaiBtns"><button onclick="'+uid+'();this.closest(\'.uaiMsg\').remove();reRenderCurrent();toastN(\'Undone\')">Undo</button></div>';}
+}else if(result.needConfirm&&result.pending){
+  var pid='aiConfirm_'+Date.now();window[pid]=function(){var rr=executeAction(result.pending);var lg=$('uaiLog');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';saveUaiChatTurn('assistant',rr.msg||'Done');lg.scrollTop=lg.scrollHeight;}reRenderCurrent();};
+  html+='<div class="uaiAction"><div class="uaiCheck">'+esc(result.msg)+'</div>'+uaiTtsButton(result.msg||'Please confirm.')+'<div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
+}else if(result.isQuery){html+=uaiRenderMessageText(result.msg||'')+uaiRenderCards(result.cards);html+=uaiTtsButton(result.msg||'');}
+else{html+=uaiRenderMessageText(result.msg||'I need a little more information.')+uaiRenderCards(result.cards)+uaiTtsButton(result.msg||'I need a little more information.');}
+html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;
+var assistantText=String(result.msg||'').replace(/<[^>]+>/g,'').trim();if(assistantText)saveUaiChatTurn('assistant',assistantText);
+addUaiFollowups(uaiSuggestedFollowups(result));
+reRenderCurrent();
+}
+
 function uaiSend(text){
   if(!text||!text.trim())return;
   text=String(text).trim();
@@ -3825,30 +3347,15 @@ function uaiSend(text){
       var fallback=raw.replace(/<[^>]*>/g,'').replace(/\*\*(.*?)\*\*/g,'$1').trim();
       log.innerHTML+='<div class="uaiMsg bot">'+uaiRenderMessageText(fallback)+uaiTtsButton(fallback)+'</div>';saveUaiChatTurn('assistant',fallback);addUaiFollowups(['Try asking another question','Show my data']);log.scrollTop=log.scrollHeight;return;
     }
-    var completeness=validateAIActionCompleteness(result.action,result.params||{});
-    if(completeness){
-      try{localStorage.setItem('uai_pending_action_v1',JSON.stringify({action:result.action,params:result.params||{},missing:completeness.msg,ts:Date.now()}));}catch(e){}
-      result=completeness;result.isClarify=true;
-    } else if(result && result.action && result.action!=='clarify' && result.action!=='query'){
-      try{localStorage.removeItem('uai_pending_action_v1');}catch(e){}
+    if(uaiLooksLikeMutation(text)&&(!result.action||result.action==='query'||result.action==='clarify')&&!result.needConfirm){
+      var strictPrompt=uaiPrompt(text,context)+'\n\nCRITICAL: The user explicitly requested a tracker mutation. Do not return query or generic advice. If required details are missing, return clarify with one focused question; otherwise return the exact executable action JSON now.';
+      return gemCall(strictPrompt,500).then(function(raw2){var clean2=raw2.replace(/```json|```/g,'').trim(),r2;try{r2=JSON.parse(clean2);}catch(e2){throw e2;}return uaiHandleResult(text,r2,log);});
     }
-    var html='<div class="uaiMsg bot">';
-    if(result.ok){
-      html+='<div class="uaiAction"><div class="uaiCheck">✓ '+esc(result.msg||'Done')+'</div>'+(result.detail?'<div class="uaiDetail">'+esc(result.detail)+'</div>':'')+uaiTtsButton(result.msg||'Done')+'</div>';
-      if(result.undo){var uid='_u'+Date.now();window[uid]=result.undo;html+='<div class="uaiBtns"><button onclick="'+uid+'();this.closest(\'.uaiMsg\').remove();reRenderCurrent();toastN(\'Undone\')">Undo</button></div>';}
-    }else if(result.needConfirm&&result.pending){
-      var pid='aiConfirm_'+Date.now();window[pid]=function(){var rr=executeAction(result.pending);var lg=$('uaiLog');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';saveUaiChatTurn('assistant',rr.msg||'Done');lg.scrollTop=lg.scrollHeight;}reRenderCurrent();};
-      html+='<div class="uaiAction"><div class="uaiCheck">'+esc(result.msg)+'</div>'+uaiTtsButton(result.msg||'Please confirm.')+'<div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
-    }else if(result.isQuery){html+=uaiRenderMessageText(result.msg||'')+uaiRenderCards(result.cards);html+=uaiTtsButton(result.msg||'');}
-    else{html+=uaiRenderMessageText(result.msg||'I need a little more information.')+uaiRenderCards(result.cards)+uaiTtsButton(result.msg||'I need a little more information.');}
-    html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;
-    var assistantText=String(result.msg||'').replace(/<[^>]+>/g,'').trim();if(assistantText)saveUaiChatTurn('assistant',assistantText);
-    addUaiFollowups(uaiSuggestedFollowups(result));
-    reRenderCurrent();
+    uaiHandleResult(text,result,log);
   }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();var msg=e.message||'AI request failed.';log.innerHTML+='<div class="uaiMsg err">'+esc(msg)+'</div>';saveUaiChatTurn('assistant',msg);log.scrollTop=log.scrollHeight;});
 }
 
-function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();if($('pgTasks').classList.contains('on'))renderTasks();}catch(e){}}
+function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgJr').classList.contains('on'))renderJr();if($('pgStats').classList.contains('on'))renderStats();if($('pgTasks').classList.contains('on'))renderTasks();}catch(e){}}
 function periodRate(h,days){var now=new Date(),due=0,done=0;for(var i=0;i<days;i++){var d=addDays(now,-i),ds=fmt(d);if(ds<h.created)continue;if(dueOn(h,d)){due++;if(isDone(h,ds))done++;}}return due?done/due:0;}
 
 // ---- AI weekly narrative ----
@@ -4833,203 +4340,78 @@ function renderMood(){
 var PROMPTS = [
  'What made you smile today, even briefly?',
  'What is one thing you did today that your future self will thank you for?',
- 'Describe today in three words \u2014 then explain one of them.',
+ 'Describe today in three words — then explain one of them.',
  'What drained your energy today, and what refilled it?',
- 'Write about a small detail you noticed today that you usually miss.',
+ 'What small detail did you notice today that you usually miss?',
  'What would you do differently if today restarted right now?',
- 'Who made a difference in your day \u2014 and do they know?',
+ 'Who made a difference in your day — and do they know?',
  'What are you quietly proud of this week?',
  'What is worrying you? Write it down and leave it here.',
- 'What did you learn today \u2014 about anything, or anyone?',
- 'If today had a soundtrack, what would it be and why?',
+ 'What did you learn today — about anything, or anyone?',
  'What is something you are looking forward to?',
  'Write a note to yourself one year from now.',
- 'What felt hard today \u2014 and how did you handle it?',
+ 'What felt hard today — and how did you handle it?',
  'What are three things you are grateful for right now?',
  'Which habit helped you most today?'
 ];
-var jrEd = null, jrQ = '', jrTag = 'all', jrDelTimer2 = null, jrTimePick = false;
-var photoCache = {};
-function jrPrompt(){
-  var doy = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
-  return PROMPTS[doy % PROMPTS.length];
+var JR_TEMPLATES = [
+ {id:'daily',label:'☀️ Daily reflection',body:'What went well today?\n\nWhat was difficult?\n\nWhat did I learn?\n\nWhat do I want to carry into tomorrow?'},
+ {id:'gratitude',label:'🙏 Gratitude',body:'Today I am grateful for…\n\nA person I appreciate…\n\nSomething small that made today better…'},
+ {id:'work',label:'💼 Workday review',body:'What did I accomplish?\n\nWhat slowed me down?\n\nWhat deserves my attention next?'},
+ {id:'growth',label:'🌱 Growth',body:'What did I learn about myself today?\n\nWhat challenged me?\n\nHow did I respond?\n\nWhat will I try differently next time?'},
+ {id:'night',label:'🌙 Night reflection',body:'How do I feel right now?\n\nWhat can I let go of tonight?\n\nWhat would make tomorrow a good day?'},
+ {id:'weekly',label:'📅 Weekly review',body:'What were my biggest wins this week?\n\nWhat did not go as planned?\n\nWhat pattern did I notice?\n\nWhat is my focus for next week?'}
+];
+var jrEd=null,jrQ='',jrTag='all',jrDelTimer2=null,jrView='timeline',jrCalCursor=new Date();
+function jrPrompt(){var doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/86400000);return PROMPTS[doy%PROMPTS.length];}
+function jrPlain(t){var d=document.createElement('div');d.innerHTML=String(t||'');return (d.textContent||d.innerText||'').replace(/\u00a0/g,' ').trim();}
+function sanitizeJrHtml(html){var box=document.createElement('div');box.innerHTML=String(html||'');var allowed={B:1,STRONG:1,I:1,EM:1,U:1,BR:1,P:1,DIV:1,UL:1,OL:1,LI:1,BLOCKQUOTE:1,H2:1,H3:1};(function walk(n){var kids=Array.prototype.slice.call(n.children||[]);for(var i=0;i<kids.length;i++){var c=kids[i];if(!allowed[c.tagName]){var frag=document.createDocumentFragment();while(c.firstChild)frag.appendChild(c.firstChild);c.parentNode.replaceChild(frag,c);}else{while(c.attributes.length)c.removeAttribute(c.attributes[0].name);walk(c);}}})(box);return box.innerHTML.trim();}
+function jrTagsOf(e){var m=(String(e.t||'')+' '+jrPlain(e.b||'')).match(/#[A-Za-z0-9_]+/g);if(!m)return[];var seen={},out=[];for(var i=0;i<m.length;i++){var t=m[i].toLowerCase();if(!seen[t]){seen[t]=1;out.push(t);}}return out;}
+function jrAllTags(){var cnt={};for(var i=0;i<state.jr.length;i++){var ts=jrTagsOf(state.jr[i]);for(var j=0;j<ts.length;j++)cnt[ts[j]]=(cnt[ts[j]]||0)+1;}return Object.keys(cnt).sort(function(a,b){return cnt[b]-cnt[a];}).slice(0,12);}
+function sortJr(){state.jr.sort(function(a,b){if(a.d!==b.d)return a.d<b.d?1:-1;return (b.updated||b.created||0)-(a.updated||a.created||0);});}
+function jrFind(id){for(var i=0;i<state.jr.length;i++)if(state.jr[i].id===id)return state.jr[i];return null;}
+function jrDaySet(){var m={};for(var i=0;i<state.jr.length;i++)m[state.jr[i].d]=1;return m;}
+function jrStreak(){var set=jrDaySet(),d=toDate(today()),n=0;while(set[fmt(d)]){n++;d=addDays(d,-1);}return n;}
+function jrMonthCount(){var p=today().slice(0,7),n=0;for(var i=0;i<state.jr.length;i++)if(state.jr[i].d.slice(0,7)===p)n++;return n;}
+function onThisDay(){var t=toDate(today()),out=[];for(var i=0;i<state.jr.length;i++){var e=state.jr[i],dd=toDate(e.d);if(e.d===today()||dd.getDate()!==t.getDate())continue;var months=(t.getFullYear()-dd.getFullYear())*12+(t.getMonth()-dd.getMonth());if(months>=1){var label=months>=12?Math.floor(months/12)+' yr ago':months+' mo ago';out.push([e,label]);}}return out.slice(0,5);}
+function mdLite(t){var raw=String(t||'');if(/<\/?[a-z][\s\S]*>/i.test(raw))return sanitizeJrHtml(raw);return esc(raw).replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\*([^*]+)\*/g,'<i>$1</i>').replace(/\n/g,'<br>');}
+function jrCardHTML(e){var dt=toDate(e.d).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'}),mood=e.mood!==''&&MOODS[+e.mood]?MOODS[+e.mood].e:'';var html='<div class="jrCard" data-jid="'+esc(e.id)+'"><div class="jrDt">'+dt+(mood?' · '+mood:'')+'</div>'+(e.t?'<div class="jrTt">'+esc(e.t)+'</div>':'')+(e.b?'<div class="jrSnip">'+mdLite(e.b)+'</div>':'');var tg=jrTagsOf(e);if(tg.length){html+='<div class="jrTags">';for(var i=0;i<tg.length;i++)html+='<span class="jrTag">'+esc(tg[i])+'</span>';html+='</div>';}return html+'</div>';}
+function jrRenderContext(){
+  var ds=today(),tasks=state.tasks||[],done=0,open=0;for(var i=0;i<tasks.length;i++){var st=taskEffectiveStatus(tasks[i]);if(st==='completed')done++;else open++;}
+  var hDone=0,hDue=0;for(var j=0;j<state.habits.length;j++){var h=state.habits[j];if(h.arch||!dueOn(h,toDate(ds)))continue;hDue++;if(isDone(h,ds))hDone++;}
+  var sl=state.sleep.find(function(x){return x.d===ds;}),mood=moodOf(ds);
+  $('jrContext').innerHTML='<div class="jrCtx"><b>'+(mood>=0&&MOODS[mood]?MOODS[mood].e:'—')+'</b><span>Mood</span></div><div class="jrCtx"><b>'+hDone+'/'+hDue+'</b><span>Habits</span></div><div class="jrCtx"><b>'+done+'/'+(done+open)+'</b><span>Tasks</span></div><div class="jrCtx"><b>'+(sl&&sl.mins?Math.floor(sl.mins/60)+'h '+(sl.mins%60)+'m':'—')+'</b><span>Sleep</span></div>';
+  $('jrHeroSub').textContent=state.jr.some(function(e){return e.d===ds;})?'Capture what happened, then let the tracker provide context.':'A private place to think, remember and reflect.';
 }
-function jrTagsOf(e){
-  var m = (e.t + ' ' + e.b).match(/#[A-Za-z0-9_]+/g);
-  if(!m) return [];
-  var seen = {}, out = [];
-  for(var i=0;i<m.length;i++){
-    var t = m[i].toLowerCase();
-    if(!seen[t]){ seen[t] = 1; out.push(t); }
-  }
-  return out;
-}
-function jrAllTags(){
-  var cnt = {};
-  for(var i=0;i<state.jr.length;i++){
-    var ts = jrTagsOf(state.jr[i]);
-    for(var j=0;j<ts.length;j++) cnt[ts[j]] = (cnt[ts[j]]||0)+1;
-  }
-  var arr = [];
-  for(var k in cnt) arr.push([k, cnt[k]]);
-  arr.sort(function(a,b){ return b[1]-a[1]; });
-  return arr.slice(0,8).map(function(x){ return x[0]; });
-}
-function sortJr(){
-  state.jr.sort(function(a,b){
-    if(a.d !== b.d) return a.d < b.d ? 1 : -1;
-    return (b.created||0) - (a.created||0);
-  });
-}
-function jrFind(id){
-  for(var i=0;i<state.jr.length;i++) if(state.jr[i].id === id) return state.jr[i];
-  return null;
-}
-function onThisDay(){
-  var t = toDate(today()), out = [];
-  for(var i=0;i<state.jr.length;i++){
-    var e = state.jr[i];
-    if(e.d === today()) continue;
-    var dd = toDate(e.d);
-    if(dd.getDate() !== t.getDate()) continue;
-    if(dd.getMonth() === t.getMonth() && dd.getFullYear() < t.getFullYear()){
-      var yy = t.getFullYear() - dd.getFullYear();
-      out.push([e, yy + (yy===1 ? ' yr ago' : ' yrs ago')]);
-    } else {
-      var months = (t.getFullYear()-dd.getFullYear())*12 + (t.getMonth()-dd.getMonth());
-      if(months >= 1 && months < 12) out.push([e, months + ' mo ago']);
-    }
-  }
-  return out.slice(0,3);
-}
-function fillPhotos(root){
-  var imgs = root.querySelectorAll('img[data-pn]');
-  for(var i=0;i<imgs.length;i++){
-    var pn = imgs[i].getAttribute('data-pn');
-    if(photoCache[pn]){ imgs[i].src = photoCache[pn]; continue; }
-    var b = '';
-    if(nat && nat.readPhoto){ try{ b = nat.readPhoto(pn) || ''; }catch(e){} }
-    if(b){
-      photoCache[pn] = 'data:image/jpeg;base64,' + b;
-      imgs[i].src = photoCache[pn];
-    } else imgs[i].style.display = 'none';
-  }
-}
-function mdLite(t){
-  return esc(t)
-    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
-    .replace(/\*([^*]+)\*/g, '<i>$1</i>');
-}
-function jrCardHTML(e){
-  var dt = toDate(e.d).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short',year:'numeric'});
-  var html = '<div class="jrCard" data-jid="'+e.id+'">'
-    + '<div class="jrDt">'+dt+'</div>'
-    + (e.t ? '<div class="jrTt">'+esc(e.t)+'</div>' : '')
-    + (e.b ? '<div class="jrSnip">'+mdLite(e.b)+'</div>' : '');
-  if(e.ph.length){
-    html += '<div class="jrThRow">';
-    for(var i=0;i<Math.min(4,e.ph.length);i++) html += '<img class="jrTh" data-pn="'+e.ph[i]+'" alt="">';
-    html += '</div>';
-  }
-  var tg = jrTagsOf(e);
-  if(tg.length){
-    html += '<div class="jrTags">';
-    for(var j2=0;j2<tg.length;j2++) html += '<span class="jrTag">'+esc(tg[j2])+'</span>';
-    html += '</div>';
-  }
-  return html + '</div>';
+function jrRenderCalendar(){
+  var y=jrCalCursor.getFullYear(),m=jrCalCursor.getMonth(),first=new Date(y,m,1),days=new Date(y,m+1,0).getDate(),start=(first.getDay()+6)%7,set=jrDaySet();
+  var html='<div class="jrCal"><div class="jrCalHead"><button id="jrCalPrev">‹</button><b>'+new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'})+'</b><button id="jrCalNext">›</button></div><div class="jrCalGrid">';
+  var dows=['M','T','W','T','F','S','S'];for(var q=0;q<7;q++)html+='<div class="jrCalDow">'+dows[q]+'</div>';for(var z=0;z<start;z++)html+='<div></div>';
+  for(var d=1;d<=days;d++){var iso=fmt(new Date(y,m,d)),cls='jrCalDay'+(set[iso]?' has':'')+(iso===today()?' today':'');html+='<button class="'+cls+'" data-jrday="'+iso+'">'+d+(set[iso]?'<i></i>':'')+'</button>';}
+  html+='</div><div class="jrMonthEntries" id="jrMonthEntries"></div></div>';$('jrCalendarWrap').innerHTML=html;
+  var monthEntries=state.jr.filter(function(e){return e.d.slice(0,7)===y+'-'+pad(m+1);}),by={};monthEntries.sort(function(a,b){return a.d<b.d?-1:1;});monthEntries.forEach(function(e){(by[e.d]||(by[e.d]=[])).push(e);});
+  var eh='';Object.keys(by).sort().forEach(function(ds){eh+='<div class="jrMonthDate">'+niceDate(ds)+' <span class="jrCountBadge">'+by[ds].length+'</span></div>';by[ds].forEach(function(e){eh+=jrCardHTML(e);});});$('jrMonthEntries').innerHTML=eh||'<div class="setS" style="padding:12px 0">No entries this month.</div>';
 }
 function renderJr(){
-  $('jrPrompt').textContent = '\u201C' + jrPrompt() + '\u201D';
-  var tags = jrAllTags(), th = '<button class="chip'+(jrTag==='all'?' sel':'')+'" data-jt="all">All</button>';
-  for(var i=0;i<tags.length;i++)
-    th += '<button class="chip'+(jrTag===tags[i]?' sel':'')+'" data-jt="'+esc(tags[i])+'">'+esc(tags[i])+'</button>';
-  $('jrTagRow').innerHTML = th;
-  var otd = onThisDay(), oh = '';
-  for(var o=0;o<otd.length;o++){
-    var oe = otd[o][0];
-    oh += '<div class="otdRow" data-jid="'+oe.id+'"><span class="oy">'+otd[o][1]+'</span>'
-      + '<span class="ot">'+esc(oe.t || oe.b.slice(0,60) || 'Untitled entry')+'</span></div>';
-  }
-  $('otdCard').style.display = oh ? '' : 'none';
-  $('otdList').innerHTML = oh;
-  sortJr();
-  var html = '', shown = 0;
-  for(var e2=0;e2<state.jr.length;e2++){
-    var en = state.jr[e2];
-    if(jrTag !== 'all' && jrTagsOf(en).indexOf(jrTag) < 0) continue;
-    if(jrQ && (en.t + ' ' + en.b).toLowerCase().indexOf(jrQ) < 0) continue;
-    html += jrCardHTML(en);
-    shown++;
-  }
-  if(state.jr.length && !shown) html = '<div class="setS" style="text-align:center;padding:24px 0">No entries match.</div>';
-  $('jrList').innerHTML = html;
-  $('jrEmpty').hidden = state.jr.length > 0;
-  fillPhotos($('jrList'));
-  fillPhotos($('otdList'));
+  sortJr();$('jrPrompt').textContent='“'+jrPrompt()+'”';$('jrStreak').textContent=jrStreak();$('jrMonthCount').textContent=jrMonthCount();$('jrTotalCount').textContent=state.jr.length;jrRenderContext();
+  var tags=jrAllTags(),th='<button class="chip '+(jrTag==='all'?'sel':'')+'" data-jt="all">All</button>';for(var i=0;i<tags.length;i++)th+='<button class="chip '+(jrTag===tags[i]?'sel':'')+'" data-jt="'+esc(tags[i])+'">'+esc(tags[i])+'</button>';$('jrTagRow').innerHTML=th;
+  var otd=onThisDay(),oh='';for(var o=0;o<otd.length;o++){var oe=otd[o][0];oh+='<div class="otdRow" data-jid="'+esc(oe.id)+'"><span class="oy">'+otd[o][1]+'</span><span class="ot">'+esc(oe.t||jrPlain(oe.b).slice(0,70)||'Untitled entry')+'</span></div>';}
+  $('otdCard').style.display=oh?'':'none';$('otdList').innerHTML=oh;$('jrCalendarWrap').style.display=jrView==='calendar'?'':'none';
+  if(jrView==='calendar'){jrRenderCalendar();$('jrList').innerHTML='';$('jrEmpty').hidden=true;return;}
+  var html='',shown=0;for(var e=0;e<state.jr.length;e++){var en=state.jr[e];if(jrTag!=='all'&&jrTagsOf(en).indexOf(jrTag)<0)continue;if(jrQ&&(en.t+' '+jrPlain(en.b)).toLowerCase().indexOf(jrQ)<0)continue;html+=jrCardHTML(en);shown++;}
+  if(state.jr.length&&!shown)html='<div class="setS" style="text-align:center;padding:24px 0">No entries match.</div>'; $('jrList').innerHTML=html;$('jrEmpty').hidden=state.jr.length>0;
 }
-function renderJrTags(){
-  var fake = {t: $('jrTitle').value, b: $('jrBody').value, ph:[]};
-  var tg = jrTagsOf(fake);
-  $('jrTagLine').textContent = tg.length ? 'Tags: ' + tg.join('  ') : 'Add #tags anywhere in your text';
-}
-function renderJrPhotos(){
-  var html = '';
-  for(var i=0;i<jrEd.ph.length;i++)
-    html += '<div class="jrPhW"><img class="jrTh" data-pn="'+jrEd.ph[i]+'" alt=""><button class="jrPhX" data-rp="'+i+'">\u00D7</button></div>';
-  $('jrPhotos').innerHTML = html || '<div class="setS">No photos yet.</div>';
-  fillPhotos($('jrPhotos'));
-}
-function openJr(id){
-  var src = id ? jrFind(id) : null;
-  jrEd = src ? JSON.parse(JSON.stringify(src)) : {id:'', d: today(), t:'', b:'', ph:[], created: Date.now()};
-  jrEd._edit = id || '';
-  $('shJrTitle').textContent = id ? 'Edit entry' : 'New entry';
-  $('jrDateTxt').textContent = jrEd.d === today() ? 'Today' : niceDate(jrEd.d);
-  $('jrTitle').value = jrEd.t;
-  $('jrBody').value = jrEd.b;
-  $('jrBody').placeholder = id ? 'Write freely\u2026 use #tags anywhere' : jrPrompt();
-  $('jrDelBtn').style.display = id ? '' : 'none';
-  resetJrDel();
-  renderJrTags();
-  renderJrPhotos();
-  openSheet('jrSheet');
-}
-function saveJr(){
-  jrEd.t = $('jrTitle').value.replace(/^\s+|\s+$/g,'');
-  jrEd.b = $('jrBody').value.replace(/^\s+|\s+$/g,'');
-  if(!jrEd.t && !jrEd.b && !jrEd.ph.length){ $('jrBody').focus(); return; }
-  if(jrEd._edit){
-    var ex = jrFind(jrEd._edit);
-    var idx = state.jr.indexOf(ex);
-    delete jrEd._edit;
-    state.jr[idx] = jrEd;
-  } else {
-    delete jrEd._edit;
-    jrEd.id = Date.now().toString(36) + Math.random().toString(36).slice(2,7);
-    state.jr.push(jrEd);
-  }
-  sortJr(); persist(); closeSheet(); renderJr(); buzz(14);
-}
-function resetJrDel(){
-  if(jrDelTimer2){ clearTimeout(jrDelTimer2); jrDelTimer2 = null; }
-  var b = $('jrDelBtn');
-  b.classList.remove('armed'); b.textContent = 'Delete entry';
-}
-function onJrDelete(){
-  var b = $('jrDelBtn');
-  if(!b.classList.contains('armed')){
-    b.classList.add('armed'); b.textContent = 'Tap again to delete';
-    jrDelTimer2 = setTimeout(resetJrDel, 2600);
-    return;
-  }
-  var ex = jrFind(jrEd._edit || jrEd.id);
-  if(ex){
-    for(var i=0;i<ex.ph.length;i++){ if(nat){ try{ nat.deletePhoto(ex.ph[i]); }catch(e){} } delete photoCache[ex.ph[i]]; }
-    state.jr.splice(state.jr.indexOf(ex), 1);
-  }
-  persist(); closeSheet(); renderJr();
-}
+function jrCustomTemplates(){return (state.set&&state.set.jrTemplates instanceof Array)?state.set.jrTemplates:[];}
+function renderJrTemplates(){var h='';for(var i=0;i<JR_TEMPLATES.length;i++)h+='<button class="jrTemplate" data-jrt="'+JR_TEMPLATES[i].id+'">'+JR_TEMPLATES[i].label+'</button>';var ct=jrCustomTemplates();for(var j=0;j<ct.length;j++)h+='<button class="jrTemplate" data-jrc="'+esc(ct[j].id)+'">'+esc(ct[j].name)+'</button>';h+='<button class="jrTplManage" id="jrTplManageBtn">＋ Custom</button>';$('jrTemplateRow').innerHTML=h;}
+function renderJrTags(){var plain=jrPlain($('jrBody').innerHTML),tg=jrTagsOf({t:$('jrTitle').value,b:plain});$('jrTagLine').textContent=tg.length?'Tags: '+tg.join('  '):'Add #tags anywhere in your entry';var words=plain?plain.split(/\s+/).length:0;$('jrWordCount').textContent=words+' word'+(words===1?'':'s');}
+function openJr(id){var src=id?jrFind(id):null;jrEd=src?JSON.parse(JSON.stringify(src)):{id:'',d:today(),t:'',b:'',mood:'',template:'',created:Date.now(),updated:Date.now()};jrEd._edit=id||'';$('shJrTitle').textContent=id?'Edit entry':'New entry';$('jrDateTxt').textContent=jrEd.d===today()?'Today':niceDate(jrEd.d);$('jrTitle').value=jrEd.t||'';var raw=String(jrEd.b||'');$('jrBody').innerHTML=/^\s*</.test(raw)?sanitizeJrHtml(raw):esc(raw).replace(/\n/g,'<br>');$('jrMood').value=jrEd.mood===''?'':String(jrEd.mood);$('jrBody').setAttribute('data-placeholder',raw?'':'Write freely…');$('jrDelBtn').style.display=id?'':'none';resetJrDel();renderJrTemplates();renderJrTags();openSheet('jrSheet');setTimeout(function(){$('jrBody').focus();},120);}
+function applyJrTemplateData(body,id){if(jrPlain($('jrBody').innerHTML)&&!confirm('Replace the current journal text with this template?'))return;$('jrBody').innerHTML=sanitizeJrHtml(body).replace(/\n/g,'<br>');$('jrBody').focus();jrEd.template=id||'';renderJrTags();}
+function applyJrTemplate(id){var t=JR_TEMPLATES.find(function(x){return x.id===id;});if(t){applyJrTemplateData(t.body,t.id);return;}var c=jrCustomTemplates().find(function(x){return x.id===id;});if(c)applyJrTemplateData(c.body,c.id);}
+function saveJr(){jrEd.t=$('jrTitle').value.trim().slice(0,100);jrEd.b=sanitizeJrHtml($('jrBody').innerHTML).slice(0,12000);jrEd.mood=$('jrMood').value||'';jrEd.updated=Date.now();if(!jrEd.t&&!jrPlain(jrEd.b)){$('jrBody').focus();toastN('Write something before saving');return;}if(jrEd._edit){var ex=jrFind(jrEd._edit),idx=state.jr.indexOf(ex);delete jrEd._edit;if(idx>=0)state.jr[idx]=jrEd;}else{delete jrEd._edit;jrEd.id=Date.now().toString(36)+Math.random().toString(36).slice(2,7);jrEd.created=Date.now();state.jr.push(jrEd);}sortJr();persist();closeSheet();renderJr();buzz(14);}
+function resetJrDel(){if(jrDelTimer2){clearTimeout(jrDelTimer2);jrDelTimer2=null;}var b=$('jrDelBtn');if(b){b.classList.remove('armed');b.textContent='Delete entry';}}
+function onJrDelete(){var b=$('jrDelBtn');if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='Tap again to delete';jrDelTimer2=setTimeout(resetJrDel,2600);return;}var ex=jrFind(jrEd._edit||jrEd.id);if(ex)state.jr.splice(state.jr.indexOf(ex),1);persist();closeSheet();renderJr();}
+function jrOpenAi(cmd){showTab('pgAI');setTimeout(function(){var i=$('uaiInput');if(i){i.value=cmd;i.focus();}},80);}
+function jrEntryToAi(action){var b=jrPlain($('jrBody').innerHTML),t=String($('jrTitle').value||'').trim();if(!b&&!t){toastN('Write something first');return;}jrOpenAi(action+':\nTitle: '+t+'\nEntry: '+b);}
 function maybeAskFullscreen(){
   if(!nat || !nat.fsCheck || state.set.fsAsked) return;
   try{
@@ -6795,7 +6177,7 @@ function handleAddAction(kind){
 
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
-  var pgs = ['pgToday','pgTasks','pgMood','pgExp','pgStats','pgAI','pgSet'];
+  var pgs = ['pgToday','pgTasks','pgMood','pgExp','pgJr','pgStats','pgAI','pgSet'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
@@ -6804,6 +6186,7 @@ function showTab(id){
   if(id==='pgTasks') renderTasks();
   if(id==='pgMood') renderMood();
   if(id==='pgExp') renderExp();
+  if(id==='pgJr') renderJr();
   if(id==='pgSet') renderSet();
   if(id==='pgAI') renderAI();
   $('fab').style.display = (id==='pgToday'||id==='pgExp'||id==='pgTasks') ? '' : 'none';
@@ -7356,55 +6739,34 @@ function init(){
   });
 
   /* journal */
-  $('jrSrchBtn').addEventListener('click', function(){
-    var w2 = $('jrSrchWrap'), on = !w2.classList.contains('on');
-    w2.classList.toggle('on', on);
-    this.classList.toggle('on', on);
-    if(on){ setTimeout(function(){ $('jrSrch').focus(); }, 80); }
-    else { jrQ=''; jrTag='all'; $('jrSrch').value=''; renderJr(); }
+  $('jrSrchBtn').addEventListener('click',function(){var w=$('jrSrchWrap'),on=!w.classList.contains('on');w.classList.toggle('on',on);this.classList.toggle('on',on);if(on)setTimeout(function(){$('jrSrch').focus();},80);else{jrQ='';jrTag='all';$('jrSrch').value='';renderJr();}});
+  $('jrSrch').addEventListener('input',function(){jrQ=this.value.toLowerCase().trim();renderJr();});
+  $('jrTagRow').addEventListener('click',function(e){var b=climb(e.target,this,'data-jt');if(!b)return;jrTag=b.getAttribute('data-jt');renderJr();});
+  $('jrWriteBtn').addEventListener('click',function(){openJr(null);});
+  $('jrPromptBtn').addEventListener('click',function(){openJr(null);setTimeout(function(){$('jrBody').innerHTML=esc(jrPrompt())+'<br><br>';$('jrBody').focus();renderJrTags();},140);});
+  $('jrList').addEventListener('click',function(e){var b=climb(e.target,this,'data-jid');if(b)openJr(b.getAttribute('data-jid'));});
+  $('otdList').addEventListener('click',function(e){var b=climb(e.target,this,'data-jid');if(b)openJr(b.getAttribute('data-jid'));});
+  $('jrCalendarWrap').addEventListener('click',function(e){
+    var d=climb(e.target,this,'data-jrday');
+    if(d){var iso=d.getAttribute('data-jrday'),en=state.jr.find(function(x){return x.d===iso;});if(en)openJr(en.id);else{openJr(null);jrEd.d=iso;$('jrDateTxt').textContent=niceDate(iso);}}
+    if(e.target.id==='jrCalPrev'){jrCalCursor=new Date(jrCalCursor.getFullYear(),jrCalCursor.getMonth()-1,1);renderJr();}
+    if(e.target.id==='jrCalNext'){jrCalCursor=new Date(jrCalCursor.getFullYear(),jrCalCursor.getMonth()+1,1);renderJr();}
   });
-  $('jrSrch').addEventListener('input', function(){
-    jrQ = this.value.toLowerCase().replace(/^\s+/,'');
-    renderJr();
-  });
-  $('jrTagRow').addEventListener('click', function(e){
-    var b = climb(e.target, this, 'data-jt'); if(!b) return;
-    jrTag = b.getAttribute('data-jt');
-    renderJr();
-  });
-  $('jrWriteBtn').addEventListener('click', function(){ openJr(null); });
-  $('jrList').addEventListener('click', function(e){
-    var b = climb(e.target, this, 'data-jid'); if(!b) return;
-    openJr(b.getAttribute('data-jid'));
-  });
-  $('otdList').addEventListener('click', function(e){
-    var b = climb(e.target, this, 'data-jid'); if(!b) return;
-    openJr(b.getAttribute('data-jid'));
-  });
-  $('jrDateBtn').addEventListener('click', function(){
-    pendingDateField = 'jrDate';
-    var pcur = (jrEd && jrEd.d) || today(), pp = pcur.split('-');
-    if(nat && nat.pickDate){ try{ nat.pickDate(+pp[0], +pp[1]-1, +pp[2]); return; }catch(e){} }
-    var v = prompt('Date (YYYY-MM-DD)', pcur);
-    if(v) window.dateResult(v); else pendingDateField = '';
-  });
-  $('jrTitle').addEventListener('input', renderJrTags);
-  $('jrBody').addEventListener('input', renderJrTags);
-  $('jrAddPh').addEventListener('click', function(){
-    if(nat && nat.pickPhoto){ try{ nat.pickPhoto(); }catch(e){ toastN('Photo picker unavailable'); } }
-    else toastN('Photos work in the Android app');
-  });
-  $('jrPhotos').addEventListener('click', function(e){
-    var b = climb(e.target, this, 'data-rp'); if(!b) return;
-    var i = +b.getAttribute('data-rp');
-    var pn = jrEd.ph[i];
-    jrEd.ph.splice(i, 1);
-    if(nat){ try{ nat.deletePhoto(pn); }catch(e2){} }
-    delete photoCache[pn];
-    renderJrPhotos();
-  });
-  $('jrSaveBtn').addEventListener('click', saveJr);
-  $('jrDelBtn').addEventListener('click', onJrDelete);
+  document.querySelectorAll('.jrViewBtn').forEach(function(b){b.addEventListener('click',function(){jrView=this.getAttribute('data-jrv');document.querySelectorAll('.jrViewBtn').forEach(function(x){x.classList.toggle('sel',x===b);});renderJr();});});
+  $('jrEmptyCta').addEventListener('click',function(){openJr(null);});
+  $('jrTemplateRow').addEventListener('click',function(e){var b=climb(e.target,this,'data-jrt');if(b){applyJrTemplate(b.getAttribute('data-jrt'));return;}var c=climb(e.target,this,'data-jrc');if(c){applyJrTemplate(c.getAttribute('data-jrc'));return;}if(e.target.id==='jrTplManageBtn'||(e.target.closest&&e.target.closest('#jrTplManageBtn')))openJrTpl();});
+  $('jrTitle').addEventListener('input',renderJrTags);$('jrBody').addEventListener('input',renderJrTags);
+  $('jrFormatBar').addEventListener('mousedown',function(e){var b=climb(e.target,this,'data-fmt');if(!b)return;e.preventDefault();$('jrBody').focus();try{document.execCommand(b.getAttribute('data-fmt'),false,b.getAttribute('data-value')||null);}catch(err){}renderJrTags();});
+  function openJrTpl(id){var c=id?jrCustomTemplates().find(function(x){return x.id===id;}):null;$('jrTplSheetTitle').textContent=c?'Edit custom template':'Custom template';$('jrTplName').value=c?c.name:'';$('jrTplBody').value=c?jrPlain(c.body):'';$('jrTplSaveBtn').setAttribute('data-edit',c?c.id:'');$('jrTplDeleteBtn').style.display=c?'':'none';$('jrTplDeleteBtn').setAttribute('data-del',c?c.id:'');openSheet('jrTplSheet');setTimeout(function(){$('jrTplName').focus();},80);}
+  $('jrTplSaveBtn').addEventListener('click',function(){var name=$('jrTplName').value.trim(),body=$('jrTplBody').value.trim(),edit=this.getAttribute('data-edit')||'';if(!name||!body){toastN('Enter a template name and content');return;}state.set.jrTemplates=state.set.jrTemplates||[];var found=edit?state.set.jrTemplates.find(function(x){return x.id===edit;}):null;if(found){found.name=name.slice(0,60);found.body=body.slice(0,8000);found.updated=Date.now();}else state.set.jrTemplates.push({id:'jt'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),name:name.slice(0,60),body:body.slice(0,8000),created:Date.now(),updated:Date.now()});persist();closeSheet();renderJrTemplates();toastN('Custom template saved');});
+  $('jrTplDeleteBtn').addEventListener('click',function(){var id=this.getAttribute('data-del');if(!id)return;if(!confirm('Delete this custom template?'))return;state.set.jrTemplates=(state.set.jrTemplates||[]).filter(function(x){return x.id!==id;});persist();closeSheet();renderJrTemplates();toastN('Template deleted');});
+  $('jrTemplateRow').addEventListener('dblclick',function(e){var c=climb(e.target,this,'data-jrc');if(c)openJrTpl(c.getAttribute('data-jrc'));});
+  $('jrSaveBtn').addEventListener('click',saveJr);$('jrDelBtn').addEventListener('click',onJrDelete);
+  $('jrReflectBtn').addEventListener('click',function(){jrOpenAi('Reflect on my day using today’s tracker context and help me write a journal reflection.');});
+  $('jrPlanBtn').addEventListener('click',function(){jrOpenAi('Plan tomorrow using my priorities, habits and existing tracker data.');});
+  $('jrImproveBtn').addEventListener('click',function(){jrEntryToAi('Improve this journal entry while preserving my meaning and voice');});
+  $('jrSummarizeBtn').addEventListener('click',function(){jrEntryToAi('Summarize this journal entry in a concise, personal tone');});
+  $('jrEntryAiBtn').addEventListener('click',function(){jrEntryToAi('Analyze this journal entry and tell me the most useful insight');});
   $('btnWebNotif').addEventListener('click', function(){
     if(!webNotifSupported()) return;
     if(Notification.permission === 'granted'){
@@ -7638,7 +7000,6 @@ function init(){
   // ---- Universal AI Assistant wiring ----
   function doUaiSend(){ var v=$('uaiInput').value.trim();if(!v)return;stopUaiSpeech();$('uaiInput').value='';uaiSend(v); }
   $('uaiMic').addEventListener('click',function(){startUaiSpeech();});
-  document.querySelectorAll('.uaiMode').forEach(function(b){b.addEventListener('click',function(){uaiMode=this.getAttribute('data-mode')||'ask';document.querySelectorAll('.uaiMode').forEach(function(x){x.classList.toggle('sel',x===b);});var hints={ask:'Ask anything about your tracker.',plan:'Plan my day, organize priorities, or build a practical week.',analyze:'Find patterns, trends, bottlenecks, spending or consistency issues.',act:'Make changes to my tracker; I’ll collect missing details safely.'};$('uaiModeHint').textContent=hints[uaiMode]||hints.ask;$('uaiInput').focus();});});
   $('uaiSend').addEventListener('click', doUaiSend);
   $('uaiClear').addEventListener('click', function(){
     var log=$('uaiLog');
