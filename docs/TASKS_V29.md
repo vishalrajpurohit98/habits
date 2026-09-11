@@ -353,3 +353,27 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 
 ## Validation
 - Missed days no longer in Progress; Achievements hidden; all 7 tabs render; zero runtime errors.
+
+---
+
+# V1.4.0 — FIX: blank tabs (all pages except Today)
+
+## Root cause
+- The #pro-productivity-style <style> block began with orphaned CSS fragments
+  ("to{opacity:1;transform:none}}" x2 and a stray "}"), leftover from a broken keyframes
+  rule. This made that stylesheet block malformed (64 { vs 67 }). In a real browser this
+  corrupts CSS parsing; combined with .page{animation:fadeUp} starting at opacity:0, non-Today
+  pages (which get .on added later via showTab, re-triggering the animation) could stay at
+  opacity:0 = blank. Today is .on at load so it rendered.
+- Note: this corruption existed in earlier builds too (pre-existing), not introduced by the
+  recent journal/stats work.
+
+## Fix
+- Removed the orphaned CSS fragments; the style block is now balanced (all 7 <style> blocks
+  balanced).
+- Hardened page visibility: .page.on now sets opacity:1!important so a broken animation can
+  never blank a page again.
+
+## Validation
+- Computed styles verified: every page (Stats/Tasks/Exp/Journal/AI/Settings) resolves to
+  display:block, opacity:1, with content, and no runtime errors.
