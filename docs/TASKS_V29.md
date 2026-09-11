@@ -275,3 +275,81 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 ## Deferred to next pass (per plan)
 - Today tab simplification (4 quick actions, compact mood card w/ insights icon), Stats
   metric audit/trim, broader UI/UX consolidation, full AI-action audit.
+
+---
+
+# V1.4.0 — Today overhaul + mood consolidated into Journal
+
+## Rewrite-preview UI fix
+- Fixed uneven button sizing in the AI rewrite preview / save rows (all buttons flex:1,
+  consistent height, no text wrapping).
+
+## Mood consolidated into Journal only
+- Removed the mood check-in from Today and the mood section from Stats.
+- Mood now lives in the Journal > Insights view behind a "Mood / Insights" icon toggle
+  (panel hidden by default; opens check-in + calendar + analytics on click).
+- Element IDs preserved so existing mood render/handlers keep working; renderJr renders the
+  mood pieces so the panel stays live.
+- Fixed 4 dangling pgMood references left from removing the Mood tab (navigate mood -> Journal;
+  guarded $('pgMood') null checks). Quick-log routing for mood/sleep updated.
+
+## Mood sync (fixed/verified)
+- Saving a journal entry with a mood writes state.mood[date] via JR_TO_MOOD and now surfaces
+  in the Journal mood calendar/insights (verified great->1 written + calendar renders).
+
+## Today overhaul
+- Added 4 quick actions: Habit, Sleep, Journal, Task (each opens its working page/sheet).
+- Decluttered Today: quote-of-day, next reminder, AI insights, recover box, stack box, week
+  dots are force-hidden (kept in DOM to avoid null-ref crashes in existing render code).
+- Kept: momentum hero, sleep card, habit list.
+
+## Validation (runtime, jsdom)
+- All 7 tabs render; quick actions work (journal opens editor, habit no-throw); Today
+  decluttered; mood gone from Today/Stats, present in Journal; mood sync writes + renders;
+  reRenderCurrent no longer crashes on removed pgMood. Zero runtime errors.
+
+## Still deferred (need your direction)
+- Stats metric audit (which to cut), broader UI/UX redesign, full AI-action audit of 32 actions.
+
+---
+
+# V1.4.0 — AI-control audit
+
+## Findings (audit of all 32 AI actions)
+- All 24 user-facing actions are BOTH implemented in executeAction AND advertised in the
+  AI prompt (no unreachable actions).
+- All 8 destructive actions (delete_expense/habit/journal/mood/sleep/task/workout and
+  delete_transactions bulk) correctly return needConfirm and only execute with confirm:true.
+- Runtime-verified: set_mood executes; add_task/add_habit ask for missing required info
+  (clarify, not a bug); delete_transactions asks to confirm then deletes on confirm.
+- Conclusion: the spec's core requirement (AI can execute all actions incl. bulk transaction
+  delete, with confirmation before destructive ones) is already satisfied.
+
+## Fix
+- Improved the bulk-delete confirmation wording ("This will delete N transactions (scope).
+  This cannot be undone from here. Please confirm.") — clearer feedback per spec.
+
+## Not changed (deliberately)
+- No new AI actions were invented; the existing set already covers the app's UI actions.
+
+---
+
+# V1.4.0 — Stats metric audit (cuts)
+
+## Audit result
+- Stats was already fairly lean: Insight, Progress (streaks + completion), Trend chart,
+  Habit performance (conditional >=2 habits), Fitness (conditional on workouts), Achievements,
+  and the multi-metric Calendar heatmap.
+
+## Cuts (approved)
+- "Missed days" tile removed from Progress (redundant inverse of 30-day completion %).
+- "Achievements" section removed from Stats view (hidden; element kept so existing
+  render/handlers don't null-crash). The achievements modal code remains intact but is no
+  longer surfaced on the Stats page.
+
+## Kept (deliberately, genuinely useful)
+- Insight card, Current/Longest streak, 30-day completion, Trend chart, Habit performance,
+  Fitness section, Calendar heatmap.
+
+## Validation
+- Missed days no longer in Progress; Achievements hidden; all 7 tabs render; zero runtime errors.

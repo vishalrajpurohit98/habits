@@ -1548,7 +1548,7 @@ function executeAction(r){
       if(!matches.length)return{ok:0,msg:'No transactions match that request.'};
       if(!r.confirm){
         var desc=scope==='all'?'all transactions':scope==='date'?'transactions from '+(p.date||'the selected date'):scope==='dateRange'?'transactions from '+start+' to '+end:scope==='category'?'transactions in '+(p.cat||'that category'):scope==='account'?'transactions in that account':'the selected transactions';
-        return{ok:0,msg:'This will delete '+matches.length+' '+desc+'. Please confirm.',needConfirm:1,pending:{action:'delete_transactions',params:p,confirm:true}};
+        return{ok:0,msg:'This will delete '+matches.length+' '+(matches.length===1?'transaction':'transactions')+' ('+desc+'). This cannot be undone from here. Please confirm.',needConfirm:1,pending:{action:'delete_transactions',params:p,confirm:true}};
       }
       var oldTx=JSON.parse(JSON.stringify(matches)),ids={};matches.forEach(function(t){ids[t.id]=1;});state.tx=state.tx.filter(function(t){return !ids[t.id];});persist();if($('pgExp').classList.contains('on'))renderExp();
       return{ok:1,msg:msg,detail:'Deleted '+matches.length+' transaction'+(matches.length===1?'':'s'),undo:function(){state.tx=state.tx.concat(oldTx);persist();}};
@@ -1606,7 +1606,7 @@ function executeAction(r){
     }
     if(a==='delete_sleep'){var oldSleep=state.sleep.find(function(s){return s.d===d;});if(!oldSleep)return{ok:0,msg:'No sleep record found for '+d};if(!r.confirm)return{ok:0,msg:'Please confirm deleting the sleep record for '+d+'.',needConfirm:1,pending:{action:'delete_sleep',params:{date:d},confirm:true}};state.sleep=state.sleep.filter(function(s){return s.d!==d;});persist();return{ok:1,msg:msg,detail:'Sleep record deleted for '+d,undo:function(){state.sleep.push(oldSleep);persist();}};}
     if(a==='change_setting'){if(p.key==='theme'&&['dark','light','auto','amoled'].indexOf(p.value)<0)return{ok:0,msg:'Unsupported theme.'};if(p.key==='theme'){state.set.theme=p.value;applyTheme();}else if(p.key==='curr'){var c=String(p.value||'');if(!c)return{ok:0,msg:'Currency cannot be empty.'};state.set.curr=c.slice(0,4);}else return{ok:0,msg:'Unsupported setting.'};persist();return{ok:1,msg:msg};}
-    if(a==='navigate'){var tabs={today:'pgToday',tasks:'pgTasks',mood:'pgMood',exp:'pgExp',stats:'pgStats',ai:'pgAI',set:'pgSet'};var tid=tabs[String(p.tab||'').toLowerCase()];if(!tid)return{ok:0,msg:'I could not identify that section.'};showTab(tid);return{ok:1,msg:msg||('Opening '+String(p.tab||'section'))};}
+    if(a==='navigate'){var tabs={today:'pgToday',tasks:'pgTasks',mood:'pgJr',exp:'pgExp',stats:'pgStats',ai:'pgAI',set:'pgSet'};var tid=tabs[String(p.tab||'').toLowerCase()];if(!tid)return{ok:0,msg:'I could not identify that section.'};showTab(tid);return{ok:1,msg:msg||('Opening '+String(p.tab||'section'))};}
     if(a==='query')return{ok:1,msg:msg,isQuery:1};
     if(a==='clarify')return{ok:0,msg:msg,isClarify:1};
     return{ok:0,msg:'Unsupported AI action.'};
@@ -1668,7 +1668,7 @@ function uaiSend(text){
   }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();var msg=e.message||'AI request failed.';log.innerHTML+='<div class="uaiMsg err">'+esc(msg)+'</div>';saveUaiChatTurn('assistant',msg);log.scrollTop=log.scrollHeight;});
 }
 
-function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();if($('pgTasks').classList.contains('on'))renderTasks();}catch(e){}}
+function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood')&&$('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();if($('pgTasks').classList.contains('on'))renderTasks();}catch(e){}}
 function periodRate(h,days){var now=new Date(),due=0,done=0;for(var i=0;i<days;i++){var d=addDays(now,-i),ds=fmt(d);if(ds<h.created)continue;if(dueOn(h,d)){due++;if(isDone(h,ds))done++;}}return due?done/due:0;}
 
 // ---- AI weekly narrative ----
@@ -1693,7 +1693,7 @@ function renderTaskDashboard(){var b=$('taskDashSummary');if(!b)return;var all=t
 
 function renderToday(){
   renderTaskDashboard();
-  try{ if($('sleepCard')) renderSleepCard(); if($('moGrid')) renderMoodToday(); }catch(e){}
+  try{ if($('sleepCard')) renderSleepCard(); }catch(e){}
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
   $('greet').textContent = greetTxt();
@@ -2223,7 +2223,7 @@ function hasHistory(){
 }
 
 function renderStats(){
-  try{ if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){}
+
   var hs = habitsForStats();
   var histOk = hasHistory();
   $('stEmpty').hidden = histOk;
@@ -2239,8 +2239,7 @@ function renderStats(){
   $('stProg').innerHTML =
     sc(curMax, curMax===1?'day':'days', 'Current streak', 'var(--sOrange)')
     + sc(longest, longest===1?'day':'days', 'Longest streak', 'var(--amber)')
-    + sc(comp, '%', '30-day completion', 'var(--sGreen)')
-    + sc(p30.missed, p30.missed===1?'day':'days', 'Missed days', 'var(--coral)');
+    + sc(comp, '%', '30-day completion', 'var(--sGreen)');
 
   // ----- Section 2: trend -----
   drawStatTrend();
@@ -3050,6 +3049,7 @@ function renderJr(){
   jrRenderCtx();
   jrRenderMemories();
   jrRenderTags();
+  try{ if($('moGrid')) renderMoodToday(); if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){}
   if(jrView==='calendar') jrRenderCal();
   if(jrView==='search') jrRenderSearch();
 }
@@ -5244,7 +5244,7 @@ window.onNativeResume = function(){
   pushAlarms();
   renderToday();
   if($('pgStats').classList.contains('on')) renderStats();
-  if($('pgMood').classList.contains('on')) renderMood();
+  if($('pgMood')&&$('pgMood').classList.contains('on')) renderMood();
   if($('pgTasks').classList.contains('on')) renderTasks();
   if(wasHidden){ wasHidden = false; lockNow(); }
 };
@@ -5279,9 +5279,9 @@ function handleAddAction(kind){
     if(kind==='habit') openEdit(null);
     else if(kind==='task') openTask(null);
     else if(kind==='expense'){ showTab('pgExp'); setTimeout(function(){openExp(null);},60); }
-    else if(kind==='mood'){ showTab('pgMood'); setTimeout(function(){ var g=$('moGrid'); if(g) g.scrollIntoView({behavior:'smooth',block:'center'}); var first=g&&g.querySelector('[data-mood]'); if(first) first.focus(); },80); }
+    else if(kind==='mood'){ showTab('pgJr'); setTimeout(function(){ jrGo('insights'); var b=$('jrMoodInsBtn'); if(b){ var p=$('jrMoodPanel'); if(p&&p.style.display==='none') b.click(); var g=$('moGrid'); if(g) g.scrollIntoView({behavior:'smooth',block:'center'}); } },120); }
     else if(kind==='journal'){ setTimeout(function(){openJr(null);},60); }
-    else if(kind==='sleep'){ showTab('pgMood'); setTimeout(function(){openSleep(today());},60); }
+    else if(kind==='sleep'){ showTab('pgToday'); setTimeout(function(){openSleep(today());},60); }
   },80);
 }
 
@@ -5866,7 +5866,22 @@ function init(){
     var b=climb(e.target,this,'data-jtpltb'); if(b){ var c=b.getAttribute('data-jtpltb'); $('jrTplBody').focus(); try{document.execCommand('styleWithCSS',false,false);}catch(_){} try{document.execCommand(c,false,null);}catch(_){} return; }
     b=climb(e.target,this,'data-jtpltblock'); if(b){ $('jrTplBody').focus(); try{document.execCommand('formatBlock',false,'<'+b.getAttribute('data-jtpltblock')+'>');}catch(_){} }
   }); }
+  var _qa=$('quickActions'); if(_qa) _qa.addEventListener('click', function(e){
+    var b=climb(e.target,this,'data-qa'); if(!b) return;
+    var kind=b.getAttribute('data-qa');
+    if(kind==='habit'){ if(typeof openEdit==='function') openEdit(null); }
+    else if(kind==='task'){ if(typeof openTask==='function') openTask(null); }
+    else if(kind==='journal'){ showTab('pgJr'); setTimeout(function(){ openJr(null); },60); }
+    else if(kind==='sleep'){ if(typeof openSleep==='function') openSleep(today()); }
+  });
   /* ===== Journal V1.4.0 wiring ===== */
+  var _moodIns=$('jrMoodInsBtn'); if(_moodIns) _moodIns.addEventListener('click', function(){
+    var p=$('jrMoodPanel'); if(!p) return;
+    var show=p.style.display==='none';
+    p.style.display=show?'':'none';
+    this.classList.toggle('on',show);
+    if(show){ try{ if($('moGrid')) renderMoodToday(); if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){} }
+  });
   /* favorite toggle */
   var _favTog=$('jrFavTog'); if(_favTog) _favTog.addEventListener('click', function(){ var on=!this.classList.contains('on'); this.classList.toggle('on',on); this.setAttribute('aria-checked',on); if(jrEd) jrEd.favorite=on; });
   /* export */
@@ -6418,7 +6433,7 @@ function init(){
       if(fbDoc && fbUser && !syncApplying){ if(syncPushT){ clearTimeout(syncPushT); syncPushT=null; } pushNow(false).catch(function(){}); }
     }
     else {
-      renderToday(); if($('pgMood').classList.contains('on')) renderMood();
+      renderToday(); if($('pgMood')&&$('pgMood').classList.contains('on')) renderMood();
       if(wasHidden && !nat){ wasHidden=false; lockNow(); }
       if(fbDoc && fbUser && !syncApplying){ syncReconcile().catch(function(){}); }
     }
