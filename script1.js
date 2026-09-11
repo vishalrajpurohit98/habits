@@ -1692,6 +1692,7 @@ function renderTaskDashboard(){var b=$('taskDashSummary');if(!b)return;var all=t
 
 function renderToday(){
   renderTaskDashboard();
+  try{ if($('sleepCard')) renderSleepCard(); if($('moGrid')) renderMoodToday(); }catch(e){}
   var now = new Date();
   $('dateLine').textContent = now.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long'});
   $('greet').textContent = greetTxt();
@@ -2221,6 +2222,7 @@ function hasHistory(){
 }
 
 function renderStats(){
+  try{ if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){}
   var hs = habitsForStats();
   var histOk = hasHistory();
   $('stEmpty').hidden = histOk;
@@ -2767,6 +2769,8 @@ var JR_PROMPTS = [
  'What are you currently avoiding?'
 ];
 var JR_MOODS = {great:'\uD83D\uDE04',good:'\uD83D\uDE42',okay:'\uD83D\uDE10',low:'\uD83D\uDE14',diff:'\uD83D\uDE23'};
+/* Map the journal's 5 moods onto the app's 7-point mood scale (0=Excellent..6=Stressed). */
+var JR_TO_MOOD = {great:1, good:2, okay:3, low:5, diff:6};
 var JR_MOOD_LABEL = {great:'Great',good:'Good',okay:'Okay',low:'Low',diff:'Difficult'};
 var JR_TEMPLATES = [
   {icon:'\uD83C\uDF05',name:'Morning',body:'<h3>How am I feeling?</h3><p></p><h3>What do I want to accomplish?</h3><p></p><h3>What should I focus on?</h3><p></p>'},
@@ -3015,7 +3019,13 @@ function saveJr(){
     jrEd.createdAt = Date.now();
     state.jr.push(jrEd);
   }
-  jrSort(); persist(); closeSheet(); renderJr(); if(typeof buzz==='function') buzz(14);
+  jrSort();
+  /* Mirror the entry's mood into the app mood history so it shows in Stats. */
+  if(jrEd.mood && typeof JR_TO_MOOD !== 'undefined' && JR_TO_MOOD[jrEd.mood]!==undefined && jrEd.date){
+    state.mood = state.mood || {};
+    state.mood[jrEd.date] = JR_TO_MOOD[jrEd.mood];
+  }
+  persist(); closeSheet(); renderJr(); if(typeof buzz==='function') buzz(14);
 }
 function jrResetDel(){ jrDelArmed=false; if(jrDelTimer2){clearTimeout(jrDelTimer2);jrDelTimer2=null;} var b=$('jrDelBtn'); if(b){b.classList.remove('armed');b.textContent='Delete entry';} }
 function resetJrDel(){ jrResetDel(); } /* back-compat alias for closeSheet() */
@@ -4941,14 +4951,13 @@ function handleAddAction(kind){
 
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
-  var pgs = ['pgToday','pgTasks','pgMood','pgExp','pgStats','pgJr','pgAI','pgSet'];
+  var pgs = ['pgToday','pgTasks','pgExp','pgStats','pgJr','pgAI','pgSet'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===id);
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
   if(id==='pgStats') renderStats();
   if(id==='pgTasks') renderTasks();
-  if(id==='pgMood') renderMood();
   if(id==='pgExp') renderExp();
   if(id==='pgSet') renderSet();
   if(id==='pgJr'){ if(typeof jrCalY!=='undefined'&&!jrCalY){var _n=new Date();jrCalY=_n.getFullYear();jrCalM=_n.getMonth();} renderJr(); jrGo(jrView||'timeline'); }

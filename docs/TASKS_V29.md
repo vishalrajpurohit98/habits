@@ -146,3 +146,40 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 - All 8 tabs render with no runtime errors.
 - Caught during testing: a jsdom cross-realm instanceof artifact (not a real bug), and
   the stricter importer's habits+tx+accts requirement (fixed in the converter).
+
+---
+
+# V1.4.0 — Day One media cleanup, Mood tab removed, mood-in-journal
+
+## Import formatting fix
+- Day One embeds ![](dayone-moment://UUID) image markers inline in the text field
+  (112 entries). These were passed through as literal text ("gibberish"). The converter
+  now strips all image markers, dayone-moment/dayone2 refs, and reduces real markdown
+  links to their visible text. Redundant "Date:" titles are skipped. Verified: 0 markers
+  survive in all 221 entries; headings/paragraphs render in the editor.
+- Note: entries open in the editor (which renders HTML). The timeline shows a plain-text
+  2-line preview by design.
+
+## Mood tab removed; contents relocated
+- Removed the Mood tab (nav + page). Its markup was relocated (ids preserved so all
+  existing render/handlers keep working):
+  - Sleep card + daily mood check-in -> Today.
+  - Mood history calendar + analytics/insights -> Stats.
+- renderToday() now renders the sleep card + mood check-in; renderStats() renders the
+  mood calendar + stats. Sleep tracking is fully retained.
+
+## Mood logging from Journal
+- The journal entry editor's mood picker now also writes to the app mood history
+  (state.mood[date]) via JR_TO_MOOD mapping (great->Happy, good->Calm, okay->Neutral,
+  low->Sad, diff->Stressed), so journal moods appear in Stats.
+
+## AI journal querying — confirmed
+- Verified against the imported 221 entries: the AI prompt includes a JOURNAL section,
+  real entry content, the full entry count, and the no-hallucination rule. Recent entries
+  are included in full; older ones rely on keyword retrieval.
+
+## Validation (runtime, jsdom)
+- 221 entries import cleanly, no gibberish, formatting renders.
+- 7 tabs (Mood gone) all render; sleep+mood on Today, mood history on Stats.
+- Journal mood writes to mood history (good -> Calm/2 confirmed).
+- Zero runtime errors. All relocated mood/sleep element ids still resolve for their handlers.
