@@ -120,3 +120,29 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 - All inline script blocks parse; mirrors (script1.js/script2.js) regenerated.
 - Runtime (jsdom): all 8 tabs render, recurring sheet gone, zero runtime errors.
 - Caught and fixed one missed init handler (recurKindGrid) during runtime testing.
+
+---
+
+# V1.4.0 — Journal separate backup/restore + Day One import
+
+## Dedicated Journal backup/restore (Settings)
+- "Journal backup" — exports ONLY journal entries as journal-backup-DATE.json
+  ({type:'journal-backup', version:1, count, jr:[...]}).
+- "Import journal" — reads a journal backup (or {jr:[...]}, {entries:[...]}, or bare array)
+  and MERGES entries into the existing journal, de-duplicating by id. Never overwrites
+  other app data (unlike the full-backup restore, which replaces everything).
+- Both work in web and Android WebView (native saveFile when available, web download fallback).
+
+## Day One import
+- Provided a converter + ready-to-import file for the user's Day One export
+  (221 entries). Day One richText/markdown -> app HTML; creationDate (UTC) -> IST
+  date+time; starred -> favorite; tags flattened; photos/videos/audio dropped (text-only).
+- Import file includes empty habits/tx/accts arrays so BOTH import validators accept it
+  (the stricter feature-pack importer requires habits+tx+accts to be arrays).
+
+## Validation (runtime, jsdom)
+- Full import of 221 entries: all render, persisted, zero errors.
+- Journal export round-trip: re-import dedupes (stays 221); a new entry merges (222).
+- All 8 tabs render with no runtime errors.
+- Caught during testing: a jsdom cross-realm instanceof artifact (not a real bug), and
+  the stricter importer's habits+tx+accts requirement (fixed in the converter).

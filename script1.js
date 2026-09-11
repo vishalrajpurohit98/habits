@@ -4714,6 +4714,40 @@ function doSyncSignin(create){
 
 /* ================= export / import ================= */
 function jsonB64(){ return btoa(unescape(encodeURIComponent(JSON.stringify(stateForStorage())))); }
+
+/* ===== Journal-only backup / restore (V1.4.0) ===== */
+function journalBackupObj(){
+  return { type:'journal-backup', version:1, exportedAt:new Date().toISOString(), count:(state.jr||[]).length, jr:(state.jr||[]) };
+}
+function journalBackupB64(){ return btoa(unescape(encodeURIComponent(JSON.stringify(journalBackupObj())))); }
+function exportJournalBackup(){
+  var name='journal-backup-'+today()+'.json';
+  if(nat && nat.saveFile){ try{ var p=nat.saveFile(name,'application/json',journalBackupB64()); toastN(p?('Saved to '+p):'Saved'); return; }catch(e){} }
+  toastN(webSave(name,'application/json',journalBackupB64()) ? 'Downloading journal backup\u2026' : 'Export failed');
+}
+/* Import a journal backup and MERGE into existing entries (dedupe by id). Never wipes other data. */
+window.importJournalBackup = function(b64){
+  var txt;
+  try{ txt=decodeURIComponent(escape(atob(b64))); }catch(e){ try{ txt=atob(b64); }catch(e2){ toastN('Could not read file'); return; } }
+  var o; try{ o=JSON.parse(txt); }catch(e3){ toastN('Not a valid journal file'); return; }
+  /* Accept: {jr:[...]} (journal backup), {entries:[...]} tolerated, or a bare array. */
+  var incoming = Array.isArray(o) ? o : (Array.isArray(o.jr) ? o.jr : (Array.isArray(o.entries)? o.entries : null));
+  if(!incoming){ toastN('No journal entries found in file'); return; }
+  if(!(state.jr instanceof Array)) state.jr=[];
+  var byId={}; state.jr.forEach(function(x){ if(x&&x.id) byId[x.id]=1; });
+  var added=0;
+  incoming.forEach(function(raw){
+    var e = (typeof jrMigrateEntry==='function') ? jrMigrateEntry(raw) : raw;
+    if(!e || (!e.title && !(e.content&&String(e.content).replace(/<[^>]*>/g,'').trim()))) return;
+    if(e.id && byId[e.id]) return;              /* skip duplicates */
+    if(!e.id){ e.id=Date.now().toString(36)+Math.random().toString(36).slice(2,7)+added; }
+    byId[e.id]=1; state.jr.push(e); added++;
+  });
+  if(typeof jrSort==='function') jrSort();
+  persist();
+  if($('pgJr') && $('pgJr').classList.contains('on')) renderJr();
+  toastN(added ? ('Imported '+added+' journal '+(added===1?'entry':'entries')) : 'No new entries to import');
+};
 var XMIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 function buildXlsx(){
   var wb = XLSX.utils.book_new(), now = new Date();
@@ -5459,6 +5493,18 @@ function init(){
         try{ importNative(btoa(unescape(encodeURIComponent(String(rd.result))))); }
         catch(e){ toastN('Could not read that file'); }
       };
+      rd.readAsText(f);
+    });
+    fi.click();
+  });
+
+  var _jrx=$('btnJrExport'); if(_jrx) _jrx.addEventListener('click', exportJournalBackup);
+  var _jri=$('btnJrImport'); if(_jri) _jri.addEventListener('click', function(){
+    var fi=document.createElement('input'); fi.type='file'; fi.accept='.json,application/json';
+    fi.addEventListener('change', function(){
+      var f=fi.files&&fi.files[0]; if(!f) return;
+      var rd=new FileReader();
+      rd.onload=function(){ try{ importJournalBackup(btoa(unescape(encodeURIComponent(String(rd.result))))); }catch(e){ toastN('Could not read that file'); } };
       rd.readAsText(f);
     });
     fi.click();
