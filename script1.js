@@ -351,17 +351,30 @@ function stateJson(){
   try{ return JSON.stringify(state, function(k,v){ return k==='receiptData' ? '' : v; }); }
   catch(e){ try{ return JSON.stringify(stateForStorage()); }catch(e2){ return null; } }
 }
-function persist(){
+var _persistT=null, _persistPending=false;
+function _persistHeavy(){
+  _persistPending=false;
+  var json=stateJson();
+  if(json){ if(nat){try{nat.saveState(json);}catch(e){}} }
+  pushAlarms();
+  if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}}
+  if(typeof scheduleSyncPush==='function')scheduleSyncPush();
+}
+function persist(opts){
   state.mtime=Date.now(); var json=stateJson();
   if(json){
-    try{localStorage.setItem(KEY,json);}catch(e){}
-    if(nat){try{nat.saveState(json);}catch(e){}}
-    /* Widget quick-action sessions: the first save after a widget deep link IS the
-       action completing, so hand control back to the home screen (spec v5.3). */
+    try{localStorage.setItem(KEY,json);}catch(e){}   /* fast + keeps data safe immediately */
     if(window._widgetFlowArmed){window._widgetFlowArmed=false;setTimeout(function(){try{nat&&nat.widgetDone&&nat.widgetDone();}catch(e){}},300);}
   }
-  pushAlarms(); if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}} if(typeof scheduleSyncPush==='function')scheduleSyncPush();
+  /* Heavy work (native full-state save, alarm recompute, sync-record hashing) is debounced so
+     rapid successive changes don't each serialize/scan the whole dataset -> smoother on Android. */
+  if(opts && opts.now){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); return; }
+  _persistPending=true;
+  if(_persistT) clearTimeout(_persistT);
+  _persistT=setTimeout(function(){ _persistT=null; _persistHeavy(); }, 500);
 }
+/* flush pending heavy persist when leaving/hiding the app so nothing is lost */
+try{ document.addEventListener('visibilitychange', function(){ if(document.hidden && _persistPending){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); } }); window.addEventListener('pagehide', function(){ if(_persistPending){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); } }); }catch(e){}
 function hasMeaningfulData(s){
   s=s||{};
   return !!((s.habits&&s.habits.length)||(s.tx&&s.tx.length)||(s.accts&&s.accts.length)||(s.exs&&s.exs.length)||(s.wlog&&s.wlog.length)||(s.sleep&&s.sleep.length)||(s.jr&&s.jr.length)||(s.tasks&&s.tasks.length)||(s.goals&&s.goals.length)||(s.mood&&Object.keys(s.mood).length)||(s.hlog&&Object.keys(s.hlog).length)||(s.closed&&Object.keys(s.closed).length));
@@ -7056,19 +7069,35 @@ function init(){
   $('syncSignup').addEventListener('click', function(){ doSyncSignin(true); });
   $('syncSignout').addEventListener('click', function(){ if(fbAuth){ try{ fbAuth.signOut(); toastN('Signed out'); }catch(e){} } });
   var _sr=$('syncRestore'); if(_sr) _sr.addEventListener('click', function(){
-    if(!fbRecords||!fbUser){ toastN('Sign in first'); return; }
+    if(!fbUser){ toastN('Sign in first'); return; }
+    if(!isOnline()){ toastN('You are offline — connect and try again'); return; }
     if(!confirm('Re-pull all data from the cloud onto this device? Cloud data is the source of truth.')) return;
     toastN('Restoring from cloud…'); setSyncState('syncing');
-    /* clear local delete tombstones so they can't block/re-delete */
     try{ Object.keys(syncPendingRecords).forEach(function(k){ if(syncPendingRecords[k]&&syncPendingRecords[k].deleted) delete syncPendingRecords[k]; }); localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords)); }catch(e){}
-    fbRecords.get({source:'server'}).then(function(snap){
-      if(!snap.size){ toastN('No data in the cloud to restore'); setSyncState('synced'); return; }
-      syncApplying=true;
-      try{ applyRemoteRecords(snap.docs, true); }finally{ setTimeout(function(){syncApplying=false;},50); }
-      var n=0; snap.forEach(function(d){ var v=d.data()||{}; if(!v.deleted) n++; });
-      renderToday(); reRenderCurrent(); setSyncState('synced');
-      toastN('Restored '+n+' records from cloud');
-    }).catch(function(e){ setSyncState('error'); toastN('Restore failed: '+(prettySyncErr?prettySyncErr(e):e.message)); });
+    /* Record-level mode */
+    if(fbRecords && !syncLegacyMode){
+      fbRecords.get({source:'server'}).then(function(snap){
+        if(!snap.size){ toastN('No data in the cloud to restore'); setSyncState('synced'); return; }
+        syncApplying=true;
+        try{ applyRemoteRecords(snap.docs, true); }finally{ setTimeout(function(){syncApplying=false;},50); }
+        var n=0; snap.forEach(function(d){ var v=d.data()||{}; if(!v.deleted) n++; });
+        renderToday(); reRenderCurrent(); setSyncState('synced');
+        toastN('Restored '+n+' records from cloud');
+      }).catch(function(e){ setSyncState('error'); toastN('Restore failed: '+(prettySyncErr?prettySyncErr(e):e.message)); });
+      return;
+    }
+    /* Legacy mode: single doc holds the whole state */
+    if(fbDoc){
+      fbDoc.get({source:'server'}).then(function(legacy){
+        var d=legacy.exists?legacy.data()||{}:{};
+        if(!d.data){ toastN('No data in the cloud to restore'); setSyncState('synced'); return; }
+        try{ state=normState(typeof d.data==='string'?JSON.parse(d.data):d.data); state.mtime=Number(d.version||d.updatedAtMs||Date.now()); var stored=stateForStorage(); localStorage.setItem(KEY,JSON.stringify(stored)); if(nat)nat.saveState(JSON.stringify(stored)); }catch(e){}
+        applyTheme(); applyGrey(); renderToday(); reRenderCurrent(); setSyncState('synced');
+        toastN('Restored from cloud');
+      }).catch(function(e){ setSyncState('error'); toastN('Restore failed: '+(prettySyncErr?prettySyncErr(e):e.message)); });
+      return;
+    }
+    toastN('Sync not ready — try Sync now first');
   });
   $('syncNow').addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }

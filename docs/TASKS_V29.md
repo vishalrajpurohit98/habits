@@ -970,3 +970,21 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
   locally -> export JSON backup -> import. The force-restore only helps if the cloud still has the
   real (non-deleted) records.
 - Live Firebase round-trip is untestable here; logic verified via simulated remote docs.
+
+---
+# V1.12.2 — Restore auth fix + performance (debounced persist)
+## Bug: "Restore from cloud" said "sign in first" while signed in
+- Cause: restore checked !fbRecords, but in legacy sync mode fbRecords is null (fbUser still set).
+- Fix: restore now checks fbUser only; supports BOTH record-level (fbRecords) and legacy (fbDoc)
+  modes; offline guard. Verified: legacy-mode signed-in restore no longer says "sign in first" and
+  pulls cloud data.
+## Performance: debounced persist (Android lag)
+- persist() ran full stateJson + localStorage + nat.saveState + pushAlarms(computeAlarms) +
+  queueChangedSyncRecords (hash every record) synchronously on EVERY change (116 call sites). With
+  221+ journal entries this caused lag.
+- Fix: persist() now writes localStorage immediately (data safety) but DEBOUNCES the heavy work
+  (native full-state save, alarm recompute, sync-record hashing) by 500ms; flushes on
+  visibilitychange/pagehide and via persist({now:true}). Verified: immediate localStorage write
+  kept; heavy work batched; regression + backup/restore suites still pass.
+- HONEST: on-device lag improvement can't be measured here; this removes redundant heavy work per
+  keystroke/tap which is the most likely cause.
