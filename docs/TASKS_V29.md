@@ -988,3 +988,11 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
   kept; heavy work batched; regression + backup/restore suites still pass.
 - HONEST: on-device lag improvement can't be measured here; this removes redundant heavy work per
   keystroke/tap which is the most likely cause.
+
+---
+# V1.12.3 — update Android launch splash to InnerOs
+- The launch splash (@drawable/launch_brand, LaunchTheme) still showed the OLD logo + wordmark.
+  Regenerated splash app_icon.png at all densities (mdpi..xxxhdpi + 1024 master) from the InnerOs
+  Monk+Progress icon, and brand_word.png (720x104) to read "InnerOs".
+- No JS change. HONEST: splash only updates after the APK is rebuilt + reinstalled; can't verify on
+  device here.
