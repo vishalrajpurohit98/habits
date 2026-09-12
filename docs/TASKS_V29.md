@@ -618,3 +618,38 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 ## Verified (real Chromium, web side)
 - All pages render; journal-only ask box works with journal-only prompt; monthly report includes
   Journal section; settings toggles present; bioResult callback present; zero errors.
+
+---
+
+# V1.5.6 — AI answer formatting + tappable entries + remove followups
+
+## Fixes (per user screenshots)
+1. Run-on lists: AI answers now render real <ol>/<ul> lists (uaiFormat splits "1. 2. 3." and
+   "- " into list items, handles **bold**, paragraphs, line breaks).
+2. Useless followup chips ("Show me more detail / What should I do next?") removed everywhere.
+3. Journal dates (YYYY-MM-DD) in AI answers are now tappable links that open the entry (single)
+   or the calendar day (multiple). Same formatting applied to the journal-only AI.
+
+## Key bug found & fixed
+- Query answers were hitting the result.ok branch (rendered as raw "✓ text") BEFORE the isQuery
+  branch, so uaiFormat never ran. Reordered: isQuery is now checked first -> formatted output.
+
+## Verified (real Chromium)
+- 3-item list renders as <li>s; date link present and tapping it opens the entry; no followup
+  chips; all pages render; zero errors.
+
+---
+
+# V1.5.7 — journal AI is now a real conversation
+
+## Change (per user feedback: one-shot Q&A had little use vs universal chat)
+- Rebuilt "Ask your journal" as a proper multi-turn CHAT (like the universal AI, but journal-only):
+  - message log with user/bot bubbles, persistent history (jr_chat_history_v1, last 16 turns),
+  - follow-ups work (last 8 turns fed to the model so "tell me more" / "what about last month" resolve),
+  - answers use uaiFormat (lists, bold, tappable YYYY-MM-DD entry links) + Listen button,
+  - "Clear conversation" button; history survives leaving/returning to the view,
+  - still strictly journal-only (refuses habits/tasks/money/etc.).
+
+## Verified (real Chromium)
+- 2-turn conversation renders user+bot bubbles; follow-up answered with context; history persists
+  across view switches; clear works; date links tappable; all pages render; zero errors.

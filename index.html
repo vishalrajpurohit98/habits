@@ -1144,6 +1144,19 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+.jrChatLog{max-height:340px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;margin-bottom:10px}
+.jrChatLog:empty{display:none}
+.jrChatMsg{max-width:88%;padding:10px 12px;border-radius:14px;font-size:14px;line-height:1.5}
+.jrChatMsg.user{align-self:flex-end;background:var(--amberSoft);border:1px solid rgba(255,174,31,.25);color:var(--ink)}
+.jrChatMsg.bot{align-self:flex-start;background:var(--card2);border:1px solid var(--line);color:var(--ink2)}
+.jrChatMsg .uaiList{margin:4px 0;padding-left:20px}
+.jrChatMsg .jrListen{margin-top:8px}
+.jrChatClear{width:100%;margin-top:8px;border:1px solid var(--line);background:transparent;color:var(--mut2);font-size:12px;font-weight:700;padding:8px;border-radius:12px;cursor:pointer}
+.uaiList{margin:6px 0;padding-left:22px}
+.uaiList li{margin:4px 0;line-height:1.5}
+.uaiP{margin:6px 0;line-height:1.55}
+.uaiP:first-child{margin-top:0}
+.uaiJrLink{color:var(--amber);font-weight:700;text-decoration:underline;cursor:pointer}
 .taskExportToggle{width:100%;margin-top:14px;border:1px solid var(--line);background:var(--card2);color:var(--ink2);font-weight:700;font-size:14px;padding:13px;border-radius:14px;cursor:pointer}
 /* smoother global animations */
 button,.chip,.qaBtn,.moreCard,.tab,.card,.jrCard,.jrNavItem,.setRow,.tog,.jrMoodOpt,.moBtn{transition:transform .16s cubic-bezier(.2,.8,.2,1),background-color .18s ease,border-color .18s ease,opacity .18s ease,box-shadow .18s ease}
@@ -1706,18 +1719,19 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <button class="jrAiBtn acc" style="width:100%;margin-top:12px" id="jrWholeAiBtn">&#10024; Analyse my whole journal</button>
       <div class="setCard" style="padding:14px 16px;margin-top:12px">
         <div class="lbl" style="margin:0 0 8px">&#10024; Ask your journal</div>
-        <div class="setS" style="margin:0 0 10px">Answers only from your journal entries — sad days, what happened on a date, recurring themes, and more.</div>
-        <div class="uaiInputRow" style="padding:0;border:0">
-          <input class="inp uaiInp" id="jrAskInput" placeholder="Ask anything about your journal…" autocomplete="off">
-          <button class="uaiSend" id="jrAskSend" aria-label="Ask">→</button>
-        </div>
-        <div class="chips" id="jrAskChips" style="margin-top:10px">
+        <div class="setS" style="margin:0 0 10px">A conversation about your journal only — ask follow-ups, dig into a period, or explore themes.</div>
+        <div id="jrChatLog" class="jrChatLog"></div>
+        <div class="chips" id="jrAskChips" style="margin:0 0 10px">
           <button class="chip" data-jrask="What have I been writing about lately?">Recent themes</button>
           <button class="chip" data-jrask="What were my saddest moments and why?">Sad moments</button>
           <button class="chip" data-jrask="What seems to make me happy?">What makes me happy</button>
           <button class="chip" data-jrask="What are my recurring struggles?">Recurring struggles</button>
         </div>
-        <div id="jrAskOut"></div>
+        <div class="uaiInputRow" style="padding:0;border:0">
+          <input class="inp uaiInp" id="jrAskInput" placeholder="Ask anything about your journal…" autocomplete="off">
+          <button class="uaiSend" id="jrAskSend" aria-label="Ask">→</button>
+        </div>
+        <button class="jrChatClear" id="jrChatClear" style="display:none">Clear conversation</button>
       </div>
     </div>
 
@@ -4082,14 +4096,34 @@ try{localStorage.removeItem('ai_recent');}catch(e){} // Recent feature removed (
 function uaiChatHistory(){try{return JSON.parse(localStorage.getItem('uai_chat_history_v1')||'[]');}catch(e){return[];}}
 function saveUaiChatTurn(who,text){try{var h=uaiChatHistory();h.push({who:who,text:String(text||'').slice(0,1200),ts:Date.now()});if(h.length>20)h=h.slice(-20);localStorage.setItem('uai_chat_history_v1',JSON.stringify(h));}catch(e){}}
 function uaiChatContext(){return uaiChatHistory().slice(-12).map(function(x){return (x.who==='user'?'User':'Assistant')+': '+x.text;}).join('\n');}
-function uaiSuggestedFollowups(result){
-  var a=String(result&&result.action||'');
-  if(result&&result.needConfirm)return ['Confirm','Cancel'];
-  if(a==='add_habit')return ['Show my habit progress','Add another habit'];
-  if(a==='add_task')return ['Show my tasks for today','Show overdue tasks'];
-  if(a==='add_expense')return ['Show this week’s spending','Show my spending by category'];
-  if(a==='query')return ['What should I focus on next?','Give me a short summary'];
-  return ['Show me more detail','What should I do next?'];
+function uaiFormat(raw){
+  var s=String(raw||'');
+  // escape HTML first
+  s=s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  // bold **x**
+  s=s.replace(/\*\*(.+?)\*\*/g,'<b>$1</b>');
+  // split a run-on numbered list ("... 1. a 2. b 3. c") onto separate lines
+  s=s.replace(/\s(\d{1,2}\.\s)/g,'\n$1');
+  // normalize existing newlines
+  s=s.replace(/\r\n/g,'\n');
+  var linesArr=s.split('\n');
+  var htmlOut='', inOl=false, inUl=false;
+  function closeLists(){ if(inOl){htmlOut+='</ol>';inOl=false;} if(inUl){htmlOut+='</ul>';inUl=false;} }
+  linesArr.forEach(function(ln){
+    var t=ln.trim(); if(!t){ return; }
+    var mOl=t.match(/^(\d{1,2})\.\s+(.*)$/);
+    var mUl=t.match(/^[-•]\s+(.*)$/);
+    if(mOl){ if(!inOl){closeLists();htmlOut+='<ol class="uaiList">';inOl=true;} htmlOut+='<li>'+mOl[2]+'</li>'; }
+    else if(mUl){ if(!inUl){closeLists();htmlOut+='<ul class="uaiList">';inUl=true;} htmlOut+='<li>'+mUl[1]+'</li>'; }
+    else { closeLists(); htmlOut+='<p class="uaiP">'+t+'</p>'; }
+  });
+  closeLists();
+  // make journal dates (YYYY-MM-DD) tappable if that entry exists
+  htmlOut=htmlOut.replace(/(\d{4}-\d{2}-\d{2})/g, function(d){
+    var has=(state.jr||[]).some(function(e){return e.date===d;});
+    return has ? '<a class="uaiJrLink" data-jrdate="'+d+'">'+d+'</a>' : d;
+  });
+  return htmlOut;
 }
 function addUaiFollowups(items){var log=$('uaiLog');if(!log||!items||!items.length)return;var d=document.createElement('div');d.className='uaiFollowups';items.forEach(function(t){var b=document.createElement('button');b.className='uaiFollowup';b.textContent=t;b.setAttribute('data-followup',t);d.appendChild(b);});log.appendChild(d);log.scrollTop=log.scrollHeight;}
 function uaiSend(text){
@@ -4100,7 +4134,7 @@ function uaiSend(text){
   var prefMsg=detectPreferenceCommand(text);
   log.innerHTML+='<div class="uaiMsg user">'+esc(text)+'</div>';
   saveUaiChatTurn('user',text);
-  if(prefMsg){log.innerHTML+='<div class="uaiMsg bot">'+esc(prefMsg)+'</div>';saveUaiChatTurn('assistant',prefMsg);addUaiFollowups(['Tell me another preference','What can you help me with?']);return;}
+  if(prefMsg){log.innerHTML+='<div class="uaiMsg bot">'+esc(prefMsg)+'</div>';saveUaiChatTurn('assistant',prefMsg);return;}
   log.innerHTML+='<div class="uaiMsg bot" id="uaiTyping" style="opacity:.5">Thinking…</div>';log.scrollTop=log.scrollHeight;
   var context=uaiChatContext();
   try{var _jpf=localStorage.getItem('uai_prefill_context');if(_jpf){context=_jpf+'\n\n'+context;localStorage.removeItem('uai_prefill_context');}}catch(e){}
@@ -4109,7 +4143,7 @@ function uaiSend(text){
     var clean=raw.replace(/```json|```/g,'').trim(),result;
     try{result=JSON.parse(clean);}catch(e){
       var fallback=raw.replace(/<[^>]*>/g,'').replace(/\*\*(.*?)\*\*/g,'$1').trim();
-      log.innerHTML+='<div class="uaiMsg bot">'+fallback.replace(/</g,'&lt;')+'</div>';saveUaiChatTurn('assistant',fallback);addUaiFollowups(['Try asking another question','Show my data']);log.scrollTop=log.scrollHeight;return;
+      log.innerHTML+='<div class="uaiMsg bot">'+fallback.replace(/</g,'&lt;')+'</div>';saveUaiChatTurn('assistant',fallback);log.scrollTop=log.scrollHeight;return;
     }
     var completeness=validateAIActionCompleteness(result.action,result.params||{});
     if(completeness){
@@ -4132,17 +4166,17 @@ function uaiSend(text){
       }
     }
     var html='<div class="uaiMsg bot">';
-    if(result.ok){
+    if(result.isQuery){html+=uaiFormat(result.msg||'');}
+    else if(result.ok){
       html+='<div class="uaiAction"><div class="uaiCheck">✓ '+esc(result.msg||'Done')+'</div>'+(result.detail?'<div class="uaiDetail">'+esc(result.detail)+'</div>':'')+'</div>';
       if(result.undo){var uid='_u'+Date.now();window[uid]=result.undo;html+='<div class="uaiBtns"><button onclick="'+uid+'();this.closest(\'.uaiMsg\').remove();reRenderCurrent();toastN(\'Undone\')">Undo</button></div>';}
     }else if(result.needConfirm&&result.pending){
       var pid='aiConfirm_'+Date.now();window[pid]=function(){var rr=executeAction(result.pending);var lg=$('uaiLog');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';saveUaiChatTurn('assistant',rr.msg||'Done');lg.scrollTop=lg.scrollHeight;}reRenderCurrent();};
       html+='<div class="uaiAction"><div class="uaiCheck">'+esc(result.msg)+'</div><div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
-    }else if(result.isQuery){html+=String(result.msg||'').replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>');}
+    }else if(result.isQuery){html+=uaiFormat(result.msg||'');}
     else{html+=esc(result.msg||'I need a little more information.');}
     html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;
     var assistantText=String(result.msg||'').replace(/<[^>]+>/g,'').trim();if(assistantText)saveUaiChatTurn('assistant',assistantText);
-    addUaiFollowups(uaiSuggestedFollowups(result));
     reRenderCurrent();
   }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();var raw=(e&&e.message)||'AI request failed.';var msg=raw;var isKey=/no api key|api key|unknown provider/i.test(raw);if(isKey){msg='⚠ The AI isn\'t set up yet. Add a free API key in AI settings to enable answers about your journal, habits, and more.';}log.innerHTML+='<div class="uaiMsg err">'+esc(msg)+'</div>';saveUaiChatTurn('assistant',msg);if(isKey){log.innerHTML+='<div style="margin:8px 0"><button class="sbtn acc" id="uaiOpenCfg">Open AI settings</button></div>';var ob=$('uaiOpenCfg');if(ob)ob.addEventListener('click',function(){var c=$('aiCfg');if(c){c.classList.add('open');c.scrollIntoView({behavior:'smooth',block:'center'});}});}log.scrollTop=log.scrollHeight;});
 }
@@ -5575,6 +5609,7 @@ function jrGo(v){
     var all=(state.jr||[]).map(function(e){return e.date;}).filter(Boolean).sort();
     if(all.length && $('jrInsFrom') && !$('jrInsFrom').value){ $('jrInsFrom').value=all[0]; $('jrInsTo').value=all[all.length-1]; }
     if(typeof jrRangeInsights==='function' && $('jrInsFrom') && $('jrInsFrom').value) jrRangeInsights();
+    if(typeof jrRenderChat==='function') jrRenderChat();
   }
   if(v==='search'){ jrRenderSearch(); var si=$('jrSearchInp'); if(si) setTimeout(function(){si.focus();},50); }
   var app=$('app'); if(app) app.scrollTop=0;
@@ -5978,19 +6013,37 @@ function jrJournalContext(query){
   chosen.forEach(function(e){lines.push('- '+(e.date||'')+' '+(e.time||'')+(e.mood?' ['+e.mood+']':'')+(e.location?' @'+e.location:'')+' "'+String(e.title||'').replace(/"/g,'')+'": '+plain(e.content).slice(0,320));});
   return lines.join('\n');
 }
+function jrChatHistory(){ try{ return JSON.parse(localStorage.getItem('jr_chat_history_v1')||'[]'); }catch(e){ return []; } }
+function jrSaveChatTurn(who,text){ try{ var h=jrChatHistory(); h.push({who:who,text:String(text||'').slice(0,1500)}); if(h.length>16) h=h.slice(-16); localStorage.setItem('jr_chat_history_v1',JSON.stringify(h)); }catch(e){} }
+function jrClearChat(){ try{ localStorage.removeItem('jr_chat_history_v1'); }catch(e){} jrRenderChat(); }
+function jrRenderChat(){
+  var log=$('jrChatLog'); if(!log) return;
+  var h=jrChatHistory();
+  var clr=$('jrChatClear'); if(clr) clr.style.display = h.length? '' : 'none';
+  log.innerHTML = h.map(function(m){
+    if(m.who==='user') return '<div class="jrChatMsg user">'+esc(m.text)+'</div>';
+    return '<div class="jrChatMsg bot">'+uaiFormat(m.text)+'<button class="jrListen" data-jrtts="'+esc(m.text).replace(/"/g,'&quot;')+'">\uD83D\uDD0A Listen</button></div>';
+  }).join('');
+  log.scrollTop=log.scrollHeight;
+}
 function jrAskJournal(question){
   question=String(question||'').trim(); if(!question) return;
-  var box=$('jrAskOut'); if(!box) return;
-  if(!(state.jr&&state.jr.length)){ box.innerHTML='<div class="jrAiOut"><div class="b">Your journal is empty — write some entries first.</div></div>'; return; }
-  box.innerHTML='<div class="jrAiOut"><div class="h">\u2728 '+esc(question)+' <span class="jrSpin"></span></div><div class="b">Searching your journal…</div></div>';
-  var prompt='You are a JOURNAL-ONLY assistant. You may ONLY use the journal entries below to answer. You must NOT discuss habits, tasks, money, sleep, workouts, or anything outside the journal — if asked about those, say you only handle journal questions. Answer the user\'s question warmly and specifically, citing entry dates. If the journal does not contain the answer, say you searched but could not find it. Never invent entries, dates, or counts.\n\n'+jrJournalContext(question)+'\n\nQUESTION: '+question+'\n\nAnswer in a few sentences using only the journal above.';
-  gemCall(prompt, 500).then(function(r){
-    var safe=String(r||'').replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
-    box.innerHTML='<div class="jrAiOut"><div class="h">\u2728 '+esc(question)+'</div><div class="b">'+safe+'</div><button class="jrListen" data-jrtts="'+esc(String(r||'')).replace(/"/g,'&quot;')+'">\uD83D\uDD0A Listen</button></div>';
+  var inp=$('jrAskInput'); if(inp) inp.value='';
+  var log=$('jrChatLog'); if(!log) return;
+  if(!(state.jr&&state.jr.length)){ jrSaveChatTurn('user',question); jrSaveChatTurn('assistant','Your journal is empty — write some entries first, then ask me anything about them.'); jrRenderChat(); return; }
+  jrSaveChatTurn('user',question); jrRenderChat();
+  log.innerHTML += '<div class="jrChatMsg bot" id="jrChatTyping" style="opacity:.55">Searching your journal…</div>'; log.scrollTop=log.scrollHeight;
+  var convo=jrChatHistory().slice(-8).map(function(m){return (m.who==='user'?'User':'Assistant')+': '+m.text;}).join('\n');
+  var prompt='You are a JOURNAL-ONLY conversational assistant. You may ONLY use the journal entries below to answer. You must NOT discuss habits, tasks, money, sleep, workouts, or anything outside the journal — if asked about those, briefly say you only handle journal questions. This is an ongoing conversation: use the recent turns to understand follow-ups (e.g. "tell me more", "what about last month"). Answer warmly and specifically, citing entry dates (YYYY-MM-DD). If the journal does not contain the answer, say you searched but could not find it. Never invent entries, dates, or counts. Use short paragraphs or a list when helpful.\n\n'+jrJournalContext(question+' '+convo)+'\n\nRECENT CONVERSATION:\n'+convo+'\n\nAnswer the latest user question using only the journal above.';
+  gemCall(prompt, 600).then(function(r){
+    var t=$('jrChatTyping'); if(t) t.remove();
+    var ans=String(r||'').trim()||'I could not find anything about that in your journal.';
+    jrSaveChatTurn('assistant',ans); jrRenderChat();
   }).catch(function(e){
+    var t=$('jrChatTyping'); if(t) t.remove();
     var msg=(e&&e.message)||'';
-    if(/no api key|api key|unknown provider/i.test(msg)) box.innerHTML='<div class="jrAiOut"><div class="b">\u26A0 Add a free API key in More \u2192 AI settings to enable journal answers.</div></div>';
-    else box.innerHTML='<div class="jrAiOut"><div class="b">Could not get an answer: '+esc(msg)+'</div></div>';
+    var out=/no api key|api key|unknown provider/i.test(msg) ? '\u26A0 Add a free API key in More \u2192 AI settings to enable journal answers.' : 'Could not get an answer: '+msg;
+    jrSaveChatTurn('assistant',out); jrRenderChat();
   });
 }
 function jrWholeAi(){
@@ -8587,7 +8640,8 @@ function init(){
   $('jrWholeAiBtn').addEventListener('click', jrWholeAi);
   var _jrAskSend=$('jrAskSend'); if(_jrAskSend) _jrAskSend.addEventListener('click', function(){ var inp=$('jrAskInput'); if(inp&&inp.value.trim()) jrAskJournal(inp.value); });
   var _jrAskInput=$('jrAskInput'); if(_jrAskInput) _jrAskInput.addEventListener('keydown', function(e){ if(e.key==='Enter'&&this.value.trim()) jrAskJournal(this.value); });
-  var _jrAskChips=$('jrAskChips'); if(_jrAskChips) _jrAskChips.addEventListener('click', function(e){ var b=climb(e.target,this,'data-jrask'); if(b){ var qv=b.getAttribute('data-jrask'); var inp=$('jrAskInput'); if(inp) inp.value=qv; jrAskJournal(qv); } });
+  var _jrAskChips=$('jrAskChips'); if(_jrAskChips) _jrAskChips.addEventListener('click', function(e){ var b=climb(e.target,this,'data-jrask'); if(b){ var qv=b.getAttribute('data-jrask'); jrAskJournal(qv); } });
+  var _jrChatClear=$('jrChatClear'); if(_jrChatClear) _jrChatClear.addEventListener('click', jrClearChat);
   var jrDayRow=$('jrDayAiOut'); /* day AI buttons are in timeline view */
   document.querySelectorAll('[data-jrday]').forEach(function(b){ b.addEventListener('click', function(){ jrDayAi(this.getAttribute('data-jrday')); }); });
   $('jrCalGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jcal'); if(b) jrCalPick(b.getAttribute('data-jcal')); });
@@ -8620,6 +8674,7 @@ function init(){
   /* Listen (TTS) + source links, delegated on the page + sheets */
   document.addEventListener('click', function(e){
     var t=climb(e.target,document.body,'data-jrtts'); if(t){ jrSpeak(t.getAttribute('data-jrtts')); return; }
+    var jd=climb(e.target,document.body,'data-jrdate'); if(jd){ var dt=jd.getAttribute('data-jrdate'); var ent=(state.jr||[]).filter(function(x){return x.date===dt;}); if(ent.length){ showTab('pgJr'); setTimeout(function(){ if(ent.length===1) openJr(ent[0].id); else { jrGo('calendar'); if(typeof jrCalPick==='function') jrCalPick(dt); } },140); } return; }
     var s=climb(e.target,document.body,'data-jid'); if(s && s.classList.contains('jrSrcItem')){ openJr(s.getAttribute('data-jid')); }
   });
   /* reflect sheet (delegated: buttons are rendered dynamically) */
@@ -8869,7 +8924,9 @@ function init(){
     el.addEventListener('click', function(){ $('uaiInput').value=this.getAttribute('data-cmd');$('uaiInput').focus(); });
   });
   document.querySelectorAll('.uaiCategory').forEach(function(el){ el.addEventListener('click',function(){ $('uaiInput').value=this.getAttribute('data-cmd'); doUaiSend(); }); });
-  $('uaiLog').addEventListener('click',function(e){var b=e.target.closest('[data-followup]');if(!b)return;$('uaiInput').value=b.getAttribute('data-followup');doUaiSend();});
+  $('uaiLog').addEventListener('click',function(e){
+    var b=e.target.closest('[data-followup]');if(!b)return;$('uaiInput').value=b.getAttribute('data-followup');doUaiSend();
+  });
 
   // ---- Natural language expense entry ----
   // Wire the AI page NL expense (nlExpInput2/nlExpSend2)
