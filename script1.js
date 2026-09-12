@@ -1767,11 +1767,23 @@ function renderTodayProgress(){
   /* sleep */
   var sleepStr='—';
   try{ var sl=(state.sleep||[]).find(function(x){return x.d===ts;}); if(sl&&sl.mins) sleepStr=Math.floor(sl.mins/60)+'h '+(sl.mins%60)+'m'; }catch(e){}
-  box.innerHTML='<div class="tpTitle">Today\u2019s progress</div><div class="tpGrid">'
-    +'<div class="tpItem"><span class="k">Habits</span><span class="v">'+(due?doneH+' / '+due:'\u2014')+'</span></div>'
-    +'<div class="tpItem"><span class="k">Tasks</span><span class="v">'+(ttot?tdone+' / '+ttot:'\u2014')+'</span></div>'
-    +'<div class="tpItem"><span class="k">Mood</span><span class="v">'+moodStr+'</span></div>'
-    +'<div class="tpItem"><span class="k">Sleep</span><span class="v">'+sleepStr+'</span></div>'
+  /* streak (best current habit streak) */
+  var bestStreak=0; try{ for(var si=0;si<state.habits.length;si++){ if(!state.habits[si].arch){ var st=streak(state.habits[si]); if(st>bestStreak) bestStreak=st; } } }catch(e){}
+  /* spending today */
+  var spentToday=0; try{ (state.tx||[]).forEach(function(t){ if(t.d===ts && t.kind==='exp') spentToday+=(+t.amt||0); }); }catch(e){}
+  var curr=(state.set&&state.set.curr)||'\u20B9';
+  /* tasks overdue + due today */
+  var overdue=0, dueToday=0; try{ taskAllVisible().filter(function(t){return !t.virtualHabit;}).forEach(function(t){ var stt=taskEffectiveStatus(t); if(stt==='completed')return; if(t.dueDate){ if(t.dueDate<ts) overdue++; else if(t.dueDate===ts) dueToday++; } }); }catch(e){}
+  function cell(k,v,cls){ return '<div class="tpItem"><span class="v'+(cls?' '+cls:'')+'">'+v+'</span><span class="k">'+k+'</span></div>'; }
+  box.innerHTML='<div class="tpTitle">Today at a glance</div><div class="tpGrid8">'
+    +cell('Habits', due?doneH+'/'+due:'\u2014','amber')
+    +cell('Tasks', ttot?tdone+'/'+ttot:'\u2014')
+    +cell('Mood', (state.mood&&state.mood[ts]!==undefined)?(['\uD83E\uDD29','\uD83D\uDE04','\uD83D\uDE0C','\uD83D\uDE10','\uD83D\uDE2A','\uD83D\uDE14','\uD83D\uDE30'][state.mood[ts]]||'\u2014'):'\u2014')
+    +cell('Sleep', sleepStr)
+    +cell('Streak', bestStreak?('\uD83D\uDD25'+bestStreak):'\u2014','green')
+    +cell('Spent', spentToday>0?(curr+Math.round(spentToday)):'\u2014')
+    +cell('Overdue', overdue||'0', overdue?'coral':'')
+    +cell('Due today', dueToday||'0')
     +'</div>';
 }
 function renderTaskDashboard(){var b=$('taskDashSummary');if(!b)return;var all=taskAllVisible(),over=all.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,todayN=all.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=all.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;b.innerHTML='<div class="taskDashHead"><b>Tasks</b><button id="taskDashView">View Tasks</button></div><div class="taskDashLine"><span class="red">🔴 <b>'+over+'</b> overdue</span><span class="orange">🟠 <b>'+todayN+'</b> due today</span><span class="blue">🔵 <b>'+up+'</b> upcoming</span><span class="green">✅ <b>'+done+'</b> completed</span></div>';}
@@ -5479,7 +5491,7 @@ function handleAddAction(kind){
     if(kind==='habit') openEdit(null);
     else if(kind==='task') openTask(null);
     else if(kind==='expense'){ showTab('pgExp'); setTimeout(function(){openExp(null);},60); }
-    else if(kind==='mood'){ showTab('pgJr'); setTimeout(function(){ jrGo('insights'); var b=$('jrMoodInsBtn'); if(b){ var p=$('jrMoodPanel'); if(p&&p.style.display==='none') b.click(); var g=$('moGrid'); if(g) g.scrollIntoView({behavior:'smooth',block:'center'}); } },120); }
+    else if(kind==='mood'){ if(typeof openSheet==='function') openSheet('moodSheet'); setTimeout(function(){ try{ if($('moGrid')) renderMoodToday(); if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){} },80); }
     else if(kind==='journal'){ setTimeout(function(){openJr(null);},60); }
     else if(kind==='sleep'){ showTab('pgToday'); setTimeout(function(){openSleep(today());},60); }
   },80);
@@ -6125,6 +6137,65 @@ function init(){
       });
     }
   })();
+  /* ===== Stats sub-tabs ===== */
+  (function(){
+    var seg=$('statSubSeg'), main=$('stMain'); if(!seg||!main) return;
+    /* map each top-level child (label or block) to a bucket by walking headers */
+    function sectionOf(text){
+      text=(text||'').toLowerCase();
+      if(text.indexOf('habit performance')>=0) return 'hb';
+      if(text.indexOf('fitness')>=0||text.indexOf('calendar')>=0||text.indexOf('sleep')>=0||text.indexOf('mood')>=0) return 'he';
+      if(text.indexOf('spend')>=0||text.indexOf('money')>=0) return 'mo';
+      return 'ov'; /* insight, progress, trend, default */
+    }
+    var kids=Array.prototype.slice.call(main.children);
+    var cur='ov';
+    kids.forEach(function(el){
+      if(el===seg) return;
+      if(el.classList && el.classList.contains('lbl') && el.querySelector && el.querySelector('.lic')){ cur=sectionOf(el.textContent); }
+      else if(el.id==='stPerf'){ cur='hb'; }
+      else if(el.id==='fitSection'){ cur='he'; }
+      el.setAttribute('data-ssgroup', cur);
+    });
+    function apply(sel){
+      Array.prototype.forEach.call(main.children,function(el){
+        if(el===seg) return;
+        var g=el.getAttribute('data-ssgroup')||'ov';
+        /* respect existing display:none on stPerf/fitSection (only show if they were meant to show) */
+        if(sel==='mo' && g!=='mo'){ el.style.display='none'; return; }
+        el.style.display = (g===sel) ? '' : 'none';
+      });
+      /* money bucket: if nothing, show a hint */
+      if(sel==='mo'){ var hint=$('statMoHint'); if(!hint){ hint=document.createElement('div'); hint.id='statMoHint'; hint.className='setS'; hint.style.padding='16px 2px'; hint.textContent='See detailed money analytics in the Money tab → Insights.'; main.appendChild(hint);} hint.style.display=''; }
+      else { var hh=$('statMoHint'); if(hh) hh.style.display='none'; }
+    }
+    seg.addEventListener('click', function(e){ var btn=e.target.closest('button[data-ss]'); if(!btn) return; Array.prototype.forEach.call(seg.children,function(x){x.classList.remove('on');}); btn.classList.add('on'); apply(btn.getAttribute('data-ss')); });
+    /* re-apply after each stats render so dynamically shown sections get filtered */
+    var origRS=window.renderStats;
+    if(typeof origRS==='function' && !origRS.__sub){ window.renderStats=function(){ origRS.apply(this,arguments); try{ var on=seg.querySelector('.on'); apply(on?on.getAttribute('data-ss'):'ov'); }catch(e){} }; window.renderStats.__sub=true; }
+    apply('ov');
+  })();
+  /* ===== Settings accordion ===== */
+  (function(){
+    var pg=$('pgSet'); if(!pg) return;
+    var kids=Array.prototype.slice.call(pg.children);
+    var groups=[]; var cur=null;
+    kids.forEach(function(el){
+      // a section starts at a .lbl that has an icon (the colored section headers)
+      if(el.classList && el.classList.contains('lbl') && el.querySelector && el.querySelector('.lic')){
+        cur={head:el, body:[]}; groups.push(cur);
+      } else if(cur){ cur.body.push(el); }
+    });
+    if(groups.length<2) return; /* not the expected structure; leave as-is */
+    groups.forEach(function(g,idx){
+      g.head.classList.add('setAcc');
+      g.head.insertAdjacentHTML('beforeend','<span class="setAccCh">⌄</span>');
+      var open = idx===0; /* first section (Profile) open by default */
+      function apply(){ g.body.forEach(function(b){ b.style.display = open?'':'none'; }); g.head.classList.toggle('accOpen', open); }
+      apply();
+      g.head.addEventListener('click', function(){ open=!open; apply(); });
+    });
+  })();
   /* ===== More hub + global AI (Phase 1) ===== */
   var _aiFab=$('aiFab'); if(_aiFab) _aiFab.addEventListener('click', function(){ showTab('pgAI'); });
   var _more=$('pgMore'); if(_more) _more.addEventListener('click', function(e){
@@ -6134,18 +6205,12 @@ function init(){
     else if(m==='ai') showTab('pgAI');
     else if(m==='settings') showTab('pgSet');
     else if(m==='export'){ showTab('pgSet'); setTimeout(function(){ var el=$('btnBk')||$('btnJrExport'); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'center'}); },120); }
-    else if(m==='health-mood'){ showTab('pgJr'); setTimeout(function(){ jrGo('insights'); var mb=$('jrMoodInsBtn'); if(mb){ var p=$('jrMoodPanel'); if(p&&p.style.display==='none') mb.click(); } },120); }
+    else if(m==='health-mood'){ openSheet('moodSheet'); try{ if($('moGrid')) renderMoodToday(); if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){} }
     else if(m==='health-sleep'){ showTab('pgToday'); setTimeout(function(){ if(typeof openSleep==='function') openSleep(today()); },120); }
     else if(m==='health-workout'){ showTab('pgToday'); setTimeout(function(){ if(typeof openWkModule==='function') openWkModule(); },140); }
   });
   /* ===== Journal V1.4.0 wiring ===== */
-  var _moodIns=$('jrMoodInsBtn'); if(_moodIns) _moodIns.addEventListener('click', function(){
-    var p=$('jrMoodPanel'); if(!p) return;
-    var show=p.style.display==='none';
-    p.style.display=show?'':'none';
-    this.classList.toggle('on',show);
-    if(show){ try{ if($('moGrid')) renderMoodToday(); if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){} }
-  });
+  var _moodOpen=function(){ if(typeof openSheet==="function"){ openSheet("moodSheet"); try{ if($("moGrid")) renderMoodToday(); if($("mogrid")){ renderMoodCal(); renderMoodStats(); } }catch(e){} } };
   /* favorite toggle */
   var _favTog=$('jrFavTog'); if(_favTog) _favTog.addEventListener('click', function(){ var on=!this.classList.contains('on'); this.classList.toggle('on',on); this.setAttribute('aria-checked',on); if(jrEd) jrEd.favorite=on; });
   /* export */
@@ -6747,7 +6812,7 @@ function handleLaunchAction(){
     else if(_la.add){ openExpFromWidget(_la.add, _la.acct); }
     else if(_la.addJournal){ showTab('pgJr'); setTimeout(function(){ if(typeof openJr==='function') openJr(null); },150); }
     else if(_la.addSleep){ showTab('pgToday'); setTimeout(function(){ if(typeof openSleep==='function') openSleep(today()); },150); }
-    else if(_la.addMood){ showTab('pgJr'); setTimeout(function(){ if(typeof jrGo==='function'){ jrGo('insights'); var mb=$('jrMoodInsBtn'); if(mb){ var pnl=$('jrMoodPanel'); if(pnl&&pnl.style.display==='none') mb.click(); var g=$('moGrid'); if(g&&g.scrollIntoView) g.scrollIntoView({behavior:'smooth',block:'center'}); } } },160); }
+    else if(_la.addMood){ setTimeout(function(){ if(typeof openSheet==='function'){ openSheet('moodSheet'); try{ if($('moGrid')) renderMoodToday(); if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){} } },160); }
   }catch(e){}
 }
 handleLaunchAction();

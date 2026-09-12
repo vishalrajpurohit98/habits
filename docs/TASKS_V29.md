@@ -662,3 +662,34 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
   list items; short answers are unaffected.
 - Verified (real Chromium): long answer collapses + expands on click; short answer not collapsed;
   all pages render; zero errors.
+
+---
+
+# V1.6.0 — full UI revision (approved from preview)
+
+## Today
+- Merged "Today's progress" + "Weekly pulse" into one 8-metric "Today at a glance" card
+  (Habits/Tasks/Mood/Sleep/Streak/Spent/Overdue/Due today). Weekly-pulse block hidden.
+- Cloud-sync bar hidden on Today (available in More + Settings).
+
+## Stats
+- Added sub-tabs: Overview / Habits / Health / Money. Sections auto-bucketed by header; Money
+  shows a hint linking to Money → Insights. Re-applies filter after each renderStats.
+
+## Money
+- Collapsed the savings/credit inline summary (#featureSummary hidden); the compact Financial
+  Tools launcher (opens full sheet) remains, so transactions rise up the page.
+
+## Settings
+- Every section is now a collapsible accordion (9 sections); Profile open by default.
+
+## More / Health
+- Mood moved to its OWN home: opens a dedicated Mood sheet from More → Health (check-in + history
+  + analytics). Removed from Journal → Insights. All mood entry points (quick-log, notification
+  deep-link) repointed to the sheet. (Reverses the earlier 'mood in Journal' per user's new choice.)
+- Workout/Sleep continue to open their existing module/sheet from More → Health.
+
+## Verified (real Chromium)
+- 8-cell Today card; pulse+sync hidden; Stats sub-tabs filter; Settings accordion (1 open);
+  Money summary collapsed; Mood sheet opens with 7-button check-in; Mood removed from Journal;
+  no duplicate IDs; all tabs render; zero errors.
