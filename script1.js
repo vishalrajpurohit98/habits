@@ -3054,6 +3054,7 @@ function jrCard(e){
     + (e.mood?'<span class="jrMood">'+(JR_MOODS[e.mood]||'')+'</span>':'')
     + (e.favorite?'<span class="jrFav">\u2B50</span>':'')+'</div>'
     + (e.title?'<div class="jrTt">'+esc(e.title)+'</div>':'')
+    + (e.location?'<div class="jrLoc">\uD83D\uDCCD '+esc(e.location)+'</div>':'')
     + (snip?'<div class="jrSnip">'+esc(snip)+'</div>':'')
     + (tg.length?'<div class="jrTags">'+tg.map(function(t){return'<span class="jrTag">'+esc(t)+'</span>';}).join('')+'</div>':'')
     + '</div>';
@@ -3233,6 +3234,7 @@ function openJr(id, prompt, tplBody, forceDate){
   $('jrTitle').value = jrEd.title||'';
   $('jrDate').value = jrEd.date;
   $('jrTime').value = jrEd.time||now.toTimeString().slice(0,5);
+  if($('jrLocation')) $('jrLocation').value = jrEd.location||'';
   $('jrBody').innerHTML = src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
   if(!$('jrBody').innerHTML.trim()) $('jrBody').innerHTML='<p><br></p>';
   var _ft=$('jrFavTog'); if(_ft){ _ft.classList.toggle('on', !!jrEd.favorite); _ft.setAttribute('aria-checked', !!jrEd.favorite); }
@@ -3291,6 +3293,7 @@ function saveJr(){
   jrEd.content = $('jrBody').innerHTML.slice(0,20000);
   jrEd.date = $('jrDate').value || jrToday();
   jrEd.time = $('jrTime').value || '';
+  jrEd.location = ($('jrLocation')?$('jrLocation').value:'').trim().slice(0,80);
   jrEd.mood = jrEd.mood||'';
   jrEd.favorite = !!($('jrFavTog') && $('jrFavTog').classList.contains('on'));
   jrEd.tags = Array.from(new Set((jrText(jrEd).match(/#[A-Za-z0-9_]+/g)||[]).map(function(x){return x.toLowerCase();})));
@@ -3420,7 +3423,8 @@ function jrTextToHtml(t){
 
 /* ---- voice input for the journal editor (native + Web Speech fallback) ---- */
 var jrVoiceActive=false, jrVoiceId=null, jrWebRec=null, jrVoiceSilence=null, jrVoiceBase='';
-function jrMicSet(on){ jrVoiceActive=on; var b=$('jrMicBtn'); if(b) b.classList.toggle('listening',on); }
+function jrVoiceStatus(txt, on){ var s=$('jrVoiceStatus'), t=$('jrVoiceStatusText'); if(!s) return; s.style.display=on?'':'none'; if(t&&txt!==undefined) t.textContent=txt; }
+function jrMicSet(on){ jrVoiceActive=on; var b=$('jrMicBtn'); if(b) b.classList.toggle('listening',on); if(!on) setTimeout(function(){ if(!jrVoiceActive) jrVoiceStatus('',false); },1400); }
 function jrToggleVoice(){ if(jrVoiceActive){ jrStopVoice(); return; } jrStartVoice(); }
 function jrInsertVoice(text){
   if(!text) return;
@@ -3431,38 +3435,47 @@ function jrInsertVoice(text){
   jrUpdTagLine();
 }
 function jrStartVoice(){
-  if(nat && nat.speechAvailable && nat.startSpeech){
-    try{ if(nat.speechAvailable()){ jrVoiceId='j'+Date.now(); jrMicSet(true); window._jrVoiceTarget=true; nat.startSpeech(jrVoiceId); return; } }catch(e){}
-  }
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){ toastN('Voice input is not available on this device'); return; }
-  try{
-    jrWebRec=new SR(); jrWebRec.lang=navigator.language||'en-US'; jrWebRec.continuous=true; jrWebRec.interimResults=true;
-    var finalTxt=''; jrMicSet(true);
-    jrWebRec.onresult=function(ev){
-      var interim='';
-      for(var i=ev.resultIndex;i<ev.results.length;i++){ var res=ev.results[i]; if(res.isFinal) finalTxt+=res[0].transcript+' '; else interim+=res[0].transcript; }
-      if(jrVoiceSilence) clearTimeout(jrVoiceSilence);
-      jrVoiceSilence=setTimeout(function(){ jrStopVoice(finalTxt); }, 2500);
-    };
-    jrWebRec.onerror=function(ev){ jrMicSet(false); if(ev&&ev.error&&ev.error!=='no-speech'&&ev.error!=='aborted') toastN(ev.error==='not-allowed'?'Microphone permission denied':'Voice input error'); };
-    jrWebRec.onend=function(){ if(jrVoiceActive){ try{ jrWebRec.start(); return; }catch(e){} } jrMicSet(false); };
-    jrWebRec.start();
-    window._jrVoiceFinalGetter=function(){ return finalTxt; };
-  }catch(e){ jrMicSet(false); toastN('Could not start voice input'); }
+  if(SR){
+    try{
+      jrWebRec=new SR(); jrWebRec.lang=navigator.language||'en-US'; jrWebRec.continuous=true; jrWebRec.interimResults=true;
+      var finalTxt=''; jrMicSet(true); jrVoiceStatus('\uD83C\uDF99 Listening…',true);
+      jrWebRec.onresult=function(ev){
+        var interim='';
+        for(var i=ev.resultIndex;i<ev.results.length;i++){ var res=ev.results[i]; if(res.isFinal) finalTxt+=res[0].transcript+' '; else interim+=res[0].transcript; }
+        var live=(finalTxt+interim).trim();
+        jrVoiceStatus('\uD83C\uDF99 '+(live?('\u201C'+live.slice(-60)+'\u201D'):'Listening…'),true);
+        if(jrVoiceSilence) clearTimeout(jrVoiceSilence);
+        jrVoiceSilence=setTimeout(function(){ jrStopVoice(finalTxt); }, 2500);
+      };
+      jrWebRec.onerror=function(ev){ jrMicSet(false); jrVoiceStatus('',false); if(ev&&ev.error&&ev.error!=='no-speech'&&ev.error!=='aborted'){ if(ev.error==='not-allowed'){ toastN('Microphone permission denied'); } else { jrStartVoiceNative(); } } };
+      jrWebRec.onend=function(){ if(jrVoiceActive){ try{ jrWebRec.start(); return; }catch(e){} } jrMicSet(false); };
+      jrWebRec.start();
+      window._jrVoiceFinalGetter=function(){ return finalTxt; };
+      return;
+    }catch(e){ /* fall through to native */ }
+  }
+  jrStartVoiceNative();
+}
+function jrStartVoiceNative(){
+  if(nat && nat.speechAvailable && nat.startSpeech){
+    try{ if(nat.speechAvailable()){ jrVoiceId='j'+Date.now(); jrMicSet(true); jrVoiceStatus('\uD83C\uDF99 Listening… (system recognizer)',true); window._jrVoiceTarget=true; nat.startSpeech(jrVoiceId); return; } }catch(e){}
+  }
+  jrMicSet(false); jrVoiceStatus('',false); toastN('Voice input is not available on this device');
 }
 function jrStopVoice(finalTxt){
   if(jrVoiceSilence){ clearTimeout(jrVoiceSilence); jrVoiceSilence=null; }
-  jrMicSet(false);
   var txt=(finalTxt!==undefined?finalTxt:(window._jrVoiceFinalGetter?window._jrVoiceFinalGetter():'')).trim();
   if(jrWebRec){ try{ jrWebRec.stop(); }catch(e){} jrWebRec=null; }
-  if(txt) jrInsertVoice(txt);
+  jrMicSet(false);
+  if(txt){ jrInsertVoice(txt); jrVoiceStatus('\u2713 Added to entry',true); }
+  else jrVoiceStatus('',false);
 }
 /* extend native speech callback to also feed the journal editor */
 (function(){
   var prev=window._speechResult;
   window._speechResult=function(id, text, err){
-    if(id && id===jrVoiceId){ jrMicSet(false); jrVoiceId=null; window._jrVoiceTarget=false; if(!err && text) jrInsertVoice(text); else if(err && err!=='cancelled' && err!=='no-speech') toastN(err==='permission-denied'?'Microphone permission denied':'Voice input error'); return; }
+    if(id && id===jrVoiceId){ jrMicSet(false); jrVoiceId=null; window._jrVoiceTarget=false; if(!err && text){ jrInsertVoice(text); jrVoiceStatus('\u2713 Added: \u201C'+String(text).slice(0,50)+'\u201D',true); } else { jrVoiceStatus('',false); if(err && err!=='cancelled' && err!=='no-speech') toastN(err==='permission-denied'?'Microphone permission denied':'Voice input error'); } return; }
     if(typeof prev==='function') prev(id, text, err);
   };
 })();
@@ -3514,6 +3527,7 @@ function jrMigrateEntry(je){
   out.tags = Array.isArray(je.tags)?je.tags.map(function(x){return String(x).toLowerCase();}).slice(0,30):[];
   out.favorite = !!(je.favorite);
   out.template = String(je.template||'').slice(0,40);
+  out.location = String(je.location||'').slice(0,80);
   out.createdAt = +je.createdAt || +je.created || Date.now();
   out.updatedAt = +je.updatedAt || out.createdAt;
   return out;
@@ -3574,6 +3588,19 @@ function scheduleWebNotifs(){
   }
   for(var ci=0;ci<state.accts.length;ci++){var ca=state.accts[ci];if(ca.type!=='credit'||!ca.active)continue;var cb=creditOutstanding(ca.id);if(cb<=0)continue;var due=nextCreditDue(ca), dueAt=new Date(due.getFullYear(),due.getMonth(),due.getDate(),9,0,0,0), cdelay=dueAt.getTime()-now.getTime();if(cdelay<=0||cdelay>7*86400000)continue;(function(card,balance,at){var id=setTimeout(function(){try{new Notification('Credit card payment due: '+card.name,{body:'Outstanding '+inr(balance)+' · payment due today.',tag:'cc-due-'+card.id});}catch(e){}},cdelay);webTimers.push(id);})(ca,cb,dueAt);}
   for(var ti=0;ti<state.tasks.length;ti++){var tk=state.tasks[ti],st=taskEffectiveStatus(tk);if(st==='completed'||!tk.dueDate||!tk.reminders.length)continue;var base=new Date(tk.dueDate+'T'+(tk.dueTime||'09:00'));for(var ri=0;ri<tk.reminders.length;ri++){var at=new Date(base.getTime()-tk.reminders[ri]*86400000),delay=at.getTime()-now.getTime();if(delay<=0||delay>30*86400000)continue;(function(task,when){var id=setTimeout(function(){try{var n=new Notification((task.priority==='high'?'🔴 ':'✓ ')+task.title,{body:'Task reminder · due '+niceDate(task.dueDate)+(task.dueTime?' at '+timeFmt(task.dueTime):''),tag:'task-'+task.id+'-'+when});n.onclick=function(){window.focus();showTab('pgTasks');setTimeout(function(){if(state.tasks.some(function(x){return x.id===task.id;}))openTask(task.id);},100);};}catch(e){}},delay);webTimers.push(id);})(tk,tk.reminders[ri]);}}
+  /* journal + expense daily reminders in the browser */
+  (function(){
+    var rc=(state.set&&state.set.reminders)||{};
+    function webDaily(on,time,tag,title,body,tab){
+      if(!on) return; var hm=(time||'').split(':'); if(hm.length!==2) return;
+      var at=new Date(); at.setHours(+hm[0],+hm[1],0,0); var delay=at.getTime()-now.getTime();
+      if(delay<=0||delay>86400000) return;
+      var id=setTimeout(function(){ try{ var n=new Notification(title,{body:body,tag:tag,icon:'icon-192.png'}); n.onclick=function(){window.focus();showTab(tab);n.close();}; }catch(e){} }, delay);
+      webTimers.push(id);
+    }
+    webDaily(rc.journal!==false, rc.journalTime||'21:00','journal-rem','📓 Journal time','Take a moment to write about your day','pgJr');
+    webDaily(!!rc.expense, rc.expenseTime||'20:00','expense-rem','💰 Log today’s expenses','Add any spending before the day ends','pgExp');
+  })();
 }
 window.extOpen = function(kind, val, acct){
   try{
@@ -5208,6 +5235,34 @@ function autoBackupDaily(){
 /* ================= native sync & alarms ================= */
 function computeAlarms(){
   var out = [], now = Date.now();
+  /* ===== Daily journal + expense reminders (user-configurable times) ===== */
+  var rc = (state.set && state.set.reminders) || {};
+  function dailyRem(enabled, time, key, emoji, title, body){
+    if(!enabled) return;
+    var hm=(time||'').split(':'); if(hm.length!==2) return;
+    for(var dd=0; dd<3; dd++){
+      var day=new Date(now + dd*86400000);
+      var at=new Date(day.getFullYear(),day.getMonth(),day.getDate(),+hm[0],+hm[1],0,0);
+      if(at.getTime()<=now || at.getTime()>now+3*86400000) continue;
+      out.push({c:intHash(key+'|'+fmt(at)),t:at.getTime(),h:key,n:title,e:emoji,b:body,r:0});
+    }
+  }
+  var jrOn = rc.journal!==false;
+  dailyRem(jrOn, rc.journalTime||'21:00', 'journal-rem', '\uD83D\uDCD3', 'Journal time', 'Take a moment to write about your day');
+  dailyRem(!!rc.expense, rc.expenseTime||'20:00', 'expense-rem', '\uD83D\uDCB0', 'Log today\u2019s expenses', 'Add any spending before the day ends');
+  try{
+    if(jrOn && rc.smart!==false && state.jr && state.jr.length>=5){
+      var ts=today(), hasToday=state.jr.some(function(e){return e.date===ts;});
+      var recentDays={}; state.jr.forEach(function(e){ if(e.date && e.date>=fmt(new Date(now-14*86400000))) recentDays[e.date]=1; });
+      var freq=Object.keys(recentDays).length;
+      if(!hasToday && freq>=7){
+        var sn=new Date(); var sat=new Date(sn.getFullYear(),sn.getMonth(),sn.getDate(),21,45,0,0);
+        if(sat.getTime()>now && sat.getTime()<now+86400000){
+          out.push({c:intHash('smart-jr|'+ts),t:sat.getTime(),h:'smart',n:'You usually journal by now',e:'\u2728',b:'A quick note keeps your '+freq+'-day rhythm going',r:0});
+        }
+      }
+    }
+  }catch(e){}
   for(var i=0;i<state.habits.length;i++){
     var h = state.habits[i];
     var times = h.rem.times.slice();
@@ -5330,7 +5385,7 @@ function showTab(id){
   if(id==='pgSet') renderSet();
   if(id==='pgJr'){ if(typeof jrCalY!=='undefined'&&!jrCalY){var _n=new Date();jrCalY=_n.getFullYear();jrCalM=_n.getMonth();} renderJr(); jrGo(jrView||'timeline'); }
   if(id==='pgAI') renderAI();
-  $('fab').style.display = (id==='pgToday'||id==='pgExp'||id==='pgTasks') ? '' : 'none';
+  $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : id==='pgTasks' ? 'Add task' : 'Add anything';
   $('app').scrollTop = 0;
 }
@@ -5475,6 +5530,7 @@ function init(){
   $('taskFilters').addEventListener('click',function(e){var b=climb(e.target,this,'data-tf');if(!b)return;taskFilter=b.getAttribute('data-tf');selChip('taskFilters','data-tf',taskFilter);renderTasks();});
   $('taskList').addEventListener('click',function(e){var sd=climb(e.target,this,'data-task-showdone');if(sd){taskShowAllDone=true;renderTasks();return;}var cb=climb(e.target,this,'data-task-check');if(cb){toggleTaskComplete(cb.getAttribute('data-task-check'));return;}var hb=climb(e.target,this,'data-habit-task');if(hb){toggleHabitTask(hb.getAttribute('data-habit-task'));return;}var b=climb(e.target,this,'data-task-id');if(b)openTask(b.getAttribute('data-task-id'));});
   $('taskExportRange').addEventListener('click',function(e){var b=climb(e.target,this,'data-ter');if(!b)return;taskExportMode=b.getAttribute('data-ter');selChip('taskExportRange','data-ter',taskExportMode);$('taskExportCustom').style.display=taskExportMode==='custom'?'':'none';});
+  var _tex=$('taskExportToggle'); if(_tex) _tex.addEventListener('click', function(){ openSheet('taskExportSheet'); });
   $('taskExportXlsx').addEventListener('click',function(){exportTasks('xlsx');});
   $('taskExportPdf').addEventListener('click',function(){exportTasks('pdf');});
   $('taskDashSummary').addEventListener('click',function(e){if(e.target&&e.target.id==='taskDashView')showTab('pgTasks');});
@@ -5907,6 +5963,25 @@ function init(){
     else if(kind==='journal'){ showTab('pgJr'); setTimeout(function(){ openJr(null); },60); }
     else if(kind==='sleep'){ if(typeof openSleep==='function') openSleep(today()); }
   });
+  /* ===== reminder settings (journal/expense/smart) ===== */
+  (function(){
+    state.set = state.set || {}; state.set.reminders = state.set.reminders || {};
+    var rc = state.set.reminders;
+    if(rc.journal===undefined) rc.journal=true;
+    if(rc.smart===undefined) rc.smart=true;
+    var jt=$('remJournalTime'), et=$('remExpenseTime'), jtog=$('remJournalTog'), etog=$('remExpenseTog'), stog=$('remSmartTog');
+    if(jt){ jt.value=rc.journalTime||'21:00'; }
+    if(et){ et.value=rc.expenseTime||'20:00'; }
+    if(jtog) jtog.classList.toggle('on', rc.journal!==false);
+    if(etog) etog.classList.toggle('on', !!rc.expense);
+    if(stog) stog.classList.toggle('on', rc.smart!==false);
+    function saveRem(){ persist(); try{ pushAlarms(); }catch(e){} }
+    if(jtog) jtog.addEventListener('click',function(){ var r=state.set.reminders; r.journal=!r.journal; this.classList.toggle('on',r.journal); saveRem(); });
+    if(etog) etog.addEventListener('click',function(){ var r=state.set.reminders; r.expense=!r.expense; this.classList.toggle('on',r.expense); saveRem(); });
+    if(stog) stog.addEventListener('click',function(){ var r=state.set.reminders; r.smart=!r.smart; this.classList.toggle('on',r.smart); saveRem(); });
+    if(jt) jt.addEventListener('change',function(){ state.set.reminders.journalTime=this.value; saveRem(); });
+    if(et) et.addEventListener('change',function(){ state.set.reminders.expenseTime=this.value; saveRem(); });
+  })();
   /* ===== More hub + global AI (Phase 1) ===== */
   var _aiFab=$('aiFab'); if(_aiFab) _aiFab.addEventListener('click', function(){ showTab('pgAI'); });
   var _more=$('pgMore'); if(_more) _more.addEventListener('click', function(e){

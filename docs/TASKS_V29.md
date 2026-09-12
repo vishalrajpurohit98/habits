@@ -481,3 +481,48 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 ## Verified (real Chromium)
 - Workout card visible on Today; More->Workout opens module; journal ask button sits above the
   list with 15+ seeded entries; all pages render; zero page errors.
+
+---
+
+# V1.5.2 — Today/Tasks cleanup, journal location, voice UI, reminders
+
+## Today
+- Hid the duplicate Sleep card (sleep already shown in Today's progress) and the Workout card
+  (workout lives in More -> Workout). Both force-hidden via CSS; functionality intact via progress
+  summary / More / quick actions.
+
+## Tasks
+- Export tasks converted from a space-hogging bottom section to a compact button that opens an
+  export sheet (range + PDF/Excel).
+- Removed duplicate add-task: the global FAB no longer shows on the Tasks page (header "+ Task"
+  is the single add entry point).
+
+## Animations
+- Smoother global transitions (cubic-bezier), subtle press-scale on buttons/cards, refined page
+  fade-up and sheet/scrim easing; respects prefers-reduced-motion.
+
+## Journal
+- Added manual Location field (like date/time), saved in schema + migration, shown on cards.
+- Voice input: live "Listening…" status banner with interim transcription + "Added" confirmation.
+- Android now PREFERS the in-app Web Speech UI over the ugly system RecognizerIntent dialog,
+  falling back to native only if Web Speech is unavailable/denied.
+
+## Reminders (existing native alarm + web-notif pipelines)
+- Daily Journal reminder (default 21:00, on) and Expense reminder (default 20:00, off), with
+  user-set times + toggles in Settings -> Reminders.
+- Smart rule-based nudge: if you journal >=7 of last 14 days but haven't today, a gentle 21:45
+  nudge (toggleable).
+- Wired into BOTH computeAlarms (Android native) and scheduleWebNotifs (browser) so reminders
+  work on both platforms.
+
+## Honest limitations (told to user, not faked)
+- Persistent/ongoing actionable notification (quick-add from the shade) NOT built: needs a native
+  foreground service + notification actions that I cannot compile/test here. Deferred.
+- The ugly Android system speech dialog itself cannot be restyled (it's Google's OS UI); the fix
+  is to prefer the in-app Web Speech UI instead.
+- Smart notifications are rule-based, not ML pattern detection.
+
+## Verified (real Chromium)
+- Today sleep+workout hidden; Tasks fab hidden + export sheet; journal location/voice-status/mic
+  present; computeAlarms emits journal+expense reminders; settings toggles flip + persist;
+  all pages render; zero errors.
