@@ -948,3 +948,25 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
 - Verified: delete->trash->restore round-trip; 30-day purge; trash UI.
 - NOTE: transactions intentionally NOT soft-deleted (money integrity); can add if wanted.
 - Native sync round-trip still needs on-device confirmation with Firebase; logic verified here.
+
+---
+# V1.12.1 — CRITICAL sync PULL fix (old data not restoring)
+## Root cause (why Android showed no old data)
+- applyRemoteRecords skipped any remote record whose timestamp was <= the local shadow's
+  timestamp for that key. The earlier buggy build wrote DELETE tombstones into the phone's shadow
+  with recent timestamps. So on the fixed build, when the phone pulled the real cloud records, they
+  were skipped (at <= poisoned lat) -> old data never restored.
+## Fix
+- applyRemoteRecords(docs, force): initial reconcile now force-applies ALL remote records when the
+  device has no meaningful local data (fresh install / restore), bypassing the stale/poisoned shadow.
+  Also drops local pending DELETE tombstones before a fresh restore so they can't re-delete.
+- New "Restore from cloud" button (Settings -> Cloud sync): force re-pulls everything from server
+  (source:'server'), clears local delete tombstones first. Manual recovery path.
+- Verified: with a poisoned shadow (stale tombstone), non-force pull restored 1/2 (bug reproduced);
+  force pull restored 2/2 (fixed).
+## HONEST limits
+- If the cloud records themselves were already overwritten/tombstoned as deleted by the old build,
+  a pull cannot un-delete them. Recovery then requires a device/browser that still holds the data
+  locally -> export JSON backup -> import. The force-restore only helps if the cloud still has the
+  real (non-deleted) records.
+- Live Firebase round-trip is untestable here; logic verified via simulated remote docs.
