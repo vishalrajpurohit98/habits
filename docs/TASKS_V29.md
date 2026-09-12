@@ -893,3 +893,13 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
   UNTESTED natively (JS side verified).
 - Verified (real Chromium): pin/snooze/dup task, dup habit, recurring badge, writing goal, single
   export, all pass. Suite 1 51/52 (known timing), Suite 2 25/25, zero errors.
+
+---
+# V1.11.1 — placement fixes
+- Tasks: Export moved from a bottom full-width button to a compact "⬇ Export" in the header top-right
+  (next to + Task). Old bottom button removed (no duplicate id).
+- Expense: "Export data" added into Financial Tools sheet (data-ft="export" -> opens expExportSheet).
+  The Insights-tab report buttons remain too.
+- Global search: REMOVED entirely per user (card from More hub, overlay markup, JS module, CSS).
+- Verified: task export in header opens sheet; financial-tools Export opens expense export sheet;
+  no global-search remnants; no dup ids; regression clean.

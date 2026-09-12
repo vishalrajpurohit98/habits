@@ -6496,47 +6496,6 @@ function init(){
       g.head.addEventListener('click', function(){ open=!open; apply(); });
     });
   })();
-  /* ===== Global search (habits/tasks/journal/expenses) ===== */
-  (function(){
-    var ov=$('gsOverlay'), inp=$('gsInput'), res=$('gsResults'), cls=$('gsClose');
-    if(!ov) return;
-    function open(){ ov.classList.add('on'); setTimeout(function(){ if(inp) inp.focus(); },80); }
-    function close(){ ov.classList.remove('on'); if(inp) inp.value=''; if(res) res.innerHTML='<div class="gsHint">Type to search across your whole app.</div>'; }
-    window.openGlobalSearch=open;
-    if(cls) cls.addEventListener('click', close);
-    function plain(h){var d=document.createElement('div');d.innerHTML=String(h||'');return (d.textContent||'');}
-    function run(q){
-      q=(q||'').trim().toLowerCase();
-      if(q.length<2){ res.innerHTML='<div class="gsHint">Type at least 2 characters.</div>'; return; }
-      var groups=[];
-      /* habits */
-      var hb=(state.habits||[]).filter(function(h){return !h.arch && (h.name||'').toLowerCase().indexOf(q)>=0;}).slice(0,8)
-        .map(function(h){return {t:h.name, s:(h.cat||'Habit'), act:function(){close();showTab('pgToday');setTimeout(function(){if(typeof openDetail==='function')openDetail(h.id);},120);}};});
-      if(hb.length) groups.push(['Habits', hb]);
-      /* tasks */
-      var tk=(state.tasks||[]).filter(function(t){return (t.title||'').toLowerCase().indexOf(q)>=0 || (t.notes||'').toLowerCase().indexOf(q)>=0;}).slice(0,8)
-        .map(function(t){return {t:t.title, s:(t.dueDate?('Due '+niceDate(t.dueDate)):'Task')+' · '+taskEffectiveStatus(t), act:function(){close();showTab('pgTasks');setTimeout(function(){openTask(t.id);},120);}};});
-      if(tk.length) groups.push(['Tasks', tk]);
-      /* journal */
-      var jr=(state.jr||[]).filter(function(e){return (plain(e.content)+' '+(e.title||'')+' '+(e.location||'')).toLowerCase().indexOf(q)>=0;})
-        .sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).slice(0,8)
-        .map(function(e){return {t:(e.title||plain(e.content).slice(0,40)||'Entry'), s:(e.date||'')+(e.mood?' · '+e.mood:''), act:function(){close();showTab('pgJr');setTimeout(function(){if(typeof openJr==='function')openJr(e.id);},120);}};});
-      if(jr.length) groups.push(['Journal', jr]);
-      /* expenses */
-      var tx=(state.tx||[]).filter(function(x){return ((x.payee||'')+' '+(x.cat||'')+' '+(x.note||'')).toLowerCase().indexOf(q)>=0;})
-        .sort(function(a,b){return (b.d||'').localeCompare(a.d||'');}).slice(0,8)
-        .map(function(x){return {t:(x.payee||x.cat||'Transaction')+' · '+inr(x.amt), s:(x.d||'')+' · '+(x.cat||''), act:function(){close();showTab('pgExp');}};});
-      if(tx.length) groups.push(['Money', tx]);
-      if(!groups.length){ res.innerHTML='<div class="gsHint">No matches for “'+esc(q)+'”.</div>'; return; }
-      var html=''; groups.forEach(function(g){
-        html+='<div class="gsGroup">'+g[0]+'</div>';
-        g[1].forEach(function(it,i){ var id='gsi_'+g[0]+'_'+i; window[id]=it.act; html+='<div class="gsItem" onclick="'+id+'()"><div class="gsIt">'+esc(it.t)+'</div><div class="gsIs">'+esc(it.s)+'</div></div>'; });
-      });
-      res.innerHTML=html;
-    }
-    if(inp) inp.addEventListener('input', function(){ run(this.value); });
-    document.addEventListener('keydown', function(e){ if(e.key==='Escape' && ov.classList.contains('on')) close(); });
-  })();
   /* ===== Multi-select delete (transactions + journal) ===== */
   (function(){
     var txSel=new Set(), txMode=false;
@@ -6615,8 +6574,7 @@ function init(){
   var _more=$('pgMore'); if(_more) _more.addEventListener('click', function(e){
     var b=climb(e.target,this,'data-more'); if(!b) return;
     var m=b.getAttribute('data-more');
-    if(m==='search'){ if(typeof openGlobalSearch==='function') openGlobalSearch(); }
-    else if(m==='stats') showTab('pgStats');
+    if(m==='stats') showTab('pgStats');
     else if(m==='ai') showTab('pgAI');
     else if(m==='settings') showTab('pgSet');
     else if(m==='export'){ showTab('pgSet'); setTimeout(function(){ var el=$('btnBk')||$('btnJrExport'); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'center'}); },120); }

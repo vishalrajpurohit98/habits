@@ -92,6 +92,7 @@
         '<div class="financialToolGroupTitle">Transactions</div>'+
         '<div class="financialToolGrid">'+
           '<button class="featureToolBtn" data-ft="import"><b>⬆ Import</b><span>Transactions / bank statement</span></button>'+
+          '<button class="featureToolBtn" data-ft="export"><b>⬇ Export data</b><span>Transactions to Excel / PDF</span></button>'+
           '<button class="featureToolBtn" data-ft="cards"><b>💳 Card payments</b><span>Pay without double-counting</span></button>'+
           '<button class="featureToolBtn" data-ft="duplicates"><b>🔎 Duplicates</b><span>Find possible duplicates</span></button>'+
         '</div>'+
@@ -604,7 +605,7 @@
   function bindFeatureEvents(){
     document.addEventListener('click',function(e){
       var b=e.target.closest('[data-ft]');
-      if(b){var a=b.getAttribute('data-ft');if(a==='financial-tools')showFinancialTools();else if(a==='import')showImport();else if(a==='cards')showCards();else if(a==='goals')showGoals();else if(a==='report')showNaturalReport();else if(a==='duplicates')showDuplicates();return;}
+      if(b){var a=b.getAttribute('data-ft');if(a==='financial-tools')showFinancialTools();else if(a==='import')showImport();else if(a==='export'){var _fs=document.querySelector('.financialToolsSheet');if(_fs&&typeof closeFeatureSheet==='function')closeFeatureSheet();try{var ss=document.getElementById('featureScrim');if(ss)ss.remove();var mm=document.querySelector('.financialToolsSheet');if(mm)mm.remove();}catch(e){}setTimeout(function(){openExpRangeExport();},100);}else if(a==='cards')showCards();else if(a==='goals')showGoals();else if(a==='report')showNaturalReport();else if(a==='duplicates')showDuplicates();return;}
       if(e.target.id==='featureRefresh'){ensureFeatureState();persist();refreshFeatureSummary();renderExp();return;}
       if(e.target.id==='featureBackupTest'){backupTest();return;}
       if(e.target.id==='featureRestoreTest'){restoreValidate();return;}

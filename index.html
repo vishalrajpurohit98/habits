@@ -1145,6 +1145,8 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+.taskHeadBtns{display:flex;gap:8px;align-items:center}
+.taskHeadBtns .sbtn{white-space:nowrap}
 .taskCardActions{display:flex;gap:4px;flex:0 0 auto;align-items:flex-start}
 .tcAct{border:1px solid var(--line);background:var(--card2);border-radius:9px;width:30px;height:30px;font-size:14px;cursor:pointer;display:grid;place-items:center;padding:0}
 .tcAct:active{transform:scale(.92)}
@@ -1155,18 +1157,7 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 .jrGoalBar{height:8px;background:var(--card2);border-radius:6px;overflow:hidden}
 .jrGoalBar i{display:block;height:100%;background:var(--amber);border-radius:6px;transition:width .3s}
 .jrGoalSub{font-size:11.5px;color:var(--mut2);margin-top:6px}
-.gsOverlay{position:fixed;inset:0;z-index:80;background:var(--bg);display:none;flex-direction:column;padding:calc(12px + env(safe-area-inset-top)) 14px 14px}
-.gsOverlay.on{display:flex}
-.gsTop{display:flex;gap:10px;align-items:center;margin-bottom:12px}
-.gsInput{flex:1}
-.gsClose{border:1px solid var(--line);background:var(--card2);color:var(--ink2);width:42px;height:42px;border-radius:12px;font-size:16px;cursor:pointer;flex:0 0 42px}
-.gsResults{flex:1;overflow-y:auto}
-.gsHint{color:var(--mut2);font-size:13px;padding:20px 4px;text-align:center}
-.gsGroup{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mut2);margin:14px 2px 6px}
-.gsItem{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:6px;cursor:pointer}
-.gsItem:active{transform:scale(.99)}
-.gsIt{font-size:14px;font-weight:600;color:var(--ink)}
-.gsIs{font-size:11.5px;color:var(--mut2);margin-top:2px}
+
 .selBar{display:flex;align-items:center;gap:10px;margin:4px 0 8px}
 .selToggle{border:1px solid var(--line);background:var(--card2);color:var(--ink2);font-weight:700;font-size:12px;padding:7px 14px;border-radius:11px;cursor:pointer}
 .selCount{font-size:12px;color:var(--mut2);flex:1}
@@ -1784,7 +1775,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ TASKS ============ -->
   <div class="page" id="pgTasks">
     <div class="eyebrow">Plan &amp; execute</div>
-    <div class="taskPageHead"><h1>Tasks</h1><button class="sbtn acc" id="taskAddTop">+ Task</button></div>
+    <div class="taskPageHead"><h1>Tasks</h1><div class="taskHeadBtns"><button class="sbtn" id="taskExportToggle" title="Export tasks">⬇ Export</button><button class="sbtn acc" id="taskAddTop">+ Task</button></div></div>
     <div class="taskSummary" id="taskSummary"></div>
     <div class="taskSearch"><input id="taskSearch" class="inp materialSearch" placeholder="Search tasks, descriptions, subtasks…" autocomplete="off"></div>
     <div class="taskFilters" id="taskFilters">
@@ -1792,7 +1783,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     </div>
     <div id="taskList"></div>
     <div class="empty taskEmpty" id="taskEmpty" hidden><div class="big">✓</div><div class="t">No tasks here</div><div class="s">Create a task and keep the important work visible.</div><button class="emptyCtaBtn" id="taskEmptyCta">Create a task</button></div>
-    <button class="taskExportToggle" id="taskExportToggle">&#8681; Export tasks</button>
   </div>
 
   <div class="sheet" id="taskExportSheet">
@@ -1980,7 +1970,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
     <div class="lbl">Analytics</div>
     <div class="moreGrid">
-      <button class="moreCard" data-more="search"><span class="mi">🔍</span><span class="mt">Search</span><span class="ms">Find anything, anywhere</span></button>
       <button class="moreCard" data-more="stats"><span class="mi">📊</span><span class="mt">Stats</span><span class="ms">Numbers &amp; trends</span></button>
       <button class="moreCard" data-more="ai"><span class="mi">✦</span><span class="mt">AI Assistant</span><span class="ms">Ask across the app</span></button>
     </div>
@@ -2000,14 +1989,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 <div id="syncPop" class="syncPop">
   <div class="syncPopRow"><span class="syncPopDot" id="syncPopDot"></span><div><div class="syncPopT" id="syncPopT">Checking…</div><div class="syncPopS" id="syncPopS"></div></div></div>
   <button class="syncPopBtn" id="syncPopBtn">Sync now</button>
-</div>
-
-<div class="gsOverlay" id="gsOverlay">
-  <div class="gsTop">
-    <input class="inp gsInput" id="gsInput" placeholder="Search everything… habits, tasks, journal, money" autocomplete="off">
-    <button class="gsClose" id="gsClose" aria-label="Close">✕</button>
-  </div>
-  <div class="gsResults" id="gsResults"><div class="gsHint">Type to search across your whole app.</div></div>
 </div>
 
 <button id="fab" aria-label="Add">
@@ -9087,47 +9068,6 @@ function init(){
       g.head.addEventListener('click', function(){ open=!open; apply(); });
     });
   })();
-  /* ===== Global search (habits/tasks/journal/expenses) ===== */
-  (function(){
-    var ov=$('gsOverlay'), inp=$('gsInput'), res=$('gsResults'), cls=$('gsClose');
-    if(!ov) return;
-    function open(){ ov.classList.add('on'); setTimeout(function(){ if(inp) inp.focus(); },80); }
-    function close(){ ov.classList.remove('on'); if(inp) inp.value=''; if(res) res.innerHTML='<div class="gsHint">Type to search across your whole app.</div>'; }
-    window.openGlobalSearch=open;
-    if(cls) cls.addEventListener('click', close);
-    function plain(h){var d=document.createElement('div');d.innerHTML=String(h||'');return (d.textContent||'');}
-    function run(q){
-      q=(q||'').trim().toLowerCase();
-      if(q.length<2){ res.innerHTML='<div class="gsHint">Type at least 2 characters.</div>'; return; }
-      var groups=[];
-      /* habits */
-      var hb=(state.habits||[]).filter(function(h){return !h.arch && (h.name||'').toLowerCase().indexOf(q)>=0;}).slice(0,8)
-        .map(function(h){return {t:h.name, s:(h.cat||'Habit'), act:function(){close();showTab('pgToday');setTimeout(function(){if(typeof openDetail==='function')openDetail(h.id);},120);}};});
-      if(hb.length) groups.push(['Habits', hb]);
-      /* tasks */
-      var tk=(state.tasks||[]).filter(function(t){return (t.title||'').toLowerCase().indexOf(q)>=0 || (t.notes||'').toLowerCase().indexOf(q)>=0;}).slice(0,8)
-        .map(function(t){return {t:t.title, s:(t.dueDate?('Due '+niceDate(t.dueDate)):'Task')+' · '+taskEffectiveStatus(t), act:function(){close();showTab('pgTasks');setTimeout(function(){openTask(t.id);},120);}};});
-      if(tk.length) groups.push(['Tasks', tk]);
-      /* journal */
-      var jr=(state.jr||[]).filter(function(e){return (plain(e.content)+' '+(e.title||'')+' '+(e.location||'')).toLowerCase().indexOf(q)>=0;})
-        .sort(function(a,b){return (b.date||'').localeCompare(a.date||'');}).slice(0,8)
-        .map(function(e){return {t:(e.title||plain(e.content).slice(0,40)||'Entry'), s:(e.date||'')+(e.mood?' · '+e.mood:''), act:function(){close();showTab('pgJr');setTimeout(function(){if(typeof openJr==='function')openJr(e.id);},120);}};});
-      if(jr.length) groups.push(['Journal', jr]);
-      /* expenses */
-      var tx=(state.tx||[]).filter(function(x){return ((x.payee||'')+' '+(x.cat||'')+' '+(x.note||'')).toLowerCase().indexOf(q)>=0;})
-        .sort(function(a,b){return (b.d||'').localeCompare(a.d||'');}).slice(0,8)
-        .map(function(x){return {t:(x.payee||x.cat||'Transaction')+' · '+inr(x.amt), s:(x.d||'')+' · '+(x.cat||''), act:function(){close();showTab('pgExp');}};});
-      if(tx.length) groups.push(['Money', tx]);
-      if(!groups.length){ res.innerHTML='<div class="gsHint">No matches for “'+esc(q)+'”.</div>'; return; }
-      var html=''; groups.forEach(function(g){
-        html+='<div class="gsGroup">'+g[0]+'</div>';
-        g[1].forEach(function(it,i){ var id='gsi_'+g[0]+'_'+i; window[id]=it.act; html+='<div class="gsItem" onclick="'+id+'()"><div class="gsIt">'+esc(it.t)+'</div><div class="gsIs">'+esc(it.s)+'</div></div>'; });
-      });
-      res.innerHTML=html;
-    }
-    if(inp) inp.addEventListener('input', function(){ run(this.value); });
-    document.addEventListener('keydown', function(e){ if(e.key==='Escape' && ov.classList.contains('on')) close(); });
-  })();
   /* ===== Multi-select delete (transactions + journal) ===== */
   (function(){
     var txSel=new Set(), txMode=false;
@@ -9206,8 +9146,7 @@ function init(){
   var _more=$('pgMore'); if(_more) _more.addEventListener('click', function(e){
     var b=climb(e.target,this,'data-more'); if(!b) return;
     var m=b.getAttribute('data-more');
-    if(m==='search'){ if(typeof openGlobalSearch==='function') openGlobalSearch(); }
-    else if(m==='stats') showTab('pgStats');
+    if(m==='stats') showTab('pgStats');
     else if(m==='ai') showTab('pgAI');
     else if(m==='settings') showTab('pgSet');
     else if(m==='export'){ showTab('pgSet'); setTimeout(function(){ var el=$('btnBk')||$('btnJrExport'); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'center'}); },120); }
@@ -9943,6 +9882,7 @@ handleLaunchAction();
         '<div class="financialToolGroupTitle">Transactions</div>'+
         '<div class="financialToolGrid">'+
           '<button class="featureToolBtn" data-ft="import"><b>⬆ Import</b><span>Transactions / bank statement</span></button>'+
+          '<button class="featureToolBtn" data-ft="export"><b>⬇ Export data</b><span>Transactions to Excel / PDF</span></button>'+
           '<button class="featureToolBtn" data-ft="cards"><b>💳 Card payments</b><span>Pay without double-counting</span></button>'+
           '<button class="featureToolBtn" data-ft="duplicates"><b>🔎 Duplicates</b><span>Find possible duplicates</span></button>'+
         '</div>'+
@@ -10455,7 +10395,7 @@ handleLaunchAction();
   function bindFeatureEvents(){
     document.addEventListener('click',function(e){
       var b=e.target.closest('[data-ft]');
-      if(b){var a=b.getAttribute('data-ft');if(a==='financial-tools')showFinancialTools();else if(a==='import')showImport();else if(a==='cards')showCards();else if(a==='goals')showGoals();else if(a==='report')showNaturalReport();else if(a==='duplicates')showDuplicates();return;}
+      if(b){var a=b.getAttribute('data-ft');if(a==='financial-tools')showFinancialTools();else if(a==='import')showImport();else if(a==='export'){var _fs=document.querySelector('.financialToolsSheet');if(_fs&&typeof closeFeatureSheet==='function')closeFeatureSheet();try{var ss=document.getElementById('featureScrim');if(ss)ss.remove();var mm=document.querySelector('.financialToolsSheet');if(mm)mm.remove();}catch(e){}setTimeout(function(){openExpRangeExport();},100);}else if(a==='cards')showCards();else if(a==='goals')showGoals();else if(a==='report')showNaturalReport();else if(a==='duplicates')showDuplicates();return;}
       if(e.target.id==='featureRefresh'){ensureFeatureState();persist();refreshFeatureSummary();renderExp();return;}
       if(e.target.id==='featureBackupTest'){backupTest();return;}
       if(e.target.id==='featureRestoreTest'){restoreValidate();return;}
