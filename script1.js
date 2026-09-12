@@ -4769,14 +4769,7 @@ function renderExpIns(){
     t5 += '</div>'; html += t5;
   }
   html += '<div id="expPatternInsights" style="margin-top:10px"></div>'; renderPatternCard('expPatternInsights',4);
-  html += '<div class="lbl" style="margin-top:6px">Reports</div>';
-  html += '<div style="display:flex;gap:8px;flex-wrap:wrap"><button class="sbtn" id="repCsv">CSV</button><button class="sbtn" id="repXlsx">Excel</button><button class="sbtn" id="repPdf">PDF</button><button class="sbtn acc" id="repRange">Date range</button></div>';
   box.innerHTML=html;
-  var csv=$('repCsv'), xl=$('repXlsx'), pd=$('repPdf');
-  if(csv) csv.onclick=exportExpCsv;
-  if(xl) xl.onclick=exportExpXlsx;
-  if(pd) pd.onclick=exportExpPdf;
-  var rr=$('repRange'); if(rr) rr.onclick=openExpRangeExport;
 }
 
 function expRows(){
@@ -5741,6 +5734,8 @@ function showTab(id){
   var navFor = subPages[id] ? 'pgMore' : id;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===navFor);
   var _aif=$('aiFab'); if(_aif) _aif.style.display = (id==='pgAI') ? 'none' : '';
+  var _sync=$('syncIcon'); if(_sync) _sync.style.display = (id==='pgToday') ? '' : 'none';
+  var _syncP=$('syncPop'); if(_syncP && id!=='pgToday') _syncP.classList.remove('on');
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
   if(id==='pgStats') renderStats();
   if(id==='pgTasks') renderTasks();

@@ -903,3 +903,17 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
 - Global search: REMOVED entirely per user (card from More hub, overlay markup, JS module, CSS).
 - Verified: task export in header opens sheet; financial-tools Export opens expense export sheet;
   no global-search remnants; no dup ids; regression clean.
+
+---
+# V1.11.2 — sync icon overlap + remove redundant Reports export
+- Sync icon overlapped the header search button (both top-right). Moved #syncIcon to right:62px so it
+  sits beside the search button (verified no overlap: sync ends 328px, search starts 330px).
+- Removed the Money -> Insights "Reports" row (CSV/Excel/PDF/Date range); export now lives in
+  Financial Tools -> Export data. Wiring for repCsv/repXlsx/repPdf/repRange removed.
+- Verified: no overlap, Reports row gone, export still reachable via Financial Tools, regression clean.
+
+---
+# V1.11.3 — sync icon only on Today
+- Sync icon was fixed/global (showed on every tab). Now shown only when active tab is pgToday
+  (hidden elsewhere; popover force-closed when leaving Today). Matches original behavior.
+- Verified: visible on Today, hidden on Tasks/Money/Journal/More/Stats, reappears on return. Regression clean.
