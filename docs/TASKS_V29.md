@@ -917,3 +917,11 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
 - Sync icon was fixed/global (showed on every tab). Now shown only when active tab is pgToday
   (hidden elsewhere; popover force-closed when leaving Today). Matches original behavior.
 - Verified: visible on Today, hidden on Tasks/Money/Journal/More/Stats, reappears on return. Regression clean.
+
+---
+# V1.11.4 — restore original Cloud sync banner, remove floating sync icon
+- Per user (screenshot): sync should be the original "Cloud sync / Sign in" banner on Today, not a
+  floating icon. Un-hid #todaySyncBar on Today; removed the floating #syncIcon + #syncPop (markup,
+  CSS, showTab toggle). renderSyncIcon/init are guarded so leftover calls no-op safely.
+- Verified: Cloud sync banner visible on Today with status dot + Sign in; floating icon gone;
+  regression clean; zero errors. Screenshot matches the requested reference.

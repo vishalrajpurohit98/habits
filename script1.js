@@ -5734,8 +5734,6 @@ function showTab(id){
   var navFor = subPages[id] ? 'pgMore' : id;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===navFor);
   var _aif=$('aiFab'); if(_aif) _aif.style.display = (id==='pgAI') ? 'none' : '';
-  var _sync=$('syncIcon'); if(_sync) _sync.style.display = (id==='pgToday') ? '' : 'none';
-  var _syncP=$('syncPop'); if(_syncP && id!=='pgToday') _syncP.classList.remove('on');
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
   if(id==='pgStats') renderStats();
   if(id==='pgTasks') renderTasks();

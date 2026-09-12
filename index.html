@@ -1188,23 +1188,7 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 .iconPick.sel{background:var(--amberSoft);border-color:var(--amber);color:var(--amber)}
 .iconPick:active{transform:scale(.94)}
 .navLogo .brandSvg,[data-brandicon] .brandSvg{width:22px;height:22px;border-radius:6px;vertical-align:middle}
-#syncIcon{position:fixed;top:calc(10px + env(safe-area-inset-top));right:62px;z-index:55;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--dockBg,rgba(7,6,5,.9));backdrop-filter:blur(8px);color:var(--ink2);display:grid;place-items:center;cursor:pointer}
-#syncIcon svg{width:19px;height:19px}
-#syncIcon.spin svg{animation:syncSpin 1s linear infinite}
-@keyframes syncSpin{to{transform:rotate(360deg)}}
-.syncIconDot{position:absolute;top:-2px;right:-2px;width:11px;height:11px;border-radius:50%;background:var(--mut2);border:2px solid var(--bg)}
-.syncIconDot.synced{background:var(--green)}
-.syncIconDot.syncing{background:var(--amber)}
-.syncIconDot.error{background:var(--coral)}
-.syncIconDot.offline{background:var(--mut2)}
-.syncPop{position:fixed;top:calc(54px + env(safe-area-inset-top));right:14px;z-index:56;width:230px;background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:14px;box-shadow:0 12px 34px rgba(0,0,0,.5);display:none}
-.syncPop.on{display:block}
-.syncPopRow{display:flex;align-items:flex-start;gap:10px;margin-bottom:12px}
-.syncPopDot{width:12px;height:12px;border-radius:50%;background:var(--mut2);margin-top:3px;flex:0 0 12px}
-.syncPopDot.synced{background:var(--green)}.syncPopDot.syncing{background:var(--amber)}.syncPopDot.error{background:var(--coral)}.syncPopDot.offline{background:var(--mut2)}
-.syncPopT{font-weight:700;font-size:14px}
-.syncPopS{font-size:11.5px;color:var(--mut2);margin-top:2px;line-height:1.4}
-.syncPopBtn{width:100%;border:0;background:var(--amberSoft);color:var(--amber);font-weight:700;font-size:13px;padding:9px;border-radius:11px;cursor:pointer}
+
 .tpGrid8{display:grid;grid-template-columns:repeat(4,1fr);gap:14px 8px;margin-top:6px}
 .tpGrid8 .tpItem{display:flex;flex-direction:column;align-items:center;text-align:center}
 .tpGrid8 .tpItem .v{font-size:18px;font-weight:800}
@@ -1214,7 +1198,6 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 .tpGrid8 .tpItem .k{font-size:10px;color:var(--mut2);margin-top:2px}
 #featureSummary{display:none}
 #pgToday #todayProDash{display:none!important}
-#pgToday #todaySyncBar{display:none!important}
 .setAcc{display:flex;align-items:center;cursor:pointer;user-select:none}
 .setAccCh{margin-left:auto;color:var(--mut);transition:transform .2s;font-size:14px}
 .setAcc.accOpen .setAccCh{transform:rotate(180deg)}
@@ -1980,15 +1963,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <button class="moreCard" data-more="settings"><span class="mi">⚙</span><span class="mt">Settings</span><span class="ms">Configure the app</span></button>
     </div>
   </div>
-</div>
-
-<button id="syncIcon" aria-label="Sync status">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 01-9 9 9 9 0 01-6.7-3M3 12a9 9 0 019-9 9 9 0 016.7 3"/><path d="M21 3v5h-5M3 21v-5h5"/></svg>
-  <span class="syncIconDot" id="syncIconDot"></span>
-</button>
-<div id="syncPop" class="syncPop">
-  <div class="syncPopRow"><span class="syncPopDot" id="syncPopDot"></span><div><div class="syncPopT" id="syncPopT">Checking…</div><div class="syncPopS" id="syncPopS"></div></div></div>
-  <button class="syncPopBtn" id="syncPopBtn">Sync now</button>
 </div>
 
 <button id="fab" aria-label="Add">
@@ -8306,8 +8280,6 @@ function showTab(id){
   var navFor = subPages[id] ? 'pgMore' : id;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===navFor);
   var _aif=$('aiFab'); if(_aif) _aif.style.display = (id==='pgAI') ? 'none' : '';
-  var _sync=$('syncIcon'); if(_sync) _sync.style.display = (id==='pgToday') ? '' : 'none';
-  var _syncP=$('syncPop'); if(_syncP && id!=='pgToday') _syncP.classList.remove('on');
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
   if(id==='pgStats') renderStats();
   if(id==='pgTasks') renderTasks();
