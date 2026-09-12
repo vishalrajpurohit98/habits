@@ -334,20 +334,27 @@ public class MainActivity extends Activity {
             NotificationManager nm=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
             if(Build.VERSION.SDK_INT>=26){
                 NotificationChannel ch=new NotificationChannel(QUICK_CHANNEL, "Quick add", NotificationManager.IMPORTANCE_LOW);
-                ch.setDescription("Persistent shortcut to add entries quickly");
+                ch.setDescription("A pinned shortcut to log things quickly");
                 ch.setShowBadge(false);
                 nm.createNotificationChannel(ch);
             }
             Notification.Builder bld = (Build.VERSION.SDK_INT>=26) ? new Notification.Builder(this, QUICK_CHANNEL) : new Notification.Builder(this);
+            String big = "Tap a button below to log in one step \u2014 or tap here to open the app.\n\u2022 Habit, Task, Mood, Sleep, Journal, Expense";
             bld.setSmallIcon(getApplicationInfo().icon)
-               .setContentTitle("Personal Tracker")
-               .setContentText("Tap to quickly add: habit · task · mood · journal")
+               .setContentTitle("Quick add \u2014 Personal Tracker")
+               .setContentText("Log a habit, task, mood, sleep, journal or expense")
+               .setStyle(new Notification.BigTextStyle().bigText(big))
                .setOngoing(true)
                .setContentIntent(quickPI("tab"))
-               .setPriority(Notification.PRIORITY_LOW);
-            bld.addAction(0, "Task", quickPI("addTask"));
-            bld.addAction(0, "Journal", quickPI("addJournal"));
-            bld.addAction(0, "Expense", quickPI("add"));
+               .setPriority(Notification.PRIORITY_LOW)
+               .setVisibility(Notification.VISIBILITY_PUBLIC);
+            /* 6 quick-add actions (Android shows ~3 collapsed, up to ~6 when expanded) */
+            bld.addAction(0, "\u2795 Habit", quickPI("addHabit"));
+            bld.addAction(0, "\u2795 Task", quickPI("addTask"));
+            bld.addAction(0, "\uD83D\uDE42 Mood", quickPI("addMood"));
+            bld.addAction(0, "\uD83D\uDE34 Sleep", quickPI("addSleep"));
+            bld.addAction(0, "\uD83D\uDCD3 Journal", quickPI("addJournal"));
+            bld.addAction(0, "\uD83D\uDCB0 Expense", quickPI("add"));
             nm.notify(QUICK_ADD_NOTIF_ID, bld.build());
         }catch(Exception e){ toast("Could not show quick-add notification"); }
     }
@@ -537,7 +544,7 @@ public class MainActivity extends Activity {
             });
         }
 
-        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){String[] keys={"habit","task","tab","add","acct","addTask","addHabit","workout","fromWidget","addJournal","addMood","addSleep"};for(String k:keys){String v=i.getStringExtra(k);if(v!=null){o.put(k,v);i.removeExtra(k);}}}}catch(Exception ignored){}return o.toString();}
+        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){String[] keys={"habit","task","tab","add","acct","addTask","addHabit","workout","fromWidget","addJournal","addMood","addSleep","viewHabits","viewTasks"};for(String k:keys){String v=i.getStringExtra(k);if(v!=null){o.put(k,v);i.removeExtra(k);}}}}catch(Exception ignored){}return o.toString();}
         @JavascriptInterface public boolean bioAvail(){
             try{
                 if(Build.VERSION.SDK_INT < 29) return false;

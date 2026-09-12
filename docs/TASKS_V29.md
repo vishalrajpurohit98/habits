@@ -693,3 +693,60 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 - 8-cell Today card; pulse+sync hidden; Stats sub-tabs filter; Settings accordion (1 open);
   Money summary collapsed; Mood sheet opens with 7-button check-in; Mood removed from Journal;
   no duplicate IDs; all tabs render; zero errors.
+
+---
+
+# V1.6.1 — sync status icon + in-app icon picker
+## Sync status icon
+- Fixed sync icon top-right on every tab with a colored status dot (green=synced, amber=syncing,
+  red=error, grey=offline/not-signed-in/not-configured). Spins while syncing. Tap opens a popover
+  with status text + "Sync now" (calls doSync/pushRecordSync). Driven by setSyncState + online/offline events.
+## In-app app icon picker
+- Settings → Appearance → App icon: 15 selectable icons; choice saved to state.set.appIcon and
+  applied instantly to the in-app brand logo (navLogo + any [data-brandicon]). Works on web + app.
+- HONEST: this changes the IN-APP icon, not the installed PWA/launcher icon (PWA icon is cached at
+  install; launcher icon needs native activity-alias — not done, per user's choice of in-app picker).
+## Verified (real Chromium)
+- Sync icon visible on all tabs, popover opens with status, dot reflects state; icon picker shows
+  15 icons, selection persists + applies to navLogo; all tabs render; zero errors.
+
+---
+# V1.6.2 — app icon picker switched to Material-style SVG icons
+- Replaced the 15 emoji with 15 Material-style line SVG icons (spark/star/bolt/leaf/heart/target/
+  rocket/moon/sun/flame/trophy/brain/diamond/book/compass). Selection stored as an id; applied as
+  SVG to navLogo + [data-brandicon]. Old emoji selections auto-migrate to 'spark'. Verified: 15 SVGs,
+  selection applies + persists, no emoji left, all tabs render, zero errors.
+
+---
+# V1.6.3 — richer duotone Material icons for the picker
+- Replaced the thin line icons with 15 filled/duotone Material-style icons using accent colors
+  (amber/blue/green/coral/purple) that read well on dark theme. svg() wrapper no longer forces
+  stroke/fill:none so each icon's own colors show. Applied to navLogo + [data-brandicon].
+- Verified: 15 colored SVGs render, selection applies colored icon to navLogo + persists, all tabs
+  render, zero errors.
+
+---
+# V1.6.4 — persistent notification: more quick options + clearer text
+- Quick-add notification now has 6 one-tap action buttons: + Habit, + Task, 🙂 Mood, 😴 Sleep,
+  📓 Journal, 💰 Expense (was Task/Journal/Expense). Tapping the notification body opens the app
+  (where you view habits/tasks).
+- Clearer wording: title "Quick add — Personal Tracker", BigTextStyle body listing the options.
+- Added viewHabits/viewTasks deep-link keys (JS + getLaunchAction) so those routes exist too.
+- Settings description updated to list all quick-add options.
+- Verified (real Chromium): all 8 deep-link routes (addHabit/Task/Mood/Sleep/Journal/Expense +
+  viewHabits/viewTasks) route without error; Java structurally valid (6 actions, BigTextStyle);
+  all tabs render, zero errors.
+- HONEST: the native notification RENDERING is untestable here; needs on-device verification.
+  Android shows ~3 buttons collapsed, ~6 on expand — that's why View Habits/Tasks are via body tap,
+  not buttons (per user's choice of the 6 add-buttons).
+
+---
+# V1.6.5 — renamed app to "inneros"
+- Display name changed to "inneros" everywhere user-facing: title, nav brand, AI name ("inneros AI"),
+  PIN-lock text, version line, monthly report footer/subtitle, manifest (name + short_name),
+  Android strings.xml app_name.
+- Kept feature-label "Habits" (Stats sub-tab, chart legend, AI category, report section) unchanged.
+- Kept Android package id (com.actionables.personaltracker.app) unchanged on purpose — changing it
+  breaks the signing key, Firebase config, and installed-app identity; it's an internal id, not shown to users.
+- LOGOS: the "10 pasted logos" document came through EMPTY — could not replace the icon set. Rename
+  only in this build; logos pending user input.
