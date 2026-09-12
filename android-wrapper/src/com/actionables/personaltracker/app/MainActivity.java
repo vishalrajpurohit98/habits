@@ -319,6 +319,36 @@ public class MainActivity extends Activity {
         launchSpeech();
     }
 
+    static final int PINNED_NOTIF_ID = 0x51CB;
+    static final String PIN_CHANNEL = "pinned_tasks_v1";
+    void showPinnedTasksNotif(String json){
+        try{
+            if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED){ return; }
+            org.json.JSONArray arr = new org.json.JSONArray(json);
+            if(arr.length()==0){ hidePinnedTasksNotif(); return; }
+            NotificationManager nm=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+            if(Build.VERSION.SDK_INT>=26){
+                NotificationChannel ch=new NotificationChannel(PIN_CHANNEL, "Pinned tasks", NotificationManager.IMPORTANCE_LOW);
+                ch.setShowBadge(false); nm.createNotificationChannel(ch);
+            }
+            StringBuilder big=new StringBuilder();
+            for(int i=0;i<arr.length();i++){ org.json.JSONObject o=arr.optJSONObject(i); if(o==null)continue; if(i>0)big.append("\n"); big.append("\u2022 ").append(o.optString("title","")); String due=o.optString("due",""); if(due.length()>0) big.append("  \u00b7 ").append(due); }
+            Intent ti=new Intent(this, MainActivity.class); ti.putExtra("tab","pgTasks"); ti.putExtra("fromWidget","1");
+            ti.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            int flags=PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT>=23?PendingIntent.FLAG_IMMUTABLE:0);
+            PendingIntent pi=PendingIntent.getActivity(this, 0x51CC, ti, flags);
+            Notification.Builder bld=(Build.VERSION.SDK_INT>=26)?new Notification.Builder(this,PIN_CHANNEL):new Notification.Builder(this);
+            bld.setSmallIcon(getApplicationInfo().icon)
+               .setContentTitle("\uD83D\uDCCC Pinned tasks ("+arr.length()+")")
+               .setContentText(arr.optJSONObject(0)!=null?arr.optJSONObject(0).optString("title",""):"")
+               .setStyle(new Notification.BigTextStyle().bigText(big.toString()))
+               .setOngoing(true).setContentIntent(pi).setPriority(Notification.PRIORITY_LOW)
+               .setVisibility(Notification.VISIBILITY_PUBLIC);
+            nm.notify(PINNED_NOTIF_ID, bld.build());
+        }catch(Exception e){}
+    }
+    void hidePinnedTasksNotif(){ try{ ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(PINNED_NOTIF_ID); }catch(Exception e){} }
+
     static final int QUICK_ADD_NOTIF_ID = 0x51CA;
     static final String QUICK_CHANNEL = "quick_add_v1";
     PendingIntent quickPI(String key){ return quickPI(key, "1"); }
@@ -356,6 +386,24 @@ public class MainActivity extends Activity {
     }
     void hideQuickAddNotif(){
         try{ ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(QUICK_ADD_NOTIF_ID); }catch(Exception e){}
+    }
+
+    @android.annotation.TargetApi(19)
+    void printHtmlToPdf(String name, String html){
+        try{
+            final android.webkit.WebView wv = new android.webkit.WebView(this);
+            wv.setWebViewClient(new android.webkit.WebViewClient(){
+                public void onPageFinished(android.webkit.WebView view, String url){
+                    try{
+                        android.print.PrintManager pm = (android.print.PrintManager)getSystemService(PRINT_SERVICE);
+                        String jobName = (name!=null?name:"InnerOs") + " document";
+                        android.print.PrintDocumentAdapter adapter = view.createPrintDocumentAdapter(jobName);
+                        pm.print(jobName, adapter, new android.print.PrintAttributes.Builder().build());
+                    }catch(Exception e){ toast("Could not open print dialog"); }
+                }
+            });
+            wv.loadDataWithBaseURL(null, html, "text/html", "UTF-8", null);
+        }catch(Exception e){ toast("PDF export failed"); }
     }
 
     @android.annotation.TargetApi(28)
@@ -549,6 +597,8 @@ public class MainActivity extends Activity {
             }catch(Exception e){ return false; }
         }
         @JavascriptInterface public void showQuickAdd(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.showQuickAddNotif(); } }); }
+        @JavascriptInterface public void showPinnedTasks(final String json){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.showPinnedTasksNotif(json); } }); }
+        @JavascriptInterface public void hidePinnedTasks(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.hidePinnedTasksNotif(); } }); }
         @JavascriptInterface public void hideQuickAdd(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.hideQuickAddNotif(); } }); }
         @JavascriptInterface public void bio(){
             MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.showBiometricPrompt(); } });
@@ -565,6 +615,10 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String readPhoto(String name){try{File f=new File(new File(getFilesDir(),pendingPhotoDir),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public void deletePhoto(String name){try{new File(new File(getFilesDir(),pendingPhotoDir),name).delete();}catch(Exception ignored){}}
         @JavascriptInterface public String saveFile(String name,String mime,String b64)throws Exception{return MainActivity.this.saveFile(name,mime,b64);}
+        @JavascriptInterface public boolean printHtmlToPdf(final String name, final String html){
+            try{ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.printHtmlToPdf(name, html); } }); return true; }
+            catch(Exception e){ return false; }
+        }
         @JavascriptInterface public void shareFile(String name,String mime,String b64)throws Exception{MainActivity.this.shareFile(name,mime,b64);}
     }
 }

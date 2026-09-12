@@ -806,3 +806,90 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
   uncaught runtime errors across the whole suite.
 - UNTESTABLE here (documented): native APK build, on-device notification delivery, biometric
   hardware, real Firebase sync. These are simulated/validated at code+data level only.
+
+---
+# V1.7.0 QA — Round 2 (backup/restore, reports, receipt, financial)
+Added a second automated suite (25 checks). ALL PASS. No new bugs found; no code changes needed
+(the build already had the round-1 normState fix).
+Covered:
+- Full backup: jsonB64 structure (habits/jr/tx/mood/sleep), restore ROUND-TRIP preserves every
+  area incl. habit completion + journal favorite flag. Negative: garbage import rejected, non-backup
+  JSON rejected, habits-less backup edge documented.
+- Journal-only backup: builds + restores.
+- Reports/exports: monthly PDF report HTML (Habits+Journal+Mood sections, valid HTML); buildXlsx
+  (after lazy ensureXlsx load); expense CSV; task export rows; journal export doc.
+- Financial: account balance (80000-200=79800), netWorth, income/expense/net totals, credit
+  outstanding, Money page render.
+- Receipt scan: no-key guard fires; scan functions present. (Vision network call itself not run.)
+Test-harness learnings (not app bugs): restore has a protective confirm() dialog (must accept);
+report uses setTimeout before window.open; XLSX is lazy-loaded via ensureXlsx().
+
+---
+# V1.7.1 — FIX: PDF export broken on Android + export path audit
+## Bug (High): PDF exports relied on window.open('','_blank')+print, which fails in Android WebView
+- Affected: expense PDF, expense-range PDF, expense-log PDF, monthly report, journal PDF.
+- XLSX/CSV were fine (they use nat.saveFile).
+## Fix
+- Added exportHtmlDoc(html, name) helper: WEB -> window.open+print (unchanged, works);
+  ANDROID -> native nat.printHtmlToPdf (real PDF) with HTML-save fallback via nat.saveFile so an
+  export never fails silently.
+- Routed all 5 PDF exports through the helper.
+- Added native printHtmlToPdf(name, html) bridge using Android PrintManager +
+  WebView.createPrintDocumentAdapter (real PDF). UNTESTED natively; JS fallback covered.
+## Verified (real Chromium)
+- Web: expense PDF (1238 chars valid), expense-range PDF, journal PDF, monthly report all generate.
+- Android (mocked bridge): exportExpPdf calls printHtmlToPdf; fallback saves .html via saveFile.
+- XLSX still routes to saveFile. No JS errors.
+
+---
+# V1.8.0 Batch 1 — AI preferences memory + multi-step batch actions
+- Multi-step batch: AI can return {"actions":[...]} -> executed in sequence with a combined summary.
+  Guards: incomplete step -> asks instead of half-executing; destructive steps flagged for confirm;
+  single-action path unchanged (backward compatible). Prompt updated to allow the actions array.
+- Preferences memory: existing save/forget-in-chat kept; ADDED "What I remember" viewer in AI config
+  (lists saved prefs, delete individually). saveAiPreferences re-renders the list.
+- Verified (real Chromium): 3-habit batch, mixed mood+task batch, incomplete-batch guard, single
+  action regression, prefs list + delete. Core suite 51/52 (1 = known mood-sheet test-timing). Zero errors.
+
+---
+# V1.9.0 — AI enhancement batches 2-6 (all tested)
+Batch 2 — Proactive insights + cross-domain correlations: correlation engine (sleep/mood/habits/
+  spend, Pearson-ish over 30d), journal theme detection, streak-at-risk; dismissible "For you" card
+  on AI page; correlations injected into AI context.
+Batch 3 — Weekly/monthly review + richer formatting: markdown TABLE rendering in uaiFormat; monthly
+  review chip; AI told it may use tables.
+Batch 4 — Natural-voice read-aloud: toggle in AI input row (persists), improved voice pick, auto-reads
+  new answers when on, stop on off.
+Batch 5 — Multi-select delete: select mode + delete bar for transactions (#expTx) and journal (#jrList);
+  checkbox affordance CSS; normal tap unaffected when not in select mode.
+Batch 6 — Adaptive reminder timing: adaptiveJournalTime() = median of recent entry times, nudges ~30m
+  before; toggle in Settings honestly labeled "heuristic, not AI". (NOT true ML — needs a backend.)
+Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet test-timing), Suite 2
+  25/25, full tab regression clean, zero runtime errors.
+
+---
+# V1.10.0 — feature-gap work (part 1)
+- Task reminders: VERIFIED already working on both native (computeAlarms includes task-rem alarms
+  carrying task id) and web (scheduleWebNotifs); tap opens the task. NOT a bug (earlier flag was a
+  false grep). No change needed.
+- Global search (NEW): full-screen overlay searching habits + tasks + journal + expenses; grouped
+  results; tap navigates to the item; opened from More -> Search. Verified: multi-domain matches,
+  navigation, no-match, Escape-to-close. Regression clean.
+- PENDING (approved, not yet built): reminder snooze, recently-deleted trash/undo.
+
+---
+# V1.11.0 — task/journal feature batch
+- Pin/favorite task: t.pinned; pinned non-completed tasks show in a "📌 PINNED" section at top;
+  pin/snooze/duplicate quick-action buttons on each task card.
+- Snooze task: one tap -> due date = tomorrow (reopens if completed).
+- Duplicate task + duplicate habit: deep-copy with "(copy)" title, fresh id, reset progress/pins.
+- Recurring visibility: task card badge now shows "↻ freq ×interval".
+- Journal writing goal: weekly goal (1-7 days) with progress bar + streak-style copy; Set goal prompt.
+- Single journal entry export: "Export this entry" button in editor -> exportHtmlDoc (per-entry PDF/HTML).
+- Receipt after OCR: confirmed image is already discarded post-extraction (clearReceiptScanData in the
+  OCR .then); toast updated to say "image discarded".
+- Pinned tasks notification (native): pushPinnedTasksNotif -> nat.showPinnedTasks(json); native
+  showPinnedTasksNotif builds an ongoing BigText notification listing pinned tasks, tap opens Tasks.
+  UNTESTED natively (JS side verified).
+- Verified (real Chromium): pin/snooze/dup task, dup habit, recurring badge, writing goal, single
+  export, all pass. Suite 1 51/52 (known timing), Suite 2 25/25, zero errors.
