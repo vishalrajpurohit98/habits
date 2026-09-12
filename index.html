@@ -914,7 +914,7 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 .restCard .rs{font-size:13px;color:var(--ink2)}
 
 /* ============ EXPENSE TRACKER ============ */
-.expSum{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+.expSum{display:block;margin-bottom:14px}
 .expSum .es{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 8px;text-align:center;box-shadow:var(--shadow)}
 .expSum .es b{display:block;font-size:15px;font-weight:800;letter-spacing:-.2px}
 .expSum .es span{font-size:8.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-top:3px;display:block}
@@ -1145,6 +1145,18 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+.expHero{padding:2px 2px 4px}
+.expHeroNum{font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.05}
+.expHeroSub{font-size:13px;color:var(--mut);margin-top:2px}
+.expHeroRow{display:flex;gap:16px;margin-top:8px;font-size:12.5px}
+.expHeroRow .green{color:var(--sGreen);font-weight:600}
+.expHeroRow .coral{color:var(--coral);font-weight:600}
+.taskStatLine{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:6px 2px 10px;font-size:13px;color:var(--mut)}
+.taskStatLine b{font-weight:800;margin-right:3px}
+.taskStatLine .over b{color:var(--coral)}.taskStatLine .today b{color:var(--sOrange)}.taskStatLine .up b{color:var(--sBlue)}.taskStatLine .done b{color:var(--sGreen)}
+.jrStatLine{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin:12px 2px 4px;font-size:13px;color:var(--mut)}
+.jrStatLine b{color:var(--ink);font-weight:700;margin-right:3px}
+.jrStatLine .jrStatBtn{margin-left:auto;border:1px solid var(--line);background:var(--card2);color:var(--amber);font-size:12px;font-weight:700;padding:6px 12px;border-radius:10px;cursor:pointer}
 .trashRow{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
 .trashRow:first-child{border-top:0}
 .trashInfo{flex:1;min-width:0}
@@ -1641,16 +1653,13 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <!-- TIMELINE -->
     <div id="jrView-timeline">
       <button class="jrNewBtn" id="jrNewBtn"><span style="font-size:20px">&#65291;</span> New Entry</button>
-      <div class="jrMiniStat">
-        <div class="s"><div class="n" id="jrStatStreak">&#128293; 0</div><div class="l">day streak</div></div>
-        <div class="s"><div class="n" id="jrStatMonth">0</div><div class="l">this month</div></div>
-        <div class="s"><div class="n" id="jrStatTotal">0</div><div class="l">total entries</div></div>
+      <div class="jrStatLine">
+        <span><b id="jrStatStreak">&#128293; 0</b> streak</span>
+        <span><b id="jrStatTotal">0</b> entries</span>
+        <span><b id="jrStatAllDays">0</b> days</span>
+        <button class="jrStatBtn" id="jrExportBtn">&#8681; Export</button>
       </div>
-      <div class="jrMiniStat" style="margin-top:8px">
-        <div class="s"><div class="n" id="jrStatAllDays">0</div><div class="l">days journaled</div></div>
-        <div class="s"><div class="n" id="jrStatBest">0</div><div class="l">longest streak</div></div>
-        <div class="s"><button class="jrStatBtn" id="jrExportBtn">&#8681; Export</button></div>
-      </div>
+      <span id="jrStatMonth" style="display:none">0</span><span id="jrStatBest" style="display:none">0</span>
       <div class="jrGoalCard" id="jrGoalCard">
         <div class="jrGoalTop"><span id="jrGoalLbl">Weekly writing goal</span><button class="jrGoalSet" id="jrGoalSet">Set goal</button></div>
         <div class="jrGoalBar"><i id="jrGoalFill"></i></div>
@@ -5823,14 +5832,22 @@ function jrDaysJournaled(){
 }
 
 /* ---- entry card ---- */
+function jrClean(s){ return String(s||'')
+  .replace(/\*\*([^*]+)\*\*/g,'$1').replace(/\*([^*]+)\*/g,'$1')   /* bold/italic */
+  .replace(/^#{1,6}\s*/gm,'').replace(/`{1,3}/g,'')                /* headings / code ticks */
+  .replace(/^\s*[-*]\s+/gm,'• ')                                   /* list markers */
+  .replace(/\s+/g,' ').trim(); }
 function jrCard(e){
   var tg=jrTagsOf(e);
-  var snip=jrStrip(e.content).replace(/#[A-Za-z0-9_]+/g,'').trim();
+  var title=jrClean(e.title);
+  var snip=jrClean(jrStrip(e.content).replace(/#[A-Za-z0-9_]+/g,''));
+  /* if the body starts by repeating the title (common in imported entries), drop that dupe */
+  if(title && snip){ var t2=title.toLowerCase(); if(snip.toLowerCase().indexOf(t2)===0) snip=snip.slice(title.length).replace(/^[\s:–—-]+/,''); }
   return '<div class="jrCard" data-jid="'+e.id+'">'
     + '<div class="jrTop"><span class="jrTime">'+esc(e.time||'')+'</span>'
     + (e.mood?'<span class="jrMood">'+(JR_MOODS[e.mood]||'')+'</span>':'')
     + (e.favorite?'<span class="jrFav">\u2B50</span>':'')+'</div>'
-    + (e.title?'<div class="jrTt">'+esc(e.title)+'</div>':'')
+    + (title?'<div class="jrTt">'+esc(title)+'</div>':'')
     + (e.location?'<div class="jrLoc">\uD83D\uDCCD '+esc(e.location)+'</div>':'')
     + (snip?'<div class="jrSnip">'+esc(snip)+'</div>':'')
     + (tg.length?'<div class="jrTags">'+tg.map(function(t){return'<span class="jrTag">'+esc(t)+'</span>';}).join('')+'</div>':'')
@@ -7203,7 +7220,7 @@ function renderExp(){
   $('expNext').disabled = (expY>now.getFullYear())||(expY===now.getFullYear()&&expM>=now.getMonth());
   var mt = monthTotals(expY,expM);
   var prevMt=monthTotals(expM===0?expY-1:expY,expM===0?11:expM-1),spendVs='';if(prevMt.exp>0){var sd=Math.round((mt.exp-prevMt.exp)/prevMt.exp*100);spendVs=(sd<0?'↓ '+Math.abs(sd)+'%':'↑ '+sd+'%')+' vs last month';}var ctot=catTotals(expY,expM),topCat='',topV=0;for(var tc in ctot){if(ctot[tc]>topV){topV=ctot[tc];topCat=tc;}}
-  $('expSum').innerHTML='<div class="es"><b style="color:var(--sGreen)">'+inr(mt.inc)+'</b><span>Income</span></div><div class="es"><b style="color:var(--coral)">'+inr(mt.exp)+'</b><span>Spent</span></div><div class="es"><b style="color:'+(mt.net>=0?'var(--sBlue)':'var(--coral)')+'">'+inr(mt.net)+'</b><span>Balance</span></div>'+(spendVs?'<div style="grid-column:1/-1;font-size:10.5px;color:var(--mut);text-align:center;margin-top:-2px">'+spendVs+'</div>':'')+(topCat&&topV>0?'<div style="grid-column:1/-1;font-size:11px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 11px;text-align:left">💡 '+esc(topCat)+' is your highest spend category this month · '+inr(topV)+'</div>':'');
+  $('expSum').innerHTML='<div class="expHero"><div class="expHeroNum">'+inr(mt.exp)+'</div><div class="expHeroSub">spent this month'+(mt.net>=0?(' · '+inr(mt.net)+' left'):(' · '+inr(Math.abs(mt.net))+' over'))+'</div><div class="expHeroRow"><span class="green">↓ '+inr(mt.inc)+' in</span><span class="coral">↑ '+inr(mt.exp)+' out</span></div></div>'+(spendVs?'<div style="font-size:10.5px;color:var(--mut);margin:6px 2px 0">'+spendVs+'</div>':'')+(topCat&&topV>0?'<div style="font-size:11px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 11px;text-align:left;margin-top:8px">💡 '+esc(topCat)+' is your highest spend category this month · '+inr(topV)+'</div>':'');
   var segShow = expView==='tx';
   $('expMonNav').style.display = (expView==='tx'||expView==='budg'||expView==='ins')?'':'none';
   ['expTx','expUpcoming','expBudg','expAcct','expIns'].forEach(function(id){ $(id).style.display='none'; });
@@ -7250,7 +7267,7 @@ function renderExpTx(){
   }
   box.innerHTML=html;
   if(expCapped) box.insertAdjacentHTML('beforeend','<button class="sbtn" id="expShowMore" style="width:100%;margin-top:10px">Show more ('+(expTotalRows-list.length)+' older)</button>');
-  box.insertAdjacentHTML('beforeend','<div style="display:flex;gap:8px;margin:12px 0 4px"><button class="sbtn" id="expRangeExport">Export date range</button></div>');
+  /* Export moved to Financial Tools -> Export data; no separate button under transactions. */
 }
 function smartExpensePredictions(daysAhead){ return []; }
 function renderExpUpcoming(){
@@ -8430,7 +8447,7 @@ function toggleTaskComplete(id){var t=state.tasks.find(function(x){return x.id==
 function toggleHabitTask(id){var p=String(id).split(':');if(p.length<3)return;var h=findHabit(p[1]),ds=p[2];if(!h)return;if(isDone(h,ds))setVal(h.id,ds,0);else if(dueOn(h,toDate(ds)))setVal(h.id,ds,targ(h));renderTasks();}
 function taskFilterMatch(t){var st=taskEffectiveStatus(t);if(taskFilter==='overdue')return st==='overdue';if(taskFilter==='today')return t.dueDate===today()&&st!=='completed';if(taskFilter==='upcoming')return !!t.dueDate&&t.dueDate>today()&&st!=='completed';if(taskFilter==='completed')return st==='completed';return true;}
 function renderTaskCard(t){var st=taskEffectiveStatus(t),sp=taskSubProgress(t),over=st==='overdue',virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var actions=virtual?'':'<div class="taskCardActions"><button class="tcAct" data-task-pin="'+esc(t.id)+'" title="Pin">'+(t.pinned?'📌':'📍')+'</button><button class="tcAct" data-task-snooze="'+esc(t.id)+'" title="Snooze to tomorrow">😴</button><button class="tcAct" data-task-dup="'+esc(t.id)+'" title="Duplicate">⧉</button></div>';return '<div class="taskCard '+(over?'overdue':'')+(t.pinned?' pinned':'')+'" data-task-id="'+esc(t.id)+'"><div class="taskTop"><button class="taskCheck '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><div class="taskBody"><div class="taskTitle '+(check?'done':'')+'">'+(t.pinned?'📌 ':'')+(t.priority==='high'?'🔴 ':'')+esc(t.title)+'</div>'+(t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+'<div class="taskMeta"><span class="taskPri '+t.priority+'">'+t.priority.toUpperCase()+'</span><span class="taskStatus">'+(st==='inprogress'?'In Progress':st.charAt(0).toUpperCase()+st.slice(1))+'</span><span>'+esc(taskDateLabel(t))+'</span>'+(t.recurrence&&t.recurrence.freq!=='none'?'<span class="taskSeries">↻ '+t.recurrence.freq+(t.recurrence.interval>1?' ×'+t.recurrence.interval:'')+'</span>':'')+(virtual?'<span class="taskSeries">Habit</span>':'')+'</div>'+(sp.total?'<div class="taskSubProgress">'+sp.done+' / '+sp.total+' subtasks<div class="taskSubBar"><i style="width:'+Math.round(sp.done/sp.total*100)+'%"></i></div></div>':'')+((t.comments&&t.comments.length)?'<div class="taskMeta"><span>💬 '+t.comments.length+' comment'+(t.comments.length===1?'':'s')+'</span></div>':'')+'</div>'+actions+'</div></div>';}
-function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle">'+pair[1]+'</div>'+a.map(renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStat over"><b>'+over+'</b><span>Overdue</span></div><div class="taskStat today"><b>'+tn+'</b><span>Today</span></div><div class="taskStat up"><b>'+up+'</b><span>Upcoming</span></div><div class="taskStat done"><b>'+done+'</b><span>Completed</span></div>';}
+function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle">'+pair[1]+'</div>'+a.map(renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStatLine"><span class="over"><b>'+over+'</b> overdue</span><span class="today"><b>'+tn+'</b> today</span><span class="up"><b>'+up+'</b> upcoming</span><span class="done"><b>'+done+'</b> done</span></div>';}
 function exportTaskRows(from,to){var rows=[['Task','Description','Due date','Due time','Priority','Status','Subtasks','Comments']];state.tasks.filter(function(t){return t.dueDate&&t.dueDate>=from&&t.dueDate<=to;}).sort(function(a,b){return taskDueMs(a)-taskDueMs(b);}).forEach(function(t){var sp=taskSubProgress(t);rows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),sp.done+'/'+sp.total]);});return rows;}
 function taskExportBounds(){if(taskExportMode==='custom')return{from:$('taskExportFrom').value,to:$('taskExportTo').value};return taskRangeBounds(taskExportMode);}
 function taskPdfSafe(v){return String(v==null?'':v).replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
@@ -10613,7 +10630,7 @@ function addFeatureMarkup(){
  var today=$('pgToday');if(today&&!$('todayProDash')){var anchor=$('taskDashSummary');var d=document.createElement('div');d.id='todayProDash';if(anchor)anchor.parentNode.insertBefore(d,anchor);else today.insertBefore(d,today.firstChild);}
  if(today&&!$('dailyReviewCard')){var d2=document.createElement('div');d2.id='dailyReviewCard';var list=$('list');if(list)list.parentNode.insertBefore(d2,list);else today.appendChild(d2);}
  if(today&&!$('proInsights')){var d3=document.createElement('div');d3.id='proInsights';var ai=$('aiInsights');if(ai)ai.parentNode.insertBefore(d3,ai);else today.appendChild(d3);}
- var tasks=$('pgTasks');if(tasks&&!$('taskAgingSummary')){var a=document.createElement('div');a.id='taskAgingSummary';var search=$('taskSearch');if(search)search.parentNode.insertBefore(a,search);else tasks.insertBefore(a,tasks.firstChild);}
+ var tasks=$('pgTasks');if(false&&tasks&&!$('taskAgingSummary')){var a=document.createElement('div');a.id='taskAgingSummary';var search=$('taskSearch');if(search)search.parentNode.insertBefore(a,search);else tasks.insertBefore(a,tasks.firstChild);}
 }
 function bind(){
  document.addEventListener('click',function(e){var b=e.target.closest&&e.target.closest('[data-review-open]');if(b){e.preventDefault();openReview();return;}b=e.target.closest&&e.target.closest('[data-review-close]');if(b){e.preventDefault();closeReview();return;}b=e.target.closest&&e.target.closest('[data-review-save]');if(b){e.preventDefault();saveReview();return;}

@@ -1012,3 +1012,27 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
 - New 'pending' banner state: "Changes to sync — Tap Sync to save changes to the cloud".
 - Verified: nav not scrollable (5 tabs, overflow hidden); no auto-push on change; incremental push;
   regression + backup/restore suites pass.
+
+---
+# V1.14.0 — UI redesign (Journal / Money / Tasks) + markdown fix
+Grounded in Day One / Copilot Money / Things 3 / Todoist patterns (content-first).
+- Markdown fix: jrClean() strips **bold**/###/`code`/list markers from journal titles+snippets;
+  jrCard drops a leading title-duplicate from the body (fixes "**Title**" leaks and
+  "TitleFrom Monday…" run-ons).
+- Journal: 6 stat tiles -> one quiet line (🔥streak · entries · days) + small Export; entries appear
+  sooner. (jrStatMonth/jrStatBest kept hidden so render code is untouched.)
+- Tasks: 8 stat tiles (2 rows) -> one compact line (overdue/today/upcoming/done); removed the
+  dynamically-injected aging-summary row. Cards unchanged (pin/snooze/dup still there).
+- Money: three tiles -> a big "spent this month · N left" hero with in/out subline + insight;
+  transactions rise up.
+- Verified: markdown cleaned, stat lines render, money hero renders; suite1 51/52 (known timing),
+  suite2 25/25; zero errors. Screenshots captured.
+- Minor leftover noted (not fixed this pass): Money "Export date range" button still bottom-left
+  (superseded by Financial Tools export) — can remove next.
+
+---
+# V1.14.1 — Money polish (revised build)
+- Removed redundant "Export date range" button under transactions (export lives in Financial Tools).
+- Fixed hero cramping: .expSum was a 3-col grid (old tiles); now block so the spent hero + insight
+  are full-width, not squeezed side-by-side.
+- Verified: hero full-width, range button gone, expSum block; suite1 51/52 (known timing), suite2 25/25; zero errors.
