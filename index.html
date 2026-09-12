@@ -1704,6 +1704,21 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         </div>
       </div>
       <button class="jrAiBtn acc" style="width:100%;margin-top:12px" id="jrWholeAiBtn">&#10024; Analyse my whole journal</button>
+      <div class="setCard" style="padding:14px 16px;margin-top:12px">
+        <div class="lbl" style="margin:0 0 8px">&#10024; Ask your journal</div>
+        <div class="setS" style="margin:0 0 10px">Answers only from your journal entries — sad days, what happened on a date, recurring themes, and more.</div>
+        <div class="uaiInputRow" style="padding:0;border:0">
+          <input class="inp uaiInp" id="jrAskInput" placeholder="Ask anything about your journal…" autocomplete="off">
+          <button class="uaiSend" id="jrAskSend" aria-label="Ask">→</button>
+        </div>
+        <div class="chips" id="jrAskChips" style="margin-top:10px">
+          <button class="chip" data-jrask="What have I been writing about lately?">Recent themes</button>
+          <button class="chip" data-jrask="What were my saddest moments and why?">Sad moments</button>
+          <button class="chip" data-jrask="What seems to make me happy?">What makes me happy</button>
+          <button class="chip" data-jrask="What are my recurring struggles?">Recurring struggles</button>
+        </div>
+        <div id="jrAskOut"></div>
+      </div>
     </div>
 
     <!-- SEARCH -->
@@ -1821,6 +1836,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="setRow"><div class="setInfo"><div class="setT">📓 Journal reminder</div><div class="setS">Daily nudge to write</div></div><div style="display:flex;align-items:center;gap:8px"><input class="inp" id="remJournalTime" type="time" style="width:110px" value="21:00"><div class="tog on" id="remJournalTog"></div></div></div>
       <div class="setRow"><div class="setInfo"><div class="setT">💰 Expense reminder</div><div class="setS">Daily nudge to log spending</div></div><div style="display:flex;align-items:center;gap:8px"><input class="inp" id="remExpenseTime" type="time" style="width:110px" value="20:00"><div class="tog" id="remExpenseTog"></div></div></div>
       <div class="setRow"><div class="setInfo"><div class="setT">✨ Smart nudges</div><div class="setS">Gentle reminder if you miss your usual journal rhythm</div></div><div class="tog on" id="remSmartTog"></div></div>
+      <div class="setRow"><div class="setInfo"><div class="setT">📌 Quick-add shortcut</div><div class="setS">A persistent notification to add task/journal/expense on the go (Android)</div></div><div class="tog" id="remQuickTog"></div></div>
     </div>
 
     <div class="lbl"><i class="lic" style="--lc:var(--coral)"></i>Privacy &amp; security</div>
@@ -3735,7 +3751,7 @@ function gemCall(prompt, maxTokens){
 }
 
 /* ============ UNIVERSAL AI ACTION ENGINE ============ */
-function buildDataContext(){
+function buildDataContext(query){
   var now=new Date(), ts=today(), lines=[];
   var active=state.habits.filter(function(h){return !h.arch;});
   lines.push('TODAY: '+ts+' ('+['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][now.getDay()]+')');
@@ -3786,12 +3802,29 @@ function buildDataContext(){
   if(state.cats)for(var ck in state.cats)cats.push(ck);
   if(cats.length)lines.push('CATEGORIES: '+cats.join(', '));
   if(state.accts)state.accts.forEach(function(a){if(a.active!==false)lines.push('ACCOUNT: "'+a.name+'" id='+a.id+' bal='+acctBalance(a.id));});
-  // ===== JOURNAL (recent + retrieval note) =====
+  // ===== JOURNAL (smart retrieval based on the question) =====
   if(state.jr && state.jr.length){
-    var jrs=state.jr.slice().sort(function(a,b){return ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||''));});
-    lines.push('JOURNAL ('+state.jr.length+' entries total; showing recent):');
-    jrs.slice(0,12).forEach(function(e){var body=(function(h){var d=document.createElement('div');d.innerHTML=String(h||'');return (d.textContent||'').replace(/\s+/g,' ').trim();})(e.content).slice(0,220);lines.push('- '+(e.date||'')+' '+(e.time||'')+(e.mood?' ['+e.mood+']':'')+' \"'+String(e.title||'').replace(/\"/g,'')+'\": '+body);});
-    lines.push('JOURNAL RULES: Answer journal questions ONLY from the entries above. If the entries do not contain the answer, say you could not find a journal entry about it. Never invent journal history, dates, or counts. When you cite journal content, refer to the entry date.');
+    var plain=function(h){var d=document.createElement('div');d.innerHTML=String(h||'');return (d.textContent||'').replace(/\s+/g,' ').trim();};
+    var all=state.jr.slice().sort(function(a,b){return ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||''));});
+    var chosen=[], q=(query||'').toLowerCase();
+    var stop={what:1,when:1,that:1,this:1,about:1,between:1,happened:1,during:1,have:1,been:1,were:1,they:1,with:1,from:1,your:1,tell:1,show:1,give:1,days:1,day:1,entries:1,entry:1,journal:1,write:1,wrote:1,feeling:1,feel:1};
+    var words=(q.match(/[a-z0-9']{4,}/g)||[]).filter(function(w){return !stop[w];});
+    if(words.length){
+      var scored=[];
+      all.forEach(function(e){ var hay=(plain(e.content)+' '+(e.title||'')+' '+(e.mood||'')).toLowerCase(); var score=0; words.forEach(function(w){ if(hay.indexOf(w)>=0) score++; }); if(score>0) scored.push([score,e]); });
+      scored.sort(function(a,b){return b[0]-a[0] || ((b[1].date||'')).localeCompare(a[1].date||'');});
+      chosen=scored.slice(0,15).map(function(x){return x[1];});
+    }
+    var iso=q.match(/(\d{4}-\d{2}-\d{2})/g);
+    if(iso&&iso.length){ var a=iso[0],b=iso[1]||iso[0]; if(a>b){var t=a;a=b;b=t;} all.forEach(function(e){ if(e.date>=a&&e.date<=b && chosen.indexOf(e)<0) chosen.push(e); }); }
+    var moodWord={sad:'low',unhappy:'low',down:'low',low:'low',difficult:'diff',hard:'diff',happy:'good',great:'great',good:'good',okay:'okay'};
+    Object.keys(moodWord).forEach(function(w){ if(q.indexOf(w)>=0){ all.forEach(function(e){ if(e.mood===moodWord[w] && chosen.indexOf(e)<0) chosen.push(e); }); } });
+    all.slice(0,10).forEach(function(e){ if(chosen.indexOf(e)<0) chosen.push(e); });
+    chosen=chosen.slice(0,30);
+    chosen.sort(function(a,b){return ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||''));});
+    lines.push('JOURNAL ('+state.jr.length+' entries total; '+chosen.length+' most relevant to the question shown):');
+    chosen.forEach(function(e){var body=plain(e.content).slice(0,300);lines.push('- '+(e.date||'')+' '+(e.time||'')+(e.mood?' ['+e.mood+']':'')+(e.location?' @'+e.location:'')+' "'+String(e.title||'').replace(/"/g,'')+'": '+body);});
+    lines.push('JOURNAL RULES: Answer journal questions from the entries above. If a specific entry is not shown but the total suggests more exist, say you searched the most relevant entries. Never invent journal history, dates, or counts.');
   } else { lines.push('JOURNAL: (no entries yet)'); }
   return lines.join('\n');
 }
@@ -3846,9 +3879,10 @@ function aiResolveTask(name,id){
 }
 function uaiPrompt(text,conversationContext){
   return 'You are the universal AI assistant for Personal Tracker. You can READ/CREATE/UPDATE/DELETE across the app: Habits, Tasks, Expenses/Transactions, Mood, Sleep, Journal, Workouts/Exercises, Settings and Navigation.\n\n'
-  +'APP DATA:\n'+buildDataContext()+'\n\nPERSISTENT USER PREFERENCES (explicitly saved):\n'+preferenceText()+'\n\n'
+  +'APP DATA:\n'+buildDataContext(text)+'\n\nPERSISTENT USER PREFERENCES (explicitly saved):\n'+preferenceText()+'\n\n'
   +'RESPOND WITH ONLY ONE JSON OBJECT (no markdown, no backticks, no extra text):\n'
-  +'{"action":"TYPE","params":{...},"message":"short confirmation"}\n\n'
+  +'{"action":"TYPE","params":{...},"message":"..."}\\n'
+  +'For query actions, "message" must contain the FULL answer to the question (as many sentences as needed, with specific data from APP DATA). For create/update/delete actions, "message" is a short confirmation.\\n\\n'
   +'ACTIONS:\n'
   +'add_expense: {amt,cat,sub,note,payee,kind("exp"/"inc"),date("YYYY-MM-DD"),acct}\n'
   +'delete_expense: {id,date,cat,amt,payee} for one matching expense; if ambiguous ask for clarification\n'
@@ -3874,7 +3908,8 @@ function uaiPrompt(text,conversationContext){
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
   +'navigate: {tab(today/tasks/mood/exp/stats/ai/set)}\n'
   +'query: {} message=answer the question from app data. This INCLUDES journal questions; answer ONLY from JOURNAL entries in APP DATA; if nothing matches say you could not find a journal entry about it; never invent journal entries, dates, or counts.\n'
-  +'clarify: {} message=ask for missing info\n\n'
+  +'clarify: {} message=ask for missing info \u2014 USE ONLY when CREATING/UPDATING something and a REQUIRED field is missing. NEVER use clarify to answer a question.\\n\\n'
+  +'CRITICAL QUESTION RULE: If the user is ASKING something (a question, or starts with can/could/do/does/what/when/where/who/why/how/show/tell/summarize/list/compare/did/have/is/are, or asks about their journal, habits, mood, sleep, spending, tasks, or workouts) you MUST use action "query" and ANSWER using APP DATA. Never return clarify for a question. Example: "can you access journal data?" -> query + answer yes with a brief summary of what the journal shows. "what makes me happy?" -> query + answer from journal/mood. If specific data is absent, still use query and say what you found or did not find — do not ask for more info in response to a question.\\n\\n'
   +'For add_expense, acct must be the account ID shown in APP DATA (preferred) or the exact account name; never use a merchant/payee/category as the account. If the user does not specify an account, leave acct empty and let the app choose the active default account. Put merchant names such as Swiggy in payee, not acct.\n'
   +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep the message concise and conversational, usually 1-3 sentences.\n'
   +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n'
@@ -4080,8 +4115,21 @@ function uaiSend(text){
     if(completeness){
       try{localStorage.setItem('uai_pending_action_v1',JSON.stringify({action:result.action,params:result.params||{},missing:completeness.msg,ts:Date.now()}));}catch(e){}
       result=completeness;result.isClarify=true;
-    } else if(result && result.action && result.action!=='clarify' && result.action!=='query'){
-      try{localStorage.removeItem('uai_pending_action_v1');}catch(e){}
+    } else {
+      if(result && result.action && result.action!=='clarify' && result.action!=='query'){
+        try{localStorage.removeItem('uai_pending_action_v1');}catch(e){}
+      }
+      /* Execute the model's action to normalize it into {ok,isQuery,msg,...}.
+         (clarify stays as-is: show its message.) */
+      if(result && result.action && result.action!=='clarify'){
+        try{
+          var _msgIn=result.message||result.msg||'';
+          var _exec=executeAction({action:result.action, params:result.params||{}, message:_msgIn});
+          if(_exec && typeof _exec==='object') result=_exec;
+        }catch(e){ result={ok:0,msg:'Could not complete that: '+(e&&e.message||'error')}; }
+      } else if(result && result.action==='clarify'){
+        result={ok:0, msg:(result.message||result.msg||'Could you give me a bit more detail?'), isClarify:true};
+      }
     }
     var html='<div class="uaiMsg bot">';
     if(result.ok){
@@ -4096,7 +4144,7 @@ function uaiSend(text){
     var assistantText=String(result.msg||'').replace(/<[^>]+>/g,'').trim();if(assistantText)saveUaiChatTurn('assistant',assistantText);
     addUaiFollowups(uaiSuggestedFollowups(result));
     reRenderCurrent();
-  }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();var msg=e.message||'AI request failed.';log.innerHTML+='<div class="uaiMsg err">'+esc(msg)+'</div>';saveUaiChatTurn('assistant',msg);log.scrollTop=log.scrollHeight;});
+  }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();var raw=(e&&e.message)||'AI request failed.';var msg=raw;var isKey=/no api key|api key|unknown provider/i.test(raw);if(isKey){msg='⚠ The AI isn\'t set up yet. Add a free API key in AI settings to enable answers about your journal, habits, and more.';}log.innerHTML+='<div class="uaiMsg err">'+esc(msg)+'</div>';saveUaiChatTurn('assistant',msg);if(isKey){log.innerHTML+='<div style="margin:8px 0"><button class="sbtn acc" id="uaiOpenCfg">Open AI settings</button></div>';var ob=$('uaiOpenCfg');if(ob)ob.addEventListener('click',function(){var c=$('aiCfg');if(c){c.classList.add('open');c.scrollIntoView({behavior:'smooth',block:'center'});}});}log.scrollTop=log.scrollHeight;});
 }
 
 function reRenderCurrent(){try{if($('pgToday').classList.contains('on'))renderToday();if($('pgMood')&&$('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();if($('pgTasks').classList.contains('on'))renderTasks();}catch(e){}}
@@ -4104,7 +4152,7 @@ function periodRate(h,days){var now=new Date(),due=0,done=0;for(var i=0;i<days;i
 
 // ---- AI weekly narrative ----
 function genWeeklyNarrative(){
-  var ctx=buildDataContext();
+  var ctx=buildDataContext(text);
   var prompt='You are a supportive personal tracker AI. Write a 2-3 sentence weekly summary for the user based on this data. Be specific, mention actual habit names and numbers. Be encouraging but honest. No generic advice.\n\nDATA:\n'+ctx;
   gemCall(prompt,200).then(function(r){
     localStorage.setItem('ai_weekly_narr',r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
@@ -5911,6 +5959,40 @@ function jrStopVoice(finalTxt){
   };
 })();
 
+function jrJournalContext(query){
+  var plain=function(h){var d=document.createElement('div');d.innerHTML=String(h||'');return (d.textContent||'').replace(/\s+/g,' ').trim();};
+  var all=(state.jr||[]).slice().sort(function(a,b){return ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||''));});
+  if(!all.length) return '(no journal entries yet)';
+  var q=(query||'').toLowerCase(), chosen=[];
+  var stop={what:1,when:1,that:1,this:1,about:1,between:1,happened:1,during:1,have:1,been:1,were:1,they:1,with:1,from:1,your:1,tell:1,show:1,give:1,days:1,day:1,entries:1,entry:1,journal:1,write:1,wrote:1,feeling:1,feel:1,make:1,makes:1,recurring:1};
+  var words=(q.match(/[a-z0-9']{4,}/g)||[]).filter(function(w){return !stop[w];});
+  if(words.length){var sc=[];all.forEach(function(e){var hay=(plain(e.content)+' '+(e.title||'')+' '+(e.mood||'')).toLowerCase();var s2=0;words.forEach(function(w){if(hay.indexOf(w)>=0)s2++;});if(s2>0)sc.push([s2,e]);});sc.sort(function(a,b){return b[0]-a[0];});chosen=sc.slice(0,18).map(function(x){return x[1];});}
+  var iso=q.match(/(\d{4}-\d{2}-\d{2})/g);
+  if(iso&&iso.length){var a=iso[0],b=iso[1]||iso[0];if(a>b){var t=a;a=b;b=t;}all.forEach(function(e){if(e.date>=a&&e.date<=b&&chosen.indexOf(e)<0)chosen.push(e);});}
+  var mw={sad:'low',unhappy:'low',down:'low',low:'low',difficult:'diff',hard:'diff',happy:'good',great:'great',good:'good',okay:'okay'};
+  Object.keys(mw).forEach(function(w){if(q.indexOf(w)>=0){all.forEach(function(e){if(e.mood===mw[w]&&chosen.indexOf(e)<0)chosen.push(e);});}});
+  all.slice(0,12).forEach(function(e){if(chosen.indexOf(e)<0)chosen.push(e);});
+  chosen=chosen.slice(0,35);
+  chosen.sort(function(a,b){return ((b.date||'')+(b.time||'')).localeCompare((a.date||'')+(a.time||''));});
+  var lines=['JOURNAL ('+all.length+' entries total; '+chosen.length+' most relevant shown):'];
+  chosen.forEach(function(e){lines.push('- '+(e.date||'')+' '+(e.time||'')+(e.mood?' ['+e.mood+']':'')+(e.location?' @'+e.location:'')+' "'+String(e.title||'').replace(/"/g,'')+'": '+plain(e.content).slice(0,320));});
+  return lines.join('\n');
+}
+function jrAskJournal(question){
+  question=String(question||'').trim(); if(!question) return;
+  var box=$('jrAskOut'); if(!box) return;
+  if(!(state.jr&&state.jr.length)){ box.innerHTML='<div class="jrAiOut"><div class="b">Your journal is empty — write some entries first.</div></div>'; return; }
+  box.innerHTML='<div class="jrAiOut"><div class="h">\u2728 '+esc(question)+' <span class="jrSpin"></span></div><div class="b">Searching your journal…</div></div>';
+  var prompt='You are a JOURNAL-ONLY assistant. You may ONLY use the journal entries below to answer. You must NOT discuss habits, tasks, money, sleep, workouts, or anything outside the journal — if asked about those, say you only handle journal questions. Answer the user\'s question warmly and specifically, citing entry dates. If the journal does not contain the answer, say you searched but could not find it. Never invent entries, dates, or counts.\n\n'+jrJournalContext(question)+'\n\nQUESTION: '+question+'\n\nAnswer in a few sentences using only the journal above.';
+  gemCall(prompt, 500).then(function(r){
+    var safe=String(r||'').replace(/</g,'&lt;').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+    box.innerHTML='<div class="jrAiOut"><div class="h">\u2728 '+esc(question)+'</div><div class="b">'+safe+'</div><button class="jrListen" data-jrtts="'+esc(String(r||'')).replace(/"/g,'&quot;')+'">\uD83D\uDD0A Listen</button></div>';
+  }).catch(function(e){
+    var msg=(e&&e.message)||'';
+    if(/no api key|api key|unknown provider/i.test(msg)) box.innerHTML='<div class="jrAiOut"><div class="b">\u26A0 Add a free API key in More \u2192 AI settings to enable journal answers.</div></div>';
+    else box.innerHTML='<div class="jrAiOut"><div class="b">Could not get an answer: '+esc(msg)+'</div></div>';
+  });
+}
 function jrWholeAi(){
   if(!state.jr.length){ jrAiShow('jrInsAiOut','Whole-journal analysis','Your journal is empty. Write a few entries and I can look for themes and patterns.'); return; }
   jrAiBox('jrInsAiOut','Whole-journal analysis');
@@ -8322,6 +8404,24 @@ function init(){
       h+='</table>';
     }
 
+    // Journal (entries this month)
+    try{
+      var jrMonth=(state.jr||[]).filter(function(e){return e.date>=ms && e.date<=me;}).sort(function(a,b){return (a.date+(a.time||'')).localeCompare(b.date+(b.time||''));});
+      if(jrMonth.length){
+        var jrDays={}; jrMonth.forEach(function(e){jrDays[e.date]=1;});
+        var jrWords=jrMonth.reduce(function(a,e){var d=document.createElement('div');d.innerHTML=String(e.content||'');return a+(d.textContent||'').split(/\s+/).filter(Boolean).length;},0);
+        var jrMoods={}; jrMonth.forEach(function(e){if(e.mood)jrMoods[e.mood]=(jrMoods[e.mood]||0)+1;});
+        var moodLbl={great:'Great',good:'Good',okay:'Okay',low:'Low',diff:'Difficult'};
+        var moodStr=Object.keys(jrMoods).sort(function(a,b){return jrMoods[b]-jrMoods[a];}).map(function(mk){return (moodLbl[mk]||mk)+' ×'+jrMoods[mk];}).join(', ')||'—';
+        h+='<div class="sec">Journal</div>';
+        h+='<p>Entries: <b>'+jrMonth.length+'</b> across <b>'+Object.keys(jrDays).length+'</b> days · <b>'+jrWords.toLocaleString()+'</b> words written.</p>';
+        h+='<p>Moods logged: '+moodStr+'</p>';
+        h+='<table><tr><th>Date</th><th>Entry</th><th>Mood</th></tr>';
+        jrMonth.slice(-20).forEach(function(e){var dv=document.createElement('div');dv.innerHTML=String(e.content||'');var snip=(e.title|| (dv.textContent||'').trim()).slice(0,60);h+='<tr><td>'+e.date+'</td><td>'+String(snip).replace(/</g,'&lt;')+'</td><td>'+(moodLbl[e.mood]||'—')+'</td></tr>';});
+        h+='</table>';
+        if(jrMonth.length>20) h+='<p style="font-size:11px;color:#888">Showing the 20 most recent of '+jrMonth.length+' entries.</p>';
+      }
+    }catch(e){}
     h+='<div class="footer">Generated by Personal Tracker · Developed by Vishal · For personal use only<br>'+new Date().toLocaleDateString()+'</div>';
     h+='</body></html>';
 
@@ -8412,6 +8512,15 @@ function init(){
     if(stog) stog.addEventListener('click',function(){ var r=state.set.reminders; r.smart=!r.smart; this.classList.toggle('on',r.smart); saveRem(); });
     if(jt) jt.addEventListener('change',function(){ state.set.reminders.journalTime=this.value; saveRem(); });
     if(et) et.addEventListener('change',function(){ state.set.reminders.expenseTime=this.value; saveRem(); });
+    var qtog=$('remQuickTog');
+    if(qtog){
+      qtog.classList.toggle('on', !!rc.quickAdd);
+      if(rc.quickAdd && nat && nat.showQuickAdd){ try{ nat.showQuickAdd(); }catch(e){} }
+      qtog.addEventListener('click',function(){
+        var r=state.set.reminders; r.quickAdd=!r.quickAdd; this.classList.toggle('on',r.quickAdd); persist();
+        try{ if(r.quickAdd){ if(nat&&nat.showQuickAdd) nat.showQuickAdd(); else toastN('Available in the Android app'); } else { if(nat&&nat.hideQuickAdd) nat.hideQuickAdd(); } }catch(e){}
+      });
+    }
   })();
   /* ===== More hub + global AI (Phase 1) ===== */
   var _aiFab=$('aiFab'); if(_aiFab) _aiFab.addEventListener('click', function(){ showTab('pgAI'); });
@@ -8476,6 +8585,9 @@ function init(){
   var _askTalk=$('jrAskTalk'); if(_askTalk) _askTalk.addEventListener('click', function(){ var m=$('jrAskDayMenu'); if(m) m.classList.remove('on'); openJrReflect(); });
   var _askMenu=$('jrAskDayMenu'); if(_askMenu) _askMenu.addEventListener('click', function(e){ if(climb(e.target,this,'data-jrday')) this.classList.remove('on'); });
   $('jrWholeAiBtn').addEventListener('click', jrWholeAi);
+  var _jrAskSend=$('jrAskSend'); if(_jrAskSend) _jrAskSend.addEventListener('click', function(){ var inp=$('jrAskInput'); if(inp&&inp.value.trim()) jrAskJournal(inp.value); });
+  var _jrAskInput=$('jrAskInput'); if(_jrAskInput) _jrAskInput.addEventListener('keydown', function(e){ if(e.key==='Enter'&&this.value.trim()) jrAskJournal(this.value); });
+  var _jrAskChips=$('jrAskChips'); if(_jrAskChips) _jrAskChips.addEventListener('click', function(e){ var b=climb(e.target,this,'data-jrask'); if(b){ var qv=b.getAttribute('data-jrask'); var inp=$('jrAskInput'); if(inp) inp.value=qv; jrAskJournal(qv); } });
   var jrDayRow=$('jrDayAiOut'); /* day AI buttons are in timeline view */
   document.querySelectorAll('[data-jrday]').forEach(function(b){ b.addEventListener('click', function(){ jrDayAi(this.getAttribute('data-jrday')); }); });
   $('jrCalGrid').addEventListener('click', function(e){ var b=climb(e.target,this,'data-jcal'); if(b) jrCalPick(b.getAttribute('data-jcal')); });
@@ -9025,6 +9137,9 @@ function handleLaunchAction(){
     else if(_la.addHabit){ showTab('pgToday'); setTimeout(function(){openEdit(null);},150); }
     else if(_la.workout){ showTab('pgStats'); if(_la.workout!=='1') setTimeout(function(){ try{ openLog(_la.workout); }catch(e){ try{ openEx(_la.workout); }catch(e2){} } },180); }
     else if(_la.add){ openExpFromWidget(_la.add, _la.acct); }
+    else if(_la.addJournal){ showTab('pgJr'); setTimeout(function(){ if(typeof openJr==='function') openJr(null); },150); }
+    else if(_la.addSleep){ showTab('pgToday'); setTimeout(function(){ if(typeof openSleep==='function') openSleep(today()); },150); }
+    else if(_la.addMood){ showTab('pgJr'); setTimeout(function(){ if(typeof jrGo==='function'){ jrGo('insights'); var mb=$('jrMoodInsBtn'); if(mb){ var pnl=$('jrMoodPanel'); if(pnl&&pnl.style.display==='none') mb.click(); var g=$('moGrid'); if(g&&g.scrollIntoView) g.scrollIntoView({behavior:'smooth',block:'center'}); } } },160); }
   }catch(e){}
 }
 handleLaunchAction();

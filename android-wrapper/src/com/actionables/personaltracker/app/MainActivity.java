@@ -319,6 +319,62 @@ public class MainActivity extends Activity {
         launchSpeech();
     }
 
+    static final int QUICK_ADD_NOTIF_ID = 0x51CA;
+    static final String QUICK_CHANNEL = "quick_add_v1";
+    PendingIntent quickPI(String key){
+        Intent i = new Intent(this, MainActivity.class);
+        i.putExtra(key, "1"); i.putExtra("fromWidget","1");
+        i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT>=23 ? PendingIntent.FLAG_IMMUTABLE : 0);
+        return PendingIntent.getActivity(this, key.hashCode()&0xffff, i, flags);
+    }
+    void showQuickAddNotif(){
+        try{
+            if(Build.VERSION.SDK_INT>=33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED){ requestNotifications(); return; }
+            NotificationManager nm=(NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+            if(Build.VERSION.SDK_INT>=26){
+                NotificationChannel ch=new NotificationChannel(QUICK_CHANNEL, "Quick add", NotificationManager.IMPORTANCE_LOW);
+                ch.setDescription("Persistent shortcut to add entries quickly");
+                ch.setShowBadge(false);
+                nm.createNotificationChannel(ch);
+            }
+            Notification.Builder bld = (Build.VERSION.SDK_INT>=26) ? new Notification.Builder(this, QUICK_CHANNEL) : new Notification.Builder(this);
+            bld.setSmallIcon(getApplicationInfo().icon)
+               .setContentTitle("Personal Tracker")
+               .setContentText("Tap to quickly add: habit · task · mood · journal")
+               .setOngoing(true)
+               .setContentIntent(quickPI("tab"))
+               .setPriority(Notification.PRIORITY_LOW);
+            bld.addAction(0, "Task", quickPI("addTask"));
+            bld.addAction(0, "Journal", quickPI("addJournal"));
+            bld.addAction(0, "Expense", quickPI("add"));
+            nm.notify(QUICK_ADD_NOTIF_ID, bld.build());
+        }catch(Exception e){ toast("Could not show quick-add notification"); }
+    }
+    void hideQuickAddNotif(){
+        try{ ((NotificationManager)getSystemService(NOTIFICATION_SERVICE)).cancel(QUICK_ADD_NOTIF_ID); }catch(Exception e){}
+    }
+
+    @android.annotation.TargetApi(28)
+    void showBiometricPrompt(){
+        try{
+            if(Build.VERSION.SDK_INT < 28){ js("window.bioResult&&window.bioResult(false)"); return; }
+            android.hardware.biometrics.BiometricPrompt bp = new android.hardware.biometrics.BiometricPrompt.Builder(this)
+                .setTitle("Unlock Personal Tracker")
+                .setSubtitle("Use your fingerprint or face to unlock")
+                .setNegativeButton("Use PIN", getMainExecutor(), new android.content.DialogInterface.OnClickListener(){
+                    public void onClick(android.content.DialogInterface d, int w){ js("window.bioResult&&window.bioResult(false)"); }
+                })
+                .build();
+            bp.authenticate(new android.os.CancellationSignal(), getMainExecutor(),
+                new android.hardware.biometrics.BiometricPrompt.AuthenticationCallback(){
+                    @Override public void onAuthenticationSucceeded(android.hardware.biometrics.BiometricPrompt.AuthenticationResult r){ js("window.bioResult&&window.bioResult(true)"); }
+                    @Override public void onAuthenticationError(int code, CharSequence msg){ js("window.bioResult&&window.bioResult(false)"); }
+                    // onAuthenticationFailed = a single bad read; prompt stays open, do nothing.
+                });
+        }catch(Exception e){ js("window.bioResult&&window.bioResult(false)"); }
+    }
+
     void launchSpeech() {
         try {
             Intent i = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
@@ -481,9 +537,19 @@ public class MainActivity extends Activity {
             });
         }
 
-        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){String[] keys={"habit","task","tab","add","acct","addTask","addHabit","workout","fromWidget"};for(String k:keys){String v=i.getStringExtra(k);if(v!=null){o.put(k,v);i.removeExtra(k);}}}}catch(Exception ignored){}return o.toString();}
-        @JavascriptInterface public boolean bioAvail(){return false;}
-        @JavascriptInterface public void bio(){}
+        @JavascriptInterface public String getLaunchAction(){Intent i=getIntent();JSONObject o=new JSONObject();try{if(i!=null){String[] keys={"habit","task","tab","add","acct","addTask","addHabit","workout","fromWidget","addJournal","addMood","addSleep"};for(String k:keys){String v=i.getStringExtra(k);if(v!=null){o.put(k,v);i.removeExtra(k);}}}}catch(Exception ignored){}return o.toString();}
+        @JavascriptInterface public boolean bioAvail(){
+            try{
+                if(Build.VERSION.SDK_INT < 29) return false;
+                android.hardware.biometrics.BiometricManager bm=(android.hardware.biometrics.BiometricManager)getSystemService(BIOMETRIC_SERVICE);
+                return bm!=null && bm.canAuthenticate()==android.hardware.biometrics.BiometricManager.BIOMETRIC_SUCCESS;
+            }catch(Exception e){ return false; }
+        }
+        @JavascriptInterface public void showQuickAdd(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.showQuickAddNotif(); } }); }
+        @JavascriptInterface public void hideQuickAdd(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.hideQuickAddNotif(); } }); }
+        @JavascriptInterface public void bio(){
+            MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.showBiometricPrompt(); } });
+        }
         @JavascriptInterface public void pickDate(int y,int m,int d){MainActivity.this.pickDate(y,m,d);}
         @JavascriptInterface public void pickTime(int h,int m){MainActivity.this.pickTime(h,m);}
         @JavascriptInterface public void pickImport(){MainActivity.this.importFile("backup");}

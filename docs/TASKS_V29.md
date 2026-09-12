@@ -526,3 +526,95 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 - Today sleep+workout hidden; Tasks fab hidden + export sheet; journal location/voice-status/mic
   present; computeAlarms emits journal+expense reminders; settings toggles flip + persist;
   all pages render; zero errors.
+
+---
+
+# V1.5.3 — AI assistant fix (journal/habits Q&A)
+
+## Root cause of "just says need more data"
+- The AI is BRING-YOUR-OWN-KEY: gemCall() rejects with "No API key" if none is set in
+  Settings -> AI configuration. With no key, every question (journal, habits, etc.) fails.
+  The vague failure looked like "need more data".
+- Secondary issue: journal context was capped at the 12 most-recent entries, so questions about
+  older/specific dates or moods ("sad moment", "between these days") couldn't be answered even
+  with a key.
+
+## Fixes
+- Clear, actionable error when the key is missing: explains the AI needs a free API key and shows
+  an "Open AI settings" button (instead of a cryptic message).
+- Smart, query-aware journal retrieval in buildDataContext(query):
+  * keyword match across ALL entries (not just recent 12),
+  * date-range detection (YYYY-MM-DD in the question),
+  * mood-sentiment mapping ("sad"->low, "happy"->good, etc.),
+  * plus the 10 most recent as baseline; capped at 30 most relevant.
+  buildDataContext now receives the user's question at both call sites (uaiPrompt + weekly narr).
+
+## Verified (real Chromium)
+- keyword "family" surfaces a 2025 entry; "sad" pulls the low-mood entry; date-range finds the
+  Jan entry; no-key path shows the guidance + Open AI settings button; all pages render; no errors.
+
+## Note to user
+- To actually use the AI you must add an API key (e.g. free Google Gemini key) in
+  Settings -> AI configuration. The app cannot ship a shared key. Once added, journal/habits/etc.
+  questions work, including "what happened on <date>" and "sad moments".
+
+---
+
+# V1.5.4 — CRITICAL AI FIX: answers never rendered (always "need more information")
+
+## Real root cause (found via screenshot: key WAS set)
+- In uaiSend, after parsing the model's JSON {action,message}, the code NEVER called
+  executeAction to normalize it. The renderer checks result.isQuery / result.ok / result.msg,
+  but the raw model object only had result.action + result.message. So EVERY response fell
+  through to the "I need a little more information." fallback — for journal, habits, everything.
+  (Previous "no API key" theory was wrong; the key was configured.)
+
+## Fix
+- uaiSend now calls executeAction({action,params,message}) on the parsed result (unless clarify),
+  converting query -> {ok:1,isQuery:1,msg} and CRUD -> proper {ok/needConfirm/...}. clarify is
+  shown as its message.
+- Prompt hardened: added a CRITICAL QUESTION RULE (questions -> query + answer, never clarify),
+  restricted clarify to create/update with a missing field, and specified that query "message"
+  must contain the FULL answer.
+
+## Verified (real Chromium, stubbed model)
+- "can you access journal data?" -> renders the full answer (not the clarify fallback).
+- add_expense CRUD still executes correctly.
+- All pages render; zero errors.
+
+## Combined with V1.5.3 smart retrieval
+- Journal questions now search ALL entries by keyword/date/mood (not just recent 12), so
+  "sad moments", "what happened on <date>", "between <d1> and <d2>" work once answered.
+
+---
+
+# V1.5.5 — journal-only AI, report journal, biometric, persistent quick-add
+
+## Journal-only AI (new)
+- Journal > Insights now has "✨ Ask your journal": a dedicated assistant that answers ONLY
+  from journal entries (refuses habits/tasks/money/etc.). Uses smart retrieval (keyword/date/mood
+  across ALL entries) + a strict journal-only prompt. Quick chips: recent themes, sad moments,
+  what makes me happy, recurring struggles. Verified journal-only prompt + rendering.
+
+## Monthly report now includes Journal
+- Added a Journal section: entries count, days journaled, words written, mood breakdown, and a
+  table of up to 20 entries for the month. Verified via the report button.
+
+## Biometric (fingerprint/face) — IMPLEMENTED (needs device testing)
+- Previously a stub (bioAvail=false, bio=noop) so it never worked.
+- Implemented native android.hardware.biometrics.BiometricPrompt (API 28/29+): bioAvail() now
+  checks BiometricManager; bio() shows the system fingerprint/face prompt and calls window.bioResult(true/false).
+- Added USE_BIOMETRIC permission. HONEST: written to spec but NOT compiled/tested here — needs
+  on-device verification (hardware + Android version + enrollment). Works API 29+; older devices
+  fall back to PIN.
+
+## Persistent quick-add notification (simpler, safe version)
+- Per user choice, NOT a foreground service (which risked blocking app launch). Instead an ONGOING
+  normal notification with actions (Task/Journal/Expense) that deep-link into existing quick-add
+  flows via getLaunchAction. Toggle in Settings > Reminders. New deep-link keys addJournal/addMood/
+  addSleep wired in handleLaunchAction + getLaunchAction. HONEST: native notification code not
+  testable here; needs device verification.
+
+## Verified (real Chromium, web side)
+- All pages render; journal-only ask box works with journal-only prompt; monthly report includes
+  Journal section; settings toggles present; bioResult callback present; zero errors.
