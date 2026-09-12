@@ -1635,6 +1635,17 @@ try{localStorage.removeItem('ai_recent');}catch(e){} // Recent feature removed (
 function uaiChatHistory(){try{return JSON.parse(localStorage.getItem('uai_chat_history_v1')||'[]');}catch(e){return[];}}
 function saveUaiChatTurn(who,text){try{var h=uaiChatHistory();h.push({who:who,text:String(text||'').slice(0,1200),ts:Date.now()});if(h.length>20)h=h.slice(-20);localStorage.setItem('uai_chat_history_v1',JSON.stringify(h));}catch(e){}}
 function uaiChatContext(){return uaiChatHistory().slice(-12).map(function(x){return (x.who==='user'?'User':'Assistant')+': '+x.text;}).join('\n');}
+function uaiCollapse(innerHtml, rawText){
+  /* Wrap long answers in a Read more/less collapser to save space. */
+  var plainLen=String(rawText||'').replace(/<[^>]+>/g,'').length;
+  var liCount=(innerHtml.match(/<li>/g)||[]).length;
+  var isLong = plainLen>420 || liCount>5;
+  if(!isLong) return innerHtml;
+  var id='clp'+Math.random().toString(36).slice(2,8);
+  return '<div class="uaiCollapse collapsed" id="'+id+'"><div class="uaiCollapseInner">'+innerHtml+'</div>'
+    +'<div class="uaiCollapseFade"></div>'
+    +'<button class="uaiReadMore" data-collapse="'+id+'">Read more ▾</button></div>';
+}
 function uaiFormat(raw){
   var s=String(raw||'');
   // escape HTML first
@@ -1705,14 +1716,14 @@ function uaiSend(text){
       }
     }
     var html='<div class="uaiMsg bot">';
-    if(result.isQuery){html+=uaiFormat(result.msg||'');}
+    if(result.isQuery){html+=uaiCollapse(uaiFormat(result.msg||''), result.msg||'');}
     else if(result.ok){
       html+='<div class="uaiAction"><div class="uaiCheck">✓ '+esc(result.msg||'Done')+'</div>'+(result.detail?'<div class="uaiDetail">'+esc(result.detail)+'</div>':'')+'</div>';
       if(result.undo){var uid='_u'+Date.now();window[uid]=result.undo;html+='<div class="uaiBtns"><button onclick="'+uid+'();this.closest(\'.uaiMsg\').remove();reRenderCurrent();toastN(\'Undone\')">Undo</button></div>';}
     }else if(result.needConfirm&&result.pending){
       var pid='aiConfirm_'+Date.now();window[pid]=function(){var rr=executeAction(result.pending);var lg=$('uaiLog');if(lg){lg.innerHTML+='<div class="uaiMsg bot"><div class="uaiAction"><div class="uaiCheck">'+(rr.ok?'✓ ':'')+esc(rr.msg||'Done')+'</div>'+(rr.detail?'<div class="uaiDetail">'+esc(rr.detail)+'</div>':'')+'</div></div>';saveUaiChatTurn('assistant',rr.msg||'Done');lg.scrollTop=lg.scrollHeight;}reRenderCurrent();};
       html+='<div class="uaiAction"><div class="uaiCheck">'+esc(result.msg)+'</div><div class="uaiBtns"><button class="primary" onclick="'+pid+'();this.disabled=true">Confirm</button><button class="sbtn" onclick="this.closest(\'.uaiMsg\').remove()">Cancel</button></div></div>';
-    }else if(result.isQuery){html+=uaiFormat(result.msg||'');}
+    }else if(result.isQuery){html+=uaiCollapse(uaiFormat(result.msg||''), result.msg||'');}
     else{html+=esc(result.msg||'I need a little more information.');}
     html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;
     var assistantText=String(result.msg||'').replace(/<[^>]+>/g,'').trim();if(assistantText)saveUaiChatTurn('assistant',assistantText);
@@ -3561,7 +3572,7 @@ function jrRenderChat(){
   var clr=$('jrChatClear'); if(clr) clr.style.display = h.length? '' : 'none';
   log.innerHTML = h.map(function(m){
     if(m.who==='user') return '<div class="jrChatMsg user">'+esc(m.text)+'</div>';
-    return '<div class="jrChatMsg bot">'+uaiFormat(m.text)+'<button class="jrListen" data-jrtts="'+esc(m.text).replace(/"/g,'&quot;')+'">\uD83D\uDD0A Listen</button></div>';
+    return '<div class="jrChatMsg bot">'+uaiCollapse(uaiFormat(m.text), m.text)+'<button class="jrListen" data-jrtts="'+esc(m.text).replace(/"/g,'&quot;')+'">\uD83D\uDD0A Listen</button></div>';
   }).join('');
   log.scrollTop=log.scrollHeight;
 }
@@ -6212,6 +6223,7 @@ function init(){
   $('jrDelBtn').addEventListener('click', onJrDelete);
   /* Listen (TTS) + source links, delegated on the page + sheets */
   document.addEventListener('click', function(e){
+    var rm=climb(e.target,document.body,'data-collapse'); if(rm){ var box=$(rm.getAttribute('data-collapse')); if(box){ var open=box.classList.toggle('collapsed'); rm.textContent = box.classList.contains('collapsed')?'Read more ▾':'Show less ▴'; } return; }
     var t=climb(e.target,document.body,'data-jrtts'); if(t){ jrSpeak(t.getAttribute('data-jrtts')); return; }
     var jd=climb(e.target,document.body,'data-jrdate'); if(jd){ var dt=jd.getAttribute('data-jrdate'); var ent=(state.jr||[]).filter(function(x){return x.date===dt;}); if(ent.length){ showTab('pgJr'); setTimeout(function(){ if(ent.length===1) openJr(ent[0].id); else { jrGo('calendar'); if(typeof jrCalPick==='function') jrCalPick(dt); } },140); } return; }
     var s=climb(e.target,document.body,'data-jid'); if(s && s.classList.contains('jrSrcItem')){ openJr(s.getAttribute('data-jid')); }

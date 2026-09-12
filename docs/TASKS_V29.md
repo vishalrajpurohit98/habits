@@ -653,3 +653,12 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
 ## Verified (real Chromium)
 - 2-turn conversation renders user+bot bubbles; follow-up answered with context; history persists
   across view switches; clear works; date links tappable; all pages render; zero errors.
+
+---
+
+# V1.5.8 — Read more/less for long AI answers
+- Long AI answers (journal chat + universal AI query) now collapse with a fade + "Read more ▾"
+  toggle to save space; tap expands to "Show less ▴". Heuristic: collapse if >420 chars or >5
+  list items; short answers are unaffected.
+- Verified (real Chromium): long answer collapses + expands on click; short answer not collapsed;
+  all pages render; zero errors.
