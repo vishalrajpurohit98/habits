@@ -358,7 +358,9 @@ function _persistHeavy(){
   if(json){ if(nat){try{nat.saveState(json);}catch(e){}} }
   pushAlarms();
   if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}}
-  if(typeof scheduleSyncPush==='function')scheduleSyncPush();
+  /* Manual sync: changes are queued (above) but NOT auto-pushed. User taps "Sync now" to push.
+     (Set state so the UI can show there are unsynced changes.) */
+  try{ if(fbUser && Object.keys(syncPendingRecords||{}).length && syncState!=='syncing') setSyncState('pending'); }catch(e){}
 }
 function persist(opts){
   state.mtime=Date.now(); var json=stateJson();
@@ -5350,17 +5352,9 @@ function attachFirestoreSync(u){
   syncLegacyMode=false;
   syncInitialHydration=true;
   setSyncState('syncing');
-  fbUnsub=fbRecords.onSnapshot({includeMetadataChanges:true},function(snap){
-    if(syncApplying)return;
-    var docs=[];
-    snap.docChanges().forEach(function(ch){if(ch.type==='added'||ch.type==='modified')docs.push(ch.doc);});
-    if(docs.length)applyRemoteRecords(docs);
-    if(!syncInitialHydration)setSyncState(snap.metadata.fromCache?'cached':'synced');
-  },function(e){
-    if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');return;}
-    setSyncState('error');syncMsg(prettySyncErr(e),true);
-  });
-  loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(){});
+  /* Manual-sync model: pull once on open (via syncReconcile's .get), then NO live listener.
+     The user taps "Sync now" to push/pull afterwards. This avoids continuous background sync. */
+  loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(e){ if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');} });
 }
 function detachFirestoreSync(){if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;fbDoc=null;syncMetaDoc=null;syncLegacyMode=false;}
 function syncReconcile(){
@@ -5430,12 +5424,13 @@ function renderTodaySyncUI(){
     btn.querySelector('span').textContent='Sign in';
     return;
   }
-  var stateLabel=syncState==='syncing'?'Syncing…':(syncState==='cached'||offline?'Offline (cached)':syncState==='error'?'Sync error':'Synced');
-  var stateClass=syncState==='syncing'?'syncing':(syncState==='cached'||offline?'cached':syncState==='error'?'error':'synced');
+  var stateLabel=syncState==='syncing'?'Syncing…':(syncState==='cached'||offline?'Offline (cached)':syncState==='error'?'Sync error':syncState==='pending'?'Changes to sync':'Synced');
+  var stateClass=syncState==='syncing'?'syncing':(syncState==='cached'||offline?'cached':syncState==='error'?'error':syncState==='pending'?'cached':'synced');
   dot.classList.add(stateClass);
   text.textContent=stateLabel;
   if(syncState==='error') sub.textContent='Check Settings for details';
   else if(syncState==='syncing') sub.textContent='Updating your cloud data';
+  else if(syncState==='pending') sub.textContent='Tap Sync to save changes to the cloud';
   else if(offline) sub.textContent='Changes stay safe on this device';
   else sub.textContent=syncLastAt?('Last cloud sync '+new Date(syncLastAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})):'Ready to sync';
   btn.querySelector('span').textContent=syncState==='syncing'?'Syncing…':'Sync';

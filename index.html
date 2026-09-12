@@ -282,8 +282,8 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .taskCommentPreview{margin-top:8px;padding:8px;border-left:3px solid var(--sPurple);background:rgba(151,113,255,.08);border-radius:8px;font-size:12px;line-height:1.5;white-space:pre-wrap}
 .taskCommentCount{font-size:10.5px;color:var(--mut);background:var(--card2);border-radius:9px;padding:4px 7px}
 .taskEmpty{margin-top:12px}.taskExport{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:11px 12px;margin-top:14px}.taskExport .taskExportRow{display:flex;gap:7px;align-items:center;flex-wrap:wrap}.taskExport .chip{padding:7px 10px;font-size:10.5px}.taskExportBtns{display:flex;gap:7px;margin-top:9px}.taskExportBtns .sbtn{flex:1}.taskSubEditor{display:flex;gap:7px;margin-bottom:8px}.taskSubEditor input{flex:1}.taskSubList{display:flex;flex-direction:column;gap:6px}.taskSubItem{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:11px;padding:8px}.taskSubItem .subChk{width:22px;height:22px;border-radius:7px;border:1.5px solid var(--line2);background:transparent;color:transparent;display:grid;place-items:center;flex:0 0 22px}.taskSubItem .subChk.on{background:var(--sGreen);border-color:var(--sGreen);color:#06120d}.taskSubItem .subText{flex:1;font-size:12.5px}.taskSubItem .subText.done{text-decoration:line-through;color:var(--mut)}.taskSubItem .subDel{color:var(--coral);font-size:16px;padding:3px 6px}.taskFormGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}.taskFormGrid .full{grid-column:1/-1}.taskReminderChips{display:flex;gap:7px;flex-wrap:wrap}.taskReminderChips .chip{font-size:11.5px;padding:8px 11px}.taskRecCustom{display:none;margin-top:8px}.taskRecCustom.on{display:flex;gap:8px;align-items:center}.taskRecCustom input{width:88px}.taskRecEnd{display:none;margin-top:8px}.taskRecEnd.on{display:block}.taskDash{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 13px;margin:8px 0 12px}.taskDashHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.taskDashHead b{font-size:13px}.taskDashHead button{font-size:11px;font-weight:800;color:var(--sBlue)}.taskDashLine{display:flex;gap:9px;flex-wrap:wrap}.taskDashLine span{font-size:11px;color:var(--mut)}.taskDashLine b{font-weight:900}.taskDashLine .red{color:var(--coral)}.taskDashLine .orange{color:var(--sOrange)}.taskDashLine .blue{color:var(--sBlue)}.taskDashLine .green{color:var(--sGreen)}
-#tabbar.dock{overflow-x:auto;justify-content:flex-start;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain}.dock::-webkit-scrollbar{display:none}#tabbar .tab{flex:0 0 82px;min-width:82px;touch-action:manipulation}
-@media(max-width:420px){#tabbar .tab{flex-basis:76px;min-width:76px}.taskSummary{gap:5px}.taskStat{padding-left:4px;padding-right:4px}}
+#tabbar.dock{overflow-x:hidden;justify-content:space-around;touch-action:manipulation}#tabbar .tab{flex:1 1 0;min-width:0;touch-action:manipulation}
+@media(max-width:420px){#tabbar .tab{flex:1 1 0;min-width:0}.taskSummary{gap:5px}.taskStat{padding-left:4px;padding-right:4px}}
 
 /* ============ FAB + DOCK ============ */
 #fab{position:fixed;right:16px;bottom:calc(96px + env(safe-area-inset-bottom,0px));
@@ -2918,7 +2918,9 @@ function _persistHeavy(){
   if(json){ if(nat){try{nat.saveState(json);}catch(e){}} }
   pushAlarms();
   if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}}
-  if(typeof scheduleSyncPush==='function')scheduleSyncPush();
+  /* Manual sync: changes are queued (above) but NOT auto-pushed. User taps "Sync now" to push.
+     (Set state so the UI can show there are unsynced changes.) */
+  try{ if(fbUser && Object.keys(syncPendingRecords||{}).length && syncState!=='syncing') setSyncState('pending'); }catch(e){}
 }
 function persist(opts){
   state.mtime=Date.now(); var json=stateJson();
@@ -7910,17 +7912,9 @@ function attachFirestoreSync(u){
   syncLegacyMode=false;
   syncInitialHydration=true;
   setSyncState('syncing');
-  fbUnsub=fbRecords.onSnapshot({includeMetadataChanges:true},function(snap){
-    if(syncApplying)return;
-    var docs=[];
-    snap.docChanges().forEach(function(ch){if(ch.type==='added'||ch.type==='modified')docs.push(ch.doc);});
-    if(docs.length)applyRemoteRecords(docs);
-    if(!syncInitialHydration)setSyncState(snap.metadata.fromCache?'cached':'synced');
-  },function(e){
-    if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');return;}
-    setSyncState('error');syncMsg(prettySyncErr(e),true);
-  });
-  loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(){});
+  /* Manual-sync model: pull once on open (via syncReconcile's .get), then NO live listener.
+     The user taps "Sync now" to push/pull afterwards. This avoids continuous background sync. */
+  loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(e){ if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');} });
 }
 function detachFirestoreSync(){if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;fbDoc=null;syncMetaDoc=null;syncLegacyMode=false;}
 function syncReconcile(){
@@ -7990,12 +7984,13 @@ function renderTodaySyncUI(){
     btn.querySelector('span').textContent='Sign in';
     return;
   }
-  var stateLabel=syncState==='syncing'?'Syncing…':(syncState==='cached'||offline?'Offline (cached)':syncState==='error'?'Sync error':'Synced');
-  var stateClass=syncState==='syncing'?'syncing':(syncState==='cached'||offline?'cached':syncState==='error'?'error':'synced');
+  var stateLabel=syncState==='syncing'?'Syncing…':(syncState==='cached'||offline?'Offline (cached)':syncState==='error'?'Sync error':syncState==='pending'?'Changes to sync':'Synced');
+  var stateClass=syncState==='syncing'?'syncing':(syncState==='cached'||offline?'cached':syncState==='error'?'error':syncState==='pending'?'cached':'synced');
   dot.classList.add(stateClass);
   text.textContent=stateLabel;
   if(syncState==='error') sub.textContent='Check Settings for details';
   else if(syncState==='syncing') sub.textContent='Updating your cloud data';
+  else if(syncState==='pending') sub.textContent='Tap Sync to save changes to the cloud';
   else if(offline) sub.textContent='Changes stay safe on this device';
   else sub.textContent=syncLastAt?('Last cloud sync '+new Date(syncLastAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})):'Ready to sync';
   btn.querySelector('span').textContent=syncState==='syncing'?'Syncing…':'Sync';

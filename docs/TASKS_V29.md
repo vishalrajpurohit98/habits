@@ -996,3 +996,19 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
   Monk+Progress icon, and brand_word.png (720x104) to read "InnerOs".
 - No JS change. HONEST: splash only updates after the APK is rebuilt + reinstalled; can't verify on
   device here.
+
+---
+# V1.13.0 — nav no-scroll + manual/incremental sync
+## Nav bar
+- Dock changed from overflow-x:auto with fixed 82px tabs to overflow:hidden + flex:1 tabs, so the
+  5 tabs (Today/Tasks/Money/Journal/More) fill the bar evenly with no horizontal scroll.
+## Sync: manual + incremental
+- Removed auto-push: persist() no longer calls scheduleSyncPush. Changes are queued
+  (queueChangedSyncRecords) and state shows 'pending', but nothing uploads until the user taps Sync.
+- Removed the live onSnapshot listener: attachFirestoreSync now pulls ONCE on open (via
+  syncReconcile .get) then does nothing automatically. "Sync now" (syncReconcile) pulls+pushes on demand.
+- Incremental confirmed: pushRecordSync only uploads records in syncPendingRecords (diffed vs shadow).
+  Verified: changing 1 of 10 records -> exactly 1 pending (not all).
+- New 'pending' banner state: "Changes to sync — Tap Sync to save changes to the cloud".
+- Verified: nav not scrollable (5 tabs, overflow hidden); no auto-push on change; incremental push;
+  regression + backup/restore suites pass.
