@@ -297,6 +297,9 @@ function normState(s){
   // s.sleep: array of {d, bed:'HH:MM', wake:'HH:MM', mins:int, note}
   // 'd' is the date you WOKE UP on
   if(!(s.sleep instanceof Array)) s.sleep = [];
+  if(!(s.trash instanceof Array)) s.trash = [];
+  /* purge trash items older than 30 days */
+  (function(){ var cutoff=Date.now()-30*86400000; s.trash=s.trash.filter(function(it){ return it && it.at && it.at>=cutoff; }); })();
   for(var si=0; si<s.sleep.length; si++){
     var sl = s.sleep[si] || {};
     if(!/^\d{4}-\d{2}-\d{2}$/.test(sl.d || '')) sl.d = today();
@@ -1553,7 +1556,7 @@ function executeAction(r){
     if(a==='delete_task'){
       var tr=aiResolveTask(p.title,p.id);if(tr.error)return{ok:0,msg:tr.error};var task=tr.task;
       if(!r.confirm)return{ok:0,msg:'Please confirm deleting task “'+task.title+'”.',needConfirm:1,pending:{action:'delete_task',params:{id:task.id,title:task.title},confirm:true}};
-      var oldTask=JSON.parse(JSON.stringify(task));state.tasks=state.tasks.filter(function(x){return x.id!==task.id;});persist();if($('pgTasks').classList.contains('on'))renderTasks();
+      var oldTask=JSON.parse(JSON.stringify(task));moveToTrash('task',task);state.tasks=state.tasks.filter(function(x){return x.id!==task.id;});persist();if($('pgTasks').classList.contains('on'))renderTasks();
       return{ok:1,msg:msg,detail:'Deleted “'+task.title+'”',undo:function(){state.tasks.push(oldTask);persist();}};
     }
     if(a==='add_expense'){
@@ -1611,7 +1614,7 @@ function executeAction(r){
       var je2=p.id?jrFind(p.id):null;if(!je2&&p.title){je2=state.jr.find(function(x){return String(x.title||'').toLowerCase()===String(p.title).toLowerCase();})||null;}if(!je2)return{ok:0,msg:'Journal entry not found.'};var oldJ=JSON.parse(JSON.stringify(je2));if(p.date)je2.date=p.date;if(p.title!==undefined)je2.title=String(p.title).trim().slice(0,120);if(p.body!==undefined)je2.content='<p>'+esc(String(p.body).trim()).replace(/\n/g,'</p><p>')+'</p>';je2.updatedAt=Date.now();if(typeof jrSort==='function')jrSort();persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Journal entry updated',undo:function(){var ix=state.jr.findIndex(function(x){return x.id===oldJ.id;});if(ix>=0)state.jr[ix]=oldJ;persist();}};
     }
     if(a==='delete_journal'){
-      var jf=state.jr.filter(function(x){return (!p.id||x.id===p.id)&&(!p.date||x.date===p.date)&&(!p.title||String(x.title||'').toLowerCase().indexOf(String(p.title).toLowerCase())>=0);});if(!jf.length)return{ok:0,msg:'Journal entry not found.'};if(jf.length>1)return{ok:0,msg:'I found multiple journal entries. Specify the title or date.'};var jd=jf[0];if(!r.confirm)return{ok:0,msg:'Please confirm deleting journal entry “'+(jd.title||'Untitled')+'”.',needConfirm:1,pending:{action:'delete_journal',params:{id:jd.id},confirm:true}};state.jr=state.jr.filter(function(x){return x.id!==jd.id;});persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Deleted journal entry',undo:function(){state.jr.push(jd);persist();}};
+      var jf=state.jr.filter(function(x){return (!p.id||x.id===p.id)&&(!p.date||x.date===p.date)&&(!p.title||String(x.title||'').toLowerCase().indexOf(String(p.title).toLowerCase())>=0);});if(!jf.length)return{ok:0,msg:'Journal entry not found.'};if(jf.length>1)return{ok:0,msg:'I found multiple journal entries. Specify the title or date.'};var jd=jf[0];if(!r.confirm)return{ok:0,msg:'Please confirm deleting journal entry “'+(jd.title||'Untitled')+'”.',needConfirm:1,pending:{action:'delete_journal',params:{id:jd.id},confirm:true}};moveToTrash('journal',jd);state.jr=state.jr.filter(function(x){return x.id!==jd.id;});persist();if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr();return{ok:1,msg:msg,detail:'Deleted journal entry',undo:function(){state.jr.push(jd);persist();}};
     }
     if(a==='log_workout'){
       var en=String(p.exercise||'').trim(),exm=state.exs.find(function(x){return String(x.name||'').toLowerCase()===en.toLowerCase();})||state.exs.find(function(x){return String(x.name||'').toLowerCase().indexOf(en.toLowerCase())>=0;});if(!exm)return{ok:0,msg:'Exercise not found.'};var sets=Array.isArray(p.sets)?p.sets.map(function(x){return Math.max(0,Number(x)||0);}):[];if(!sets.length)return{ok:0,msg:'Provide workout values/sets.'};var wd=p.date||today(),before=wlogFor(exm.id,wd);var beforeCopy=before?JSON.parse(JSON.stringify(before)):null;setExVal(exm.id,sets,wd);return{ok:1,msg:msg,detail:exm.name+' · '+wd,undo:function(){if(beforeCopy){var w=wlogFor(exm.id,wd);if(w)w.sets=beforeCopy.sets;}else{state.wlog=state.wlog.filter(function(x){return !(x.exId===exm.id&&x.d===wd);});}persist();}};
@@ -1638,7 +1641,7 @@ function executeAction(r){
     if(a==='delete_habit'){
       var hdr=aiResolveHabit(p.name,p.id);if(hdr.error)return{ok:0,msg:hdr.error};var hd=hdr.habit;
       if(!r.confirm)return{ok:0,msg:'Please confirm deleting habit “'+hd.name+'”.',needConfirm:1,pending:{action:'delete_habit',params:{id:hd.id,name:hd.name},confirm:true}};
-      var oldHabit=JSON.parse(JSON.stringify(hd));state.habits=state.habits.filter(function(x){return x.id!==hd.id;});delete state.hlog[hd.id];persist();
+      var oldHabit=JSON.parse(JSON.stringify(hd));moveToTrash('habit',hd);state.habits=state.habits.filter(function(x){return x.id!==hd.id;});delete state.hlog[hd.id];persist();
       if($('pgToday').classList.contains('on'))renderToday();
       return{ok:1,msg:msg,detail:'Deleted “'+hd.name+'”',undo:function(){state.habits.push(oldHabit);persist();if($('pgToday').classList.contains('on'))renderToday();}};
     }
@@ -2294,7 +2297,7 @@ function onDelete(){
     return;
   }
   for(var i=0;i<state.habits.length;i++)
-    if(state.habits[i].id === detailId){ state.habits.splice(i,1); break; }
+    if(state.habits[i].id === detailId){ moveToTrash('habit',state.habits[i]); state.habits.splice(i,1); break; }
   var si = state.stack.indexOf(detailId);
   if(si>=0) state.stack.splice(si,1);
   delete state.hlog[detailId];
@@ -5297,7 +5300,29 @@ var syncRecordShadow={};var syncPendingRecords={};
 try{syncRecordShadow=JSON.parse(localStorage.getItem('hb_sync_record_shadow')||'{}')||{};}catch(e){}
 try{syncPendingRecords=JSON.parse(localStorage.getItem('hb_sync_pending')||'{}')||{};}catch(e){}
 function syncHash(v){try{return JSON.stringify(v);}catch(e){return String(v);}}
-function queueChangedSyncRecords(){var cur=syncRecordEntries(),now=Date.now(),meta=syncRecordShadow||{};Object.keys(cur).forEach(function(k){var h=syncHash(cur[k]),old=meta[k];if(!old||old.hash!==h){meta[k]={hash:h,at:now};syncPendingRecords[k]={data:cur[k],at:now,deleted:false};}});Object.keys(meta).forEach(function(k){if(!cur[k]&&!meta[k].deleted){meta[k]={hash:'__deleted__',at:now,deleted:true};syncPendingRecords[k]={data:null,at:now,deleted:true};}});syncRecordShadow=meta;try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(meta));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}}
+function queueChangedSyncRecords(){
+  var cur=syncRecordEntries(),now=Date.now(),meta=syncRecordShadow||{};
+  /* upserts: always safe */
+  Object.keys(cur).forEach(function(k){var h=syncHash(cur[k]),old=meta[k];if(!old||old.hash!==h){meta[k]={hash:h,at:now};syncPendingRecords[k]={data:cur[k],at:now,deleted:false};}});
+  /* Deletions are DANGEROUS. Only infer deletions when safe, to avoid wiping synced data on a
+     fresh/empty device or before the initial remote pull has finished. We measure "content"
+     records (habit/task/journal/tx/etc.) and ignore always-present config keys (set:/cats:/incCats:). */
+  function isContent(k){ return /^(habit|task|journal|tx|acct|exercise|workout|sleep|goal|jrtpl|mood|moodNote):/.test(k); }
+  var curContent=Object.keys(cur).filter(isContent).length;
+  var shadowContentLive=Object.keys(meta).filter(function(k){return isContent(k)&&!meta[k].deleted;}).length;
+  /* keys that vanished from state since last shadow (candidate deletions), content only */
+  var vanished=Object.keys(meta).filter(function(k){return isContent(k)&&!cur[k]&&!meta[k].deleted;});
+  var suppressDeletes = syncInitialHydration                               /* still pulling remote */
+    || (curContent===0 && shadowContentLive>0)                             /* all content gone -> fresh device / load glitch, never delete-all */
+    || (shadowContentLive>=5 && vanished.length > shadowContentLive*0.5);  /* >half content vanished at once -> treat as glitch */
+  if(!suppressDeletes){
+    vanished.forEach(function(k){meta[k]={hash:'__deleted__',at:now,deleted:true};syncPendingRecords[k]={data:null,at:now,deleted:true};});
+    /* also allow config-key deletions normally (rare) */
+    Object.keys(meta).forEach(function(k){if(!isContent(k)&&!cur[k]&&!meta[k].deleted){meta[k]={hash:'__deleted__',at:now,deleted:true};syncPendingRecords[k]={data:null,at:now,deleted:true};}});
+  }
+  syncRecordShadow=meta;
+  try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(meta));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
+}
 function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){arrSet(state.sleep,value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='jrtpl'){state.jrTpl=state.jrTpl||[];arrSet(state.jrTpl,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
 function pushLegacySync(force){if(!fbDoc||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}setSyncState('syncing');var payload={data:JSON.stringify(stateForStorage()),version:Number(state.mtime||Date.now()),schemaVersion:2,updatedAtMs:Date.now(),syncMode:'compatibility'};return fbDoc.set(payload,{merge:true}).then(function(){return writeSyncMeta('synced');}).then(function(){setSyncState('synced');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
 function pushRecordSync(force){if(syncLegacyMode)return pushLegacySync(force);if(!fbRecords||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}queueChangedSyncRecords();var keys=Object.keys(syncPendingRecords);if(!keys.length){setSyncState('synced');return writeSyncMeta('synced').then(function(){setSyncState('synced');});}setSyncState('syncing');var jobs=[];for(var b=0;b<keys.length;b+=400){(function(keys2){var batch=fbFS.batch();keys2.forEach(function(k){var m=syncPendingRecords[k],ref=fbRecords.doc(k.replace(/[^A-Za-z0-9_-]/g,'_')),pl={key:k,deleted:!!m.deleted,updatedAtMs:m.at,deviceId:deviceId,schemaVersion:2};if(!m.deleted)pl.data=m.data;batch.set(ref,pl,{merge:true});});jobs.push(batch.commit());})(keys.slice(b,b+400));}return Promise.all(jobs).then(function(){keys.forEach(function(k){delete syncPendingRecords[k];});try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}return writeSyncMeta('synced');}).then(function(){setSyncState('synced');syncMsg('',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
@@ -5809,7 +5834,25 @@ function renderTaskSubEditor(){var box=$('taskSubList'),a=(taskEd&&taskEd.subtas
 function addTaskSub(){var v=$('taskSubInput').value.trim();if(!v)return;if(!taskEd.subtasks)taskEd.subtasks=[];taskEd.subtasks.push({id:'s'+Math.random().toString(36).slice(2,8),title:v,done:false});$('taskSubInput').value='';renderTaskSubEditor();$('taskSubInput').focus();}
 function saveTask(){var title=$('taskTitleIn').value.trim();if(!title){$('taskTitleIn').focus();return;}var d=$('taskDueDateIn').value||'';var tm=$('taskDueTimeIn').value||'';var rf=taskEd.recurrence.freq||'none';if(d&&d<today()&&!taskEd._edit){/* past tasks are allowed and immediately show overdue */}if(rf!=='none'&&(!d)){toastN('Recurring tasks need a due date');return;}if(rf==='custom')taskEd.recurrence.interval=Math.max(1,Math.min(365,+$('taskRecInterval').value||1));else taskEd.recurrence.interval=1;taskEd.recurrence.endDate=rf==='none'?'':$('taskRecEndDate').value||'';if(taskEd.recurrence.endDate&&d&&taskEd.recurrence.endDate<d){toastN('Recurrence end date must be after the due date');return;}taskEd.title=title;taskEd.description=$('taskDescIn').value.trim();taskEd.dueDate=d;taskEd.dueTime=tm;taskEd.updatedAt=Date.now();taskEd.reminders=(taskEd.reminders||[]).slice();if(taskEd._edit){var old=state.tasks.find(function(x){return x.id===taskEd._edit;});if(old){var wasCompleted=old.status==='completed';taskEd.id=old.id;taskEd.createdAt=old.createdAt;taskEd.seriesId=old.seriesId;taskEd.occurrenceKey=old.occurrenceKey;var ix=state.tasks.indexOf(old);delete taskEd._edit;state.tasks[ix]=normTask(taskEd);if(!wasCompleted&&state.tasks[ix].status==='completed'){state.tasks[ix].completedAt=Date.now();taskCreateNextOccurrence(state.tasks[ix]);}}}else{delete taskEd._edit;taskEd.id='k'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);taskEd.createdAt=Date.now();taskEd.updatedAt=taskEd.createdAt;if(taskEd.recurrence.freq!=='none')taskEd.seriesId=taskEd.id;state.tasks.push(normTask(taskEd));}persist();closeSheet();showTab('pgTasks');taskReminderPermissionNotice(state.tasks.find(function(x){return x.id===taskEd.id;}));toastN('Task saved');}
 function taskReminderPermissionNotice(t){if(!t||!t.reminders||!t.reminders.length)return;if(nat){try{if(!nat.notifGranted())toastN('Task saved. Enable Notifications in Settings for reminders.');}catch(e){}}else if(webNotifSupported()&&Notification.permission!=='granted')toastN('Task saved. Enable browser notifications in Settings for reminders.');}
-function deleteTask(){if(!taskEd||!taskEd._edit)return;var t=state.tasks.find(function(x){return x.id===taskEd._edit;});if(!t)return;if(!confirm('Delete “'+t.title+'”?'))return;state.tasks=state.tasks.filter(function(x){return x.id!==t.id;});persist();closeSheet();renderTasks();toastN('Task deleted');}
+function moveToTrash(type, item){
+  try{
+    state.trash = state.trash || [];
+    state.trash.unshift({ type:type, at:Date.now(), item:JSON.parse(JSON.stringify(item)),
+      label:(type==='task'?(item.title||'Task'):type==='habit'?(item.name||'Habit'):type==='journal'?(item.title||(item.date||'Entry')):'Item') });
+    if(state.trash.length>500) state.trash=state.trash.slice(0,500);
+  }catch(e){}
+}
+function restoreFromTrash(idx){
+  var t=state.trash&&state.trash[idx]; if(!t) return false;
+  try{
+    if(t.type==='task'){ if(!state.tasks.some(function(x){return x.id===t.item.id;})) state.tasks.push(normTask(t.item)); }
+    else if(t.type==='habit'){ if(!state.habits.some(function(x){return x.id===t.item.id;})) state.habits.push(normHabit(t.item)); }
+    else if(t.type==='journal'){ if(!state.jr.some(function(x){return x.id===t.item.id;})) state.jr.push(t.item); }
+    state.trash.splice(idx,1); persist();
+    return true;
+  }catch(e){ return false; }
+}
+function deleteTask(){if(!taskEd||!taskEd._edit)return;var t=state.tasks.find(function(x){return x.id===taskEd._edit;});if(!t)return;if(!confirm('Delete “'+t.title+'”?'))return;moveToTrash('task',t);state.tasks=state.tasks.filter(function(x){return x.id!==t.id;});persist();closeSheet();renderTasks();toastN('Task deleted · restore in Trash');}
 function toggleTaskComplete(id){var t=state.tasks.find(function(x){return x.id===id;});if(!t)return;var was=t.status==='completed';if(was){t.status='open';t.completedAt=0;t.updatedAt=Date.now();}else{t.status='completed';t.completedAt=Date.now();t.updatedAt=t.completedAt;var nx=taskCreateNextOccurrence(t);if(nx)toastN('Completed · next '+taskDateLabel(nx));}persist();renderTasks();}
 function toggleHabitTask(id){var p=String(id).split(':');if(p.length<3)return;var h=findHabit(p[1]),ds=p[2];if(!h)return;if(isDone(h,ds))setVal(h.id,ds,0);else if(dueOn(h,toDate(ds)))setVal(h.id,ds,targ(h));renderTasks();}
 function taskFilterMatch(t){var st=taskEffectiveStatus(t);if(taskFilter==='overdue')return st==='overdue';if(taskFilter==='today')return t.dueDate===today()&&st!=='completed';if(taskFilter==='upcoming')return !!t.dueDate&&t.dueDate>today()&&st!=='completed';if(taskFilter==='completed')return st==='completed';return true;}
@@ -6468,6 +6511,23 @@ function init(){
     window.addEventListener('online', function(){ try{renderSyncIcon();}catch(e){} });
     window.addEventListener('offline', function(){ try{renderSyncIcon();}catch(e){} });
   })();
+  /* ===== Recently deleted (trash) ===== */
+  function renderTrash(){
+    var box=$('trashList'); if(!box) return;
+    var tr=state.trash||[];
+    if(!tr.length){ box.innerHTML='<div class="setS" style="text-align:center;padding:20px">Nothing deleted recently.</div>'; return; }
+    box.innerHTML=tr.map(function(it,i){
+      var days=Math.max(0,30-Math.floor((Date.now()-it.at)/86400000));
+      var icon=it.type==='task'?'✓':it.type==='habit'?'🔁':'📓';
+      return '<div class="trashRow"><div class="trashInfo"><div class="trashLabel">'+icon+' '+esc(it.label||'Item')+'</div><div class="trashMeta">'+it.type+' · deleted '+niceDate(fmt(new Date(it.at)))+' · '+days+'d left</div></div><button class="sbtn acc" data-trestore="'+i+'">Restore</button></div>';
+    }).join('');
+  }
+  var _bt=$('btnTrash'); if(_bt) _bt.addEventListener('click', function(){ renderTrash(); openSheet('trashSheet'); });
+  var _tl=$('trashList'); if(_tl) _tl.addEventListener('click', function(e){
+    var b=e.target.closest('[data-trestore]'); if(!b) return;
+    var idx=+b.getAttribute('data-trestore');
+    if(restoreFromTrash(idx)){ toastN('Restored'); renderTrash(); renderToday(); if($('pgTasks')&&$('pgTasks').classList.contains('on'))renderTasks(); if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr(); }
+  });
   /* ===== Settings accordion ===== */
   (function(){
     var pg=$('pgSet'); if(!pg) return;
@@ -6534,7 +6594,7 @@ function init(){
     if(jdel) jdel.addEventListener('click', function(){
       if(!jSel.size) return;
       if(!confirm('Delete '+jSel.size+' journal '+(jSel.size>1?'entries':'entry')+'? This cannot be undone.')) return;
-      state.jr=state.jr.filter(function(e){ return !jSel.has(e.id); });
+      state.jr.forEach(function(e){ if(jSel.has(e.id)) moveToTrash('journal',e); });state.jr=state.jr.filter(function(e){ return !jSel.has(e.id); });
       persist(); jSel.clear(); jMode=false; jpaint(); if(typeof jrRender==='function') jrRender(); else if(typeof renderJr==='function') renderJr(); toastN('Entries deleted');
     });
     window._jrSelPaint=jpaint;

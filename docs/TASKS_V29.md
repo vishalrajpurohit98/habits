@@ -925,3 +925,26 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
   CSS, showTab toggle). renderSyncIcon/init are guarded so leftover calls no-op safely.
 - Verified: Cloud sync banner visible on Today with status dot + Sign in; floating icon gone;
   regression clean; zero errors. Screenshot matches the requested reference.
+
+---
+# V1.12.0 — CRITICAL sync data-loss fix + Trash (30-day)
+## Data-loss bug (Critical)
+- Root cause: queueChangedSyncRecords inferred DELETIONS from any shadow key missing in current
+  state. On a fresh/empty device (or before initial remote pull), this generated tombstones for
+  records the device never had -> pushed deletions to Firestore -> wiped synced data on all devices.
+  (Matches user report: synced on web, fresh install showed nothing, then web went blank too.)
+- Fix: guard deletion inference. Suppress deletions when (a) syncInitialHydration, (b) all CONTENT
+  records are absent but shadow had them (fresh device/glitch), or (c) >50% of content vanished at
+  once. Config keys (set/cats/incCats) excluded from the content count so the guard measures real
+  data. Genuine single deletes still tombstone normally. Verified: empty-state -> 0 tombstones;
+  single delete -> 1 tombstone.
+## Trash / recently deleted (NEW, also hardens deletes)
+- Soft delete: tasks, habits, journal entries now go to state.trash[] (with type/label/timestamp)
+  instead of vanishing. Routed: deleteTask, AI delete_task/journal/habit, habit-detail delete,
+  journal multi-select delete.
+- Auto-purge: normState drops trash items older than 30 days on every load.
+- UI: Settings -> Data -> "Recently deleted" opens a Trash sheet listing items with days-left and
+  a Restore button.
+- Verified: delete->trash->restore round-trip; 30-day purge; trash UI.
+- NOTE: transactions intentionally NOT soft-deleted (money integrity); can add if wanted.
+- Native sync round-trip still needs on-device confirmation with Firebase; logic verified here.
