@@ -750,3 +750,59 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
   breaks the signing key, Firebase config, and installed-app identity; it's an internal id, not shown to users.
 - LOGOS: the "10 pasted logos" document came through EMPTY — could not replace the icon set. Rename
   only in this build; logos pending user input.
+
+---
+# V1.6.6 — 10 monk logo concepts (per brief) replace the icon set
+- Replaced the icon picker's set with 10 seated-meditation ("monk = the user") logo concepts from
+  the brief: Minimal, +Progress, +Habit Ring, +Checkmark, +Rising Sun, +Mountain, +Mind, +Orbit,
+  Geometric, Premium Symbol. Each is a full rounded-square Material-style app icon (own bg color,
+  no text), recognizable at small sizes. Default = orbit. Old ids migrate to orbit.
+- Applied to navLogo + [data-brandicon]; picker shows all 10; selection saves + applies.
+- Verified (real Chromium): 10 logos render, selection persists + applies to navLogo, all tabs
+  render, zero errors.
+- NOTE: this is the in-app icon set (as before). The installed PWA/launcher icon (icon-192/512.png,
+  apple-touch, favicon) is NOT auto-generated from these SVGs — that needs PNG export + manifest
+  swap, which I can do next if you pick ONE concept as the official launcher icon.
+
+---
+# V1.6.7 — InnerOs naming, in-app 🧠, 3-button notification + body→Today fix
+- Display name capitalized to "InnerOs" everywhere (title, AI, lock, reports, manifest, strings).
+- In-app brand mark is now the 🧠 emoji (per request). The logo picker still records the chosen
+  branded logo but only for the EXTERNAL icon; it no longer overwrites the in-app navLogo.
+- Persistent notification: reduced to EXACTLY 3 actions — Add Task, Journal Entry, Expense.
+- FIXED body-tap: it used quickPI("tab") -> tab="1" -> showTab("1") (no-op). Now quickPI("tab","pgToday")
+  so tapping the notification body opens the Today page. Verified body-tap routes to pgToday.
+- PENDING: external app icon PNGs (icon-192/512, apple-touch, favicon) still need ONE chosen logo
+  concept to render + swap. Not done yet — awaiting user's pick.
+
+---
+# V1.6.8 — official InnerOs app icon (Logo #2 Monk+Progress) baked in everywhere external
+- Chosen permanent icon: concept #2 (seated meditation figure + upward growth arrow, emerald gradient).
+- Rendered PNGs and replaced: icon-192.png, icon-512.png, apple-touch-icon.png, favicon-32.png, +new favicon-16.png.
+- HTML head: added 16px favicon, cache-busted icon links (?v=inneros2) so browsers refresh the tab icon.
+- manifest already points to icon-192/512 (now the new icon), purpose "any maskable".
+- Android launcher: regenerated ic_launcher.png + ic_launcher_round.png at all 5 densities
+  (mdpi..xxxhdpi); rewrote adaptive drawables ic_bg_dark (emerald gradient), ic_fg_spark
+  (monk+arrow, fits 108 safe zone), ic_mono_spark (Material You monochrome glyph). Adaptive XML
+  unchanged (references those names).
+- In-app UI brand stays 🧠 (per earlier request); picker no longer overwrites it.
+- Verified: app loads, title InnerOs, favicon linked, foreground fits safe zone (previewed), all tabs render, zero JS errors.
+- HONEST: Android launcher icon change only applies on (re)install/build of the APK; an already-installed
+  PWA home-screen icon won't update until reinstalled (browser caches it). The APK build itself is untestable here.
+
+---
+# V1.7.0 — full E2E QA pass
+- Built an automated Playwright E2E harness (52 checks) driving REAL app functions across Habits,
+  Tasks, Journal, Mood, Sleep, Expenses, AI, Notifications, Navigation, Data Persistence, Insights,
+  Edge cases. Validated underlying logic (streaks, overdue, sleep mins, month totals, retrieval,
+  deep-link routing, persistence round-trip), not just UI render.
+- BUG FOUND & FIXED (Medium): normState() crashed if stored s.habits was a non-array (corrupted
+  localStorage) -> "(s.habits||[]).map is not a function". Added Array.isArray guard (jr/tx/accts/
+  sleep were already guarded). Re-tested: sanitizes bad types; normal load unaffected.
+- All other initial "failures" were test-harness param/timing issues, not app bugs (verified each
+  against real handlers: delete_habit/delete_task use 2-step confirm; add_expense uses amt/cat;
+  deleteTask() is sheet-bound; mood sheet opens - fixed-delay was too short).
+- Final: 51/52 automated + the 1 remaining verified manually (mood sheet opens, polled). Zero
+  uncaught runtime errors across the whole suite.
+- UNTESTABLE here (documented): native APK build, on-device notification delivery, biometric
+  hardware, real Firebase sync. These are simulated/validated at code+data level only.

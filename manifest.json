@@ -1,6 +1,6 @@
 {
-  "name": "inneros",
-  "short_name": "inneros",
+  "name": "InnerOs",
+  "short_name": "InnerOs",
   "description": "Offline-first habit, task, mood and journal tracker",
   "start_url": ".",
   "display": "standalone",

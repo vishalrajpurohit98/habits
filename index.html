@@ -3,9 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>inneros</title>
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<title>InnerOs</title>
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=inneros2">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=inneros2">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=inneros2">
 <link rel="manifest" href="manifest.json">
 <style>
 @font-face{
@@ -1146,10 +1147,10 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 /* journal enhancements */
 .iconPickGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
 .iconPick{aspect-ratio:1;border:1px solid var(--line);background:var(--card2);border-radius:12px;cursor:pointer;display:grid;place-items:center;padding:0;color:var(--ink2)}
-.iconPick svg{width:24px;height:24px}
+.iconPick svg{width:100%;height:100%;border-radius:11px}
 .iconPick.sel{background:var(--amberSoft);border-color:var(--amber);color:var(--amber)}
 .iconPick:active{transform:scale(.94)}
-.navLogo .brandSvg,[data-brandicon] .brandSvg{width:20px;height:20px;vertical-align:middle}
+.navLogo .brandSvg,[data-brandicon] .brandSvg{width:22px;height:22px;border-radius:6px;vertical-align:middle}
 #syncIcon{position:fixed;top:calc(10px + env(safe-area-inset-top));right:14px;z-index:55;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--dockBg,rgba(7,6,5,.9));backdrop-filter:blur(8px);color:var(--ink2);display:grid;place-items:center;cursor:pointer}
 #syncIcon svg{width:19px;height:19px}
 #syncIcon.spin svg{animation:syncSpin 1s linear infinite}
@@ -1757,7 +1758,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can understand your tracker, answer questions, and help you make changes safely.</div>
-    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ inneros AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask about your habits, tasks, spending, mood, sleep, workouts, journal, or planning. I’ll ask for missing details before making changes.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div></div><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><button class="uaiMic" id="uaiMic" aria-label="Voice input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything about your tracker…" autocomplete="off"><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span></div></div>
+    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ InnerOs AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask about your habits, tasks, spending, mood, sleep, workouts, journal, or planning. I’ll ask for missing details before making changes.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div></div><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><button class="uaiMic" id="uaiMic" aria-label="Voice input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything about your tracker…" autocomplete="off"><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span></div></div>
     
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
@@ -1782,7 +1783,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="setCard">
       <div class="setCol">
         <div class="setT" style="margin-bottom:4px">Theme</div>
-        <div class="setS" style="margin-bottom:10px">Choose how inneros looks</div>
+        <div class="setS" style="margin-bottom:10px">Choose how InnerOs looks</div>
         <div class="chips" id="thRow">
           <button class="chip" data-th="dark">&#127769; Dark</button>
           <button class="chip" data-th="amoled">&#9899; AMOLED</button>
@@ -1902,7 +1903,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="setRow"><div class="setInfo"><div class="setT">Automatic backup</div><div class="setS" id="stBk">A local backup is saved once a day</div></div></div>
     </div>
 
-    <div class="setS" style="text-align:center;padding:8px 0 4px" id="verLine">inneros</div>
+    <div class="setS" style="text-align:center;padding:8px 0 4px" id="verLine">InnerOs</div>
     <div class="setS" style="text-align:center;padding:0 0 4px;font-size:11px;color:var(--mut2)">Developed by Vishal</div>
     <div class="setS" style="text-align:center;padding:0 0 10px;font-size:10px;color:var(--mut2)">For personal use only · Not for commercial distribution</div>
   </div>
@@ -2181,7 +2182,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 </div>
 
 <div class="dock" id="tabbar">
-  <div class="navBrand"><span class="navLogo" data-brandicon>✦</span>inneros</div>
+  <div class="navBrand"><span class="navLogo">🧠</span>InnerOs</div>
   <button class="tab on" data-tab="pgToday"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Today</button>
   <button class="tab" data-tab="pgTasks"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 2.5 2.5L16 9"/></svg>Tasks</button>
   <button class="tab" data-tab="pgExp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v12H3z"/><path d="M3 10h18M7 15h4"/></svg>Money</button>
@@ -2714,7 +2715,8 @@ function taskRangeBounds(mode){var now=new Date(),ts=today(),from=ts,to=ts;if(mo
 function normState(s){
   s = s || {};
   s.v = 2;
-  s.habits = (s.habits || []).map(normHabit);
+  if(!Array.isArray(s.habits)) s.habits = [];
+  s.habits = s.habits.map(normHabit);
   var unnamed={};
   var nameByEmoji={'💪':'Pushups','🏃':'Walk','📚':'Reading','💧':'Hydration','🧘':'Meditation','🛏️':'Sleep routine','🥗':'Eat healthy','✍️':'Journaling','🎯':'Daily focus','🎸':'Practice music','🚭':'No smoking','💊':'Medicine','🦷':'Dental care','🌅':'Morning routine','🧹':'Clean up','💻':'Deep work','🗣️':'Speaking practice','🚴':'Cycling','🙏':'Gratitude','🍎':'Fruit','💤':'Sleep','📵':'Screen-free time','🎨':'Creative time','💰':'Save money'};
   for(var ni=0;ni<s.habits.length;ni++){var nh=s.habits[ni];if(nh.name==='Habit'){var base=nameByEmoji[nh.emoji]||'Personal habit';unnamed[base]=(unnamed[base]||0)+1;nh.name=unnamed[base]>1?base+' '+unnamed[base]:base;}}
@@ -3953,7 +3955,7 @@ function aiResolveTask(name,id){
   return {error:'I could not find a task named “'+name+'”.'};
 }
 function uaiPrompt(text,conversationContext){
-  return 'You are the universal AI assistant for inneros. You can READ/CREATE/UPDATE/DELETE across the app: Habits, Tasks, Expenses/Transactions, Mood, Sleep, Journal, Workouts/Exercises, Settings and Navigation.\n\n'
+  return 'You are the universal AI assistant for InnerOs. You can READ/CREATE/UPDATE/DELETE across the app: Habits, Tasks, Expenses/Transactions, Mood, Sleep, Journal, Workouts/Exercises, Settings and Navigation.\n\n'
   +'APP DATA:\n'+buildDataContext(text)+'\n\nPERSISTENT USER PREFERENCES (explicitly saved):\n'+preferenceText()+'\n\n'
   +'RESPOND WITH ONLY ONE JSON OBJECT (no markdown, no backticks, no extra text):\n'
   +'{"action":"TYPE","params":{...},"message":"..."}\\n'
@@ -4259,7 +4261,7 @@ function periodRate(h,days){var now=new Date(),due=0,done=0;for(var i=0;i<days;i
 // ---- AI weekly narrative ----
 function genWeeklyNarrative(){
   var ctx=buildDataContext(text);
-  var prompt='You are a supportive inneros AI. Write a 2-3 sentence weekly summary for the user based on this data. Be specific, mention actual habit names and numbers. Be encouraging but honest. No generic advice.\n\nDATA:\n'+ctx;
+  var prompt='You are a supportive InnerOs AI. Write a 2-3 sentence weekly summary for the user based on this data. Be specific, mention actual habit names and numbers. Be encouraging but honest. No generic advice.\n\nDATA:\n'+ctx;
   gemCall(prompt,200).then(function(r){
     localStorage.setItem('ai_weekly_narr',r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
     localStorage.setItem('ai_weekly_narr_day',today());
@@ -7391,7 +7393,7 @@ function updDots(){
 function showLock(mode){
   lockMode = mode; pinBuf = ''; updDots();
   var T = {unlock:'Enter PIN', new1:'Choose a PIN', new2:'Repeat PIN', ver:'Enter current PIN', off:'Enter current PIN'};
-  var S = {unlock:'inneros is locked', new1:'4 digits', new2:'Type it once more', ver:'To change it', off:'To remove the lock'};
+  var S = {unlock:'InnerOs is locked', new1:'4 digits', new2:'Type it once more', ver:'To change it', off:'To remove the lock'};
   $('lockT').textContent = T[mode]; $('lockS').textContent = S[mode];
   $('kBio').style.display = (mode==='unlock' && state.set.bio && bioAvailSafe()) ? '' : 'none';
   $('lock').classList.add('on');
@@ -7521,8 +7523,8 @@ function renderSet(){
     'Saved daily \u00B7 last: ' + state.set.lastAutoBk
     : 'A local backup is saved once a day';
   $('verLine').textContent = nat
-    ? ('inneros v' + (function(){try{return nat.appVer();}catch(e){return '2';}})() + ' \u00b7 private')
-    : 'inneros \u00b7 web \u00b7 private';
+    ? ('InnerOs v' + (function(){try{return nat.appVer();}catch(e){return '2';}})() + ' \u00b7 private')
+    : 'InnerOs \u00b7 web \u00b7 private';
 }
 
 /* ================= cloud sync (Firebase Cloud Firestore) ================= */
@@ -8504,7 +8506,7 @@ function init(){
       +'@media print{body{padding:16px}}';
 
     var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Monthly Report — '+monthName+'</title><style>'+css+'</style></head><body>';
-    h+='<h1>Monthly Report</h1><div class="sub">'+monthName+' · inneros</div>';
+    h+='<h1>Monthly Report</h1><div class="sub">'+monthName+' · InnerOs</div>';
 
     // Overview stats
     var totalDue=0,totalDone=0;
@@ -8576,7 +8578,7 @@ function init(){
         if(jrMonth.length>20) h+='<p style="font-size:11px;color:#888">Showing the 20 most recent of '+jrMonth.length+' entries.</p>';
       }
     }catch(e){}
-    h+='<div class="footer">Generated by inneros · Developed by Vishal · For personal use only<br>'+new Date().toLocaleDateString()+'</div>';
+    h+='<div class="footer">Generated by InnerOs · Developed by Vishal · For personal use only<br>'+new Date().toLocaleDateString()+'</div>';
     h+='</body></html>';
 
     var w2=window.open('','_blank');
@@ -8717,30 +8719,39 @@ function init(){
   /* ===== App icon picker (Material-style SVG icons) ===== */
   (function(){
     /* 15 Material-style line icons. Each is an inner SVG path string, keyed by id. */
-    var MAT_ICONS=(function(){var A='#FFAE1F',A2='#E08900',I='#4EA8FF',G='#3ECF8E',C='#FF6B5E',P='#9B7BFF';return {
-      spark:'<path d="M12 2l2.2 6.6a3 3 0 001.2 1.2L22 12l-6.6 2.2a3 3 0 00-1.2 1.2L12 22l-2.2-6.6a3 3 0 00-1.2-1.2L2 12l6.6-2.2a3 3 0 001.2-1.2z" fill="'+A+'"/><path d="M19 3l.7 2.3L22 6l-2.3.7L19 9l-.7-2.3L16 6l2.3-.7z" fill="'+A2+'"/>',
-      star:'<path d="M12 3.2l2.5 5.1 5.6.8-4.1 4 .97 5.6L12 16.9 7.03 18.7 8 13.1 3.9 9.1l5.6-.8z" fill="'+A+'"/><path d="M12 3.2l2.5 5.1 5.6.8-4.1 4 .97 5.6L12 16.9z" fill="'+A2+'"/>',
-      bolt:'<path d="M13 2L5 13h5l-1 9 9-12h-5l1-8z" fill="'+A+'"/><path d="M13 2l-1 8h5l-9 12 1-9H5z" fill="'+A2+'" opacity=".55"/>',
-      leaf:'<path d="M20 4s.4 8-4.5 12.5C11.6 20 5 20 5 20s0-6.6 3.5-10.5C13 4.6 20 4 20 4z" fill="'+G+'"/><path d="M6 19C9 13 13 9 18 6" stroke="#0C0B09" stroke-width="1.4" fill="none" stroke-linecap="round"/>',
-      heart:'<path d="M12 21S3 14.6 3 8.8C3 5.6 5.4 4 7.7 4c1.7 0 3.3.9 4.3 2.4C13 4.9 14.6 4 16.3 4 18.6 4 21 5.6 21 8.8 21 14.6 12 21 12 21z" fill="'+C+'"/><path d="M12 21S3 14.6 3 8.8C3 5.6 5.4 4 7.7 4c1.7 0 3.3.9 4.3 2.4V21z" fill="#E14A3E" opacity=".5"/>',
-      target:'<circle cx="12" cy="12" r="9" fill="'+I+'" opacity=".18"/><circle cx="12" cy="12" r="9" fill="none" stroke="'+I+'" stroke-width="2"/><circle cx="12" cy="12" r="5" fill="none" stroke="'+I+'" stroke-width="2"/><circle cx="12" cy="12" r="1.8" fill="'+C+'"/>',
-      rocket:'<path d="M14 3c4 0 7 3 7 7 0 0-3 6-8 9l-4-4C12 10 14 3 14 3z" fill="'+I+'"/><circle cx="14.5" cy="9.5" r="2" fill="#0C0B09"/><path d="M6 15c-1.5 1.2-2 5-2 5s3.8-.5 5-2z" fill="'+A+'"/>',
-      moon:'<path d="M21 13A9 9 0 1111 3a7 7 0 0010 10z" fill="'+A+'"/><path d="M21 13A9 9 0 0111 3a7 7 0 0010 10z" fill="'+A2+'" opacity=".5"/>',
-      sun:'<circle cx="12" cy="12" r="5" fill="'+A+'"/><g stroke="'+A+'" stroke-width="2" stroke-linecap="round"><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9L17 7M7 17l-2.1 2.1"/></g>',
-      flame:'<path d="M12 3s6 4.5 6 10a6 6 0 01-12 0c0-2.5 1.5-4 1.5-4s.2 2.3 2.2 2.3C9.9 8.6 12 6 12 3z" fill="'+C+'"/><path d="M12 21a3.5 3.5 0 003.5-3.5c0-2-1.5-3-1.5-3s-.3 1.7-2 1.7c0-1.7 1-3 1-4.7C10 10 9 12 9 14.5A3.5 3.5 0 0012 21z" fill="'+A+'"/>',
-      trophy:'<path d="M7 4h10v3a5 5 0 01-10 0z" fill="'+A+'"/><path d="M7 5H3.5v1A3.5 3.5 0 007 9.5M17 5h3.5v1A3.5 3.5 0 0117 9.5" fill="none" stroke="'+A2+'" stroke-width="1.6"/><path d="M10 14h4v3h-4z" fill="'+A2+'"/><path d="M8 21h8v-1a2 2 0 00-2-2h-4a2 2 0 00-2 2z" fill="'+A+'"/>',
-      brain:'<path d="M9 4a3.2 3.2 0 00-3.2 3.2A3 3 0 004.5 13a3 3 0 002.2 4.2A3 3 0 0012 19V4a3 3 0 00-3 0z" fill="'+P+'"/><path d="M15 4a3.2 3.2 0 013.2 3.2A3 3 0 0119.5 13a3 3 0 01-2.2 4.2A3 3 0 0112 19V4a3 3 0 013 0z" fill="'+P+'" opacity=".55"/>',
-      diamond:'<path d="M6 3h12l3.5 5.5L12 21 2.5 8.5z" fill="'+I+'"/><path d="M2.5 8.5h19L12 21z" fill="'+I+'" opacity=".55"/>',
-      book:'<path d="M5 4a2 2 0 012-2h12v17H7a2 2 0 00-2 2z" fill="'+A+'"/><path d="M5 21a2 2 0 012-2h12v3H7a2 2 0 01-2-2z" fill="'+A2+'"/><path d="M9 6h7M9 9h7" stroke="#0C0B09" stroke-width="1.2" stroke-linecap="round" opacity=".4"/>',
-      compass:'<circle cx="12" cy="12" r="9" fill="'+I+'" opacity=".18"/><circle cx="12" cy="12" r="9" fill="none" stroke="'+I+'" stroke-width="2"/><path d="M15.5 8.5l-2.2 4.8-4.8 2.2 2.2-4.8z" fill="'+A+'"/><circle cx="12" cy="12" r="1.2" fill="'+C+'"/>'
-    };})();
-    var ORDER=['spark','star','bolt','leaf','heart','target','rocket','moon','sun','flame','trophy','brain','diamond','book','compass'];
+    /* ===== inneros monk logo set (10 concepts) ===== */
     var grid=$('iconPickGrid');
-    function svg(id, cls){ var p=MAT_ICONS[id]||MAT_ICONS.spark; return '<svg class="'+(cls||'')+'" viewBox="0 0 24 24">'+p+'</svg>'; }
-    function current(){ var v=(state.set&&state.set.appIcon)||'spark'; return MAT_ICONS[v]?v:'spark'; } /* migrate old emoji -> spark */
+    var MONK=(function(){
+      var W='#FFFFFF',OFF='#EDE7DB',CREAM='#F3ECDD',CHAR='#2A2A2E',
+          NAVY='#1E2A5E',TEAL='#12B5A5',EMER='#0FA36B',INDIGO='#4F6BF0',GOLD='#F5A623',
+          SUN='#FF9F40',BLUE='#3E7BFA',LAV='#9B7BFF',GOLDM='#C9A24B';
+      function fig(color,scale,cx,cy){scale=scale||1;cx=cx||12;cy=cy||12;
+        return '<g transform="translate('+cx+' '+cy+') scale('+scale+') translate(-12 -12)" fill="'+color+'">'
+          +'<circle cx="12" cy="6.4" r="2.5"/>'
+          +'<path d="M12 9c-2.4 0-4 1.8-4.4 4.2-.15.9.5 1.6 1.4 1.6h6c.9 0 1.55-.7 1.4-1.6C16 10.8 14.4 9 12 9z"/>'
+          +'<path d="M5.5 15.4c-.9 0-1.6.9-1.2 1.7.9 1.9 4 3.2 7.7 3.2s6.8-1.3 7.7-3.2c.4-.8-.3-1.7-1.2-1.7H5.5z"/>'
+          +'</g>';}
+      return {
+        minimal:{bg:NAVY, inner:function(){return fig(W,1,12,12.2);}},
+        progress:{bg:EMER, inner:function(){return '<path d="M17.5 9.5l3-3M20.5 6.5h-2.6M20.5 6.5v2.6" stroke="'+W+'" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 12c1.5-2.5 4-4 7.5-5" stroke="'+W+'" stroke-width="1.4" fill="none" stroke-linecap="round" opacity=".55"/>'+fig(W,.92,11,13);}},
+        ring:{bg:NAVY, inner:function(){return '<circle cx="12" cy="12" r="9.4" fill="none" stroke="'+TEAL+'" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="52 8" transform="rotate(-90 12 12)"/>'+fig(OFF,.78,12,12.4);}},
+        check:{bg:INDIGO, inner:function(){return fig(W,.95,12,11.6)+'<path d="M8.4 18.2l2.4 2.4 5-5.2" stroke="'+GOLD+'" stroke-width="1.9" fill="none" stroke-linecap="round" stroke-linejoin="round"/>';}},
+        sun:{bg:CHAR, inner:function(){return '<circle cx="12" cy="12.5" r="6" fill="'+SUN+'"/><g stroke="'+GOLD+'" stroke-width="1.5" stroke-linecap="round"><path d="M12 3.2v2.2M4.6 6.6l1.5 1.5M19.4 6.6l-1.5 1.5M2.4 13h2M19.6 13h2"/></g>'+fig(CHAR,.8,12,13.4);}},
+        mountain:{bg:'#123A63', inner:function(){return '<path d="M2 20l6-8 3.5 4.2L15 10l7 10z" fill="'+BLUE+'" opacity=".5"/><path d="M2 20l6-8 3.5 4.2" fill="none" stroke="#9CC4FF" stroke-width="1" opacity=".5"/>'+fig(W,.7,12,14.4);}},
+        mind:{bg:INDIGO, inner:function(){return '<path d="M12 2.6c4.4 0 7.4 3 7.4 6.2 0 2-1.2 3.4-1.2 3.4M12 2.6c-4.4 0-7.4 3-7.4 6.2 0 2 1.2 3.4 1.2 3.4" fill="none" stroke="'+LAV+'" stroke-width="1.7" stroke-linecap="round"/>'+fig(W,.8,12,13);}},
+        orbit:{bg:NAVY, inner:function(){return '<ellipse cx="12" cy="12" rx="10" ry="6" fill="none" stroke="'+TEAL+'" stroke-width="1.3" opacity=".7" transform="rotate(-24 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="6" fill="none" stroke="'+BLUE+'" stroke-width="1.3" opacity=".55" transform="rotate(30 12 12)"/><circle cx="21" cy="10.5" r="1.3" fill="'+TEAL+'"/><circle cx="4" cy="14" r="1.1" fill="'+BLUE+'"/>'+fig(W,.66,12,12.4);}},
+        geometric:{bg:'#0E4A45', inner:function(){return '<circle cx="12" cy="6.6" r="2.6" fill="'+CREAM+'"/><rect x="8" y="9.4" width="8" height="6" rx="3.2" fill="'+CREAM+'"/><rect x="4.5" y="15" width="15" height="4.4" rx="2.2" fill="'+TEAL+'"/>';}},
+        premium:{bg:CHAR, inner:function(){return '<path d="M12 2.2c5 3.5 7.6 7 7.6 11.2A7.6 7.6 0 014.4 13.4C4.4 9.2 7 5.7 12 2.2z" fill="'+GOLDM+'"/><circle cx="12" cy="10.6" r="2.1" fill="'+CHAR+'"/><path d="M12 13c-2 0-3.4 1.5-3.7 3.4-.12.8.45 1.4 1.2 1.4h5c.75 0 1.32-.6 1.2-1.4C15.4 14.5 14 13 12 13z" fill="'+CHAR+'"/>';}}
+      };
+    })();
+    var ORDER=['minimal','progress','ring','check','sun','mountain','mind','orbit','geometric','premium'];
+    function svg(id, cls){ var c=MONK[id]||MONK.minimal; return '<svg class="'+(cls||'')+'" viewBox="0 0 24 24"><rect x="0" y="0" width="24" height="24" rx="6" fill="'+c.bg+'"/>'+c.inner()+'</svg>'; }
+    function current(){ var v=(state.set&&state.set.appIcon)||'orbit'; return MONK[v]?v:'orbit'; } /* migrate old ids -> orbit */
     function applyIcon(id){
+      /* The in-app UI keeps the simple 🧠 brand; the picker only records which branded
+         logo to use for the EXTERNAL app icon (home-screen/favicon/PWA). We do not overwrite
+         the in-app navLogo. Elements explicitly tagged data-brandicon (none by default) still mirror. */
       var mk=svg(id,'brandSvg');
-      var nl=document.querySelector('.navLogo'); if(nl) nl.innerHTML=mk;
       document.querySelectorAll('[data-brandicon]').forEach(function(el){ el.innerHTML=mk; });
     }
     function render(){

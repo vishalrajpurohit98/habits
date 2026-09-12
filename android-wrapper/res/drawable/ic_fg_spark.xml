@@ -2,5 +2,18 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <path android:fillColor="#FFAE1F" android:pathData="M54,24 L61.5,46.5 L84,54 L61.5,61.5 L54,84 L46.5,61.5 L24,54 L46.5,46.5 Z"/>
+    <!-- InnerOs monk + progress; art authored in a 512 box, scaled into the 108 safe zone -->
+    <group android:scaleX="0.135" android:scaleY="0.135" android:translateX="10" android:translateY="10">
+        <!-- growth arrow -->
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="26" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M348,214 L410,152"/>
+        <path android:strokeColor="#FFFFFF" android:strokeWidth="26" android:strokeLineCap="round" android:strokeLineJoin="round" android:pathData="M366,148 L410,148 L410,192"/>
+        <!-- growth curve -->
+        <path android:strokeColor="#FFFFFF" android:strokeAlpha="0.45" android:strokeWidth="14" android:strokeLineCap="round" android:pathData="M150,300 C210,250 280,220 360,178"/>
+        <!-- figure -->
+        <group android:translateX="256" android:translateY="300">
+            <path android:fillColor="#FFFFFF" android:pathData="M0,-172 m-54,0 a54,54 0 1,0 108,0 a54,54 0 1,0 -108,0 Z"/>
+            <path android:fillColor="#FFFFFF" android:pathData="M0,-60 C-52,-60 -86,-22 -95,30 c-3,19 11,34 30,34 h130 c19,0 33,-15 30,-34 C86,-22 52,-60 0,-60 Z"/>
+            <path android:fillColor="#FFFFFF" android:pathData="M-140,78 c-20,0 -34,20 -25,37 19,40 86,68 165,68 s146,-28 165,-68 c9,-17 -5,-37 -25,-37 Z"/>
+        </group>
+    </group>
 </vector>

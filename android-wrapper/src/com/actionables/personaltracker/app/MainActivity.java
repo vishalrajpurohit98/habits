@@ -321,12 +321,13 @@ public class MainActivity extends Activity {
 
     static final int QUICK_ADD_NOTIF_ID = 0x51CA;
     static final String QUICK_CHANNEL = "quick_add_v1";
-    PendingIntent quickPI(String key){
+    PendingIntent quickPI(String key){ return quickPI(key, "1"); }
+    PendingIntent quickPI(String key, String val){
         Intent i = new Intent(this, MainActivity.class);
-        i.putExtra(key, "1"); i.putExtra("fromWidget","1");
+        i.putExtra(key, val); i.putExtra("fromWidget","1");
         i.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         int flags = PendingIntent.FLAG_UPDATE_CURRENT | (Build.VERSION.SDK_INT>=23 ? PendingIntent.FLAG_IMMUTABLE : 0);
-        return PendingIntent.getActivity(this, key.hashCode()&0xffff, i, flags);
+        return PendingIntent.getActivity(this, (key+val).hashCode()&0xffff, i, flags);
     }
     void showQuickAddNotif(){
         try{
@@ -339,22 +340,17 @@ public class MainActivity extends Activity {
                 nm.createNotificationChannel(ch);
             }
             Notification.Builder bld = (Build.VERSION.SDK_INT>=26) ? new Notification.Builder(this, QUICK_CHANNEL) : new Notification.Builder(this);
-            String big = "Tap a button below to log in one step \u2014 or tap here to open the app.\n\u2022 Habit, Task, Mood, Sleep, Journal, Expense";
             bld.setSmallIcon(getApplicationInfo().icon)
-               .setContentTitle("Quick add \u2014 Personal Tracker")
-               .setContentText("Log a habit, task, mood, sleep, journal or expense")
-               .setStyle(new Notification.BigTextStyle().bigText(big))
+               .setContentTitle("InnerOs")
+               .setContentText("Quick add \u2014 tap here to open Today")
                .setOngoing(true)
-               .setContentIntent(quickPI("tab"))
+               .setContentIntent(quickPI("tab","pgToday"))
                .setPriority(Notification.PRIORITY_LOW)
                .setVisibility(Notification.VISIBILITY_PUBLIC);
-            /* 6 quick-add actions (Android shows ~3 collapsed, up to ~6 when expanded) */
-            bld.addAction(0, "\u2795 Habit", quickPI("addHabit"));
-            bld.addAction(0, "\u2795 Task", quickPI("addTask"));
-            bld.addAction(0, "\uD83D\uDE42 Mood", quickPI("addMood"));
-            bld.addAction(0, "\uD83D\uDE34 Sleep", quickPI("addSleep"));
-            bld.addAction(0, "\uD83D\uDCD3 Journal", quickPI("addJournal"));
-            bld.addAction(0, "\uD83D\uDCB0 Expense", quickPI("add"));
+            /* Exactly 3 actions (Android reliably shows 3) */
+            bld.addAction(0, "Add Task", quickPI("addTask"));
+            bld.addAction(0, "Journal Entry", quickPI("addJournal"));
+            bld.addAction(0, "Expense", quickPI("add"));
             nm.notify(QUICK_ADD_NOTIF_ID, bld.build());
         }catch(Exception e){ toast("Could not show quick-add notification"); }
     }
