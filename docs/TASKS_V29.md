@@ -1181,3 +1181,26 @@ HONEST: all native (mic onPermissionRequest, LogHub widget, tasks widget) untest
   switch clears habits/jr to 0 + signs out, NO password stored; suite1 51/52 (known timing), suite2 25/25; zero errors.
 - HONEST: live 2-account cloud round-trip untestable here (needs real Firebase) — verify on-device.
   Sign-out clears visible data by design; no master unlock; each person needs their own password.
+
+---
+# V1.23.0 — Today profile switcher chip
+- Avatar chip (current profile initial) added top-right of Today, next to search.
+- Tap -> menu: current profile header + "Switch to" (other saved profiles) + "Add profile" +
+  "Manage in Settings". Reuses the tested v1.22.0 profile system.
+- Switch: confirms -> switchProfileFlushAndSignOut() (flush current to its cloud, clear local) ->
+  routes to Cloud sync with the target email prefilled, password required (per user's choice).
+- Add profile: signs out current (if any) -> routes to Cloud sync sign-in with email focused for
+  "Create account".
+- Chip avatar updates via renderSyncUI/renderProfileChip; menu closes on outside tap.
+- Verified: chip present, avatar initial, menu (current+others+add+manage), current excluded from
+  switch list; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: switching still needs the target profile's password (real protection); live cloud round-trip
+  untestable here.
+
+---
+# V1.23.1 — profile chip to top-right corner
+- Changed .profileChip from an inline header item to position:fixed at the top-right corner
+  (top:10px+safe-area, right:14px, z-index 58). Added #pgToday .h1row padding-right so the search
+  button clears it. Chip lives inside #pgToday so it only shows on Today (hidden when that page is display:none).
+- Verified: chip at corner (top 10, 14px gap), no overlap with search, hidden off Today, still opens
+  the profile menu; suite1 51/52 (known timing); zero errors.

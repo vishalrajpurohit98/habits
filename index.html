@@ -1145,6 +1145,18 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+.profileChip{position:fixed;top:calc(10px + env(safe-area-inset-top));right:14px;z-index:58;width:36px;height:36px;border-radius:50%;border:1px solid var(--line2);background:var(--amber);color:#171310;font-weight:800;font-size:15px;cursor:pointer;display:grid;place-items:center}
+#pgToday .h1row{padding-right:48px}
+.profileMenu{position:absolute;right:14px;top:calc(60px + env(safe-area-inset-top));z-index:60;width:240px;background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:8px;box-shadow:0 12px 34px rgba(0,0,0,.5)}
+.pmCur{display:flex;align-items:center;gap:10px;padding:8px 8px 10px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.pmAv{width:34px;height:34px;border-radius:50%;background:var(--amber);color:#171310;font-weight:800;display:grid;place-items:center;flex:0 0 34px}
+.pmAv.sm{width:26px;height:26px;font-size:12px;flex:0 0 26px}
+.pmName{font-weight:700;font-size:14px}.pmSub{font-size:11px;color:var(--mut2)}
+.pmDiv{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mut2);padding:4px 8px}
+.pmItem{display:flex;align-items:center;gap:10px;width:100%;border:0;background:transparent;color:var(--ink);font-size:13.5px;font-weight:600;padding:9px 8px;border-radius:10px;cursor:pointer;text-align:left}
+.pmItem:active{background:var(--card2)}
+.pmAdd .pmAv{background:var(--amberSoft);color:var(--amber)}
+.pmManage{color:var(--mut);font-weight:600;font-size:12.5px;justify-content:center;border-top:1px solid var(--line);margin-top:4px;padding-top:10px}
 .profileList{margin-bottom:14px;display:flex;flex-direction:column;gap:8px}
 .profileRow{display:flex;align-items:center;gap:12px;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:10px 12px}
 .profileAv{width:36px;height:36px;border-radius:50%;background:var(--amber);color:#171310;font-weight:800;display:grid;place-items:center;flex:0 0 36px}
@@ -1478,8 +1490,10 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="eyebrow" id="dateLine"></div>
     <div class="h1row">
       <h1 id="greet">Today</h1>
+      <button class="profileChip" id="profileChip" aria-label="Switch profile"><span id="profileChipAv">?</span></button>
       <button class="srchBtn" id="srchBtn" aria-label="Search habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
+    <div class="profileMenu" id="profileMenu" style="display:none"></div>
     <div class="todaySyncBar" id="todaySyncBar" aria-live="polite">
       <div class="todaySyncState">
         <span class="todaySyncDot" id="todaySyncDot"></span>
@@ -8203,6 +8217,7 @@ function renderTodaySyncUI(){
 function renderSyncUI(){
   renderTodaySyncUI();
   try{ if(typeof renderProfiles==='function') renderProfiles(); }catch(e){}
+  try{ if(typeof renderProfileChip==='function') renderProfileChip(); }catch(e){}
   if(!$('syncCard')) return;
   var offline=!isOnline();
   $('syncOffline').style.display=(syncEnabled()&&offline)?'':'none';
@@ -9927,6 +9942,44 @@ function init(){
     switchProfileFlushAndSignOut().then(function(){ renderSyncUI&&renderSyncUI(); renderProfiles&&renderProfiles(); toastN('Choose a profile to sign in'); });
   });
   try{ renderProfiles(); }catch(e){}
+  /* ===== Today profile chip + menu ===== */
+  window.renderProfileChip=function(){
+    var chip=$('profileChip'), av=$('profileChipAv'); if(!chip||!av) return;
+    var name=(fbUser&&(fbUser.displayName||fbUser.email))||((state.set&&state.set.name))||'';
+    var initial=(name||'?').trim().charAt(0).toUpperCase()||'?';
+    av.textContent=initial;
+  };
+  function buildProfileMenu(){
+    var menu=$('profileMenu'); if(!menu) return;
+    var list=loadProfiles(), curEmail=(fbUser&&fbUser.email||'').toLowerCase();
+    var curName=(fbUser&&(fbUser.displayName||fbUser.email))||((state.set&&state.set.name))||'This device';
+    var html='<div class="pmCur"><span class="pmAv">'+esc((curName||'?').charAt(0).toUpperCase())+'</span><div><div class="pmName">'+esc(curName)+'</div><div class="pmSub">'+(fbUser?'Signed in':'Local only')+'</div></div></div>';
+    var others=list.filter(function(p){return (p.email||'').toLowerCase()!==curEmail;});
+    if(others.length){ html+='<div class="pmDiv">Switch to</div>'+others.map(function(p){ return '<button class="pmItem" data-pmswitch="'+esc(p.email)+'"><span class="pmAv sm">'+esc((p.name||p.email||'?').charAt(0).toUpperCase())+'</span><span>'+esc(p.name||p.email.split("@")[0])+'</span></button>'; }).join(''); }
+    html+='<button class="pmItem pmAdd" data-pmadd="1"><span class="pmAv sm">＋</span><span>Add profile</span></button>';
+    html+='<button class="pmItem pmManage" data-pmmanage="1"><span>⚙ Manage in Settings</span></button>';
+    menu.innerHTML=html;
+  }
+  var _pchip=$('profileChip');
+  if(_pchip) _pchip.addEventListener('click', function(e){ e.stopPropagation(); var m=$('profileMenu'); if(!m) return; var open=m.style.display==='none'; if(open){ buildProfileMenu(); m.style.display=''; } else m.style.display='none'; });
+  var _pmenu=$('profileMenu');
+  if(_pmenu) _pmenu.addEventListener('click', function(e){
+    var sw=e.target.closest('[data-pmswitch]');
+    if(sw){ var em=sw.getAttribute('data-pmswitch'); _pmenu.style.display='none';
+      if(!confirm('Switch to '+em+'? Your current data will be saved & cleared from the screen, and you\u2019ll enter '+em+'\u2019s password.')) return;
+      toastN('Saving & switching…');
+      switchProfileFlushAndSignOut().then(function(){ showTab('pgMore'); setTimeout(function(){ var s=document.querySelector('[data-more="settings"]'); if(s)s.click(); setTimeout(function(){ var cards=document.querySelectorAll('#setCardGrid [data-setidx]'); for(var i=0;i<cards.length;i++){ if(/Cloud sync/.test(cards[i].textContent)){ cards[i].click(); break; } } var ein=$('syncEmail'); if(ein){ein.value=em;} var pin=$('syncPw'); if(pin){pin.value='';pin.focus();} },250); },200); }); return; }
+    var add=e.target.closest('[data-pmadd]');
+    if(add){ _pmenu.style.display='none';
+      if(fbUser){ if(!confirm('Add a new profile? This signs out the current one first.')) return; toastN('Signing out…'); switchProfileFlushAndSignOut().then(function(){ gotoAddProfile(); }); }
+      else gotoAddProfile();
+      return; }
+    var mg=e.target.closest('[data-pmmanage]');
+    if(mg){ _pmenu.style.display='none'; showTab('pgMore'); setTimeout(function(){ var s=document.querySelector('[data-more="settings"]'); if(s)s.click(); },150); return; }
+  });
+  function gotoAddProfile(){ showTab('pgMore'); setTimeout(function(){ var s=document.querySelector('[data-more="settings"]'); if(s)s.click(); setTimeout(function(){ var cards=document.querySelectorAll('#setCardGrid [data-setidx]'); for(var i=0;i<cards.length;i++){ if(/Cloud sync/.test(cards[i].textContent)){ cards[i].click(); break; } } var ein=$('syncEmail'); if(ein){ein.value='';ein.focus();} toastN('Enter email + password, then Create account'); },250); },200); }
+  document.addEventListener('click', function(e){ var m=$('profileMenu'); if(m&&m.style.display!=='none'&&!m.contains(e.target)&&e.target!==_pchip&&!(_pchip&&_pchip.contains(e.target))) m.style.display='none'; });
+  try{ renderProfileChip(); }catch(e){}
   var _sr=$('syncRestore'); if(_sr) _sr.addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
     if(!isOnline()){ toastN('You are offline — connect and try again'); return; }

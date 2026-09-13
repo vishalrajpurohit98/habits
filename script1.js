@@ -5614,6 +5614,7 @@ function renderTodaySyncUI(){
 function renderSyncUI(){
   renderTodaySyncUI();
   try{ if(typeof renderProfiles==='function') renderProfiles(); }catch(e){}
+  try{ if(typeof renderProfileChip==='function') renderProfileChip(); }catch(e){}
   if(!$('syncCard')) return;
   var offline=!isOnline();
   $('syncOffline').style.display=(syncEnabled()&&offline)?'':'none';
@@ -7338,6 +7339,44 @@ function init(){
     switchProfileFlushAndSignOut().then(function(){ renderSyncUI&&renderSyncUI(); renderProfiles&&renderProfiles(); toastN('Choose a profile to sign in'); });
   });
   try{ renderProfiles(); }catch(e){}
+  /* ===== Today profile chip + menu ===== */
+  window.renderProfileChip=function(){
+    var chip=$('profileChip'), av=$('profileChipAv'); if(!chip||!av) return;
+    var name=(fbUser&&(fbUser.displayName||fbUser.email))||((state.set&&state.set.name))||'';
+    var initial=(name||'?').trim().charAt(0).toUpperCase()||'?';
+    av.textContent=initial;
+  };
+  function buildProfileMenu(){
+    var menu=$('profileMenu'); if(!menu) return;
+    var list=loadProfiles(), curEmail=(fbUser&&fbUser.email||'').toLowerCase();
+    var curName=(fbUser&&(fbUser.displayName||fbUser.email))||((state.set&&state.set.name))||'This device';
+    var html='<div class="pmCur"><span class="pmAv">'+esc((curName||'?').charAt(0).toUpperCase())+'</span><div><div class="pmName">'+esc(curName)+'</div><div class="pmSub">'+(fbUser?'Signed in':'Local only')+'</div></div></div>';
+    var others=list.filter(function(p){return (p.email||'').toLowerCase()!==curEmail;});
+    if(others.length){ html+='<div class="pmDiv">Switch to</div>'+others.map(function(p){ return '<button class="pmItem" data-pmswitch="'+esc(p.email)+'"><span class="pmAv sm">'+esc((p.name||p.email||'?').charAt(0).toUpperCase())+'</span><span>'+esc(p.name||p.email.split("@")[0])+'</span></button>'; }).join(''); }
+    html+='<button class="pmItem pmAdd" data-pmadd="1"><span class="pmAv sm">＋</span><span>Add profile</span></button>';
+    html+='<button class="pmItem pmManage" data-pmmanage="1"><span>⚙ Manage in Settings</span></button>';
+    menu.innerHTML=html;
+  }
+  var _pchip=$('profileChip');
+  if(_pchip) _pchip.addEventListener('click', function(e){ e.stopPropagation(); var m=$('profileMenu'); if(!m) return; var open=m.style.display==='none'; if(open){ buildProfileMenu(); m.style.display=''; } else m.style.display='none'; });
+  var _pmenu=$('profileMenu');
+  if(_pmenu) _pmenu.addEventListener('click', function(e){
+    var sw=e.target.closest('[data-pmswitch]');
+    if(sw){ var em=sw.getAttribute('data-pmswitch'); _pmenu.style.display='none';
+      if(!confirm('Switch to '+em+'? Your current data will be saved & cleared from the screen, and you\u2019ll enter '+em+'\u2019s password.')) return;
+      toastN('Saving & switching…');
+      switchProfileFlushAndSignOut().then(function(){ showTab('pgMore'); setTimeout(function(){ var s=document.querySelector('[data-more="settings"]'); if(s)s.click(); setTimeout(function(){ var cards=document.querySelectorAll('#setCardGrid [data-setidx]'); for(var i=0;i<cards.length;i++){ if(/Cloud sync/.test(cards[i].textContent)){ cards[i].click(); break; } } var ein=$('syncEmail'); if(ein){ein.value=em;} var pin=$('syncPw'); if(pin){pin.value='';pin.focus();} },250); },200); }); return; }
+    var add=e.target.closest('[data-pmadd]');
+    if(add){ _pmenu.style.display='none';
+      if(fbUser){ if(!confirm('Add a new profile? This signs out the current one first.')) return; toastN('Signing out…'); switchProfileFlushAndSignOut().then(function(){ gotoAddProfile(); }); }
+      else gotoAddProfile();
+      return; }
+    var mg=e.target.closest('[data-pmmanage]');
+    if(mg){ _pmenu.style.display='none'; showTab('pgMore'); setTimeout(function(){ var s=document.querySelector('[data-more="settings"]'); if(s)s.click(); },150); return; }
+  });
+  function gotoAddProfile(){ showTab('pgMore'); setTimeout(function(){ var s=document.querySelector('[data-more="settings"]'); if(s)s.click(); setTimeout(function(){ var cards=document.querySelectorAll('#setCardGrid [data-setidx]'); for(var i=0;i<cards.length;i++){ if(/Cloud sync/.test(cards[i].textContent)){ cards[i].click(); break; } } var ein=$('syncEmail'); if(ein){ein.value='';ein.focus();} toastN('Enter email + password, then Create account'); },250); },200); }
+  document.addEventListener('click', function(e){ var m=$('profileMenu'); if(m&&m.style.display!=='none'&&!m.contains(e.target)&&e.target!==_pchip&&!(_pchip&&_pchip.contains(e.target))) m.style.display='none'; });
+  try{ renderProfileChip(); }catch(e){}
   var _sr=$('syncRestore'); if(_sr) _sr.addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
     if(!isOnline()){ toastN('You are offline — connect and try again'); return; }
