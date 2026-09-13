@@ -1117,3 +1117,20 @@ HONEST: native pieces (error page, webview tuning, predictive back) untestable h
 VERIFIED (web): mic-fix code, drafts end-to-end, Today cleanup, task card + money hero, strict reminder
    paths, settings toggles; suite1 51/52 (known timing), suite2 25/25; zero errors. Java/XML validated.
 HONEST: all native (mic onPermissionRequest, LogHub widget, tasks widget) untestable here — verify on device.
+
+---
+# V1.19.0 — Journal restructure + Money/Tasks polish
+JOURNAL: nav reduced to Timeline + Calendar (removed Write, Memories, Insights tabs).
+- ✦ AI button added top-left of header -> menu: Analyse whole journal / Insights date range / Ask journal.
+- Write tab removed: "Ask about my day" (talk/write) stays in Timeline; weekly writing goal removed
+  (jrGoalCard hidden); templates managed from the editor's "Use a template ▾ / New template" (verified
+  jrOpenTemplateEditor->jrSaveTemplate->state.jrTpl works).
+- Memories merged into Calendar (On this day + Favorites now render under the calendar grid; old
+  memories view emptied; no dup ids).
+- Insights tab removed from nav; its range/whole/ask features reachable via the ✦ AI button.
+- DRAFTS: chip now shows in Timeline stat line whenever drafts exist (user couldn't see it before
+  because it only appears once you have a draft). Verified "Drafts (1)".
+POLISH: task stat tiles balanced (24px, 14px radius, tighter); Money hero compact/content-hugging
+  (was a tall empty box).
+Verified: nav=2, AI menu opens, goal gone, calendar+memories merged, drafts chip visible, template
+  creation wired; suite1 51/52 (known timing), suite2 25/25; zero errors; no dup ids.

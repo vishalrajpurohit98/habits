@@ -1145,21 +1145,25 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+.jrAiTopBtn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line2);background:linear-gradient(135deg,rgba(155,123,255,.2),rgba(78,168,255,.12));color:var(--purple);font-size:18px;font-weight:800;cursor:pointer;flex:0 0 38px;margin-right:10px}
+.jrAiTopBtn.on{background:var(--purple);color:#fff}
+.jrAiTopMenu{background:var(--card);border:1px solid var(--line2);border-radius:16px;padding:10px;margin:0 0 12px;display:flex;flex-direction:column;gap:8px}
+.jrAiTopMenu .sbtn{width:100%;text-align:left}
 .strictRem{margin:8px 0 4px;display:flex;flex-direction:column;gap:8px}
 .srItem{display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,rgba(255,174,31,.12),rgba(255,107,94,.08));border:1px solid rgba(255,174,31,.3);border-radius:16px;padding:13px 14px}
 .srTxt{flex:1;min-width:0}.srT{font-weight:700;font-size:14px}.srS{font-size:12px;color:var(--mut);margin-top:2px}
 .srGo{border:0;background:var(--amber);color:#171310;font-weight:800;font-size:12.5px;padding:9px 14px;border-radius:11px;flex:0 0 auto}
 .taskStatCard{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:8px 0 14px}
-.taskStatCard .tsc{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 6px;text-align:center}
-.taskStatCard .tsc b{display:block;font-size:26px;font-weight:800;line-height:1}
-.taskStatCard .tsc span{display:block;font-size:10px;letter-spacing:.5px;text-transform:uppercase;color:var(--mut2);margin-top:5px}
+.taskStatCard .tsc{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center;min-height:0}
+.taskStatCard .tsc b{display:block;font-size:24px;font-weight:800;line-height:1}
+.taskStatCard .tsc span{display:block;font-size:9.5px;letter-spacing:.4px;text-transform:uppercase;color:var(--mut2);margin-top:5px}
 .taskStatCard .over b{color:var(--coral)}.taskStatCard .today b{color:var(--sOrange)}.taskStatCard .up b{color:var(--sBlue)}.taskStatCard .done b{color:var(--sGreen)}
-.taskStatCard .over{border-color:rgba(255,107,94,.3)}.taskStatCard .today{border-color:rgba(255,159,64,.3)}
-/* Money hero — make it a bold attention box */
-.expHero{background:linear-gradient(135deg,var(--card),rgba(255,174,31,.06));border:1px solid var(--line2);border-radius:20px;padding:18px 18px 16px;margin-bottom:4px}
-.expHeroNum{font-size:44px;font-weight:800;letter-spacing:-.03em;line-height:1}
-.expHeroSub{font-size:13px;color:var(--mut);margin-top:4px}
-.expHeroRow{display:flex;gap:18px;margin-top:12px;font-size:13px}
+.taskStatCard .over{border-color:rgba(255,107,94,.28)}.taskStatCard .today{border-color:rgba(255,159,64,.28)}
+/* Money hero — compact, content-hugging (no tall empty box) */
+.expHero{background:linear-gradient(135deg,var(--card),rgba(255,174,31,.055));border:1px solid var(--line2);border-radius:18px;padding:16px 16px 14px;margin-bottom:6px}
+.expHeroNum{font-size:38px;font-weight:800;letter-spacing:-.03em;line-height:1.02}
+.expHeroSub{font-size:12.5px;color:var(--mut);margin-top:3px}
+.expHeroRow{display:flex;gap:16px;margin-top:10px;font-size:12.5px}
 #ptrInd{position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-40px);z-index:70;background:var(--card2);border:1px solid var(--line2);border-radius:20px;padding:8px 16px;font-size:12px;font-weight:700;color:var(--amber);opacity:0;transition:opacity .2s,transform .1s;pointer-events:none}
 .expHero{padding:2px 2px 4px}
 .expHeroNum{font-size:38px;font-weight:800;letter-spacing:-.02em;line-height:1.05}
@@ -1661,16 +1665,22 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <div class="page" id="pgJr">
     <div class="eyebrow">Your story</div>
     <div class="h1row">
-      <h1>Journal</h1>
+      <button class="jrAiTopBtn" id="jrAiTopBtn" aria-label="Journal AI">✦</button>
+      <h1 style="flex:1">Journal</h1>
       <button class="srchBtn" id="jrSrchBtn" aria-label="Search journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
     </div>
 
     <div class="jrNav" id="jrNav">
       <div class="jrNavItem on" data-jv="timeline"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg><span class="lb">Timeline</span></div>
       <div class="jrNavItem" data-jv="calendar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg><span class="lb">Calendar</span></div>
-      <div class="jrNavItem" data-jv="write"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg><span class="lb">Write</span></div>
-      <div class="jrNavItem" data-jv="memories"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg><span class="lb">Memories</span></div>
-      <div class="jrNavItem" data-jv="insights"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M20 20H3"/></svg><span class="lb">Insights</span></div>
+    </div>
+
+    <!-- Journal AI menu (opened by ✦ top-left) -->
+    <div class="jrAiTopMenu" id="jrAiTopMenu" style="display:none">
+      <button class="sbtn" id="jrAiWhole">✦ Analyse my whole journal</button>
+      <button class="sbtn" id="jrAiRange">📅 Insights from a date range</button>
+      <button class="sbtn" id="jrAiAsk">💬 Ask your journal</button>
+      <div id="jrAiTopOut"></div>
     </div>
 
     <!-- TIMELINE -->
@@ -1684,11 +1694,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         <button class="jrStatBtn" id="jrExportBtn">&#8681; Export</button>
       </div>
       <span id="jrStatMonth" style="display:none">0</span><span id="jrStatBest" style="display:none">0</span>
-      <div class="jrGoalCard" id="jrGoalCard">
-        <div class="jrGoalTop"><span id="jrGoalLbl">Weekly writing goal</span><button class="jrGoalSet" id="jrGoalSet">Set goal</button></div>
-        <div class="jrGoalBar"><i id="jrGoalFill"></i></div>
-        <div class="jrGoalSub" id="jrGoalSub"></div>
-      </div>
+      <div class="jrGoalCard" id="jrGoalCard" style="display:none"></div>
       <button class="jrAiBtn acc" style="width:100%;margin-top:12px" id="jrAskDayBtn">&#10024; Ask about my day &#9662;</button>
       <div class="jrAiMenu" id="jrAskDayMenu">
         <button class="sbtn" data-jrday="summary">Summarize my day</button>
@@ -1706,13 +1712,21 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       </div>
     </div>
 
-    <!-- CALENDAR -->
+    <!-- CALENDAR + MEMORIES (merged) -->
     <div id="jrView-calendar" style="display:none">
       <div class="setCard" style="padding:16px">
         <div class="jrCalHead"><button class="jrCalNav" data-jcalmove="-1">&#8249;</button><b id="jrCalTitle">&nbsp;</b><button class="jrCalNav" data-jcalmove="1">&#8250;</button></div>
         <div class="jrCalGrid" id="jrCalGrid"></div>
       </div>
       <div id="jrCalDay"></div>
+      <div class="setCard" style="padding:16px">
+        <div class="lbl" id="jrOtdHead" style="margin:0 0 8px">&#128280; On this day</div>
+        <div id="jrOtd"></div>
+      </div>
+      <div class="setCard" style="padding:16px">
+        <div class="lbl" style="margin:0 0 8px">&#11088; Favorites</div>
+        <div id="jrFavList"></div>
+      </div>
     </div>
 
     <!-- WRITE -->
@@ -1733,17 +1747,8 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       </div>
     </div>
 
-    <!-- MEMORIES -->
-    <div id="jrView-memories" style="display:none">
-      <div class="setCard" style="padding:16px">
-        <div class="lbl" id="jrOtdHead" style="margin:0 0 8px">&#128280; On this day</div>
-        <div id="jrOtd"></div>
-      </div>
-      <div class="setCard" style="padding:16px">
-        <div class="lbl" style="margin:0 0 8px">&#11088; Favorites</div>
-        <div id="jrFavList"></div>
-      </div>
-    </div>
+    <!-- MEMORIES (merged into Calendar) -->
+    <div id="jrView-memories" style="display:none"></div>
 
     <!-- INSIGHTS -->
     <div id="jrView-insights" style="display:none">
@@ -5990,7 +5995,7 @@ function jrGo(v){
     var vw=$('jrView-'+x); if(vw) vw.style.display = (x===v)?'':'none';
   });
   var nav=$('jrNav'); if(nav){ Array.prototype.forEach.call(nav.children,function(n){ n.classList.toggle('on', n.getAttribute('data-jv')===v); }); }
-  if(v==='calendar') jrRenderCal();
+  if(v==='calendar'){ jrRenderCal(); try{ if(typeof jrRenderMemories==='function') jrRenderMemories(); }catch(e){} }
   if(v==='insights'){
     var all=(state.jr||[]).map(function(e){return e.date;}).filter(Boolean).sort();
     if(all.length && $('jrInsFrom') && !$('jrInsFrom').value){ $('jrInsFrom').value=all[0]; $('jrInsTo').value=all[all.length-1]; }
@@ -9451,6 +9456,14 @@ function init(){
   var _askTalk=$('jrAskTalk'); if(_askTalk) _askTalk.addEventListener('click', function(){ var m=$('jrAskDayMenu'); if(m) m.classList.remove('on'); openJrReflect(); });
   var _askMenu=$('jrAskDayMenu'); if(_askMenu) _askMenu.addEventListener('click', function(e){ if(climb(e.target,this,'data-jrday')) this.classList.remove('on'); });
   $('jrWholeAiBtn').addEventListener('click', jrWholeAi);
+  /* ===== Journal AI top button (✦) — hosts whole/range/ask ===== */
+  var _jaTop=$('jrAiTopBtn'), _jaMenu=$('jrAiTopMenu');
+  if(_jaTop&&_jaMenu){
+    _jaTop.addEventListener('click', function(){ var open=_jaMenu.style.display==='none'; _jaMenu.style.display=open?'':'none'; _jaTop.classList.toggle('on',open); if(open){ var o=$('jrAiTopOut'); if(o) o.innerHTML=''; } });
+    var _aw=$('jrAiWhole'); if(_aw) _aw.addEventListener('click', function(){ var out=$('jrAiTopOut'); if(out){out.innerHTML='<div class="jrAiOut"><div class="b">Analysing…</div></div>';} if(typeof jrWholeAiInto==='function') jrWholeAiInto('jrAiTopOut'); else jrWholeAi(); });
+    var _ar=$('jrAiRange'); if(_ar) _ar.addEventListener('click', function(){ _jaMenu.style.display='none'; _jaTop.classList.remove('on'); jrGo('insights'); });
+    var _aa=$('jrAiAsk'); if(_aa) _aa.addEventListener('click', function(){ _jaMenu.style.display='none'; _jaTop.classList.remove('on'); jrGo('insights'); setTimeout(function(){ var i=$('jrAskInput'); if(i) i.focus(); },200); });
+  }
   var _jrAskSend=$('jrAskSend'); if(_jrAskSend) _jrAskSend.addEventListener('click', function(){ var inp=$('jrAskInput'); if(inp&&inp.value.trim()) jrAskJournal(inp.value); });
   var _jrAskInput=$('jrAskInput'); if(_jrAskInput) _jrAskInput.addEventListener('keydown', function(e){ if(e.key==='Enter'&&this.value.trim()) jrAskJournal(this.value); });
   var _jrAskChips=$('jrAskChips'); if(_jrAskChips) _jrAskChips.addEventListener('click', function(e){ var b=climb(e.target,this,'data-jrask'); if(b){ var qv=b.getAttribute('data-jrask'); jrAskJournal(qv); } });
