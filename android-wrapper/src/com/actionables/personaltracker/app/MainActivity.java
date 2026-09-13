@@ -223,9 +223,16 @@ public class MainActivity extends Activity {
                     boolean consumed = v != null && v.replace("\"","").equals("1");
                     if (consumed) return;
                     if (web.canGoBack()) { web.goBack(); return; }
-                    long now = System.currentTimeMillis();
-                    if (now - _lastBack < 2000) { finish(); }
-                    else { _lastBack = now; toast("Press back again to exit"); }
+                    /* About to exit — let the web layer check for unsynced changes and prompt. */
+                    web.evaluateJavascript("(function(){try{return window.handleAndroidExit&&window.handleAndroidExit()?'1':'0';}catch(e){return '0';}})()", new ValueCallback<String>() {
+                        @Override public void onReceiveValue(String ev) {
+                            boolean handled = ev != null && ev.replace("\"","").equals("1");
+                            if (handled) return; /* web showed the 'unsynced changes' dialog */
+                            long now = System.currentTimeMillis();
+                            if (now - _lastBack < 2000) { finish(); }
+                            else { _lastBack = now; toast("Press back again to exit"); }
+                        }
+                    });
                 }
             });
         } else { super.onBackPressed(); }
@@ -678,6 +685,7 @@ public class MainActivity extends Activity {
             if(Build.VERSION.SDK_INT>=26) vb.vibrate(android.os.VibrationEffect.createOneShot(18, android.os.VibrationEffect.DEFAULT_AMPLITUDE));
             else vb.vibrate(18);
         }catch(Exception e){} }
+        @JavascriptInterface public void exitApp(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.finish(); } }); }
         @JavascriptInterface public void showQuickAdd(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.showQuickAddNotif(); } }); }
         @JavascriptInterface public void showPinnedTasks(final String json){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.showPinnedTasksNotif(json); } }); }
         @JavascriptInterface public void hidePinnedTasks(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.hidePinnedTasksNotif(); } }); }

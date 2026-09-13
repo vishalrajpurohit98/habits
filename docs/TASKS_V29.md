@@ -1271,3 +1271,33 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   Added #jrSheet{width:min(760px,100vw-120px)} + #jrBody min-height 360 at >=1024px. Verified sheet=760,
   body=718 wide on 1280px viewport.
 - Verified: suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.28.0 — clearer journal stats + compact export
+- Journal timeline stats: replaced the ambiguous "streak/entries/days" line with 4 labeled tiles —
+  Current streak (🔥), Longest streak, Entries, Days (jrStatBest now visible; already computed via
+  jrLongestStreak + set in render). Export + Drafts shrunk to small icon buttons (⬇/📝) so they no
+  longer eat space. Removed conflicting old .jrStatLine b rule.
+- Verified: 4 labeled stats show correct values, export as icon, one row; suite1 51/52 (known timing),
+  suite2 25/25; zero errors.
+
+---
+# V1.28.1 — journal stats redesigned as one clean card
+- The 4 separate cramped stat tiles looked weird; replaced with a SINGLE "Your journey" card:
+  header row (title + export/drafts icons in the corner) and a divided 4-stat row
+  (Current streak 🔥 / Longest streak / Entries / Days) with big numbers + 2-line labels + subtle
+  vertical dividers. Much cleaner hierarchy.
+- Verified: card renders with correct values + labels; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.29.0 — warn before leaving with unsynced changes
+- Browser: beforeunload fires the native "leave site?" confirmation when syncPendingRecords is
+  non-empty (also best-effort pushRecordSync). Note: browsers only show a GENERIC message + can't run
+  async sync during unload (platform limit) — it's a warning, not a forced sync.
+- Android: back-to-exit now routes through window.handleAndroidExit() BEFORE finishing. If there are
+  pending changes it shows an in-app dialog: "Sync now" (runs syncReconcile) or "Exit anyway"
+  (nat.exitApp). Added native exitApp() bridge. In-app dialog CAN offer a real Sync button (unlike the
+  browser unload).
+- Verified: no-pending exits freely; pending shows dialog; Sync now closes+syncs; Exit anyway calls
+  exitApp. Java/JS/CSS valid; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: native back+exitApp untestable here (verified JS logic + Java structure); browser unload text is not customizable.

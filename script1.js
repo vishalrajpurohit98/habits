@@ -2058,6 +2058,19 @@ function openSheet(id){
   $('scrim').classList.add('on');
   try{ history.pushState({s:1},''); }catch(e){}
 }
+window.handleAndroidExit=function(){
+  try{
+    if(!(typeof fbUser!=='undefined' && fbUser && typeof syncPendingRecords!=='undefined' && syncPendingRecords && Object.keys(syncPendingRecords).length)) return false; /* nothing pending -> allow exit */
+    if(window.__exitAsked){ return false; } /* already asked; let it exit */
+    /* Show an in-app dialog with a real "Sync now" option */
+    var wrap=document.createElement('div'); wrap.id='exitSyncDlg'; wrap.className='exitDlgWrap';
+    wrap.innerHTML='<div class="exitDlg"><div class="exitDlgT">Unsynced changes</div><div class="exitDlgS">You have changes that haven\u2019t been synced to the cloud yet. Sync before leaving?</div><div class="exitDlgBtns"><button class="exitDlgBtn ghost" id="exitLeave">Exit anyway</button><button class="exitDlgBtn acc" id="exitSync">Sync now</button></div></div>';
+    document.body.appendChild(wrap);
+    document.getElementById('exitSync').onclick=function(){ wrap.remove(); toastN&&toastN('Syncing\u2026'); try{ (typeof syncReconcile==='function'?syncReconcile():Promise.resolve()).then(function(){ toastN&&toastN('Synced \u2713'); }).catch(function(){ toastN&&toastN('Sync failed \u2014 try again'); }); }catch(e){} };
+    document.getElementById('exitLeave').onclick=function(){ wrap.remove(); window.__exitAsked=true; try{ if(typeof nat!=='undefined'&&nat&&nat.exitApp) nat.exitApp(); else { window.__exitAsked=true; } }catch(e){} };
+    return true; /* handled -> don't exit yet */
+  }catch(e){ return false; }
+};
 window.handleAndroidBack=function(){
   try{
     /* 1. any open bottom sheet */
@@ -5510,6 +5523,15 @@ function attachFirestoreSync(u){
   loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(e){ if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');} });
 }
 function detachFirestoreSync(){if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;fbDoc=null;syncMetaDoc=null;syncLegacyMode=false;}
+/* Warn before leaving if there are unsynced changes (browser tab close / refresh). */
+function hasPendingSync(){ try{ return !!(fbUser && syncPendingRecords && Object.keys(syncPendingRecords).length); }catch(e){ return false; } }
+window.addEventListener('beforeunload', function(e){
+  if(hasPendingSync()){
+    /* Best-effort: fire a quick push (may not complete, but tries). */
+    try{ if(typeof pushRecordSync==='function') pushRecordSync(false); }catch(_){}
+    e.preventDefault(); e.returnValue=''; return '';
+  }
+});
 /* ===== Profiles (each = a Firebase email/password account) ===== */
 var PROFILES_KEY='hb_profiles_v1';
 function loadProfiles(){ try{ return JSON.parse(localStorage.getItem(PROFILES_KEY)||'[]')||[]; }catch(e){ return []; } }

@@ -1145,6 +1145,14 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+.exitDlgWrap{position:fixed;inset:0;z-index:100001;background:rgba(0,0,0,.6);display:grid;place-items:center;padding:24px}
+.exitDlg{background:var(--card);border:1px solid var(--line2);border-radius:20px;padding:20px;max-width:340px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.exitDlgT{font-size:18px;font-weight:800;margin-bottom:6px}
+.exitDlgS{font-size:13px;color:var(--mut);line-height:1.5;margin-bottom:18px}
+.exitDlgBtns{display:flex;gap:10px}
+.exitDlgBtn{flex:1;border:0;border-radius:12px;padding:12px;font-weight:800;font-size:14px;cursor:pointer}
+.exitDlgBtn.ghost{background:var(--card2);border:1px solid var(--line);color:var(--ink2)}
+.exitDlgBtn.acc{background:var(--amber);color:#171310}
 /* Money hero account selector chips */
 .heroAcctRow{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:8px 0 4px;padding-bottom:2px}
 .heroAcctRow::-webkit-scrollbar{display:none}
@@ -1258,9 +1266,21 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 .taskStatLine span{white-space:nowrap}
 .taskStatLine b{font-weight:800;margin-right:3px}
 .taskStatLine .over b{color:var(--coral)}.taskStatLine .today b{color:var(--sOrange)}.taskStatLine .up b{color:var(--sBlue)}.taskStatLine .done b{color:var(--sGreen)}
-.jrStatLine{display:flex;align-items:center;gap:14px;flex-wrap:nowrap;margin:12px 2px 4px;font-size:12.5px;color:var(--mut)}
-.jrStatLine span{white-space:nowrap}
-.jrStatLine b{color:var(--ink);font-weight:700;margin-right:3px}
+.jrStatLine{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;margin:12px 0 6px}
+.jrStat{flex:1;min-width:0;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 4px}
+.jrStat b{display:block;font-size:17px;font-weight:800;line-height:1;white-space:nowrap}
+.jrStat small{display:block;font-size:9px;letter-spacing:.2px;color:var(--mut2);margin-top:4px;white-space:nowrap}
+/* Single clean stat card */
+.jrStatCard{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 8px 14px;margin:12px 0 6px}
+.jrStatCardTop{display:flex;align-items:center;justify-content:space-between;padding:0 8px 10px}
+.jrStatCardTitle{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mut2)}
+.jrStatRow4{display:flex;align-items:stretch}
+.jrStat4{flex:1;text-align:center;padding:2px 4px;position:relative}
+.jrStat4+.jrStat4::before{content:'';position:absolute;left:0;top:14%;height:72%;width:1px;background:var(--line)}
+.jrStat4 b{display:block;font-size:22px;font-weight:800;line-height:1;color:var(--ink);white-space:nowrap}
+.jrStat4 small{display:block;font-size:10px;line-height:1.25;color:var(--mut);margin-top:6px}
+.jrStatActions{display:flex;gap:5px;flex:0 0 auto}
+.jrStatIcon{width:38px;height:38px;border:1px solid var(--line);background:var(--card2);color:var(--amber);border-radius:11px;font-size:15px;cursor:pointer;display:grid;place-items:center}
 .jrStatLine .jrStatBtn{margin-left:auto;border:1px solid var(--line);background:var(--card2);color:var(--amber);font-size:12px;font-weight:700;padding:6px 12px;border-radius:10px;cursor:pointer}
 .trashRow{display:flex;align-items:center;gap:10px;padding:11px 0;border-top:1px solid var(--line)}
 .trashRow:first-child{border-top:0}
@@ -1752,14 +1772,22 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <!-- TIMELINE -->
     <div id="jrView-timeline">
       <button class="jrNewBtn" id="jrNewBtn"><span style="font-size:20px">&#65291;</span> New Entry</button>
-      <div class="jrStatLine">
-        <span><b id="jrStatStreak">&#128293; 0</b> streak</span>
-        <span><b id="jrStatTotal">0</b> entries</span>
-        <span><b id="jrStatAllDays">0</b> days</span>
-        <button class="jrStatBtn" id="jrDraftsBtn" style="display:none">📝 Drafts</button>
-        <button class="jrStatBtn" id="jrExportBtn">&#8681; Export</button>
+      <div class="jrStatCard">
+        <div class="jrStatCardTop">
+          <span class="jrStatCardTitle">Your journey</span>
+          <div class="jrStatActions">
+            <button class="jrStatIcon" id="jrDraftsBtn" style="display:none" title="Drafts">📝</button>
+            <button class="jrStatIcon" id="jrExportBtn" title="Export">⬇</button>
+          </div>
+        </div>
+        <div class="jrStatRow4">
+          <div class="jrStat4"><b id="jrStatStreak">🔥 0</b><small>Current<br>streak</small></div>
+          <div class="jrStat4"><b id="jrStatBest">0</b><small>Longest<br>streak</small></div>
+          <div class="jrStat4"><b id="jrStatTotal">0</b><small>Entries</small></div>
+          <div class="jrStat4"><b id="jrStatAllDays">0</b><small>Days</small></div>
+        </div>
       </div>
-      <span id="jrStatMonth" style="display:none">0</span><span id="jrStatBest" style="display:none">0</span>
+      <span id="jrStatMonth" style="display:none">0</span>
       <div id="jrGoalCard" style="display:none"><span id="jrGoalLbl"></span><span id="jrGoalFill"></span><span id="jrGoalSub"></span><span id="jrGoalSet"></span></div>
       <button class="jrAiBtn acc" style="width:100%;margin-top:12px" id="jrAskDayBtn">&#10024; Ask about my day &#9662;</button>
       <div class="jrAiMenu" id="jrAskDayMenu">
@@ -4719,6 +4747,19 @@ function openSheet(id){
   $('scrim').classList.add('on');
   try{ history.pushState({s:1},''); }catch(e){}
 }
+window.handleAndroidExit=function(){
+  try{
+    if(!(typeof fbUser!=='undefined' && fbUser && typeof syncPendingRecords!=='undefined' && syncPendingRecords && Object.keys(syncPendingRecords).length)) return false; /* nothing pending -> allow exit */
+    if(window.__exitAsked){ return false; } /* already asked; let it exit */
+    /* Show an in-app dialog with a real "Sync now" option */
+    var wrap=document.createElement('div'); wrap.id='exitSyncDlg'; wrap.className='exitDlgWrap';
+    wrap.innerHTML='<div class="exitDlg"><div class="exitDlgT">Unsynced changes</div><div class="exitDlgS">You have changes that haven\u2019t been synced to the cloud yet. Sync before leaving?</div><div class="exitDlgBtns"><button class="exitDlgBtn ghost" id="exitLeave">Exit anyway</button><button class="exitDlgBtn acc" id="exitSync">Sync now</button></div></div>';
+    document.body.appendChild(wrap);
+    document.getElementById('exitSync').onclick=function(){ wrap.remove(); toastN&&toastN('Syncing\u2026'); try{ (typeof syncReconcile==='function'?syncReconcile():Promise.resolve()).then(function(){ toastN&&toastN('Synced \u2713'); }).catch(function(){ toastN&&toastN('Sync failed \u2014 try again'); }); }catch(e){} };
+    document.getElementById('exitLeave').onclick=function(){ wrap.remove(); window.__exitAsked=true; try{ if(typeof nat!=='undefined'&&nat&&nat.exitApp) nat.exitApp(); else { window.__exitAsked=true; } }catch(e){} };
+    return true; /* handled -> don't exit yet */
+  }catch(e){ return false; }
+};
 window.handleAndroidBack=function(){
   try{
     /* 1. any open bottom sheet */
@@ -8171,6 +8212,15 @@ function attachFirestoreSync(u){
   loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(e){ if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');} });
 }
 function detachFirestoreSync(){if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;fbDoc=null;syncMetaDoc=null;syncLegacyMode=false;}
+/* Warn before leaving if there are unsynced changes (browser tab close / refresh). */
+function hasPendingSync(){ try{ return !!(fbUser && syncPendingRecords && Object.keys(syncPendingRecords).length); }catch(e){ return false; } }
+window.addEventListener('beforeunload', function(e){
+  if(hasPendingSync()){
+    /* Best-effort: fire a quick push (may not complete, but tries). */
+    try{ if(typeof pushRecordSync==='function') pushRecordSync(false); }catch(_){}
+    e.preventDefault(); e.returnValue=''; return '';
+  }
+});
 /* ===== Profiles (each = a Firebase email/password account) ===== */
 var PROFILES_KEY='hb_profiles_v1';
 function loadProfiles(){ try{ return JSON.parse(localStorage.getItem(PROFILES_KEY)||'[]')||[]; }catch(e){ return []; } }
