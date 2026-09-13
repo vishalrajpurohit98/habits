@@ -1312,3 +1312,16 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   Sync now falls back to pushRecordSync, Exit anyway falls back nat.exitApp->nat.back->history.back so
   it works even if the new exitApp bridge isn't in the current APK. Verified Sync now + Exit anyway fire.
 - Verified: desktop no overlap; exit buttons work; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.30.0 — Today task-overview removed, full-width task summary, Vault (encrypted)
+- Today: removed the Tasks overview card (renderTaskDashboard now hides #taskDashSummary).
+- Tasks: summary row now full-width (#taskSummary forced display:block; .taskStatRow width:100%).
+  Verified rowW == cardW == pageW (354).
+- Vault (More → Vault): encrypted passwords + secure notes. Crypto = PBKDF2(PIN,100k,SHA-256) ->
+  AES-GCM 256 via Web Crypto. Requires app PIN; entries encrypted at rest in state.vault (SYNCS per
+  user's choice). Tabs (Passwords/Notes), add/edit/delete, copy password. Explicit warnings: not a
+  hardened manager; same PIN needed on every device; forgotten PIN = unrecoverable.
+  Verified: encrypt/decrypt round-trip, WRONG PIN FAILS, no-PIN guard, unlock+list, notes tab.
+- Verified: suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: web-side crypto verified; not a security-audited vault; native/sync round-trip needs device.

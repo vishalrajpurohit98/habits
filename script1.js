@@ -1881,7 +1881,7 @@ function renderTodayProgress(){
     +cell('Due today', dueToday||'0')
     +'</div>';
 }
-function renderTaskDashboard(){var b=$('taskDashSummary');if(!b)return;var all=taskAllVisible(),over=all.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,todayN=all.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=all.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;b.innerHTML='<div class="taskDashHead"><b>Tasks</b><button id="taskDashView">View Tasks</button></div><div class="taskDashLine"><span class="red">🔴 <b>'+over+'</b> overdue</span><span class="orange">🟠 <b>'+todayN+'</b> due today</span><span class="blue">🔵 <b>'+up+'</b> upcoming</span><span class="green">✅ <b>'+done+'</b> completed</span></div>';}
+function renderTaskDashboard(){var b=$('taskDashSummary');if(!b)return;b.style.display='none';b.innerHTML='';return;}
 
 function renderStrictReminders(){
   var box=$('strictRem'); if(!box) return;
@@ -5235,6 +5235,33 @@ function openCatEditor(){ renderCatEditor(); openSheet('catSheet'); }
 /* ================= PIN lock ================= */
 var lockMode='', pinBuf='', pinTmp='', lastUnlock=0, wasHidden=false;
 function pinHash(p){ return 'h' + intHash('hb$' + p + '#salt').toString(36); }
+/* ===== Vault crypto: PIN -> PBKDF2 key -> AES-GCM encrypt/decrypt ===== */
+function _b64(buf){ var b=new Uint8Array(buf),s=''; for(var i=0;i<b.length;i++) s+=String.fromCharCode(b[i]); return btoa(s); }
+function _unb64(str){ var s=atob(str),a=new Uint8Array(s.length); for(var i=0;i<s.length;i++) a[i]=s.charCodeAt(i); return a; }
+function vaultKey(pin){
+  var enc=new TextEncoder();
+  return crypto.subtle.importKey('raw', enc.encode(String(pin)), {name:'PBKDF2'}, false, ['deriveKey'])
+    .then(function(base){
+      return crypto.subtle.deriveKey(
+        {name:'PBKDF2', salt:enc.encode('inneros-vault-v1'), iterations:100000, hash:'SHA-256'},
+        base, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']);
+    });
+}
+function vaultEncrypt(pin, obj){
+  return vaultKey(pin).then(function(key){
+    var iv=crypto.getRandomValues(new Uint8Array(12));
+    var data=new TextEncoder().encode(JSON.stringify(obj));
+    return crypto.subtle.encrypt({name:'AES-GCM', iv:iv}, key, data).then(function(ct){
+      return {v:1, iv:_b64(iv), ct:_b64(ct)};
+    });
+  });
+}
+function vaultDecrypt(pin, blob){
+  return vaultKey(pin).then(function(key){
+    return crypto.subtle.decrypt({name:'AES-GCM', iv:_unb64(blob.iv)}, key, _unb64(blob.ct))
+      .then(function(pt){ return JSON.parse(new TextDecoder().decode(pt)); });
+  });
+}
 function bioAvailSafe(){ try{ return !!(nat && nat.bioAvail()); }catch(e){ return false; } }
 function updDots(){
   var is = $('lockDots').children;
@@ -6776,6 +6803,57 @@ function init(){
   window._renderJrDraftsBtn=renderJrDraftsBtn;
   /* Save a draft when the journal editor is dismissed without saving */
   var _jrCloseBtn=$('jrCloseBtn')||document.querySelector('#jrSheet .sheetClose,#jrSheet .grab');
+  /* ===== Vault (encrypted passwords + secure notes) ===== */
+  var _vaultPin=null, _vaultData={pw:[],note:[]}, _vaultTab='pw';
+  window.openVault=function(){
+    if(!state.set||!state.set.pin){ toastN('Set an app PIN first (Settings \u2192 Privacy)'); showTab('pgSet'); return; }
+    _vaultPin=null; _vaultData={pw:[],note:[]};
+    $('vaultLocked').style.display=''; $('vaultOpen').style.display='none';
+    var pi=$('vaultPin'); if(pi) pi.value=''; var hint=$('vaultPinHint'); if(hint) hint.style.display='none';
+    openSheet('vaultSheet'); setTimeout(function(){ if(pi) pi.focus(); },120);
+  };
+  function vaultUnlock(){
+    var pin=$('vaultPin').value.trim(); var hint=$('vaultPinHint');
+    if(pinHash(pin)!==state.set.pin){ if(hint){hint.textContent='Wrong PIN.';hint.style.display='';} return; }
+    _vaultPin=pin;
+    var blob=state.vault;
+    if(!blob){ _vaultData={pw:[],note:[]}; showVaultOpen(); return; }
+    vaultDecrypt(pin, blob).then(function(d){ _vaultData=(d&&d.pw)?d:{pw:[],note:[]}; showVaultOpen(); })
+      .catch(function(){ if(hint){hint.textContent='Could not decrypt (PIN may differ from when saved).';hint.style.display='';} });
+  }
+  function showVaultOpen(){ $('vaultLocked').style.display='none'; $('vaultOpen').style.display=''; renderVault(); }
+  function saveVault(){ if(_vaultPin===null) return; vaultEncrypt(_vaultPin, _vaultData).then(function(blob){ state.vault=blob; persist(); }); }
+  function renderVault(){
+    var box=$('vaultList'); if(!box) return;
+    document.querySelectorAll('.vaultTab').forEach(function(t){ t.classList.toggle('on', t.getAttribute('data-vt')===_vaultTab); });
+    var list=_vaultData[_vaultTab]||[];
+    if(!list.length){ box.innerHTML='<div class="setS" style="text-align:center;padding:20px">No '+(_vaultTab==='pw'?'passwords':'notes')+' yet.</div>'; return; }
+    box.innerHTML=list.map(function(it,i){
+      if(_vaultTab==='pw'){ return '<div class="vaultRow"><div class="vaultInfo"><div class="vaultName">'+esc(it.title||'Untitled')+'</div><div class="vaultSub">'+esc(it.user||'')+'</div></div><button class="vaultBtn" data-vcopy="'+i+'">Copy</button><button class="vaultBtn" data-vedit="'+i+'">Edit</button><button class="vaultBtn del" data-vdel="'+i+'">\u2715</button></div>'; }
+      return '<div class="vaultRow"><div class="vaultInfo"><div class="vaultName">'+esc(it.title||'Note')+'</div><div class="vaultSub">'+esc((it.body||'').slice(0,40))+'</div></div><button class="vaultBtn" data-vedit="'+i+'">Open</button><button class="vaultBtn del" data-vdel="'+i+'">\u2715</button></div>';
+    }).join('');
+  }
+  function vaultEditEntry(idx){
+    var isPw=_vaultTab==='pw'; var it=(idx>=0)?_vaultData[_vaultTab][idx]:(isPw?{title:'',user:'',pass:'',url:'',notes:''}:{title:'',body:''});
+    var title=prompt(isPw?'Title (e.g. Gmail)':'Note title', it.title||''); if(title===null) return;
+    if(isPw){ var user=prompt('Username / email', it.user||'')||''; var pass=prompt('Password', it.pass||'')||''; var url=prompt('URL (optional)', it.url||'')||'';
+      var entry={title:title.trim(),user:user.trim(),pass:pass,url:url.trim(),notes:it.notes||''};
+      if(idx>=0) _vaultData.pw[idx]=entry; else _vaultData.pw.unshift(entry);
+    } else { var body=prompt('Note (secure)', it.body||'')||''; var e2={title:title.trim(),body:body}; if(idx>=0) _vaultData.note[idx]=e2; else _vaultData.note.unshift(e2); }
+    saveVault(); renderVault();
+  }
+  var _vSheet=$('vaultSheet');
+  if(_vSheet){
+    var ub=$('vaultUnlockBtn'); if(ub) ub.addEventListener('click', vaultUnlock);
+    var vp=$('vaultPin'); if(vp) vp.addEventListener('keydown', function(e){ if(e.key==='Enter') vaultUnlock(); });
+    _vSheet.addEventListener('click', function(e){
+      var tab=e.target.closest('[data-vt]'); if(tab){ _vaultTab=tab.getAttribute('data-vt'); renderVault(); return; }
+      var add=e.target.closest('#vaultAddBtn'); if(add){ vaultEditEntry(-1); return; }
+      var ed=e.target.closest('[data-vedit]'); if(ed){ vaultEditEntry(+ed.getAttribute('data-vedit')); return; }
+      var dl=e.target.closest('[data-vdel]'); if(dl){ var di=+dl.getAttribute('data-vdel'); if(confirm('Delete this entry?')){ _vaultData[_vaultTab].splice(di,1); saveVault(); renderVault(); } return; }
+      var cp=e.target.closest('[data-vcopy]'); if(cp){ var it=_vaultData.pw[+cp.getAttribute('data-vcopy')]; if(it){ try{ navigator.clipboard.writeText(it.pass); toastN('Password copied'); }catch(x){ toastN('Copy failed'); } } return; }
+    });
+  }
   /* ===== Recently deleted (trash) ===== */
   function renderTrash(){
     var box=$('trashList'); if(!box) return;
@@ -6942,7 +7020,8 @@ function init(){
   var _more=$('pgMore'); if(_more) _more.addEventListener('click', function(e){
     var b=climb(e.target,this,'data-more'); if(!b) return;
     var m=b.getAttribute('data-more');
-    if(m==='stats') showTab('pgStats');
+    if(m==='vault'){ if(typeof openVault==='function') openVault(); }
+    else if(m==='stats') showTab('pgStats');
     else if(m==='ai') showTab('pgAI');
     else if(m==='settings') showTab('pgSet');
     else if(m==='export'){ showTab('pgSet'); setTimeout(function(){ try{ var cards=document.querySelectorAll('#setCardGrid [data-setidx]'); for(var i=0;i<cards.length;i++){ if(/Data/.test(cards[i].textContent)){ cards[i].click(); break; } } }catch(e){} },160); }
