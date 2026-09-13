@@ -1142,3 +1142,42 @@ HONEST: all native (mic onPermissionRequest, LogHub widget, tasks widget) untest
 - Fixed 2 null-ref bugs surfaced by removal (btnStack, stStack) by guarding them.
 - Verified: AI tab (range/whole/ask present, stats gone), goal gone, routine stack gone (0 in markup),
   today dead blocks gone; no dup ids; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.20.1 — export title dedup + Talk/Write placement + Write cleanup
+- Single-entry export showed title 3x: (1) page H1, (2) per-entry heading, (3) body first line (imported
+  entries repeat their own title). Fix: jrEntryHtmlForExport de-dupes a leading title from the body (DOM
+  TreeWalker, robust to tags); single-entry export suppresses the per-entry <h2> when it equals the H1.
+  Now visible title = 1. (The <title> in <head> is document metadata, not printed.)
+- "Talk/Write about my day": added to AI tab (jrTalkBtnAi) + already in Timeline (Ask about my day menu);
+  no longer Write-only.
+- Write tab: removed "Today's context" card (jrCtx kept as hidden placeholder for render safety).
+- Verified: export title once, talk in AI+Timeline, today-context gone from Write; no dup ids;
+  suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.21.0 — Settings card-grid UI
+- Replaced the Settings accordion with a 2-col CARD GRID landing (Profile/Appearance/Money & currency/
+  Reminders/Privacy & security/Pause/Cloud sync/Data), each card = icon + title + subtitle.
+- Tap a card -> only that section's options show, with a "‹ Settings" back bar + section title. Back
+  returns to the grid. Re-opening Settings resets to the grid.
+- Reused the .lbl-header grouping; sections hidden on landing, shown on drill-in. Export More-card now
+  drills into the Data section.
+- Verified: 8 cards, sections hidden on landing, drill-in shows one section + back bar, back returns,
+  reopen resets; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.22.0 — Profiles (multi-user, cloud + password)
+- Profile = a Firebase email/password account (real per-account cloud isolation + real password
+  protection; reuses existing createUser/signIn). Confirmed feasible against current auth.
+- Remembered profiles (hb_profiles_v1): stores email + display name + lastUsed ONLY — never passwords.
+- Signed-out sync state shows a "Saved profiles" list: tap Sign in -> fills email, prompts password
+  (password required every switch, per user). Forget removes a profile from the device (cloud data kept).
+- Signed-in state: "👥 Switch / add profile" -> switchProfileFlushAndSignOut(): flushes current data to
+  ITS cloud (best-effort, 6s timeout), CLEARS local state + sync shadows, signs out -> next person can't
+  see prior data. Backup-before-switch safety given prior sync incidents.
+- On successful sign-in, the profile is remembered; current profile excluded from the switch list.
+- Verified (mock auth): remember 2 profiles, list renders, one-tap fills email, current excluded,
+  switch clears habits/jr to 0 + signs out, NO password stored; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: live 2-account cloud round-trip untestable here (needs real Firebase) — verify on-device.
+  Sign-out clears visible data by design; no master unlock; each person needs their own password.

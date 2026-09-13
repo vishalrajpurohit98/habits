@@ -3080,7 +3080,7 @@ function jrFilterEntries(fromISO, toISO, tags){
 }
 
 /* ---- export: build printable HTML for a set of entries ---- */
-function jrEntryHtmlForExport(e){
+function jrEntryHtmlForExport(e, hideTitle){
   var dt;
   try{ dt=new Date(e.date+'T00:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long',year:'numeric'}); }catch(_){ dt=e.date||''; }
   var moodTxt = e.mood && JR_MOOD_LABEL[e.mood] ? (' \u00B7 '+JR_MOOD_LABEL[e.mood]) : '';
@@ -3088,9 +3088,33 @@ function jrEntryHtmlForExport(e){
   /* sanitize content to a safe subset for print/word */
   var body=String(e.content||'')
     .replace(/<(?!\/?(p|br|b|i|strong|em|h3|ul|ol|li|blockquote)\b)[^>]*>/gi,'');
+  /* If the body begins by repeating the entry's own title (common in imported entries),
+     drop that duplicate so the title doesn't appear twice. DOM-based, robust to tags. */
+  if(e.title){
+    try{
+      var wrap=document.createElement('div'); wrap.innerHTML=body;
+      var t2=String(e.title).replace(/\s+/g,' ').trim().toLowerCase();
+      var full=(wrap.textContent||'').replace(/\s+/g,' ').trim().toLowerCase();
+      if(t2 && full.indexOf(t2)===0){
+        /* walk text nodes, remove characters until the title prefix is consumed */
+        var need=t2.length, guard=0;
+        var walk=document.createTreeWalker(wrap, NodeFilter.SHOW_TEXT, null);
+        var nodes=[]; var n; while((n=walk.nextNode())) nodes.push(n);
+        for(var wi=0; wi<nodes.length && need>0 && guard<50; wi++){ guard++;
+          var tx=nodes[wi].nodeValue; var norm=tx.replace(/\s+/g,' ');
+          if(!norm.trim()){ continue; }
+          if(norm.replace(/^\s+/,'').length<=need){ need-=norm.replace(/^\s+/,'').length; nodes[wi].nodeValue=''; }
+          else { /* trim the prefix from this node */ var cut=0,cnt=0; var s=tx; var started=false;
+            for(var ci=0; ci<s.length; ci++){ var ch=s[ci]; if(/\s/.test(ch)){ if(!started) continue; } started=true; cnt++; if(cnt>need){ cut=ci; break; } }
+            nodes[wi].nodeValue = s.slice(cut).replace(/^[\s:–—-]+/,''); need=0; }
+        }
+        body=wrap.innerHTML;
+      }
+    }catch(_){}
+  }
   return '<div class="jrx-entry">'
     + '<div class="jrx-date">'+esc(dt)+(e.time?(' \u00B7 '+esc(e.time)):'')+moodTxt+(e.favorite?' \u2B50':'')+'</div>'
-    + (e.title?'<h2 class="jrx-title">'+esc(e.title)+'</h2>':'')
+    + ((e.title && !hideTitle)?'<h2 class="jrx-title">'+esc(e.title)+'</h2>':'')
     + '<div class="jrx-body">'+body+'</div>'
     + (tg.length?'<div class="jrx-tags">'+tg.map(function(t){return esc(t);}).join('  ')+'</div>':'')
     + '</div>';
@@ -3110,7 +3134,8 @@ function jrExportDocHtml(entries, title){
     +'.jrx-tags{color:#4a7bbf;font-size:9pt;margin-top:8px;font-family:Arial,sans-serif}'
     +'</style>';
   var head='<h1>'+esc(title)+'</h1><div class="jrx-sub">'+entries.length+' '+(entries.length===1?'entry':'entries')+' \u00B7 exported '+new Date().toLocaleDateString()+'</div>';
-  var bodyHtml=entries.map(jrEntryHtmlForExport).join('');
+  var singleTitleDupe = entries.length===1 && entries[0].title && String(entries[0].title).trim().toLowerCase()===String(title).trim().toLowerCase();
+  var bodyHtml=entries.map(function(e){ return jrEntryHtmlForExport(e, singleTitleDupe); }).join('');
   return '<!doctype html><html><head><meta charset="utf-8"><title>'+esc(title)+'</title>'+css+'</head><body>'+head+bodyHtml+'</body></html>';
 }
 function jrExportTitle(fromISO,toISO,tags){
@@ -5467,6 +5492,45 @@ function attachFirestoreSync(u){
   loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(e){ if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');} });
 }
 function detachFirestoreSync(){if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;fbDoc=null;syncMetaDoc=null;syncLegacyMode=false;}
+/* ===== Profiles (each = a Firebase email/password account) ===== */
+var PROFILES_KEY='hb_profiles_v1';
+function loadProfiles(){ try{ return JSON.parse(localStorage.getItem(PROFILES_KEY)||'[]')||[]; }catch(e){ return []; } }
+function saveProfiles(list){ try{ localStorage.setItem(PROFILES_KEY, JSON.stringify(list||[])); }catch(e){} }
+function rememberProfile(email, name){
+  if(!email) return;
+  var list=loadProfiles();
+  var ix=list.findIndex(function(p){return (p.email||'').toLowerCase()===email.toLowerCase();});
+  var entry={ email:email, name:name||(email.split('@')[0]), lastUsed:Date.now() };
+  if(ix>=0){ if(name) list[ix].name=name; list[ix].lastUsed=Date.now(); } else list.push(entry);
+  list.sort(function(a,b){return (b.lastUsed||0)-(a.lastUsed||0);});
+  saveProfiles(list);
+}
+function forgetProfile(email){ saveProfiles(loadProfiles().filter(function(p){return (p.email||'').toLowerCase()!==(email||'').toLowerCase();})); }
+/* Safely switch away from the current profile: flush to cloud, then sign out + clear local state
+   so the next person cannot see this profile's data. Returns a promise. */
+function switchProfileFlushAndSignOut(){
+  return new Promise(function(resolve){
+    function finish(){
+      try{
+        /* clear the in-memory + on-disk state so nothing leaks to the next profile */
+        state = normState({}); 
+        try{ localStorage.setItem(KEY, JSON.stringify(stateForStorage())); }catch(e){}
+        if(nat){ try{ nat.saveState(stateJson()); }catch(e){} }
+        /* reset sync shadows so the next account fully hydrates from ITS cloud */
+        syncRecordShadow={}; syncPendingRecords={};
+        try{ localStorage.removeItem('hb_sync_record_shadow'); localStorage.removeItem('hb_sync_pending'); }catch(e){}
+        applyTheme&&applyTheme(); applyGrey&&applyGrey(); renderToday&&renderToday();
+      }catch(e){}
+      if(fbAuth){ try{ fbAuth.signOut().then(resolve).catch(resolve); return; }catch(e){} }
+      resolve();
+    }
+    /* flush current data to this profile's cloud first (best-effort, then sign out) */
+    if(fbUser && typeof syncReconcile==='function' && isOnline()){
+      var done=false; var to=setTimeout(function(){ if(!done){done=true;finish();} }, 6000);
+      syncReconcile().then(function(){ if(!done){done=true;clearTimeout(to);finish();} }).catch(function(){ if(!done){done=true;clearTimeout(to);finish();} });
+    } else finish();
+  });
+}
 function syncReconcile(){
   if(!fbDoc||!fbUser)return Promise.resolve();
   if(syncLegacyMode){
@@ -5549,6 +5613,7 @@ function renderTodaySyncUI(){
 
 function renderSyncUI(){
   renderTodaySyncUI();
+  try{ if(typeof renderProfiles==='function') renderProfiles(); }catch(e){}
   if(!$('syncCard')) return;
   var offline=!isOnline();
   $('syncOffline').style.display=(syncEnabled()&&offline)?'':'none';
@@ -5580,7 +5645,7 @@ function doSyncSignin(create){
   var email=$('syncEmail').value.trim(),pw=$('syncPw').value;
   if(!email||pw.length<6){syncMsg('Enter an email and a 6+ character password.',true);return;}
   syncMsg(create?'Creating account…':'Signing in…',false);
-  ensureFirebaseReady().then(function(){return create?fbAuth.createUserWithEmailAndPassword(email,pw):fbAuth.signInWithEmailAndPassword(email,pw);}).then(function(){syncMsg('',false);$('syncPw').value='';}).catch(function(e){syncMsg(prettyAuthErr(e),true);});
+  ensureFirebaseReady().then(function(){return create?fbAuth.createUserWithEmailAndPassword(email,pw):fbAuth.signInWithEmailAndPassword(email,pw);}).then(function(){syncMsg('',false);$('syncPw').value=''; try{ rememberProfile(email, (state.set&&state.set.name)||email.split('@')[0]); renderProfiles&&renderProfiles(); }catch(e){} }).catch(function(e){syncMsg(prettyAuthErr(e),true);});
 }
 
 /* ================= export / import ================= */
@@ -5888,7 +5953,7 @@ function showTab(id){
   if(id==='pgStats') renderStats();
   if(id==='pgTasks') renderTasks();
   if(id==='pgExp') renderExp();
-  if(id==='pgSet') renderSet();
+  if(id==='pgSet'){ renderSet(); try{ if(typeof _settingsToLanding==='function') _settingsToLanding(); }catch(e){} }
   if(id==='pgJr'){ if(typeof jrCalY!=='undefined'&&!jrCalY){var _n=new Date();jrCalY=_n.getFullYear();jrCalM=_n.getMonth();} renderJr(); jrGo(jrView||'timeline'); }
   if(id==='pgAI') renderAI();
   $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
@@ -6673,26 +6738,52 @@ function init(){
     var idx=+b.getAttribute('data-trestore');
     if(restoreFromTrash(idx)){ toastN('Restored'); renderTrash(); renderToday(); if($('pgTasks')&&$('pgTasks').classList.contains('on'))renderTasks(); if($('pgJr')&&$('pgJr').classList.contains('on'))renderJr(); }
   });
-  /* ===== Settings accordion ===== */
+  /* ===== Settings: card-grid landing that drills into each section ===== */
   (function(){
     var pg=$('pgSet'); if(!pg) return;
     var kids=Array.prototype.slice.call(pg.children);
     var groups=[]; var cur=null;
     kids.forEach(function(el){
-      // a section starts at a .lbl that has an icon (the colored section headers)
       if(el.classList && el.classList.contains('lbl') && el.querySelector && el.querySelector('.lic')){
         cur={head:el, body:[]}; groups.push(cur);
       } else if(cur){ cur.body.push(el); }
     });
-    if(groups.length<2) return; /* not the expected structure; leave as-is */
-    groups.forEach(function(g,idx){
-      g.head.classList.add('setAcc');
-      g.head.insertAdjacentHTML('beforeend','<span class="setAccCh">⌄</span>');
-      var open = idx===0; /* first section (Profile) open by default */
-      function apply(){ g.body.forEach(function(b){ b.style.display = open?'':'none'; }); g.head.classList.toggle('accOpen', open); }
-      apply();
-      g.head.addEventListener('click', function(){ open=!open; apply(); });
-    });
+    if(groups.length<2) return;
+    /* icon + subtitle per section (by label text) */
+    var META={
+      'Profile':{ic:'👤',sub:'Name & greeting'},
+      'Appearance':{ic:'🎨',sub:'Theme, font, app icon'},
+      'Money & currency':{ic:'💰',sub:'Currency & rates'},
+      'Reminders':{ic:'🔔',sub:'Nudges & strict reminders'},
+      'Privacy & security':{ic:'🔒',sub:'Lock & biometrics'},
+      'Pause':{ic:'⏸️',sub:'Take a break'},
+      'Cloud sync':{ic:'☁️',sub:'Backup & devices'},
+      'Data':{ic:'🗄️',sub:'Trash, import, export'}
+    };
+    function labelOf(g){ return (g.head.textContent||'').replace(/⌄/g,'').trim(); }
+    /* build the grid + a back header, insert before the first group head */
+    var grid=document.createElement('div'); grid.className='setCardGrid'; grid.id='setCardGrid';
+    var backBar=document.createElement('div'); backBar.className='setBackBar'; backBar.id='setBackBar'; backBar.style.display='none';
+    backBar.innerHTML='<button class="setBackBtn" id="setBackBtn">‹ Settings</button><span class="setBackTitle" id="setBackTitle"></span>';
+    groups[0].head.parentNode.insertBefore(grid, groups[0].head);
+    groups[0].head.parentNode.insertBefore(backBar, groups[0].head);
+    function showLanding(){
+      grid.style.display=''; backBar.style.display='none';
+      groups.forEach(function(g){ g.head.style.display='none'; g.body.forEach(function(b){ b.style.display='none'; }); });
+      try{ pg.scrollTop=0; var app=$('app'); if(app) app.scrollTop=0; }catch(e){}
+    }
+    function showSection(idx){
+      grid.style.display='none'; backBar.style.display='';
+      groups.forEach(function(g,i){ var on=i===idx; g.head.style.display=on?'':'none'; g.body.forEach(function(b){ b.style.display=on?'':'none'; }); });
+      $('setBackTitle').textContent=labelOf(groups[idx]);
+      try{ var app=$('app'); if(app) app.scrollTop=0; }catch(e){}
+    }
+    grid.innerHTML=groups.map(function(g,i){ var lb=labelOf(g); var m=META[lb]||{ic:'⚙️',sub:''}; return '<button class="setCard2" data-setidx="'+i+'"><span class="setCard2Ic">'+m.ic+'</span><span class="setCard2T">'+lb+'</span><span class="setCard2S">'+m.sub+'</span></button>'; }).join('');
+    grid.addEventListener('click', function(e){ var b=e.target.closest('[data-setidx]'); if(!b) return; showSection(+b.getAttribute('data-setidx')); });
+    $('setBackBtn').addEventListener('click', showLanding);
+    /* when leaving/entering the Settings page, reset to the landing grid */
+    window._settingsToLanding=showLanding;
+    showLanding();
   })();
   /* ===== Pull-to-refresh (web layer; triggers manual sync) ===== */
   (function(){
@@ -6799,7 +6890,7 @@ function init(){
     if(m==='stats') showTab('pgStats');
     else if(m==='ai') showTab('pgAI');
     else if(m==='settings') showTab('pgSet');
-    else if(m==='export'){ showTab('pgSet'); setTimeout(function(){ var el=$('btnBk')||$('btnJrExport'); if(el&&el.scrollIntoView) el.scrollIntoView({behavior:'smooth',block:'center'}); },120); }
+    else if(m==='export'){ showTab('pgSet'); setTimeout(function(){ try{ var cards=document.querySelectorAll('#setCardGrid [data-setidx]'); for(var i=0;i<cards.length;i++){ if(/Data/.test(cards[i].textContent)){ cards[i].click(); break; } } }catch(e){} },160); }
     else if(m==='health-mood'){ openSheet('moodSheet'); try{ if($('moGrid')) renderMoodToday(); if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){} }
     else if(m==='health-sleep'){ showTab('pgToday'); setTimeout(function(){ if(typeof openSleep==='function') openSleep(today()); },120); }
     else if(m==='health-workout'){ showTab('pgToday'); setTimeout(function(){ if(typeof openWkModule==='function') openWkModule(); },140); }
@@ -6845,6 +6936,7 @@ function init(){
   $('jrWriteBtn').addEventListener('click', function(){ openJr(null, jrPromptText()); });
   $('jrAnotherPrompt').addEventListener('click', function(){ jrPromptIx=(jrPromptIx<0?0:jrPromptIx+1)%JR_PROMPTS.length; jrRenderPrompt(); });
   $('jrTalkBtn').addEventListener('click', openJrReflect);
+  var _talkAi=$('jrTalkBtnAi'); if(_talkAi) _talkAi.addEventListener('click', openJrReflect);
   var _askDay=$('jrAskDayBtn'); if(_askDay) _askDay.addEventListener('click', function(){ var m=$('jrAskDayMenu'); if(m) m.classList.toggle('on'); });
   var _askTalk=$('jrAskTalk'); if(_askTalk) _askTalk.addEventListener('click', function(){ var m=$('jrAskDayMenu'); if(m) m.classList.remove('on'); openJrReflect(); });
   var _askMenu=$('jrAskDayMenu'); if(_askMenu) _askMenu.addEventListener('click', function(e){ if(climb(e.target,this,'data-jrday')) this.classList.remove('on'); });
@@ -7220,6 +7312,32 @@ function init(){
   $('syncSignin').addEventListener('click', function(){ doSyncSignin(false); });
   $('syncSignup').addEventListener('click', function(){ doSyncSignin(true); });
   $('syncSignout').addEventListener('click', function(){ if(fbAuth){ try{ fbAuth.signOut(); toastN('Signed out'); }catch(e){} } });
+  /* ===== Profiles UI ===== */
+  window.renderProfiles=function(){
+    var box=$('profileList'); if(!box) return;
+    var list=loadProfiles(), cur=(fbUser&&fbUser.email||'').toLowerCase();
+    var others=list.filter(function(p){return (p.email||'').toLowerCase()!==cur;});
+    if(!others.length){ box.innerHTML=''; box.style.display='none'; return; }
+    box.style.display='';
+    box.innerHTML='<div class="setS" style="margin-bottom:6px">Saved profiles</div>'+others.map(function(p){
+      var initial=(p.name||p.email||'?').charAt(0).toUpperCase();
+      return '<div class="profileRow" data-pemail="'+esc(p.email)+'"><span class="profileAv">'+esc(initial)+'</span><div class="profileInfo"><div class="profileName">'+esc(p.name||p.email.split("@")[0])+'</div><div class="profileEmail">'+esc(p.email)+'</div></div><button class="profileGo" data-pgo="'+esc(p.email)+'">Sign in</button><button class="profileX" data-pforget="'+esc(p.email)+'" aria-label="Forget">✕</button></div>';
+    }).join('');
+  };
+  var _plist=$('profileList');
+  if(_plist) _plist.addEventListener('click', function(e){
+    var go=e.target.closest('[data-pgo]');
+    if(go){ var em=go.getAttribute('data-pgo'); var ein=$('syncEmail'); if(ein) ein.value=em; var pin=$('syncPw'); if(pin){ pin.value=''; pin.focus(); } toastN('Enter password for '+em); return; }
+    var fg=e.target.closest('[data-pforget]');
+    if(fg){ if(confirm('Forget this profile from this device? (Its cloud data is not deleted.)')){ forgetProfile(fg.getAttribute('data-pforget')); renderProfiles(); } return; }
+  });
+  var _sw=$('syncSwitch');
+  if(_sw) _sw.addEventListener('click', function(){
+    if(!confirm('Switch profile? This signs out and clears this profile\u2019s data from the screen (it stays in the cloud). You\u2019ll pick another profile to sign into.')) return;
+    toastN('Saving & signing out…');
+    switchProfileFlushAndSignOut().then(function(){ renderSyncUI&&renderSyncUI(); renderProfiles&&renderProfiles(); toastN('Choose a profile to sign in'); });
+  });
+  try{ renderProfiles(); }catch(e){}
   var _sr=$('syncRestore'); if(_sr) _sr.addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
     if(!isOnline()){ toastN('You are offline — connect and try again'); return; }
