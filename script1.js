@@ -3388,7 +3388,7 @@ function jrGo(v){
     var vw=$('jrView-'+x); if(vw) vw.style.display = (x===v)?'':'none';
   });
   var nav=$('jrNav'); if(nav){ Array.prototype.forEach.call(nav.children,function(n){ n.classList.toggle('on', n.getAttribute('data-jv')===v); }); }
-  if(v==='calendar'){ jrRenderCal(); try{ if(typeof jrRenderMemories==='function') jrRenderMemories(); }catch(e){} }
+  if(v==='calendar') jrRenderCal();
   if(v==='insights'){
     var all=(state.jr||[]).map(function(e){return e.date;}).filter(Boolean).sort();
     if(all.length && $('jrInsFrom') && !$('jrInsFrom').value){ $('jrInsFrom').value=all[0]; $('jrInsTo').value=all[all.length-1]; }
@@ -6849,14 +6849,6 @@ function init(){
   var _askTalk=$('jrAskTalk'); if(_askTalk) _askTalk.addEventListener('click', function(){ var m=$('jrAskDayMenu'); if(m) m.classList.remove('on'); openJrReflect(); });
   var _askMenu=$('jrAskDayMenu'); if(_askMenu) _askMenu.addEventListener('click', function(e){ if(climb(e.target,this,'data-jrday')) this.classList.remove('on'); });
   $('jrWholeAiBtn').addEventListener('click', jrWholeAi);
-  /* ===== Journal AI top button (✦) — hosts whole/range/ask ===== */
-  var _jaTop=$('jrAiTopBtn'), _jaMenu=$('jrAiTopMenu');
-  if(_jaTop&&_jaMenu){
-    _jaTop.addEventListener('click', function(){ var open=_jaMenu.style.display==='none'; _jaMenu.style.display=open?'':'none'; _jaTop.classList.toggle('on',open); if(open){ var o=$('jrAiTopOut'); if(o) o.innerHTML=''; } });
-    var _aw=$('jrAiWhole'); if(_aw) _aw.addEventListener('click', function(){ var out=$('jrAiTopOut'); if(out){out.innerHTML='<div class="jrAiOut"><div class="b">Analysing…</div></div>';} if(typeof jrWholeAiInto==='function') jrWholeAiInto('jrAiTopOut'); else jrWholeAi(); });
-    var _ar=$('jrAiRange'); if(_ar) _ar.addEventListener('click', function(){ _jaMenu.style.display='none'; _jaTop.classList.remove('on'); jrGo('insights'); });
-    var _aa=$('jrAiAsk'); if(_aa) _aa.addEventListener('click', function(){ _jaMenu.style.display='none'; _jaTop.classList.remove('on'); jrGo('insights'); setTimeout(function(){ var i=$('jrAskInput'); if(i) i.focus(); },200); });
-  }
   var _jrAskSend=$('jrAskSend'); if(_jrAskSend) _jrAskSend.addEventListener('click', function(){ var inp=$('jrAskInput'); if(inp&&inp.value.trim()) jrAskJournal(inp.value); });
   var _jrAskInput=$('jrAskInput'); if(_jrAskInput) _jrAskInput.addEventListener('keydown', function(e){ if(e.key==='Enter'&&this.value.trim()) jrAskJournal(this.value); });
   var _jrAskChips=$('jrAskChips'); if(_jrAskChips) _jrAskChips.addEventListener('click', function(e){ var b=climb(e.target,this,'data-jrask'); if(b){ var qv=b.getAttribute('data-jrask'); jrAskJournal(qv); } });
