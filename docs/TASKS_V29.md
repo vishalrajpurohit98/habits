@@ -1128,3 +1128,17 @@ HONEST: all native (mic onPermissionRequest, LogHub widget, tasks widget) untest
 - Journal is back to 5 tabs (Timeline/Calendar/Write/Memories/Insights). All v1.18.0 features
   intact (mic fix, drafts, strict reminders, Today cleanup, widgets, etc.).
 - Verified: JS valid; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.20.0 — feature cleanup (user-selected removals)
+- Journal "Insights" tab RENAMED to "AI" (sparkle icon); removed its duplicate stats
+  (streak/total/days/longest — they duplicate the Timeline stat line); KEPT range/whole/ask AI features.
+- Weekly writing goal removed (jrGoalCard -> hidden placeholder; render code guarded).
+- Routine stack removed from Settings; guarded btnStack + stStack references.
+- Category-1 dead code removed from Today: momentum hero (heroTop), quick-actions, and the visible
+  wrappers for qod/nextRem/aiInsights/recoverBox/stackBox (kept hidden <span> placeholders so guarded
+  render code never null-crashes). sleepCard/wkCard KEPT (used by More->Health).
+- KEPT per user: Workouts/Fitness, multi-currency/FX.
+- Fixed 2 null-ref bugs surfaced by removal (btnStack, stStack) by guarding them.
+- Verified: AI tab (range/whole/ask present, stats gone), goal gone, routine stack gone (0 in markup),
+  today dead blocks gone; no dup ids; suite1 51/52 (known timing), suite2 25/25; zero errors.

@@ -5284,7 +5284,7 @@ function renderSet(){
   $('rowBio').style.display = (hasPin && bioAvailSafe()) ? '' : 'none';
   $('bioTog').classList.toggle('on', !!state.set.bio);
   $('greyTog').classList.toggle('on', !!state.set.grey);
-  $('stStack').textContent = state.stack.length ? state.stack.length + ' habits chained in order' : 'Chain habits in order \u2014 finishing one points to the next';
+  var _stStack=$('stStack'); if(_stStack) _stStack.textContent = state.stack.length ? state.stack.length + ' habits chained in order' : 'Chain habits in order \u2014 finishing one points to the next';
   $('unameIn').value = state.set.uname || '';
   webNotifState();
   if(nat && nat.fsCheck){
@@ -6265,7 +6265,7 @@ function init(){
   $('delBtn').addEventListener('click', onDelete);
 
   /* stack */
-  $('btnStack').addEventListener('click', function(){ renderStackSheet(); openSheet('stackSheet'); });
+  var _bstk=$('btnStack'); if(_bstk) _bstk.addEventListener('click', function(){ renderStackSheet(); openSheet('stackSheet'); });
   $('stackList').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-stk'); if(!b) return;
     var id = b.getAttribute('data-stk'), ix = state.stack.indexOf(id);
