@@ -1377,3 +1377,25 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   (IFSC/CVV/SecQ) land under the password; export button produces xlsx (36KB round-trip).
 - Delivered InnerOs_Vault_Import.xlsx pre-filled with Promega_LLP data (bank/card details in Extra column).
 - suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.34.0 — Vault category/tag filtering + custom categories + Excel category validation
+- Categories now dynamic: VAULT_DEFAULT_CATS + state.vaultCats (custom). allVaultCats()/addVaultCat().
+  Form category dropdown has "＋ New category…" (prompt -> saved). Import auto-registers unseen categories.
+- New filter row (#vaultCatChips) below type chips: category chips (with counts) + #tag chips; tap to
+  toggle-filter the list. Verified: Finance->1, #important->2, chips render (3 cats/3 tags).
+- Excel export: Category columns get a data-validation DROPDOWN restricted to existing categories (pw col E,
+  note col C) + a "Categories" reference sheet listing valid values (incl. custom). Verified in exported xlsx.
+- Regenerated InnerOs_Vault_Import.xlsx with the category dropdown + Categories sheet.
+- suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.35.0 — vault search covers content; AI vault access confirmed OFF
+- AI: verified the vault is NOT in any AI context (buildDataContext etc. never reference state.vault).
+  By design — vault is PIN-encrypted; routing decrypted passwords to the AI provider would be a leak.
+  Kept AI-inaccessible.
+- Vault search fixed: vaultMatch now searches title, username, url, note body, password notes, category,
+  tags, AND extra fields (label+value like IFSC/Account No/security answers). Password value itself is
+  intentionally NOT searched. Verified: IFSC label/value, pw notes, note content, title all match; AI
+  context still excludes vault.
+- suite1 51/52 (known timing), suite2 25/25; zero errors.

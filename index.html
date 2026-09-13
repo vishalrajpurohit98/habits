@@ -1159,6 +1159,10 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 .vaultChips::-webkit-scrollbar{display:none}
 .vChip{white-space:nowrap;border:1px solid var(--line);background:var(--card2);color:var(--mut);font-size:12px;font-weight:600;padding:7px 13px;border-radius:20px;cursor:pointer;flex:0 0 auto}
 .vChip.on{border-color:var(--amber);color:var(--amber);background:var(--amberSoft)}
+.vaultFilterChips{margin-top:-4px;margin-bottom:10px}
+.vChip.cat{font-size:11px;padding:5px 11px}
+.vChip.tag{font-size:11px;padding:5px 11px;color:var(--ice)}
+.vChip.tag.on{border-color:var(--ice);color:var(--ice);background:var(--iceSoft,rgba(78,168,255,.14))}
 .vaultSortRow{margin-bottom:10px}
 .vaultSort{width:auto;font-size:12px;padding:8px 12px}
 .vaultCard{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:8px;cursor:pointer}
@@ -1994,6 +1998,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         <button class="vChip" data-vf="note">Notes</button>
         <button class="vChip" data-vf="fav">⭐ Favorites</button>
       </div>
+      <div class="vaultChips vaultFilterChips" id="vaultCatChips"></div>
       <div class="vaultSortRow">
         <select class="inp vaultSort" id="vaultSort">
           <option value="upd">Recently updated</option>
@@ -9640,8 +9645,10 @@ function init(){
   /* Save a draft when the journal editor is dismissed without saving */
   var _jrCloseBtn=$('jrCloseBtn')||document.querySelector('#jrSheet .sheetClose,#jrSheet .grab');
   /* ===== Vault (encrypted passwords + secure notes) ===== */
-  var _vaultPin=null, _vaultData={pw:[],note:[]}, _vaultFilter='all', _vaultSort='upd', _vaultQuery='', _vaultDetail=null, _vaultEditIdx=-1, _vaultEditType='pw';
-  var VAULT_CATS=['Personal','Work','Finance','Travel','Shopping','Documents','Other'];
+  var _vaultPin=null, _vaultData={pw:[],note:[]}, _vaultFilter='all', _vaultSort='upd', _vaultQuery='', _vaultDetail=null, _vaultEditIdx=-1, _vaultEditType='pw', _vaultCatFilter='', _vaultTagFilter='';
+  var VAULT_DEFAULT_CATS=['Personal','Work','Finance','Travel','Shopping','Documents','Other'];
+  function allVaultCats(){ var custom=(state.vaultCats||[]); var seen={}, out=[]; VAULT_DEFAULT_CATS.concat(custom).forEach(function(c){ c=String(c||'').trim(); if(c&&!seen[c.toLowerCase()]){ seen[c.toLowerCase()]=1; out.push(c); } }); return out; }
+  function addVaultCat(name){ name=String(name||'').trim(); if(!name) return false; if(allVaultCats().some(function(c){return c.toLowerCase()===name.toLowerCase();})) return false; state.vaultCats=state.vaultCats||[]; state.vaultCats.push(name); persist(); return true; }
   function vId(){ return 'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
   function normVaultItem(it, type){ it=it||{}; var now=Date.now();
     var base={ id:it.id||vId(), title:it.title||'', category:it.category||'Other', tags:Array.isArray(it.tags)?it.tags:[], favorite:!!it.favorite, createdAt:it.createdAt||now, updatedAt:it.updatedAt||it.createdAt||now };
@@ -9678,8 +9685,20 @@ function init(){
     var noteRows=[['Title','Content','Category','Tags','Favorite']];
     _vaultData.note.forEach(function(x){ noteRows.push([x.title,x.body,x.category,(x.tags||[]).map(function(t){return '#'+t;}).join(' '),x.favorite?'yes':'']); });
     var wb=XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pwRows), 'Passwords');
-    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(noteRows), 'Notes');
+    var cats=allVaultCats();
+    var pwWs=XLSX.utils.aoa_to_sheet(pwRows);
+    var noteWs=XLSX.utils.aoa_to_sheet(noteRows);
+    /* Restrict Category column to existing categories via a dropdown data-validation.
+       Passwords: category = column E (index 4). Notes: category = column C (index 2). */
+    var listFormula='"'+cats.join(',')+'"';
+    function addCatDV(ws, colLetter, maxRow){ ws['!dataValidation']=ws['!dataValidation']||[]; ws['!dataValidation'].push({ sqref:colLetter+'2:'+colLetter+(maxRow), type:'list', formula1:listFormula, allowBlank:true, showDropDown:true }); }
+    try{ addCatDV(pwWs,'E', pwRows.length+50); addCatDV(noteWs,'C', noteRows.length+50); }catch(e){}
+    XLSX.utils.book_append_sheet(wb, pwWs, 'Passwords');
+    XLSX.utils.book_append_sheet(wb, noteWs, 'Notes');
+    /* Reference sheet listing valid categories (so Excel/Sheets users see the allowed set even if
+       their app ignores the inline dropdown). */
+    var catWs=XLSX.utils.aoa_to_sheet([['Valid categories']].concat(cats.map(function(c){return [c];})));
+    XLSX.utils.book_append_sheet(wb, catWs, 'Categories');
     var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}), name='inneros-vault-'+today()+'.xlsx';
     if(nat&&nat.saveFile){ try{ nat.saveFile(name,XMIME,out); toastN('Saved Excel'); return; }catch(e){} }
     if(webSave(name,XMIME,out)) toastN('Downloading Excel\u2026'); else toastN('Export failed');
@@ -9701,7 +9720,7 @@ function init(){
         if(wb.SheetNames.indexOf('Passwords')>=0){
           var rows=XLSX.utils.sheet_to_json(wb.Sheets['Passwords'],{header:1});
           for(var i=1;i<rows.length;i++){ var r=rows[i]; if(!r||!String(r[0]||'').trim()) continue;
-            var obj={ title:String(r[0]).trim(), user:String(r[1]||'').trim(), pass:String(r[2]||''), url:String(r[3]||'').trim(), category:String(r[4]||'Other').trim()||'Other', tags:parseTags(r[5]), notes:String(r[6]||'').trim(), favorite:/^y/i.test(String(r[7]||'')), extra:strToExtra(r[8]) };
+            var obj={ title:String(r[0]).trim(), user:String(r[1]||'').trim(), pass:String(r[2]||''), url:String(r[3]||'').trim(), category:String(r[4]||'Other').trim()||'Other', tags:parseTags(r[5]), notes:String(r[6]||'').trim(), favorite:/^y/i.test(String(r[7]||'')), extra:strToExtra(r[8]) }; addVaultCat(obj.category);
             var ix=findPw(obj.title); var now=Date.now();
             if(ix>=0){ obj.id=_vaultData.pw[ix].id; obj.createdAt=_vaultData.pw[ix].createdAt; obj.updatedAt=now; _vaultData.pw[ix]=normVaultItem(obj,'pw'); updPw++; }
             else { _vaultData.pw.push(normVaultItem(obj,'pw')); addedPw++; }
@@ -9710,7 +9729,7 @@ function init(){
         if(wb.SheetNames.indexOf('Notes')>=0){
           var nr=XLSX.utils.sheet_to_json(wb.Sheets['Notes'],{header:1});
           for(var j=1;j<nr.length;j++){ var n=nr[j]; if(!n||!String(n[0]||'').trim()) continue;
-            var no={ title:String(n[0]).trim(), body:String(n[1]||''), category:String(n[2]||'Other').trim()||'Other', tags:parseTags(n[3]), favorite:/^y/i.test(String(n[4]||'')) };
+            var no={ title:String(n[0]).trim(), body:String(n[1]||''), category:String(n[2]||'Other').trim()||'Other', tags:parseTags(n[3]), favorite:/^y/i.test(String(n[4]||'')) }; addVaultCat(no.category);
             var jx=findNote(no.title); var now2=Date.now();
             if(jx>=0){ no.id=_vaultData.note[jx].id; no.createdAt=_vaultData.note[jx].createdAt; no.updatedAt=now2; _vaultData.note[jx]=normVaultItem(no,'note'); updNote++; }
             else { _vaultData.note.push(normVaultItem(no,'note')); addedNote++; }
@@ -9730,16 +9749,29 @@ function init(){
     return items;
   }
   function vaultMatch(entry, q){ if(!q) return true; q=q.toLowerCase(); var it=entry.it;
-    var hay=[it.title,it.user,it.url,it.body,it.category,(it.tags||[]).join(' ')].join(' ').toLowerCase();
+    var extraStr=(it.extra||[]).map(function(e){return (e.label||'')+' '+(e.value||'');}).join(' ');
+    var hay=[it.title,it.user,it.url,it.body,it.notes,it.category,(it.tags||[]).join(' '),extraStr].join(' ').toLowerCase();
     return hay.indexOf(q)>=0; }
+  function renderCatTagChips(){
+    var box=$('vaultCatChips'); if(!box) return;
+    var cats={}, tags={};
+    vaultAllItems().forEach(function(e){ if(e.it.category) cats[e.it.category]=(cats[e.it.category]||0)+1; (e.it.tags||[]).forEach(function(t){ tags[t]=(tags[t]||0)+1; }); });
+    var html='';
+    Object.keys(cats).sort().forEach(function(c){ html+='<button class="vChip cat'+(_vaultCatFilter===c?' on':'')+'" data-vcat="'+esc(c)+'">'+esc(c)+' ('+cats[c]+')</button>'; });
+    Object.keys(tags).sort().forEach(function(t){ html+='<button class="vChip tag'+(_vaultTagFilter===t?' on':'')+'" data-vtag="'+esc(t)+'">#'+esc(t)+'</button>'; });
+    box.innerHTML=html; box.style.display=html?'':'none';
+  }
   function renderVault(){
     var box=$('vaultList'); if(!box) return;
     setText('vaultPwCount', _vaultData.pw.length); setText('vaultNoteCount', _vaultData.note.length);
     document.querySelectorAll('#vaultChips .vChip').forEach(function(c){ c.classList.toggle('on', c.getAttribute('data-vf')===_vaultFilter); });
+    renderCatTagChips();
     var items=vaultAllItems();
     if(_vaultFilter==='pw') items=items.filter(function(e){return e.type==='pw';});
     else if(_vaultFilter==='note') items=items.filter(function(e){return e.type==='note';});
     else if(_vaultFilter==='fav') items=items.filter(function(e){return e.it.favorite;});
+    if(_vaultCatFilter) items=items.filter(function(e){ return e.it.category===_vaultCatFilter; });
+    if(_vaultTagFilter) items=items.filter(function(e){ return (e.it.tags||[]).indexOf(_vaultTagFilter)>=0; });
     if(_vaultQuery) items=items.filter(function(e){ return vaultMatch(e,_vaultQuery); });
     items.sort(function(a,b){
       if(_vaultSort==='fav'){ if(!!b.it.favorite!==!!a.it.favorite) return (b.it.favorite?1:0)-(a.it.favorite?1:0); }
@@ -9757,7 +9789,7 @@ function init(){
   }
   function vaultDomain(u){ try{ return u.replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0]; }catch(e){ return u; } }
   function parseTags(s){ return (String(s||'').match(/#?[A-Za-z0-9_]+/g)||[]).map(function(t){return t.replace(/^#/,'').toLowerCase();}).filter(Boolean).slice(0,8); }
-  function fillCatSelect(sel, val){ if(!sel) return; sel.innerHTML=VAULT_CATS.map(function(c){return '<option'+(c===val?' selected':'')+'>'+c+'</option>';}).join(''); }
+  function fillCatSelect(sel, val){ if(!sel) return; var cats=allVaultCats(); if(val&&cats.indexOf(val)<0) cats.push(val); sel.innerHTML=cats.map(function(c){return '<option'+(c===val?' selected':'')+'>'+esc(c)+'</option>';}).join('')+'<option value="__new">＋ New category…</option>'; sel.onchange=function(){ if(this.value==='__new'){ var nm=prompt('New category name'); if(nm&&addVaultCat(nm)){ fillCatSelect(sel, nm.trim()); } else { fillCatSelect(sel, cats[0]); } } }; }
   /* ---- forms ---- */
   function renderExtraRows(list){ var box=$('vpExtra'); if(!box) return; list=list||[]; box.innerHTML=list.map(function(e,i){ return '<div class="vpExtraRow"><input class="inp" data-xlabel="'+i+'" placeholder="Label" value="'+esc(e.label||'')+'"><input class="inp" data-xval="'+i+'" placeholder="Value" value="'+esc(e.value||'')+'"><button class="vaultBtn del" data-xdel="'+i+'" type="button">✕</button></div>'; }).join(''); }
   function collectExtra(){ var box=$('vpExtra'); if(!box) return []; var out=[]; var labels=box.querySelectorAll('[data-xlabel]'), vals=box.querySelectorAll('[data-xval]'); for(var i=0;i<labels.length;i++){ var l=labels[i].value.trim(), v=vals[i]?vals[i].value.trim():''; if(l||v) out.push({label:l,value:v}); } return out; }
@@ -9838,6 +9870,8 @@ function init(){
     _vSheet.addEventListener('click', function(e){
       var sum=e.target.closest('[data-vfilter]'); if(sum){ _vaultFilter=sum.getAttribute('data-vfilter'); renderVault(); return; }
       var chip=e.target.closest('[data-vf]'); if(chip){ _vaultFilter=chip.getAttribute('data-vf'); renderVault(); return; }
+      var catc=e.target.closest('[data-vcat]'); if(catc){ var c=catc.getAttribute('data-vcat'); _vaultCatFilter=(_vaultCatFilter===c?'':c); renderVault(); return; }
+      var tagc=e.target.closest('[data-vtag]'); if(tagc){ var t=tagc.getAttribute('data-vtag'); _vaultTagFilter=(_vaultTagFilter===t?'':t); renderVault(); return; }
       var addopt=e.target.closest('[data-vadd]'); if(addopt){ if(addopt.getAttribute('data-vadd')==='pw') openPwForm(-1); else openNoteForm(-1); return; }
       var back=e.target.closest('[data-vformback]'); if(back){ vHome(); return; }
       var dback=e.target.closest('[data-vdetailback]'); if(dback){ vHome(); return; }
