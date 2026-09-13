@@ -1301,3 +1301,14 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
 - Verified: no-pending exits freely; pending shows dialog; Sync now closes+syncs; Exit anyway calls
   exitApp. Java/JS/CSS valid; suite1 51/52 (known timing), suite2 25/25; zero errors.
 - HONEST: native back+exitApp untestable here (verified JS logic + Java structure); browser unload text is not customizable.
+
+---
+# V1.29.1 — FIX desktop sidebar overlap + exit dialog buttons
+- Desktop overlap: my earlier @768/@1024 blocks set #app max-width!important + shrank .dock, which
+  wiped the sidebar's margin-left:248px -> content hid behind the fixed sidebar. Rewrote as
+  @768-999 (centered, no sidebar) and @1000+ (respects sidebar: .page centered within the 248px offset,
+  never touches #app margin or the dock). Verified appLeft(340) >= navRight(248), contentClear.
+- Exit dialog buttons: made handleAndroidExit robust — remove dupes, addEventListener (not onclick),
+  Sync now falls back to pushRecordSync, Exit anyway falls back nat.exitApp->nat.back->history.back so
+  it works even if the new exitApp bridge isn't in the current APK. Verified Sync now + Exit anyway fire.
+- Verified: desktop no overlap; exit buttons work; suite1 51/52 (known timing), suite2 25/25; zero errors.

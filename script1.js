@@ -2060,15 +2060,29 @@ function openSheet(id){
 }
 window.handleAndroidExit=function(){
   try{
-    if(!(typeof fbUser!=='undefined' && fbUser && typeof syncPendingRecords!=='undefined' && syncPendingRecords && Object.keys(syncPendingRecords).length)) return false; /* nothing pending -> allow exit */
-    if(window.__exitAsked){ return false; } /* already asked; let it exit */
-    /* Show an in-app dialog with a real "Sync now" option */
+    if(!(typeof fbUser!=='undefined' && fbUser && typeof syncPendingRecords!=='undefined' && syncPendingRecords && Object.keys(syncPendingRecords).length)) return false;
+    if(window.__exitAsked){ return false; }
+    var old=document.getElementById('exitSyncDlg'); if(old) old.remove();
     var wrap=document.createElement('div'); wrap.id='exitSyncDlg'; wrap.className='exitDlgWrap';
-    wrap.innerHTML='<div class="exitDlg"><div class="exitDlgT">Unsynced changes</div><div class="exitDlgS">You have changes that haven\u2019t been synced to the cloud yet. Sync before leaving?</div><div class="exitDlgBtns"><button class="exitDlgBtn ghost" id="exitLeave">Exit anyway</button><button class="exitDlgBtn acc" id="exitSync">Sync now</button></div></div>';
+    wrap.innerHTML='<div class="exitDlg"><div class="exitDlgT">Unsynced changes</div><div class="exitDlgS">You have changes that haven\u2019t been synced to the cloud yet. Sync before leaving?</div><div class="exitDlgBtns"><button class="exitDlgBtn ghost" id="exitLeave" type="button">Exit anyway</button><button class="exitDlgBtn acc" id="exitSync" type="button">Sync now</button></div></div>';
     document.body.appendChild(wrap);
-    document.getElementById('exitSync').onclick=function(){ wrap.remove(); toastN&&toastN('Syncing\u2026'); try{ (typeof syncReconcile==='function'?syncReconcile():Promise.resolve()).then(function(){ toastN&&toastN('Synced \u2713'); }).catch(function(){ toastN&&toastN('Sync failed \u2014 try again'); }); }catch(e){} };
-    document.getElementById('exitLeave').onclick=function(){ wrap.remove(); window.__exitAsked=true; try{ if(typeof nat!=='undefined'&&nat&&nat.exitApp) nat.exitApp(); else { window.__exitAsked=true; } }catch(e){} };
-    return true; /* handled -> don't exit yet */
+    var closeDlg=function(){ try{wrap.remove();}catch(e){} };
+    wrap.addEventListener('click', function(e){ if(e.target===wrap) closeDlg(); });
+    document.getElementById('exitSync').addEventListener('click', function(){
+      closeDlg();
+      try{ toastN&&toastN('Syncing\u2026'); }catch(e){}
+      try{ var pr=(typeof syncReconcile==='function')?syncReconcile():((typeof pushRecordSync==='function')?pushRecordSync(true):Promise.resolve());
+        (pr&&pr.then?pr:Promise.resolve()).then(function(){ toastN&&toastN('Synced \u2713'); }).catch(function(){ toastN&&toastN('Sync failed \u2014 try again'); });
+      }catch(e){}
+    });
+    document.getElementById('exitLeave').addEventListener('click', function(){
+      closeDlg();
+      window.__exitAsked=true;
+      try{ if(typeof nat!=='undefined' && nat && nat.exitApp){ nat.exitApp(); return; } }catch(e){}
+      try{ if(typeof nat!=='undefined' && nat && nat.back){ nat.back(); return; } }catch(e){}
+      try{ history.back(); }catch(e){}
+    });
+    return true;
   }catch(e){ return false; }
 };
 window.handleAndroidBack=function(){
