@@ -27,6 +27,8 @@
     <string name="wg_workout_desc">Your exercises with personal bests — tap to open the exact workout.</string>
     <string name="wg_ai_label">Ask AI</string>
     <string name="wg_ai_desc">Speak or type — log, update, or ask anything using your in-app AI.</string>
+    <string name="wg_loghub_label">InnerOs — Quick Log</string>
+    <string name="wg_loghub_desc">One tap to log a habit, task, mood, sleep or journal — plus an AI button.</string>
 
     <!-- ===== Native popup theme (dialog-style activity used by widgets) ===== -->
     <style name="WidgetPopupTheme" parent="@android:style/Theme.Material.Dialog.NoActionBar">

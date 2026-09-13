@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:padding="12dp"
+    android:background="@drawable/widget_bg">
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="InnerOs — Quick log" android:textColor="#FFFFFF"
+        android:textSize="13sp" android:textStyle="bold" android:layout_marginBottom="8dp"/>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:weightSum="3">
+        <TextView android:id="@+id/lh_habit" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="⚡\nHabit" android:textColor="#FFFFFF" android:textSize="12sp" android:background="@drawable/widget_cell"/>
+        <TextView android:id="@+id/lh_task" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:gravity="center" android:text="✓\nTask" android:textColor="#FFFFFF" android:textSize="12sp" android:background="@drawable/widget_cell"/>
+        <TextView android:id="@+id/lh_mood" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:gravity="center" android:text="🙂\nMood" android:textColor="#FFFFFF" android:textSize="12sp" android:background="@drawable/widget_cell"/>
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="6dp" android:orientation="horizontal" android:weightSum="3">
+        <TextView android:id="@+id/lh_sleep" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="😴\nSleep" android:textColor="#FFFFFF" android:textSize="12sp" android:background="@drawable/widget_cell"/>
+        <TextView android:id="@+id/lh_journal" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:gravity="center" android:text="📓\nJournal" android:textColor="#FFFFFF" android:textSize="12sp" android:background="@drawable/widget_cell"/>
+        <TextView android:id="@+id/lh_ai" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:gravity="center" android:text="✦\nAI" android:textColor="#171310" android:textSize="12sp" android:background="@drawable/widget_cell_accent"/>
+    </LinearLayout>
+</LinearLayout>

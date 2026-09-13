@@ -299,6 +299,7 @@ function normState(s){
   // 'd' is the date you WOKE UP on
   if(!(s.sleep instanceof Array)) s.sleep = [];
   if(!(s.trash instanceof Array)) s.trash = [];
+  if(!(s.jrDrafts instanceof Array)) s.jrDrafts = [];
   /* purge trash items older than 30 days */
   (function(){ var cutoff=Date.now()-30*86400000; s.trash=s.trash.filter(function(it){ return it && it.at && it.at>=cutoff; }); })();
   for(var si=0; si<s.sleep.length; si++){
@@ -1882,7 +1883,38 @@ function renderTodayProgress(){
 }
 function renderTaskDashboard(){var b=$('taskDashSummary');if(!b)return;var all=taskAllVisible(),over=all.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,todayN=all.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=all.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;b.innerHTML='<div class="taskDashHead"><b>Tasks</b><button id="taskDashView">View Tasks</button></div><div class="taskDashLine"><span class="red">🔴 <b>'+over+'</b> overdue</span><span class="orange">🟠 <b>'+todayN+'</b> due today</span><span class="blue">🔵 <b>'+up+'</b> upcoming</span><span class="green">✅ <b>'+done+'</b> completed</span></div>';}
 
+function renderStrictReminders(){
+  var box=$('strictRem'); if(!box) return;
+  var rc=(state.set&&state.set.reminders)||{};
+  var now=new Date(), hr=now.getHours(), ts=today();
+  var items=[];
+  /* Mood + Journal: after 9pm, remind until logged (default on) */
+  if(rc.strictMoodJournal!==false && hr>=21){
+    var moodLogged = moodOf(ts)>=0;
+    var jrLogged = (state.jr||[]).some(function(e){return e.date===ts;});
+    if(!moodLogged && !jrLogged) items.push({t:'🌙 Mood & journal pending', s:'You haven\u2019t logged your mood or written today.', a:'mood'});
+    else if(!moodLogged) items.push({t:'🙂 Mood check-in pending', s:'Journal\u2019s done — how are you feeling today?', a:'mood'});
+    else if(!jrLogged) items.push({t:'📓 Journal entry pending', s:'Mood\u2019s logged — take a minute to write.', a:'journal'});
+  }
+  /* Sleep: until noon, remind until last night's sleep logged (default on) */
+  if(rc.strictSleep!==false && hr<12){
+    var sleepLogged=(state.sleep||[]).some(function(x){return x.d===ts;});
+    if(!sleepLogged) items.push({t:'😴 Sleep not logged', s:'Log last night\u2019s sleep before noon.', a:'sleep'});
+  }
+  if(!items.length){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display='';
+  box.innerHTML=items.map(function(it){ return '<div class="srItem" data-sr="'+it.a+'"><div class="srTxt"><div class="srT">'+it.t+'</div><div class="srS">'+it.s+'</div></div><button class="srGo">Log now</button></div>'; }).join('');
+}
+/* wire strict reminder taps (delegated, once) */
+document.addEventListener('click', function(e){
+  var it=e.target.closest('#strictRem [data-sr]'); if(!it) return;
+  var a=it.getAttribute('data-sr');
+  if(a==='mood'){ if(typeof openSheet==='function'){ openSheet('moodSheet'); try{ if($('moGrid'))renderMoodToday(); if($('mogrid')){renderMoodCal();renderMoodStats();} }catch(x){} } }
+  else if(a==='journal'){ showTab('pgJr'); setTimeout(function(){ if(typeof openJr==='function') openJr(null); },150); }
+  else if(a==='sleep'){ if(typeof openSleep==='function') openSleep(today()); }
+});
 function renderToday(){
+  try{ renderStrictReminders(); }catch(e){}
   renderTaskDashboard();
   try{ renderTodayProgress(); }catch(e){}
   try{ if($('sleepCard')) renderSleepCard(); }catch(e){}
@@ -2043,6 +2075,8 @@ window.handleAndroidBack=function(){
 };
 function closeSheet(fromPop){
   if(!sheetOpen) return;
+  /* If the journal editor is closing and the entry wasn't saved, keep it as a draft. */
+  try{ if(sheetOpen==='jrSheet' && !window._jrJustSaved && typeof jrMaybeSaveDraft==='function'){ jrMaybeSaveDraft(); } window._jrJustSaved=false; }catch(e){}
   $(sheetOpen).classList.remove('open');
   $('scrim').classList.remove('on');
   sheetOpen = null;
@@ -3325,6 +3359,7 @@ function renderJrGoal(){
 function renderJr(){
   if(!$('pgJr')) return;
   try{ renderJrGoal(); }catch(e){}
+  try{ if(typeof _renderJrDraftsBtn==='function') _renderJrDraftsBtn(); }catch(e){}
   var s=jrStreak();
   setText('jrStatStreak','\uD83D\uDD25 '+s);
   setText('jrStatMonth', jrMonthCount());
@@ -3578,6 +3613,23 @@ function jrUpdTagLine(){
   var m=(($('jrTitle').value)+' '+jrStrip($('jrBody').innerHTML)).match(/#[A-Za-z0-9_]+/g);
   setText('jrTagLine', m&&m.length?'Tags: '+Array.from(new Set(m.map(function(x){return x.toLowerCase();}))).join('  '):'Add #tags anywhere in your text');
 }
+function jrMaybeSaveDraft(){
+  if(!jrEd || jrEd._edit) return; /* only draft NEW entries, not edits */
+  var title=($('jrTitle')?$('jrTitle').value:'').trim();
+  var body=($('jrBody')?$('jrBody').innerText:'').trim();
+  if(!title && !body) return; /* nothing worth saving */
+  state.jrDrafts=state.jrDrafts||[];
+  var draft={ id:jrEd._draftId||('d'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)),
+    title:title.slice(0,120), content:($('jrBody')?$('jrBody').innerHTML.slice(0,20000):''),
+    date:($('jrDate')?$('jrDate').value:jrToday())||jrToday(), time:($('jrTime')?$('jrTime').value:'')||'',
+    location:($('jrLocation')?$('jrLocation').value:'').trim().slice(0,80), mood:jrEd.mood||'',
+    tags:jrEd.tags||[], savedAt:Date.now() };
+  var ix=state.jrDrafts.findIndex(function(d){return d.id===draft.id;});
+  if(ix>=0) state.jrDrafts[ix]=draft; else state.jrDrafts.unshift(draft);
+  if(state.jrDrafts.length>50) state.jrDrafts=state.jrDrafts.slice(0,50);
+  persist(); toastN('Saved to drafts');
+}
+function jrClearDraft(id){ if(!id)return; state.jrDrafts=(state.jrDrafts||[]).filter(function(d){return d.id!==id;}); persist(); }
 function saveJr(){
   jrEd.title = $('jrTitle').value.trim().slice(0,120);
   jrEd.content = $('jrBody').innerHTML.slice(0,20000);
@@ -3604,7 +3656,9 @@ function saveJr(){
     state.mood = state.mood || {};
     state.mood[jrEd.date] = JR_TO_MOOD[jrEd.mood];
   }
+  window._jrJustSaved=true;
   persist(); closeSheet(); renderJr(); if(typeof buzz==='function') buzz(14);
+  if(jrEd&&jrEd._draftId){ jrClearDraft(jrEd._draftId); }
 }
 function jrResetDel(){ jrDelArmed=false; if(jrDelTimer2){clearTimeout(jrDelTimer2);jrDelTimer2=null;} var b=$('jrDelBtn'); if(b){b.classList.remove('armed');b.textContent='Delete entry';} }
 function resetJrDel(){ jrResetDel(); } /* back-compat alias for closeSheet() */
@@ -3744,6 +3798,11 @@ function jrInsertVoice(text){
   jrUpdTagLine();
 }
 function jrStartVoice(){
+  /* On Android (native bridge present), use the OS speech recognizer — it uses the real
+     RECORD_AUDIO permission and avoids the WebView getUserMedia path that was failing. */
+  if(typeof nat!=='undefined' && nat && nat.speechAvailable && nat.startSpeech){
+    try{ if(nat.speechAvailable()){ jrStartVoiceNative(); return; } }catch(e){}
+  }
   var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
   if(SR){
     try{
@@ -5924,7 +5983,7 @@ function toggleTaskComplete(id){var t=state.tasks.find(function(x){return x.id==
 function toggleHabitTask(id){var p=String(id).split(':');if(p.length<3)return;var h=findHabit(p[1]),ds=p[2];if(!h)return;if(isDone(h,ds))setVal(h.id,ds,0);else if(dueOn(h,toDate(ds))){setVal(h.id,ds,targ(h));haptic();}renderTasks();}
 function taskFilterMatch(t){var st=taskEffectiveStatus(t);if(taskFilter==='overdue')return st==='overdue';if(taskFilter==='today')return t.dueDate===today()&&st!=='completed';if(taskFilter==='upcoming')return !!t.dueDate&&t.dueDate>today()&&st!=='completed';if(taskFilter==='completed')return st==='completed';return true;}
 function renderTaskCard(t){var st=taskEffectiveStatus(t),sp=taskSubProgress(t),over=st==='overdue',virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var actions=virtual?'':'<div class="taskCardActions"><button class="tcAct tcMore" data-task-more="'+esc(t.id)+'" title="Actions">⋯</button><div class="tcMenu" data-tcmenu="'+esc(t.id)+'"><button class="tcAct" data-task-pin="'+esc(t.id)+'" title="Pin">'+(t.pinned?'📌':'📍')+'</button><button class="tcAct" data-task-snooze="'+esc(t.id)+'" title="Snooze to tomorrow">😴</button><button class="tcAct" data-task-dup="'+esc(t.id)+'" title="Duplicate">⧉</button></div></div>';return '<div class="taskCard '+(over?'overdue':'')+(t.pinned?' pinned':'')+'" data-task-id="'+esc(t.id)+'"><div class="taskTop"><button class="taskCheck '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><div class="taskBody"><div class="taskTitle '+(check?'done':'')+'">'+(t.pinned?'📌 ':'')+(t.priority==='high'?'🔴 ':'')+esc(t.title)+'</div>'+(t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+'<div class="taskMeta"><span class="taskPri '+t.priority+'">'+t.priority.toUpperCase()+'</span><span class="taskStatus">'+(st==='inprogress'?'In Progress':st.charAt(0).toUpperCase()+st.slice(1))+'</span><span>'+esc(taskDateLabel(t))+'</span>'+(t.recurrence&&t.recurrence.freq!=='none'?'<span class="taskSeries">↻ '+t.recurrence.freq+(t.recurrence.interval>1?' ×'+t.recurrence.interval:'')+'</span>':'')+(virtual?'<span class="taskSeries">Habit</span>':'')+'</div>'+(sp.total?'<div class="taskSubProgress">'+sp.done+' / '+sp.total+' subtasks<div class="taskSubBar"><i style="width:'+Math.round(sp.done/sp.total*100)+'%"></i></div></div>':'')+((t.comments&&t.comments.length)?'<div class="taskMeta"><span>💬 '+t.comments.length+' comment'+(t.comments.length===1?'':'s')+'</span></div>':'')+'</div>'+actions+'</div></div>';}
-function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle">'+pair[1]+'</div>'+a.map(renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStatLine"><span class="over"><b>'+over+'</b> overdue</span><span class="today"><b>'+tn+'</b> today</span><span class="up"><b>'+up+'</b> upcoming</span><span class="done"><b>'+done+'</b> done</span></div>';}
+function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle">'+pair[1]+'</div>'+a.map(renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStatCard"><div class="tsc over"><b>'+over+'</b><span>Overdue</span></div><div class="tsc today"><b>'+tn+'</b><span>Today</span></div><div class="tsc up"><b>'+up+'</b><span>Upcoming</span></div><div class="tsc done"><b>'+done+'</b><span>Done</span></div></div>';}
 function exportTaskRows(from,to){var rows=[['Task','Description','Due date','Due time','Priority','Status','Subtasks','Comments']];state.tasks.filter(function(t){return t.dueDate&&t.dueDate>=from&&t.dueDate<=to;}).sort(function(a,b){return taskDueMs(a)-taskDueMs(b);}).forEach(function(t){var sp=taskSubProgress(t);rows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),sp.done+'/'+sp.total]);});return rows;}
 function taskExportBounds(){if(taskExportMode==='custom')return{from:$('taskExportFrom').value,to:$('taskExportTo').value};return taskRangeBounds(taskExportMode);}
 function taskPdfSafe(v){return String(v==null?'':v).replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
@@ -6463,6 +6522,8 @@ function init(){
     if(stog) stog.addEventListener('click',function(){ var r=state.set.reminders; r.smart=!r.smart; this.classList.toggle('on',r.smart); saveRem(); });
     var atog=$('remAdaptiveTog');
     if(atog){ atog.classList.toggle('on', rc.adaptive!==false); atog.addEventListener('click',function(){ var r=state.set.reminders; r.adaptive=(r.adaptive===false); this.classList.toggle('on',r.adaptive!==false); saveRem(); }); }
+    var mjtog=$('remStrictMJTog'); if(mjtog){ mjtog.classList.toggle('on', rc.strictMoodJournal!==false); mjtog.addEventListener('click',function(){ var r=state.set.reminders; r.strictMoodJournal=(r.strictMoodJournal===false); this.classList.toggle('on',r.strictMoodJournal!==false); persist(); }); }
+    var sltog=$('remStrictSleepTog'); if(sltog){ sltog.classList.toggle('on', rc.strictSleep!==false); sltog.addEventListener('click',function(){ var r=state.set.reminders; r.strictSleep=(r.strictSleep===false); this.classList.toggle('on',r.strictSleep!==false); persist(); }); }
     if(jt) jt.addEventListener('change',function(){ state.set.reminders.journalTime=this.value; saveRem(); });
     if(et) et.addEventListener('change',function(){ state.set.reminders.expenseTime=this.value; saveRem(); });
     var qtog=$('remQuickTog');
@@ -6579,6 +6640,22 @@ function init(){
     window.addEventListener('online', function(){ try{renderSyncIcon();}catch(e){} });
     window.addEventListener('offline', function(){ try{renderSyncIcon();}catch(e){} });
   })();
+  /* ===== Journal drafts ===== */
+  function renderJrDraftsBtn(){ var btn=$('jrDraftsBtn'); if(!btn) return; var n=(state.jrDrafts||[]).length; btn.style.display=n?'':'none'; btn.textContent='📝 Drafts ('+n+')'; }
+  function renderJrDrafts(){
+    var box=$('jrDraftsList'); if(!box) return;
+    var d=state.jrDrafts||[];
+    if(!d.length){ box.innerHTML='<div class="setS" style="text-align:center;padding:20px">No drafts.</div>'; return; }
+    box.innerHTML=d.map(function(dr,i){ var t=(dr.title||jrStrip(dr.content).slice(0,40)||'Untitled draft'); return '<div class="trashRow"><div class="trashInfo" data-draft-open="'+dr.id+'" style="cursor:pointer"><div class="trashLabel">'+esc(t)+'</div><div class="trashMeta">'+(dr.date||'')+' · saved '+niceDate(fmt(new Date(dr.savedAt)))+'</div></div><button class="sbtn" data-draft-del="'+dr.id+'">Delete</button></div>'; }).join('');
+  }
+  var _jd=$('jrDraftsBtn'); if(_jd) _jd.addEventListener('click', function(){ renderJrDrafts(); openSheet('jrDraftsSheet'); });
+  var _jdl=$('jrDraftsList'); if(_jdl) _jdl.addEventListener('click', function(e){
+    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ closeSheet(); setTimeout(function(){ openJr(null); jrEd._draftId=dr.id; jrEd.mood=dr.mood||''; jrEd.tags=dr.tags||[]; $('jrTitle').value=dr.title||''; $('jrBody').innerHTML=dr.content||''; $('jrDate').value=dr.date||jrToday(); $('jrTime').value=dr.time||''; if($('jrLocation'))$('jrLocation').value=dr.location||''; },160); } return; }
+    var del=e.target.closest('[data-draft-del]'); if(del){ jrClearDraft(del.getAttribute('data-draft-del')); renderJrDrafts(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeSheet(); return; }
+  });
+  window._renderJrDraftsBtn=renderJrDraftsBtn;
+  /* Save a draft when the journal editor is dismissed without saving */
+  var _jrCloseBtn=$('jrCloseBtn')||document.querySelector('#jrSheet .sheetClose,#jrSheet .grab');
   /* ===== Recently deleted (trash) ===== */
   function renderTrash(){
     var box=$('trashList'); if(!box) return;

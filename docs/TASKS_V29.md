@@ -1096,3 +1096,24 @@ Fixed a self-inflicted bug: my showErrorPage insert had displaced @TargetApi(28)
 Verified (web): JS/CSS valid, manifest valid, biometric annotation intact; suite1 51/52 (known timing),
    suite2 25/25; zero errors.
 HONEST: native pieces (error page, webview tuning, predictive back) untestable here; PTR touch untestable headless.
+
+---
+# V1.18.0 — big requirements batch (final)
+1. MIC PERMISSION BUG (fixed): WebView had no onPermissionRequest -> in-app Web Speech mic auto-denied
+   despite OS RECORD_AUDIO granted. Added onPermissionRequest (grants RESOURCE_AUDIO_CAPTURE, requests
+   OS perm if needed) + made Android prefer native speech recognizer. Audited all perms — rest correct.
+2. JOURNAL DRAFTS (new): unsaved new entries auto-save to state.jrDrafts on editor close; "📝 Drafts(N)"
+   button on timeline lists them; tap to resume, delete, or auto-clear on save; empty editor makes no draft.
+3. TODAY CLEANUP: removed quick-action widgets (#quickActions) + Momentum hero (.heroTop) via CSS.
+4. PROMINENCE: Tasks summary -> bold 4-tile stat card (big colored numbers); Money "spent this month"
+   -> prominent hero box (44px, gradient border).
+5. STRICT ON-OPEN REMINDERS (new): in-app banner on Today — after 9pm nags pending mood/journal
+   (worded to what's missing) until logged; before noon nags sleep. Two Settings toggles (strictMoodJournal,
+   strictSleep). In-app banner (not push), per user.
+6. WIDGETS: combined "Quick Log" widget NEW (LogHubWidget + widget_loghub layout/info + drawables +
+   manifest + strings): Habit/Task/Mood/Sleep/Journal/AI cells deep-link into the app via
+   WidgetHub.openAppDeep -> getLaunchAction. Tasks widget ALREADY existed and matches spec (scrollable
+   overdue/today list, circle=complete, body=open task) — verified, no change needed.
+VERIFIED (web): mic-fix code, drafts end-to-end, Today cleanup, task card + money hero, strict reminder
+   paths, settings toggles; suite1 51/52 (known timing), suite2 25/25; zero errors. Java/XML validated.
+HONEST: all native (mic onPermissionRequest, LogHub widget, tasks widget) untestable here — verify on device.

@@ -149,6 +149,31 @@ public class MainActivity extends Activity {
             @Override public boolean onConsoleMessage(ConsoleMessage m) {
                 return true;
             }
+            @Override public void onPermissionRequest(final android.webkit.PermissionRequest request) {
+                /* The in-app Web Speech / getUserMedia asks the WebView for the mic. Grant audio
+                   here (the OS-level RECORD_AUDIO is requested separately); without this the WebView
+                   auto-denies and the app reports "microphone permission not provided". */
+                MainActivity.this.runOnUiThread(new Runnable(){ public void run(){
+                    try{
+                        String[] res = request.getResources();
+                        java.util.List<String> grant = new java.util.ArrayList<>();
+                        boolean micOk = Build.VERSION.SDK_INT < 23 || checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED || true;
+                        for(String r : res){
+                            if(android.webkit.PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r)){
+                                if(Build.VERSION.SDK_INT<23 || checkSelfPermission(Manifest.permission.RECORD_AUDIO)==PackageManager.PERMISSION_GRANTED){
+                                    grant.add(r);
+                                } else {
+                                    requestPermissions(new String[]{Manifest.permission.RECORD_AUDIO}, REQ_MIC_PERM);
+                                }
+                            } else if(android.webkit.PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)){
+                                if(Build.VERSION.SDK_INT<23 || checkSelfPermission(Manifest.permission.CAMERA)==PackageManager.PERMISSION_GRANTED) grant.add(r);
+                            }
+                        }
+                        if(!grant.isEmpty()) request.grant(grant.toArray(new String[0]));
+                        else request.deny();
+                    }catch(Exception e){ try{request.deny();}catch(Exception e2){} }
+                }});
+            }
             @Override public boolean onShowFileChooser(WebView v, ValueCallback<Uri[]> cb, FileChooserParams p) {
                 // The app's own import path uses Bridge.pickImport(). This also supports ordinary <input type=file>.
                 Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT);

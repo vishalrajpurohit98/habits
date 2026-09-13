@@ -97,6 +97,10 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".LogHubWidget" android:exported="true" android:label="@string/wg_loghub_label">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_loghub_info"/>
+        </receiver>
         <receiver android:name=".TasksWidget" android:exported="true" android:label="@string/wg_tasks_label">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE"/></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_tasks_info"/>
