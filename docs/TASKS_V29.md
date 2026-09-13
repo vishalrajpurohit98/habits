@@ -1036,3 +1036,63 @@ Grounded in Day One / Copilot Money / Things 3 / Todoist patterns (content-first
 - Fixed hero cramping: .expSum was a 3-col grid (old tiles); now block so the spent hero + insight
   are full-width, not squeezed side-by-side.
 - Verified: hero full-width, range button gone, expSum block; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.14.2 — task/journal stat line horizontal + overdue reminders
+- Fixed stat lines wrapping to multiple lines: taskStatLine & jrStatLine now flex-nowrap +
+  justify-between + nowrap spans + smaller gap/font, so the 4 items stay on one horizontal row.
+- Overdue task reminders (NEW): previously reminders only fired BEFORE due date; overdue tasks went
+  silent. Added a 3-day 9am overdue nudge for any incomplete past-due task (toggle rc.overdue).
+  Verified: 3 overdue reminders scheduled for a past-due task; stat line one-row confirmed.
+
+---
+# V1.15.0 — performance + UX batch
+PERF:
+- Journal timeline virtualized: renders ~25 items then loads more on scroll via IntersectionObserver
+  sentinel (was building all 221 entries upfront). Initial render ~12 cards vs 221; big lag source gone.
+- today() memoized (30s cache) to cut repeated Date formatting across renders.
+- Journal search debounced 150ms (task search already was 180ms).
+UX:
+- Task cards: 3 crammed action buttons (pin/snooze/dup) collapsed behind a single ⋯ menu that
+  reveals them on tap (declutter; swipe wasn't testable headless so used a reliable tap-menu).
+- Empty states + Today "at a glance" card: reviewed — already good; deliberately NOT changed
+  (would degrade working UI for false consistency).
+- Deferred (device-dependent, honest): true swipe gestures, pull-to-refresh, Android haptics —
+  need real touch/native; not shipped this pass.
+Verified: virtualization paging; today memo; debounced journal search; more-menu + pin-through-menu;
+suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.16.0 — Android-native hardening
+CRASH RESILIENCE:
+- onRenderProcessGone: recreates the WebView + reloads instead of dead white screen (memory-kill recovery).
+- Hardware back: routes through JS window.handleAndroidBack() -> closes open sheet/menu/popover, else
+  journal sub-view->timeline, else non-Today->Today, else double-tap-to-exit. (Was: canGoBack->exit.)
+NATIVE POLISH:
+- Haptics: nat.haptic() (18ms one-shot) fired on habit + task completion; JS falls back to navigator.vibrate.
+REMINDER RELIABILITY:
+- Reviewed: NativeAlarms ALREADY does canScheduleExactAlarms() fallback to inexact; BootReceiver ALREADY
+  re-arms alarms on BOOT_COMPLETED. No change needed (told user, not faked).
+BUILD TWEAKS:
+- largeHeap: recommended SKIP (journal virtualization already fixed the memory pressure; largeHeap can
+  worsen GC jank). Not added.
+Verified (web side): back handler consumes sheet/nav correctly, returns false on Today; haptic safe;
+suite1 51/52 (known timing), suite2 25/25; zero errors.
+HONEST: native Java (onRenderProcessGone, haptic, back eval) is untestable here — needs on-device build.
+
+---
+# V1.17.0 — Android reliability/perf/polish (remaining items)
+#3 Offline/error page: onReceivedError(main frame) -> showErrorPage() renders an inline retry screen
+   (emoji + "Couldn't load InnerOs" + Retry button) instead of a bare toast.
+#6 WebView first-paint tuning: hardware layer, RenderPriority.HIGH, MIXED_CONTENT_NEVER_ALLOW,
+   overscroll-none. Low-risk.
+#9 Pull-to-refresh: implemented in WEB layer (touch overscroll-at-top -> release to sync) because the
+   build compiles against android.jar only (no androidx SwipeRefreshLayout). Indicator + syncReconcile.
+#10 Predictive back: android:enableOnBackInvokedCallback="true" in manifest (works with custom back).
+#7 largeHeap: DELIBERATELY NOT SET — journal virtualization already fixed the memory pressure; largeHeap
+   is a known anti-pattern that can worsen GC jank. Recommended skip (told user).
+Fixed a self-inflicted bug: my showErrorPage insert had displaced @TargetApi(28) off showBiometricPrompt;
+   restored it. Java catch syntax corrected (was JS-style).
+Verified (web): JS/CSS valid, manifest valid, biometric annotation intact; suite1 51/52 (known timing),
+   suite2 25/25; zero errors.
+HONEST: native pieces (error page, webview tuning, predictive back) untestable here; PTR touch untestable headless.

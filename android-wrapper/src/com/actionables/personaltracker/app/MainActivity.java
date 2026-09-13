@@ -78,6 +78,11 @@ public class MainActivity extends Activity {
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
+        /* First-paint / smoothness tuning (all low-risk) */
+        try{ w.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null); }catch(Exception e){}
+        try{ s.setRenderPriority(WebSettings.RenderPriority.HIGH); }catch(Exception e){}
+        if(Build.VERSION.SDK_INT>=21){ try{ s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW); }catch(Exception e){} }
+        try{ w.setOverScrollMode(android.view.View.OVER_SCROLL_NEVER); }catch(Exception e){}
         if (Build.VERSION.SDK_INT >= 26) s.setSafeBrowsingEnabled(true);
         w.setWebViewClient(new WebViewClient() {
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
@@ -118,7 +123,26 @@ public class MainActivity extends Activity {
                 return false;
             }
             @Override public void onReceivedError(WebView view, WebResourceRequest request, WebResourceError error) {
-                if (request.isForMainFrame()) toast("Page could not be loaded");
+                if (request.isForMainFrame()) { MainActivity.this.showErrorPage(); }
+            }
+            @Override public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+                /* The WebView render process was killed (memory pressure / crash). Without handling
+                   this the app shows a dead white screen. Destroy the old WebView and rebuild it. */
+                try{
+                    if (web != null && web == view) {
+                        android.view.ViewGroup parent = (android.view.ViewGroup) web.getParent();
+                        if (parent != null) parent.removeView(web);
+                        web.destroy();
+                        WebView nw = new WebView(MainActivity.this);
+                        nw.setBackgroundColor(Color.BLACK);
+                        configureWebView(nw);
+                        web = nw;
+                        setContentView(web);
+                        web.loadUrl("https://" + APP_HOST + "/index.html");
+                        toast("Recovered — reloading");
+                    }
+                }catch(Exception e){}
+                return true; /* we handled it; don't let the app crash */
             }
         });
         w.setWebChromeClient(new WebChromeClient() {
@@ -164,9 +188,22 @@ public class MainActivity extends Activity {
         NativeAlarms.restore(this);
     }
 
+    long _lastBack=0;
     @Override public void onBackPressed() {
-        if (web != null && web.canGoBack()) web.goBack();
-        else super.onBackPressed();
+        /* Ask the web layer to handle back (close an open sheet/menu/overlay). If it consumed the
+           press, do nothing. Otherwise fall back to WebView history, then double-tap-to-exit. */
+        if (web != null) {
+            web.evaluateJavascript("(function(){try{return window.handleAndroidBack&&window.handleAndroidBack()?'1':'0';}catch(e){return '0';}})()", new ValueCallback<String>() {
+                @Override public void onReceiveValue(String v) {
+                    boolean consumed = v != null && v.replace("\"","").equals("1");
+                    if (consumed) return;
+                    if (web.canGoBack()) { web.goBack(); return; }
+                    long now = System.currentTimeMillis();
+                    if (now - _lastBack < 2000) { finish(); }
+                    else { _lastBack = now; toast("Press back again to exit"); }
+                }
+            });
+        } else { super.onBackPressed(); }
     }
 
     void createNotificationChannel() {
@@ -406,6 +443,20 @@ public class MainActivity extends Activity {
         }catch(Exception e){ toast("PDF export failed"); }
     }
 
+    void showErrorPage(){
+        try{
+            String html="<!doctype html><html><head><meta name='viewport' content='width=device-width,initial-scale=1'>"
+              +"<style>html,body{margin:0;height:100%;background:#000;color:#fff;font-family:-apple-system,Roboto,sans-serif;display:flex;align-items:center;justify-content:center}"
+              +".w{text-align:center;padding:24px;max-width:320px}.e{font-size:44px;margin-bottom:14px}.t{font-size:19px;font-weight:700;margin-bottom:6px}"
+              +".s{font-size:13px;color:#9a9aa0;line-height:1.5;margin-bottom:20px}"
+              +"button{background:linear-gradient(135deg,#FFAE1F,#E08900);color:#171310;border:0;border-radius:14px;padding:13px 26px;font-weight:800;font-size:15px}</style></head>"
+              +"<body><div class='w'><div class='e'>\uD83D\uDCF4</div><div class='t'>Couldn\u2019t load InnerOs</div>"
+              +"<div class='s'>Something went wrong loading the app. Your data is safe on this device \u2014 try again.</div>"
+              +"<button onclick=\"location.href='https://"+APP_HOST+"/index.html'\">Retry</button></div></body></html>";
+            web.loadDataWithBaseURL("https://"+APP_HOST+"/", html, "text/html", "UTF-8", null);
+        }catch(Exception e){ toast("Page could not be loaded"); }
+    }
+
     @android.annotation.TargetApi(28)
     void showBiometricPrompt(){
         try{
@@ -596,6 +647,12 @@ public class MainActivity extends Activity {
                 return bm!=null && bm.canAuthenticate()==android.hardware.biometrics.BiometricManager.BIOMETRIC_SUCCESS;
             }catch(Exception e){ return false; }
         }
+        @JavascriptInterface public void haptic(){ try{
+            android.os.Vibrator vb=(android.os.Vibrator)getSystemService(VIBRATOR_SERVICE);
+            if(vb==null||!vb.hasVibrator())return;
+            if(Build.VERSION.SDK_INT>=26) vb.vibrate(android.os.VibrationEffect.createOneShot(18, android.os.VibrationEffect.DEFAULT_AMPLITUDE));
+            else vb.vibrate(18);
+        }catch(Exception e){} }
         @JavascriptInterface public void showQuickAdd(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.showQuickAddNotif(); } }); }
         @JavascriptInterface public void showPinnedTasks(final String json){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.showPinnedTasksNotif(json); } }); }
         @JavascriptInterface public void hidePinnedTasks(){ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.hidePinnedTasksNotif(); } }); }
