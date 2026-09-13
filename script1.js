@@ -3434,6 +3434,18 @@ function renderJr(){
   if(jrView==='search') jrRenderSearch();
 }
 function setText(id,v){ var el=$(id); if(el) el.textContent=v; }
+/* ===== Motion helpers ===== */
+function _reducedMotion(){ try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } }
+function pulseEl(el, cls){ if(!el) return; if(_reducedMotion()) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+/* animate a number from its current displayed value to `to` (never from 0), transform/opacity-free */
+function animNum(el, to, dur, fmt){
+  if(!el) return; dur=dur||400;
+  var from=parseFloat(String(el.textContent).replace(/[^0-9.\-]/g,''))||0;
+  if(_reducedMotion() || from===to){ el.textContent=fmt?fmt(to):to; return; }
+  var t0=performance.now();
+  function step(now){ var p=Math.min(1,(now-t0)/dur); var e=1-Math.pow(1-p,3); var v=Math.round(from+(to-from)*e); el.textContent=fmt?fmt(v):v; if(p<1) requestAnimationFrame(step); }
+  requestAnimationFrame(step);
+}
 
 function jrGo(v){
   jrView=v;
@@ -4822,6 +4834,8 @@ function renderExp(){
     heroBody='<div class="expHeroLbl">'+esc(a.name)+' balance</div><div class="expHeroNum'+(bal<0?' neg':'')+'">'+inr(bal)+'</div><div class="expHeroBreak"><span class="inc">+ '+inr(aInc)+' Income</span><span class="exp">− '+inr(aExp)+' Spending</span></div><div class="expHeroSubtle">this month · '+esc(a.type||'account')+'</div>';
   }
   $('expSum').innerHTML='<div class="expHero2">'+heroBody+'</div>'+(accs.length?'<div class="heroAcctRow">'+acctChips+'</div>':'')+(heroAcct==='all'&&spendVs?'<div style="font-size:10.5px;color:var(--mut);margin:6px 2px 0">'+spendVs+'</div>':'')+(heroAcct==='all'&&topCat&&topV>0?'<div style="font-size:11px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 11px;text-align:left;margin-top:8px">💡 '+esc(topCat)+' is your highest spend category this month · '+inr(topV)+'</div>':'');
+  /* motion: interpolate the hero number from its previous value (not from 0) */
+  try{ var _hn=$('expSum').querySelector('.expHeroNum'); var _target=(heroAcct==='all'?mt.net:acctBalance(heroAcct)); if(_hn && !_reducedMotion() && typeof _target==='number'){ var _prev=(typeof window._lastHeroNum==='number')?window._lastHeroNum:_target; _hn.textContent=inr(_prev); animNum(_hn,_target,560,function(v){return inr(v);}); } window._lastHeroNum=_target; }catch(e){}
   var _har=$('expSum').querySelector('.heroAcctRow');
   if(_har) _har.addEventListener('click', function(e){ var b=e.target.closest('[data-heroacct]'); if(!b) return; state.set=state.set||{}; state.set.heroAcct=b.getAttribute('data-heroacct'); persist(); renderExp(); });
   var segShow = expView==='tx';
@@ -6284,7 +6298,15 @@ function init(){
     var idEl = climb(e.target, this, 'data-id');
     if(!idEl) return;
     var id = idEl.getAttribute('data-id');
-    if(act === 'chk'){ tapMain(id); return; }
+    if(act === 'chk'){
+      /* motion: pop the checkbox + detect completion to pulse streak/haptic */
+      var hBefore=findHabit(id), wasDone=hBefore?(val(hBefore,today())>=targ(hBefore)):false;
+      pulseEl(actEl,'chkPop');
+      tapMain(id);
+      var hAfter=findHabit(id), nowDone=hAfter?(val(hAfter,today())>=targ(hAfter)):false;
+      if(nowDone && !wasDone){ if(typeof haptic==='function') haptic(); setTimeout(function(){ var sEl=document.querySelector('.streakBadge,.momFlame,.chainLine'); pulseEl(sEl,'streakPulse'); },20); }
+      return;
+    }
     if(act === 'day'){ toggleDay(id, actEl.getAttribute('data-date')); return; }
     openDetail(id);
   });
@@ -7365,6 +7387,7 @@ function init(){
   $('moGrid').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-mi'); if(!b) return;
     var i = +b.getAttribute('data-mi'), t = today();
+    if(moodOf(t)!==i) pulseEl(b,'moodPop');
     setMood(t, moodOf(t) === i ? -1 : i);
     renderMood();
   });

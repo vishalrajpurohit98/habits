@@ -1399,3 +1399,17 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   intentionally NOT searched. Verified: IFSC label/value, pw notes, note content, title all match; AI
   context still excludes vault.
 - suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.36.0 — motion system wired into real interactions (APPROVED to build)
+- Motion tokens in :root (t-fast/normal/emph/data + easing). Global press-scale on buttons/cards/chips/tabs,
+  page slide-in, toggle glide, mood pop, reduced-motion media query.
+- Habit complete: checkbox pop (chkPop) on tap + streak pulse (streakPulse) + haptic on newly-done.
+- Money hero NUMBER INTERPOLATION: animates from previous value (never 0) over 560ms via animNum, with
+  window._lastHeroNum cache; reduced-motion skips it. Verified -1000 -> (mid -1245) -> -1500.
+- Helpers: _reducedMotion(), pulseEl(el,cls), animNum(el,to,dur,fmt). All transform/opacity or textContent
+  only (no layout thrash).
+- Verified: token present, hero interpolates mid-animation, helpers exist, reduced-motion honored;
+  suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: motion adds polish, not raw speed; ring animation skipped (momentum ring was removed from Today
+  earlier); native feel needs on-device confirmation.
