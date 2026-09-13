@@ -6024,10 +6024,10 @@ function handleAddAction(kind){
 
 function showTab(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
-  var pgs = ['pgToday','pgTasks','pgExp','pgStats','pgJr','pgAI','pgSet','pgMore'];
+  var pgs = ['pgToday','pgTasks','pgExp','pgStats','pgJr','pgAI','pgSet','pgMore','pgVault'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
-  var subPages = {pgStats:1, pgAI:1, pgSet:1, pgMore:1};
+  var subPages = {pgStats:1, pgAI:1, pgSet:1, pgMore:1, pgVault:1};
   var navFor = subPages[id] ? 'pgMore' : id;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===navFor);
   var _aif=$('aiFab'); if(_aif) _aif.style.display = (id==='pgAI') ? 'none' : '';
@@ -6804,54 +6804,154 @@ function init(){
   /* Save a draft when the journal editor is dismissed without saving */
   var _jrCloseBtn=$('jrCloseBtn')||document.querySelector('#jrSheet .sheetClose,#jrSheet .grab');
   /* ===== Vault (encrypted passwords + secure notes) ===== */
-  var _vaultPin=null, _vaultData={pw:[],note:[]}, _vaultTab='pw';
+  var _vaultPin=null, _vaultData={pw:[],note:[]}, _vaultFilter='all', _vaultSort='upd', _vaultQuery='', _vaultDetail=null, _vaultEditIdx=-1, _vaultEditType='pw';
+  var VAULT_CATS=['Personal','Work','Finance','Travel','Shopping','Documents','Other'];
+  function vId(){ return 'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+  function normVaultItem(it, type){ it=it||{}; var now=Date.now();
+    var base={ id:it.id||vId(), title:it.title||'', category:it.category||'Other', tags:Array.isArray(it.tags)?it.tags:[], favorite:!!it.favorite, createdAt:it.createdAt||now, updatedAt:it.updatedAt||it.createdAt||now };
+    if(type==='pw'){ base.user=it.user||''; base.pass=it.pass||''; base.url=it.url||''; base.notes=it.notes||''; }
+    else { base.body=it.body||''; }
+    return base;
+  }
+  function normVaultData(d){ d=d||{}; return { pw:(d.pw||[]).map(function(x){return normVaultItem(x,'pw');}), note:(d.note||[]).map(function(x){return normVaultItem(x,'note');}) }; }
   window.openVault=function(){
     if(!state.set||!state.set.pin){ toastN('Set an app PIN first (Settings \u2192 Privacy)'); showTab('pgSet'); return; }
     _vaultPin=null; _vaultData={pw:[],note:[]};
-    $('vaultLocked').style.display=''; $('vaultOpen').style.display='none';
+    vShow('vaultLocked');
     var pi=$('vaultPin'); if(pi) pi.value=''; var hint=$('vaultPinHint'); if(hint) hint.style.display='none';
-    openSheet('vaultSheet'); setTimeout(function(){ if(pi) pi.focus(); },120);
+    showTab('pgVault'); setTimeout(function(){ if(pi) pi.focus(); },120);
   };
+  function vShow(which){ ['vaultLocked','vaultHome','vaultPwForm','vaultNoteForm','vaultDetail'].forEach(function(id){ var el=$(id); if(el) el.style.display = (id===which)?'':'none'; }); var am=$('vaultAddMenu'); if(am) am.style.display='none'; }
   function vaultUnlock(){
     var pin=$('vaultPin').value.trim(); var hint=$('vaultPinHint');
     if(pinHash(pin)!==state.set.pin){ if(hint){hint.textContent='Wrong PIN.';hint.style.display='';} return; }
     _vaultPin=pin;
     var blob=state.vault;
-    if(!blob){ _vaultData={pw:[],note:[]}; showVaultOpen(); return; }
-    vaultDecrypt(pin, blob).then(function(d){ _vaultData=(d&&d.pw)?d:{pw:[],note:[]}; showVaultOpen(); })
+    if(!blob){ _vaultData={pw:[],note:[]}; vHome(); return; }
+    vaultDecrypt(pin, blob).then(function(d){ _vaultData=normVaultData(d); vHome(); })
       .catch(function(){ if(hint){hint.textContent='Could not decrypt (PIN may differ from when saved).';hint.style.display='';} });
   }
-  function showVaultOpen(){ $('vaultLocked').style.display='none'; $('vaultOpen').style.display=''; renderVault(); }
   function saveVault(){ if(_vaultPin===null) return; vaultEncrypt(_vaultPin, _vaultData).then(function(blob){ state.vault=blob; persist(); }); }
+  function vHome(){ vShow('vaultHome'); renderVault(); }
+  function vaultAllItems(){
+    var items=[];
+    _vaultData.pw.forEach(function(x){ items.push({type:'pw',it:x}); });
+    _vaultData.note.forEach(function(x){ items.push({type:'note',it:x}); });
+    return items;
+  }
+  function vaultMatch(entry, q){ if(!q) return true; q=q.toLowerCase(); var it=entry.it;
+    var hay=[it.title,it.user,it.url,it.body,it.category,(it.tags||[]).join(' ')].join(' ').toLowerCase();
+    return hay.indexOf(q)>=0; }
   function renderVault(){
     var box=$('vaultList'); if(!box) return;
-    document.querySelectorAll('.vaultTab').forEach(function(t){ t.classList.toggle('on', t.getAttribute('data-vt')===_vaultTab); });
-    var list=_vaultData[_vaultTab]||[];
-    if(!list.length){ box.innerHTML='<div class="setS" style="text-align:center;padding:20px">No '+(_vaultTab==='pw'?'passwords':'notes')+' yet.</div>'; return; }
-    box.innerHTML=list.map(function(it,i){
-      if(_vaultTab==='pw'){ return '<div class="vaultRow"><div class="vaultInfo"><div class="vaultName">'+esc(it.title||'Untitled')+'</div><div class="vaultSub">'+esc(it.user||'')+'</div></div><button class="vaultBtn" data-vcopy="'+i+'">Copy</button><button class="vaultBtn" data-vedit="'+i+'">Edit</button><button class="vaultBtn del" data-vdel="'+i+'">\u2715</button></div>'; }
-      return '<div class="vaultRow"><div class="vaultInfo"><div class="vaultName">'+esc(it.title||'Note')+'</div><div class="vaultSub">'+esc((it.body||'').slice(0,40))+'</div></div><button class="vaultBtn" data-vedit="'+i+'">Open</button><button class="vaultBtn del" data-vdel="'+i+'">\u2715</button></div>';
+    setText('vaultPwCount', _vaultData.pw.length); setText('vaultNoteCount', _vaultData.note.length);
+    document.querySelectorAll('#vaultChips .vChip').forEach(function(c){ c.classList.toggle('on', c.getAttribute('data-vf')===_vaultFilter); });
+    var items=vaultAllItems();
+    if(_vaultFilter==='pw') items=items.filter(function(e){return e.type==='pw';});
+    else if(_vaultFilter==='note') items=items.filter(function(e){return e.type==='note';});
+    else if(_vaultFilter==='fav') items=items.filter(function(e){return e.it.favorite;});
+    if(_vaultQuery) items=items.filter(function(e){ return vaultMatch(e,_vaultQuery); });
+    items.sort(function(a,b){
+      if(_vaultSort==='fav'){ if(!!b.it.favorite!==!!a.it.favorite) return (b.it.favorite?1:0)-(a.it.favorite?1:0); }
+      if(_vaultSort==='az') return String(a.it.title).localeCompare(String(b.it.title));
+      if(_vaultSort==='za') return String(b.it.title).localeCompare(String(a.it.title));
+      if(_vaultSort==='add') return (b.it.createdAt||0)-(a.it.createdAt||0);
+      return (b.it.updatedAt||0)-(a.it.updatedAt||0);
+    });
+    if(!items.length){ box.innerHTML='<div class="vaultEmpty">'+(_vaultQuery?'No matches for \u201C'+esc(_vaultQuery)+'\u201D':(_vaultFilter==='fav'?'No favorites yet':'Nothing here yet \u2014 tap + to add'))+'</div>'; return; }
+    box.innerHTML=items.map(function(e){ var it=e.it;
+      var sub = e.type==='pw' ? (esc(it.user||'')+(it.url?' \u00B7 '+esc(vaultDomain(it.url)):'')) : esc((it.body||'').slice(0,50));
+      var ic = e.type==='pw'?'🔑':'📝';
+      return '<div class="vaultCard" data-vopen="'+e.type+':'+esc(it.id)+'"><span class="vaultCardIc">'+ic+'</span><div class="vaultCardInfo"><div class="vaultCardName">'+esc(it.title||'Untitled')+(it.category&&it.category!=='Other'?' <span class="vaultCatTag">'+esc(it.category)+'</span>':'')+'</div><div class="vaultCardSub">'+(sub||'&nbsp;')+'</div></div>'+(it.favorite?'<span class="vaultStar on">★</span>':'')+'</div>';
     }).join('');
   }
-  function vaultEditEntry(idx){
-    var isPw=_vaultTab==='pw'; var it=(idx>=0)?_vaultData[_vaultTab][idx]:(isPw?{title:'',user:'',pass:'',url:'',notes:''}:{title:'',body:''});
-    var title=prompt(isPw?'Title (e.g. Gmail)':'Note title', it.title||''); if(title===null) return;
-    if(isPw){ var user=prompt('Username / email', it.user||'')||''; var pass=prompt('Password', it.pass||'')||''; var url=prompt('URL (optional)', it.url||'')||'';
-      var entry={title:title.trim(),user:user.trim(),pass:pass,url:url.trim(),notes:it.notes||''};
-      if(idx>=0) _vaultData.pw[idx]=entry; else _vaultData.pw.unshift(entry);
-    } else { var body=prompt('Note (secure)', it.body||'')||''; var e2={title:title.trim(),body:body}; if(idx>=0) _vaultData.note[idx]=e2; else _vaultData.note.unshift(e2); }
-    saveVault(); renderVault();
+  function vaultDomain(u){ try{ return u.replace(/^https?:\/\//,'').replace(/^www\./,'').split('/')[0]; }catch(e){ return u; } }
+  function parseTags(s){ return (String(s||'').match(/#?[A-Za-z0-9_]+/g)||[]).map(function(t){return t.replace(/^#/,'').toLowerCase();}).filter(Boolean).slice(0,8); }
+  function fillCatSelect(sel, val){ if(!sel) return; sel.innerHTML=VAULT_CATS.map(function(c){return '<option'+(c===val?' selected':'')+'>'+c+'</option>';}).join(''); }
+  /* ---- forms ---- */
+  function openPwForm(idx){ _vaultEditType='pw'; _vaultEditIdx=(idx==null?-1:idx);
+    var it=idx>=0?_vaultData.pw[idx]:normVaultItem({},'pw');
+    setText('vaultPwFormTitle', idx>=0?'Edit password':'Add password');
+    $('vpTitle').value=it.title; $('vpUser').value=it.user; $('vpPass').value=it.pass; $('vpUrl').value=it.url;
+    fillCatSelect($('vpCat'), it.category); $('vpTags').value=(it.tags||[]).map(function(t){return '#'+t;}).join(' ');
+    $('vpNotes').value=it.notes||''; $('vpFav').checked=!!it.favorite; $('vpPass').type='password';
+    $('vpErr').style.display='none'; vShow('vaultPwForm');
   }
-  var _vSheet=$('vaultSheet');
+  function openNoteForm(idx){ _vaultEditType='note'; _vaultEditIdx=(idx==null?-1:idx);
+    var it=idx>=0?_vaultData.note[idx]:normVaultItem({},'note');
+    setText('vaultNoteFormTitle', idx>=0?'Edit secure note':'Add secure note');
+    $('vnTitle').value=it.title; $('vnBody').value=it.body||''; fillCatSelect($('vnCat'), it.category);
+    $('vnTags').value=(it.tags||[]).map(function(t){return '#'+t;}).join(' '); $('vnFav').checked=!!it.favorite;
+    $('vnErr').style.display='none'; vShow('vaultNoteForm');
+  }
+  function savePwForm(){
+    var title=$('vpTitle').value.trim(), pass=$('vpPass').value;
+    if(!title){ vErr('vpErr','Title is required.'); return; }
+    if(!pass){ vErr('vpErr','Password is required.'); return; }
+    var now=Date.now();
+    var entry=normVaultItem({ id:(_vaultEditIdx>=0?_vaultData.pw[_vaultEditIdx].id:null), title:title, user:$('vpUser').value.trim(), pass:pass, url:$('vpUrl').value.trim(), category:$('vpCat').value, tags:parseTags($('vpTags').value), notes:$('vpNotes').value.trim(), favorite:$('vpFav').checked, createdAt:(_vaultEditIdx>=0?_vaultData.pw[_vaultEditIdx].createdAt:now) },'pw');
+    entry.updatedAt=now;
+    if(_vaultEditIdx>=0) _vaultData.pw[_vaultEditIdx]=entry; else _vaultData.pw.unshift(entry);
+    saveVault(); vHome(); toastN('Password saved');
+  }
+  function saveNoteForm(){
+    var title=$('vnTitle').value.trim();
+    if(!title){ vErr('vnErr','Title is required.'); return; }
+    var now=Date.now();
+    var entry=normVaultItem({ id:(_vaultEditIdx>=0?_vaultData.note[_vaultEditIdx].id:null), title:title, body:$('vnBody').value, category:$('vnCat').value, tags:parseTags($('vnTags').value), favorite:$('vnFav').checked, createdAt:(_vaultEditIdx>=0?_vaultData.note[_vaultEditIdx].createdAt:now) },'note');
+    entry.updatedAt=now;
+    if(_vaultEditIdx>=0) _vaultData.note[_vaultEditIdx]=entry; else _vaultData.note.unshift(entry);
+    saveVault(); vHome(); toastN('Note saved');
+  }
+  function vErr(id,msg){ var e=$(id); if(e){ e.textContent=msg; e.style.display=''; } }
+  /* ---- detail ---- */
+  function vaultOpenDetail(type,id){
+    var arr=_vaultData[type], idx=arr.findIndex(function(x){return x.id===id;}); if(idx<0) return;
+    _vaultDetail={type:type,idx:idx}; var it=arr[idx];
+    setText('vaultDetailTitle', it.title||(type==='pw'?'Password':'Note'));
+    $('vaultDetailFav').textContent = it.favorite?'★':'☆'; $('vaultDetailFav').classList.toggle('on', it.favorite);
+    var meta='<div class="vaultDetMeta">'+(it.category?esc(it.category):'')+(it.tags&&it.tags.length?' \u00B7 '+it.tags.map(function(t){return '#'+esc(t);}).join(' '):'')+'<br>Updated '+niceDate(fmt(new Date(it.updatedAt)))+'</div>';
+    var html;
+    if(type==='pw'){
+      html='<div class="vaultDetField"><span class="vdLbl">Username</span><div class="vdVal"><span>'+esc(it.user||'—')+'</span>'+(it.user?'<button class="vaultBtn" data-vcopyuser="1">Copy</button>':'')+'</div></div>'
+        +'<div class="vaultDetField"><span class="vdLbl">Password</span><div class="vdVal"><span id="vdPass">••••••••</span><button class="vaultBtn" id="vdReveal">Show</button><button class="vaultBtn" data-vcopypass="1">Copy</button></div></div>'
+        +(it.url?'<div class="vaultDetField"><span class="vdLbl">Website</span><div class="vdVal"><span>'+esc(it.url)+'</span><button class="vaultBtn" data-vopenurl="1">Open</button></div></div>':'')
+        +(it.notes?'<div class="vaultDetField"><span class="vdLbl">Notes</span><div class="vdNote">'+esc(it.notes)+'</div></div>':'')+meta;
+    } else {
+      html='<div class="vaultDetNoteBody">'+esc(it.body||'').replace(/\n/g,'<br>')+'</div>'+meta;
+    }
+    $('vaultDetailBody').innerHTML=html; vShow('vaultDetail');
+  }
+  var _vSheet=$('pgVault');
   if(_vSheet){
     var ub=$('vaultUnlockBtn'); if(ub) ub.addEventListener('click', vaultUnlock);
     var vp=$('vaultPin'); if(vp) vp.addEventListener('keydown', function(e){ if(e.key==='Enter') vaultUnlock(); });
+    var vsearch=$('vaultSearch'); if(vsearch) vsearch.addEventListener('input', function(){ _vaultQuery=this.value.trim(); renderVault(); });
+    var vsort=$('vaultSort'); if(vsort) vsort.addEventListener('change', function(){ _vaultSort=this.value; renderVault(); });
+    var vlock=$('vaultLockBtn'); if(vlock) vlock.addEventListener('click', function(){ _vaultPin=null; _vaultData={pw:[],note:[]}; showTab('pgMore'); toastN('Vault locked'); });
+    var vfab=$('vaultFab'); if(vfab) vfab.addEventListener('click', function(){ var am=$('vaultAddMenu'); if(am) am.style.display=''; });
+    var vac=$('vaultAddCancel'); if(vac) vac.addEventListener('click', vHome);
+    var vpEye=$('vpEye'); if(vpEye) vpEye.addEventListener('click', function(){ var p=$('vpPass'); p.type=p.type==='password'?'text':'password'; });
+    var vpSave=$('vpSave'); if(vpSave) vpSave.addEventListener('click', savePwForm);
+    var vnSave=$('vnSave'); if(vnSave) vnSave.addEventListener('click', saveNoteForm);
     _vSheet.addEventListener('click', function(e){
-      var tab=e.target.closest('[data-vt]'); if(tab){ _vaultTab=tab.getAttribute('data-vt'); renderVault(); return; }
-      var add=e.target.closest('#vaultAddBtn'); if(add){ vaultEditEntry(-1); return; }
-      var ed=e.target.closest('[data-vedit]'); if(ed){ vaultEditEntry(+ed.getAttribute('data-vedit')); return; }
-      var dl=e.target.closest('[data-vdel]'); if(dl){ var di=+dl.getAttribute('data-vdel'); if(confirm('Delete this entry?')){ _vaultData[_vaultTab].splice(di,1); saveVault(); renderVault(); } return; }
-      var cp=e.target.closest('[data-vcopy]'); if(cp){ var it=_vaultData.pw[+cp.getAttribute('data-vcopy')]; if(it){ try{ navigator.clipboard.writeText(it.pass); toastN('Password copied'); }catch(x){ toastN('Copy failed'); } } return; }
+      var sum=e.target.closest('[data-vfilter]'); if(sum){ _vaultFilter=sum.getAttribute('data-vfilter'); renderVault(); return; }
+      var chip=e.target.closest('[data-vf]'); if(chip){ _vaultFilter=chip.getAttribute('data-vf'); renderVault(); return; }
+      var addopt=e.target.closest('[data-vadd]'); if(addopt){ if(addopt.getAttribute('data-vadd')==='pw') openPwForm(-1); else openNoteForm(-1); return; }
+      var back=e.target.closest('[data-vformback]'); if(back){ vHome(); return; }
+      var dback=e.target.closest('[data-vdetailback]'); if(dback){ vHome(); return; }
+      var open=e.target.closest('[data-vopen]'); if(open){ var parts=open.getAttribute('data-vopen').split(':'); vaultOpenDetail(parts[0],parts.slice(1).join(':')); return; }
+      /* detail actions */
+      if(_vaultDetail){
+        var it=_vaultData[_vaultDetail.type][_vaultDetail.idx];
+        if(e.target.closest('#vdReveal')){ var pv=$('vdPass'),bt=e.target.closest('#vdReveal'); if(pv.textContent.indexOf('•')>=0){ pv.textContent=it.pass; bt.textContent='Hide'; } else { pv.textContent='••••••••'; bt.textContent='Show'; } return; }
+        if(e.target.closest('[data-vcopyuser]')){ try{navigator.clipboard.writeText(it.user);toastN('Username copied');}catch(x){} return; }
+        if(e.target.closest('[data-vcopypass]')){ try{navigator.clipboard.writeText(it.pass);toastN('Password copied');}catch(x){} return; }
+        if(e.target.closest('[data-vopenurl]')){ try{ var u=it.url; if(!/^https?:/.test(u)) u='https://'+u; window.open(u,'_blank'); }catch(x){} return; }
+        if(e.target.closest('#vaultDetailFav')){ it.favorite=!it.favorite; it.updatedAt=Date.now(); saveVault(); $('vaultDetailFav').textContent=it.favorite?'★':'☆'; $('vaultDetailFav').classList.toggle('on',it.favorite); return; }
+        if(e.target.closest('#vaultDetailEdit')){ if(_vaultDetail.type==='pw') openPwForm(_vaultDetail.idx); else openNoteForm(_vaultDetail.idx); return; }
+        if(e.target.closest('#vaultDetailDel')){ if(confirm('Delete this entry?')){ _vaultData[_vaultDetail.type].splice(_vaultDetail.idx,1); _vaultDetail=null; saveVault(); vHome(); toastN('Deleted'); } return; }
+      }
     });
   }
   /* ===== Recently deleted (trash) ===== */

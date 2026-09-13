@@ -1325,3 +1325,29 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   Verified: encrypt/decrypt round-trip, WRONG PIN FAILS, no-PIN guard, unlock+list, notes tab.
 - Verified: suite1 51/52 (known timing), suite2 25/25; zero errors.
 - HONEST: web-side crypto verified; not a security-audited vault; native/sync round-trip needs device.
+
+---
+# V1.31.0 — Vault redesign (per brief)
+- Vault home: 🔐 header + "Your secure space", search bar, Passwords/Notes summary cards, filter chips
+  (All/Passwords/Notes/⭐Favorites), sort control (updated/added/A-Z/Z-A/favorites), card list, floating +.
+- Data model extended BACKWARD-COMPATIBLY: id/category/tags/favorite/createdAt/updatedAt added via
+  normVaultItem; old entries (title/user/pass/url/notes or title/body) load & display correctly. Encryption
+  (PBKDF2->AES-GCM) UNCHANGED. state.vault preserved.
+- Removed prompt()-based flow -> proper in-app forms (Add/Edit Password + Note) with validation + errors.
+- Password detail: masked by default, show/hide, copy user, copy pass, open website, edit, delete, fav toggle.
+- Note detail: readable content, edit/delete/fav, last-updated.
+- Search across name/user/domain/note title/content/category/tags; live; clean empty state. Categories
+  (Personal/Work/Finance/Travel/Shopping/Documents/Other). Lightweight tags. Add menu (Password/Note).
+- Lock Vault action. Kept honest security warning (no bank-grade claims).
+- Renamed vault detail fn -> vaultOpenDetail to avoid collision with habit openDetail.
+- Verified: OLD-format loads (backward compat), form add+validation, search, favorites, detail mask+reveal;
+  suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.31.1 — Vault is now a full page (was a bottom sheet)
+- Converted #vaultSheet -> <div class="page" id="pgVault">; added pgVault to showTab's page list +
+  subPages (keeps More highlighted). openVault -> showTab('pgVault'). Lock button -> showTab('pgMore').
+- FAB -> position:fixed above nav; add-menu -> fixed full-screen overlay over home (vShow no longer
+  toggles the menu). Delegation retargeted to #pgVault.
+- Verified: opens as page (onPage true, More highlighted), unlock, add-menu overlays home, leaving via
+  tabs works; suite1 51/52 (known timing), suite2 25/25; zero errors.
