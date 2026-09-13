@@ -58,12 +58,12 @@
         div.className='featureTools';
         div.innerHTML=
           '<div class="featureToolsHead">'+
-            '<div><div class="eyebrow">Financial tools</div><b>Plan & manage</b></div>'+
+            '<div class="eyebrow">Financial tools</div>'+
             '<button class="sbtn" id="featureRefresh">Refresh</button>'+
           '</div>'+
           '<button class="financialToolsLauncher" data-ft="financial-tools">'+
             '<span class="financialToolsIcon">💰</span>'+
-            '<span class="financialToolsCopy"><b>Financial Tools</b><small>Import, card payments, savings & reports</small></span>'+
+            '<span class="financialToolsCopy"><b>Financial Tools</b><small>Import, card payments, savings &amp; reports</small></span>'+
             '<span class="financialToolsArrow">›</span>'+
           '</button>'+
           '<div id="featureSummary"></div>';
@@ -76,11 +76,7 @@
       if(ps){
         var dataLabel=null, children=ps.children;
         for(var i=0;i<children.length;i++){ if(children[i].className==='lbl' && /Data/i.test(children[i].textContent||'')){ dataLabel=children[i]; break; } }
-        var d=document.createElement('div');
-        d.id='featureSettings';
-        d.className='setCard';
-        d.innerHTML='<div class="setRow"><div class="setInfo"><div class="setT">Advanced tools</div><div class="setS">Additional validation and utility workflows remain available without duplicating controls in Settings.</div></div></div>';
-        if(dataLabel && dataLabel.parentNode) dataLabel.parentNode.insertBefore(d,dataLabel.nextSibling); else ps.appendChild(d);
+        /* Advanced tools card removed per user request. */
       }
     }
   }

@@ -1204,3 +1204,70 @@ HONEST: all native (mic onPermissionRequest, LogHub widget, tasks widget) untest
   button clears it. Chip lives inside #pgToday so it only shows on Today (hidden when that page is display:none).
 - Verified: chip at corner (top 10, 14px gap), no overlap with search, hidden off Today, still opens
   the profile menu; suite1 51/52 (known timing); zero errors.
+
+---
+# V1.24.0 — UI/UX refinement brief pass
+Audited the full brief against the current app. MOST items already implemented (5-tab nav, Today
+4x2 glance with —/0 semantics, Habits/Mood/Sleep under Today, Money sub-tabs + Financial Tools,
+Journal 5-section scrollable nav, compact empty states, More hub, global+contextual AI, FAB with
+env(safe-area-inset) offsets + page bottom padding). Did NOT rebuild what already conforms.
+REAL DELTA FIXED:
+- Money "Financial tools / Plan & manage / Financial Tools" duplicated hierarchy -> collapsed to a
+  single "Financial tools" eyebrow + the launcher (removed the redundant "Plan & manage" bold and
+  the doubled label), per brief section 5.
+Verified: 5 tabs, glance grid, journal nav overflow-x:auto, FAB safe-area, Plan&manage gone,
+Financial Tools launcher intact; suite1 51/52 (known timing), suite2 25/25; zero errors.
+HONEST: I refined rather than rebuilt — the brief's "SAME APP + BETTER ORG" goal was largely already
+met by prior work, so I fixed only the genuine remaining discrepancy rather than manufacturing churn.
+
+---
+# V1.25.0 — Today/Tasks/Money/Settings polish (user screenshots)
+- Today: removed momentum ring + "Best chain: N days" banner (heroRing no longer rendered; #hero
+  emptied+hidden). (Per-habit streak chip on habit cards unchanged — that's a different element.)
+- Settings: removed the dynamically-inserted "Advanced tools" card.
+- Tasks: stat tiles restyled into a cleaner card grid (bigger colored numbers, uppercase labels,
+  subtle red/orange tint on Overdue/Today).
+- Money: hero restructured to spend-left / in-out-right (expHeroL + expHeroR flex row).
+- Verified: ring/flame gone on Today, Advanced tools gone, hero left/right, task cards; suite1 51/52
+  (known timing), suite2 25/25; zero errors. Screenshots captured.
+
+---
+# V1.25.1 — uniform task tiles + money hero spacing
+- Task stat tiles: removed a stale duplicate CSS block that re-added colored tint/border to
+  Overdue/Today. All 4 tiles now uniform (same neutral card, min-height:78px, only numbers colored).
+- Money hero: padding 22px top / 20px left so the amount has space above (from border) and on the left.
+- Verified: no stale border rule (0), CSS valid, uniform tiles + hero spacing in screenshots;
+  suite1 51/52 (known timing); zero errors.
+
+---
+# V1.26.0 — consistent cards + compact task summary + Remaining-first Money
+- Consistent card system: --cardR:16px/--cardPad:15px/--cardGap:10px; normalized setCard/todayProgress/
+  taskCard/moreCard/jcard/tools/expHero to shared radius + padding for cross-screen consistency.
+- Tasks: replaced the 4 big stat cards with ONE compact single-row summary card
+  (1 Overdue · 1 Today · 1 Upcoming · 1 Done, nowrap) -> more space for the task list.
+- Money: hero reworked to "REMAINING THIS MONTH" as the headline figure (₹net, red if negative) with
+  "+ Income" / "− Spending" underneath — removed the ↑/↓ arrows for clarity.
+- Verified: money shows Remaining/Income/Spending + no arrows; task summary one row (4 items same top);
+  cards consistent; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.27.0 — hero account balance + search corner + responsive
+- Today: search button pinned to the corner (position:fixed, right:58px) next to the profile chip
+  (right:14px); h1row padding-right:96px so the title clears both. No more mid-row search.
+- Money hero: added account selector chips (All + each active account). "All" -> Remaining this month;
+  a specific account -> that account's live balance via acctBalance (verified HDFC 5000+85000-1200=88800).
+  Choice stored in state.set.heroAcct.
+- Responsive: @768px #app/.page widen to 900px + larger journal editor (220px); @1024px widen to 1040px,
+  editor 300px, entry cards max 820px reading width, dock stays centered. Wider writing area on desktop/tablet.
+- Verified: search+profile both in corner no overlap; hero shows chosen account balance; desktop #app=1040,
+  editor=300; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.27.1 — hero account expense + wider desktop journal editor
+- Money hero (account selected): now shows month Income + Spending for that account (sum of tx in
+  current month filtered by acct) beneath the balance, plus a "this month · type" caption.
+  Verified HDFC: bal 88,000, +85,000 income, −2,000 spending.
+- Desktop journal editor: the @1000px sheet-as-modal capped width at 480px, so #jrBody stayed narrow.
+  Added #jrSheet{width:min(760px,100vw-120px)} + #jrBody min-height 360 at >=1024px. Verified sheet=760,
+  body=718 wide on 1280px viewport.
+- Verified: suite1 51/52 (known timing), suite2 25/25; zero errors.
