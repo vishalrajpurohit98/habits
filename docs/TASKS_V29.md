@@ -1351,3 +1351,29 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   toggles the menu). Delegation retargeted to #pgVault.
 - Verified: opens as page (onPage true, More highlighted), unlock, add-menu overlays home, leaving via
   tabs works; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.32.0 — import Promega_LLP.docx data into Vault
+- Parsed the doc into 13 password entries (simple logins: DIGILocker, Meesho, IRCTC, Apple, LinkedIn,
+  GitHub, EPF, Amazon x2, etc.) + 10 secure notes (rich records kept whole: Kotak Salary/Current,
+  HDFC, SBI, HDFC Women's, Demat, SBI/RBL credit cards, Passport Seva, Fable work credentials).
+  Bank/card/ID records -> notes so nothing (CVV/PIN/IFSC/security-Qs) is lost.
+- One-time seed embedded (VAULT_IMPORT_SEED) + mergeVaultImport(): on unlock, merges de-duped by title,
+  encrypts via existing PBKDF2->AES-GCM, sets state.set.vaultImported_promega so it never re-imports.
+- Verified: first unlock -> 13 pw + 10 notes; second unlock -> still 13/10 (no dupes); sample entries present.
+  suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: highly sensitive data (bank cards/CVV/PINs/gov IDs). This vault is convenient encrypted
+  storage, not a hardened manager — for this sensitivity a dedicated manager is safer.
+
+---
+# V1.33.0 — Vault: removed seed, added extra fields + Excel export/import
+- Removed the auto-import seed logic entirely.
+- Password entries now support ADDITIONAL DETAILS (extra: [{label,value}]) — bank/card/ID info lives
+  UNDER the password (not as notes). Form has "+ Add detail" rows; detail view lists them with Copy.
+- Excel export (2 sheets: Passwords [Title,Username,Password,URL,Category,Tags,Notes,Favorite,Extra],
+  Notes [Title,Content,Category,Tags,Favorite]) via SheetJS + saveFile/webSave.
+- Excel import: reads both sheets, merges by title (update existing, add new), Extra parsed from
+  "label=value | label=value". Verified: import generated file -> 23 pw + 1 note; extra fields
+  (IFSC/CVV/SecQ) land under the password; export button produces xlsx (36KB round-trip).
+- Delivered InnerOs_Vault_Import.xlsx pre-filled with Promega_LLP data (bank/card details in Extra column).
+- suite1 51/52 (known timing), suite2 25/25; zero errors.

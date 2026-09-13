@@ -6809,11 +6809,12 @@ function init(){
   function vId(){ return 'v'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
   function normVaultItem(it, type){ it=it||{}; var now=Date.now();
     var base={ id:it.id||vId(), title:it.title||'', category:it.category||'Other', tags:Array.isArray(it.tags)?it.tags:[], favorite:!!it.favorite, createdAt:it.createdAt||now, updatedAt:it.updatedAt||it.createdAt||now };
-    if(type==='pw'){ base.user=it.user||''; base.pass=it.pass||''; base.url=it.url||''; base.notes=it.notes||''; }
+    if(type==='pw'){ base.user=it.user||''; base.pass=it.pass||''; base.url=it.url||''; base.notes=it.notes||''; base.extra=Array.isArray(it.extra)?it.extra.filter(function(e){return e&&(e.label||e.value);}):[]; }
     else { base.body=it.body||''; }
     return base;
   }
   function normVaultData(d){ d=d||{}; return { pw:(d.pw||[]).map(function(x){return normVaultItem(x,'pw');}), note:(d.note||[]).map(function(x){return normVaultItem(x,'note');}) }; }
+
   window.openVault=function(){
     if(!state.set||!state.set.pin){ toastN('Set an app PIN first (Settings \u2192 Privacy)'); showTab('pgSet'); return; }
     _vaultPin=null; _vaultData={pw:[],note:[]};
@@ -6832,6 +6833,59 @@ function init(){
       .catch(function(){ if(hint){hint.textContent='Could not decrypt (PIN may differ from when saved).';hint.style.display='';} });
   }
   function saveVault(){ if(_vaultPin===null) return; vaultEncrypt(_vaultPin, _vaultData).then(function(blob){ state.vault=blob; persist(); }); }
+  function extraToStr(arr){ return (arr||[]).map(function(e){return (e.label||'')+'='+(e.value||'');}).join(' | '); }
+  function strToExtra(str){ return String(str||'').split('|').map(function(p){ p=p.trim(); if(!p) return null; var i=p.indexOf('='); return i<0?{label:p,value:''}:{label:p.slice(0,i).trim(),value:p.slice(i+1).trim()}; }).filter(Boolean); }
+  function vaultExportExcel(){
+    if(typeof XLSX==='undefined'){ ensureXlsx(function(){ vaultExportExcel(); }); return; }
+    var pwRows=[['Title','Username','Password','URL','Category','Tags','Notes','Favorite','Extra (label=value | ...)']];
+    _vaultData.pw.forEach(function(x){ pwRows.push([x.title,x.user,x.pass,x.url,x.category,(x.tags||[]).map(function(t){return '#'+t;}).join(' '),x.notes,x.favorite?'yes':'',extraToStr(x.extra)]); });
+    var noteRows=[['Title','Content','Category','Tags','Favorite']];
+    _vaultData.note.forEach(function(x){ noteRows.push([x.title,x.body,x.category,(x.tags||[]).map(function(t){return '#'+t;}).join(' '),x.favorite?'yes':'']); });
+    var wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(pwRows), 'Passwords');
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(noteRows), 'Notes');
+    var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}), name='inneros-vault-'+today()+'.xlsx';
+    if(nat&&nat.saveFile){ try{ nat.saveFile(name,XMIME,out); toastN('Saved Excel'); return; }catch(e){} }
+    if(webSave(name,XMIME,out)) toastN('Downloading Excel\u2026'); else toastN('Export failed');
+  }
+  function vaultImportExcel(ev){
+    var file=ev.target.files&&ev.target.files[0]; ev.target.value='';
+    if(!file){ return; }
+    if(typeof XLSX==='undefined'){ ensureXlsx(function(){ vaultImportFile(file); }); return; }
+    vaultImportFile(file);
+  }
+  function vaultImportFile(file){
+    var rd=new FileReader();
+    rd.onload=function(e){
+      try{
+        var wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});
+        var addedPw=0, addedNote=0, updPw=0, updNote=0;
+        function findPw(t){ return _vaultData.pw.findIndex(function(x){return (x.title||'').toLowerCase()===String(t||'').toLowerCase();}); }
+        function findNote(t){ return _vaultData.note.findIndex(function(x){return (x.title||'').toLowerCase()===String(t||'').toLowerCase();}); }
+        if(wb.SheetNames.indexOf('Passwords')>=0){
+          var rows=XLSX.utils.sheet_to_json(wb.Sheets['Passwords'],{header:1});
+          for(var i=1;i<rows.length;i++){ var r=rows[i]; if(!r||!String(r[0]||'').trim()) continue;
+            var obj={ title:String(r[0]).trim(), user:String(r[1]||'').trim(), pass:String(r[2]||''), url:String(r[3]||'').trim(), category:String(r[4]||'Other').trim()||'Other', tags:parseTags(r[5]), notes:String(r[6]||'').trim(), favorite:/^y/i.test(String(r[7]||'')), extra:strToExtra(r[8]) };
+            var ix=findPw(obj.title); var now=Date.now();
+            if(ix>=0){ obj.id=_vaultData.pw[ix].id; obj.createdAt=_vaultData.pw[ix].createdAt; obj.updatedAt=now; _vaultData.pw[ix]=normVaultItem(obj,'pw'); updPw++; }
+            else { _vaultData.pw.push(normVaultItem(obj,'pw')); addedPw++; }
+          }
+        }
+        if(wb.SheetNames.indexOf('Notes')>=0){
+          var nr=XLSX.utils.sheet_to_json(wb.Sheets['Notes'],{header:1});
+          for(var j=1;j<nr.length;j++){ var n=nr[j]; if(!n||!String(n[0]||'').trim()) continue;
+            var no={ title:String(n[0]).trim(), body:String(n[1]||''), category:String(n[2]||'Other').trim()||'Other', tags:parseTags(n[3]), favorite:/^y/i.test(String(n[4]||'')) };
+            var jx=findNote(no.title); var now2=Date.now();
+            if(jx>=0){ no.id=_vaultData.note[jx].id; no.createdAt=_vaultData.note[jx].createdAt; no.updatedAt=now2; _vaultData.note[jx]=normVaultItem(no,'note'); updNote++; }
+            else { _vaultData.note.push(normVaultItem(no,'note')); addedNote++; }
+          }
+        }
+        saveVault(); renderVault();
+        toastN('Imported: +'+addedPw+' pw, +'+addedNote+' notes'+((updPw+updNote)?', updated '+(updPw+updNote):''));
+      }catch(err){ toastN('Import failed: not a valid vault Excel'); }
+    };
+    rd.readAsArrayBuffer(file);
+  }
   function vHome(){ vShow('vaultHome'); renderVault(); }
   function vaultAllItems(){
     var items=[];
@@ -6869,12 +6923,16 @@ function init(){
   function parseTags(s){ return (String(s||'').match(/#?[A-Za-z0-9_]+/g)||[]).map(function(t){return t.replace(/^#/,'').toLowerCase();}).filter(Boolean).slice(0,8); }
   function fillCatSelect(sel, val){ if(!sel) return; sel.innerHTML=VAULT_CATS.map(function(c){return '<option'+(c===val?' selected':'')+'>'+c+'</option>';}).join(''); }
   /* ---- forms ---- */
+  function renderExtraRows(list){ var box=$('vpExtra'); if(!box) return; list=list||[]; box.innerHTML=list.map(function(e,i){ return '<div class="vpExtraRow"><input class="inp" data-xlabel="'+i+'" placeholder="Label" value="'+esc(e.label||'')+'"><input class="inp" data-xval="'+i+'" placeholder="Value" value="'+esc(e.value||'')+'"><button class="vaultBtn del" data-xdel="'+i+'" type="button">✕</button></div>'; }).join(''); }
+  function collectExtra(){ var box=$('vpExtra'); if(!box) return []; var out=[]; var labels=box.querySelectorAll('[data-xlabel]'), vals=box.querySelectorAll('[data-xval]'); for(var i=0;i<labels.length;i++){ var l=labels[i].value.trim(), v=vals[i]?vals[i].value.trim():''; if(l||v) out.push({label:l,value:v}); } return out; }
+  var _vpExtraList=[];
   function openPwForm(idx){ _vaultEditType='pw'; _vaultEditIdx=(idx==null?-1:idx);
     var it=idx>=0?_vaultData.pw[idx]:normVaultItem({},'pw');
     setText('vaultPwFormTitle', idx>=0?'Edit password':'Add password');
     $('vpTitle').value=it.title; $('vpUser').value=it.user; $('vpPass').value=it.pass; $('vpUrl').value=it.url;
     fillCatSelect($('vpCat'), it.category); $('vpTags').value=(it.tags||[]).map(function(t){return '#'+t;}).join(' ');
     $('vpNotes').value=it.notes||''; $('vpFav').checked=!!it.favorite; $('vpPass').type='password';
+    _vpExtraList=(it.extra||[]).map(function(e){return {label:e.label,value:e.value};}); renderExtraRows(_vpExtraList);
     $('vpErr').style.display='none'; vShow('vaultPwForm');
   }
   function openNoteForm(idx){ _vaultEditType='note'; _vaultEditIdx=(idx==null?-1:idx);
@@ -6889,7 +6947,7 @@ function init(){
     if(!title){ vErr('vpErr','Title is required.'); return; }
     if(!pass){ vErr('vpErr','Password is required.'); return; }
     var now=Date.now();
-    var entry=normVaultItem({ id:(_vaultEditIdx>=0?_vaultData.pw[_vaultEditIdx].id:null), title:title, user:$('vpUser').value.trim(), pass:pass, url:$('vpUrl').value.trim(), category:$('vpCat').value, tags:parseTags($('vpTags').value), notes:$('vpNotes').value.trim(), favorite:$('vpFav').checked, createdAt:(_vaultEditIdx>=0?_vaultData.pw[_vaultEditIdx].createdAt:now) },'pw');
+    var entry=normVaultItem({ id:(_vaultEditIdx>=0?_vaultData.pw[_vaultEditIdx].id:null), title:title, user:$('vpUser').value.trim(), pass:pass, url:$('vpUrl').value.trim(), category:$('vpCat').value, tags:parseTags($('vpTags').value), notes:$('vpNotes').value.trim(), extra:collectExtra(), favorite:$('vpFav').checked, createdAt:(_vaultEditIdx>=0?_vaultData.pw[_vaultEditIdx].createdAt:now) },'pw');
     entry.updatedAt=now;
     if(_vaultEditIdx>=0) _vaultData.pw[_vaultEditIdx]=entry; else _vaultData.pw.unshift(entry);
     saveVault(); vHome(); toastN('Password saved');
@@ -6916,7 +6974,9 @@ function init(){
       html='<div class="vaultDetField"><span class="vdLbl">Username</span><div class="vdVal"><span>'+esc(it.user||'—')+'</span>'+(it.user?'<button class="vaultBtn" data-vcopyuser="1">Copy</button>':'')+'</div></div>'
         +'<div class="vaultDetField"><span class="vdLbl">Password</span><div class="vdVal"><span id="vdPass">••••••••</span><button class="vaultBtn" id="vdReveal">Show</button><button class="vaultBtn" data-vcopypass="1">Copy</button></div></div>'
         +(it.url?'<div class="vaultDetField"><span class="vdLbl">Website</span><div class="vdVal"><span>'+esc(it.url)+'</span><button class="vaultBtn" data-vopenurl="1">Open</button></div></div>':'')
-        +(it.notes?'<div class="vaultDetField"><span class="vdLbl">Notes</span><div class="vdNote">'+esc(it.notes)+'</div></div>':'')+meta;
+        +(it.notes?'<div class="vaultDetField"><span class="vdLbl">Notes</span><div class="vdNote">'+esc(it.notes)+'</div></div>':'')
+        +((it.extra&&it.extra.length)?it.extra.map(function(e){return '<div class="vaultDetField"><span class="vdLbl">'+esc(e.label||'Detail')+'</span><div class="vdVal"><span>'+esc(e.value||'')+'</span><button class="vaultBtn" data-vcopyextra="'+esc(e.value||'')+'">Copy</button></div></div>';}).join(''):'')
+        +meta;
     } else {
       html='<div class="vaultDetNoteBody">'+esc(it.body||'').replace(/\n/g,'<br>')+'</div>'+meta;
     }
@@ -6933,7 +6993,12 @@ function init(){
     var vac=$('vaultAddCancel'); if(vac) vac.addEventListener('click', vHome);
     var vpEye=$('vpEye'); if(vpEye) vpEye.addEventListener('click', function(){ var p=$('vpPass'); p.type=p.type==='password'?'text':'password'; });
     var vpSave=$('vpSave'); if(vpSave) vpSave.addEventListener('click', savePwForm);
+    var vpAddX=$('vpAddExtra'); if(vpAddX) vpAddX.addEventListener('click', function(){ _vpExtraList=collectExtra(); _vpExtraList.push({label:'',value:''}); renderExtraRows(_vpExtraList); });
+    var vpExtraBox=$('vpExtra'); if(vpExtraBox) vpExtraBox.addEventListener('click', function(e){ var d=e.target.closest('[data-xdel]'); if(d){ _vpExtraList=collectExtra(); _vpExtraList.splice(+d.getAttribute('data-xdel'),1); renderExtraRows(_vpExtraList); } });
     var vnSave=$('vnSave'); if(vnSave) vnSave.addEventListener('click', saveNoteForm);
+    var vex=$('vaultExcelExport'); if(vex) vex.addEventListener('click', vaultExportExcel);
+    var vim=$('vaultExcelImport'); if(vim) vim.addEventListener('click', function(){ var f=$('vaultExcelFile'); if(f) f.click(); });
+    var vfile=$('vaultExcelFile'); if(vfile) vfile.addEventListener('change', vaultImportExcel);
     _vSheet.addEventListener('click', function(e){
       var sum=e.target.closest('[data-vfilter]'); if(sum){ _vaultFilter=sum.getAttribute('data-vfilter'); renderVault(); return; }
       var chip=e.target.closest('[data-vf]'); if(chip){ _vaultFilter=chip.getAttribute('data-vf'); renderVault(); return; }
@@ -6945,6 +7010,7 @@ function init(){
       if(_vaultDetail){
         var it=_vaultData[_vaultDetail.type][_vaultDetail.idx];
         if(e.target.closest('#vdReveal')){ var pv=$('vdPass'),bt=e.target.closest('#vdReveal'); if(pv.textContent.indexOf('•')>=0){ pv.textContent=it.pass; bt.textContent='Hide'; } else { pv.textContent='••••••••'; bt.textContent='Show'; } return; }
+        if(e.target.closest('[data-vcopyextra]')){ try{navigator.clipboard.writeText(e.target.closest('[data-vcopyextra]').getAttribute('data-vcopyextra'));toastN('Copied');}catch(x){} return; }
         if(e.target.closest('[data-vcopyuser]')){ try{navigator.clipboard.writeText(it.user);toastN('Username copied');}catch(x){} return; }
         if(e.target.closest('[data-vcopypass]')){ try{navigator.clipboard.writeText(it.pass);toastN('Password copied');}catch(x){} return; }
         if(e.target.closest('[data-vopenurl]')){ try{ var u=it.url; if(!/^https?:/.test(u)) u='https://'+u; window.open(u,'_blank'); }catch(x){} return; }
