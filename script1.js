@@ -123,7 +123,6 @@ function normHabit(h){
   h.start = h.start || h.created;
   h.end = h.end || '';
   h.done = h.done || {}; h.frozen = h.frozen || {};
-  if(!h.rem || typeof h.rem!=='object') h.rem={times:[],repeat:false,missed:false}; if(!Array.isArray(h.rem.times)) h.rem.times=[];
   h.arch = !!h.arch; h.archAt = h.archAt || '';
   h.dnotes = h.dnotes || {};
   if(typeof h.fz !== 'number') h.fz = 1;
@@ -300,7 +299,6 @@ function normState(s){
   // 'd' is the date you WOKE UP on
   if(!(s.sleep instanceof Array)) s.sleep = [];
   if(!(s.trash instanceof Array)) s.trash = [];
-  if(!(s.goals instanceof Array)) s.goals = [];
   if(!(s.jrDrafts instanceof Array)) s.jrDrafts = [];
   /* purge trash items older than 30 days */
   (function(){ var cutoff=Date.now()-30*86400000; s.trash=s.trash.filter(function(it){ return it && it.at && it.at>=cutoff; }); })();
@@ -359,16 +357,7 @@ var _persistT=null, _persistPending=false;
 function _persistHeavy(){
   _persistPending=false;
   var json=stateJson();
-  if(json){
-    /* Skip the expensive native save + sync-hash when the state is byte-identical to what we last
-       saved (persist often fires on no-op re-renders / mtime-only bumps). Compare a cheap fingerprint
-       that ignores the mtime field so a timestamp-only change doesn't force a full save. */
-    var fp;
-    try{ fp = json.length + ':' + json.replace(/"mtime":\d+/, ''); }catch(e){ fp = json; }
-    if(fp === window._lastHeavyFP){ return; }   /* nothing meaningful changed -> skip ALL heavy work */
-    window._lastHeavyFP = fp;
-    if(nat){try{nat.saveState(json);}catch(e){}}
-  }
+  if(json){ if(nat){try{nat.saveState(json);}catch(e){}} }
   pushAlarms();
   if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}}
   /* Manual sync: changes are queued (above) but NOT auto-pushed. User taps "Sync now" to push.
@@ -387,17 +376,6 @@ function persist(opts){
   _persistPending=true;
   if(_persistT) clearTimeout(_persistT);
   _persistT=setTimeout(function(){ _persistT=null; _persistHeavy(); }, 500);
-  /* Auto-refresh Today's live summary (glance card + strict reminders) after ANY data change,
-     but only when Today is the visible tab — so logging sleep/mood/habit/task/expense/etc. always
-     updates the card and clears strict reminders without needing to reopen the app. Debounced +
-     guarded so it never interferes with persistence. */
-  try{
-    var tp=document.getElementById('pgToday');
-    if(tp && tp.classList.contains('on')){
-      if(window._todayRefreshT) clearTimeout(window._todayRefreshT);
-      window._todayRefreshT=setTimeout(function(){ window._todayRefreshT=null; try{ if(typeof renderStrictReminders==='function') renderStrictReminders(); if(typeof renderTodayProgress==='function') renderTodayProgress(); if(typeof renderTaskDashboard==='function') renderTaskDashboard(); }catch(e){} }, 60);
-    }
-  }catch(e){}
 }
 /* flush pending heavy persist when leaving/hiding the app so nothing is lost */
 try{ document.addEventListener('visibilitychange', function(){ if(document.hidden && _persistPending){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); } }); window.addEventListener('pagehide', function(){ if(_persistPending){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); } }); }catch(e){}
@@ -441,7 +419,7 @@ function dueOn(h, d){
 function targ(h){ return (h.type==='count'||h.type==='time'||h.type==='money') ? Math.max(1,h.target) : 1; }
 function val(h, ds){ return +h.done[ds] || 0; }
 function isDone(h, ds){ return val(h, ds) >= targ(h); }
-function isFroz(h, ds){ return !!(h && h.frozen && h.frozen[ds]); }
+function isFroz(h, ds){ return !!h.frozen[ds]; }
 function stepOf(h){ return h.type === 'time' ? 5 : 1; }
 function quotaProgress(h){
   var now = new Date(), from;
@@ -839,7 +817,7 @@ function cardHTML(h){
   }
   var chkCls = 'chk' + (done?' on':(t>1&&v>0?' part':''));
   var remHtml = '';
-  if(h.rem && h.rem.times && h.rem.times.length > 0){
+  if(h.rem.times.length > 0){
     remHtml = '<div class="crem">';
     for(var ri=0; ri<h.rem.times.length; ri++){
       remHtml += '<span class="pill"><span class="pi">\u23F0</span>' + timeFmt(h.rem.times[ri]) + '</span>';
@@ -864,7 +842,6 @@ function nextReminderStr(){
   for(var i=0;i<state.habits.length;i++){
     var h = state.habits[i];
     if(!dueOn(h, now) || isDone(h, ts)) continue;
-    if(!h.rem || !h.rem.times) continue;
     for(var j=0;j<h.rem.times.length;j++){
       var p = h.rem.times[j].split(':');
       var d = new Date(); d.setHours(+p[0], +p[1], 0, 0);
@@ -5529,10 +5506,9 @@ function ensureFirebaseReady(){
       try{ fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
       // Firestore local cache with multi-tab synchronization.
       return fbFS.enablePersistence({synchronizeTabs:true}).catch(function(e){
-        /* Persistence is OPTIONAL — Firestore works fully online without it. In some WebViews IndexedDB
-           is blocked/throws; swallow ALL persistence errors so init always proceeds to auth wiring. */
-        try{ console.warn('Firestore persistence unavailable:', e&&e.code); }catch(_){}
-        return;
+        // Another tab may already own persistence. Firestore will still work online.
+        if(e && (e.code==='failed-precondition'||e.code==='unimplemented')) return;
+        throw e;
       }).then(function(){
         fbAuth.onAuthStateChanged(function(u){
           fbUser=u;
@@ -5557,7 +5533,7 @@ function applySyncMeta(d){d=d||{};var x=d.syncMeta&&typeof d.syncMeta==='object'
 function loadSyncMeta(){var ref=syncMetaRef();if(!ref)return Promise.resolve();syncMetaDoc=ref;return ref.get({source:'default'}).then(function(s){if(s.exists){var d=s.data()||{};applySyncMeta(d);renderSyncUI();renderTodaySyncUI();}}).catch(function(){});}
 function writeSyncMeta(status){var ref=syncMetaRef();if(!ref||!fbUser)return Promise.resolve();var at=Date.now();var payload={lastSyncAtMs:at,lastSyncState:status||'synced',lastSyncDeviceId:deviceId,lastSyncMtime:Number(state.mtime||at),schemaVersion:1};syncLastAt=at;syncLastState=status||'synced';syncLastDevice=deviceId;return ref.set({syncMeta:payload},{merge:true}).catch(function(){});}
 
-function syncRecordEntries(){var out={};function addArray(d,a,idf){(a||[]).forEach(function(v){var k=v&&(idf?v[idf]:v.id);if(v&&k)out[d+':'+k]=v;});}function addMap(d,o){if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(k){out[d+':'+k]={key:k,value:o[k]};});}addArray('habit',state.habits);addArray('tx',state.tx);addArray('acct',state.accts);addArray('exercise',state.exs);addArray('workout',state.wlog);addArray('sleep',state.sleep,'d');addArray('journal',state.jr);addArray('jrtpl',state.jrTpl);addArray('goal',state.goals);addArray('task',state.tasks);addMap('mood',state.mood);addMap('moodNote',state.moodNotes);addMap('hlog',state.hlog);addMap('closed',state.closed);addMap('budg',state.budg);addMap('budgets',state.budgets);addMap('cats',state.cats);addMap('fxRates',state.fxRates);out['set:all']=state.set;out['incCats:all']=state.incCats;if(state.vault)out['vault:all']={key:'all',value:state.vault};if(state.vaultCats&&state.vaultCats.length)out['vaultCats:all']={key:'all',value:state.vaultCats};if(state.jrDrafts&&state.jrDrafts.length)out['jrDrafts:all']={key:'all',value:state.jrDrafts};if(state.trash&&state.trash.length)out['trash:all']={key:'all',value:state.trash};return out;}
+function syncRecordEntries(){var out={};function addArray(d,a){(a||[]).forEach(function(v){if(v&&v.id)out[d+':'+v.id]=v;});}function addMap(d,o){if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(k){out[d+':'+k]={key:k,value:o[k]};});}addArray('habit',state.habits);addArray('tx',state.tx);addArray('acct',state.accts);addArray('exercise',state.exs);addArray('workout',state.wlog);addArray('sleep',state.sleep);addArray('journal',state.jr);addArray('jrtpl',state.jrTpl);addArray('goal',state.goals);addArray('task',state.tasks);addMap('mood',state.mood);addMap('moodNote',state.moodNotes);addMap('hlog',state.hlog);addMap('closed',state.closed);addMap('budg',state.budg);addMap('budgets',state.budgets);addMap('cats',state.cats);addMap('fxRates',state.fxRates);out['set:all']=state.set;out['incCats:all']=state.incCats;if(state.vault)out['vault:all']={key:'all',value:state.vault};if(state.vaultCats&&state.vaultCats.length)out['vaultCats:all']={key:'all',value:state.vaultCats};if(state.jrDrafts&&state.jrDrafts.length)out['jrDrafts:all']={key:'all',value:state.jrDrafts};if(state.trash&&state.trash.length)out['trash:all']={key:'all',value:state.trash};return out;}
 var syncRecordShadow={};var syncPendingRecords={};
 try{syncRecordShadow=JSON.parse(localStorage.getItem('hb_sync_record_shadow')||'{}')||{};}catch(e){}
 try{syncPendingRecords=JSON.parse(localStorage.getItem('hb_sync_pending')||'{}')||{};}catch(e){}
@@ -5585,27 +5561,10 @@ function queueChangedSyncRecords(){
   syncRecordShadow=meta;
   try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(meta));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
 }
-function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){if(!Array.isArray(a))return;var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){var si=state.sleep.findIndex(function(x){return x&&x.d===id;});if(deleted){if(si>=0)state.sleep.splice(si,1);}else if(si>=0)state.sleep[si]=value;else state.sleep.push(value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='jrtpl'){state.jrTpl=state.jrTpl||[];arrSet(state.jrTpl,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='vault'&&id==='all'){if(!deleted)state.vault=(value&&value.value!==undefined?value.value:value);return;}if(d==='vaultCats'&&id==='all'){if(!deleted)state.vaultCats=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='jrDrafts'&&id==='all'){if(!deleted)state.jrDrafts=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='trash'&&id==='all'){if(!deleted)state.trash=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
+function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){arrSet(state.sleep,value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='jrtpl'){state.jrTpl=state.jrTpl||[];arrSet(state.jrTpl,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='vault'&&id==='all'){if(!deleted)state.vault=(value&&value.value!==undefined?value.value:value);return;}if(d==='vaultCats'&&id==='all'){if(!deleted)state.vaultCats=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='jrDrafts'&&id==='all'){if(!deleted)state.jrDrafts=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='trash'&&id==='all'){if(!deleted)state.trash=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
 function pushLegacySync(force){if(!fbDoc||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}setSyncState('syncing');var payload={data:JSON.stringify(stateForStorage()),version:Number(state.mtime||Date.now()),schemaVersion:2,updatedAtMs:Date.now(),syncMode:'compatibility'};return fbDoc.set(payload,{merge:true}).then(function(){return writeSyncMeta('synced');}).then(function(){setSyncState('synced');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
-function pushRecordSync(force){if(syncLegacyMode)return pushLegacySync(force);if(!fbRecords||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}queueChangedSyncRecords();var keys=Object.keys(syncPendingRecords);if(!keys.length){setSyncState('synced');return writeSyncMeta('synced').then(function(){setSyncState('synced');});}setSyncState('syncing');
-  /* Commit in smaller batches SEQUENTIALLY, clearing pending per batch. This makes steady progress on a
-     large first sync, shows progress, and means a retry only re-pushes what didn't complete (not everything). */
-  var BATCH=150, total=keys.length, doneCount=0;
-  function commitFrom(i){
-    if(i>=keys.length){ return writeSyncMeta('synced').then(function(){setSyncState('synced');syncMsg('',false);}); }
-    var slice=keys.slice(i,i+BATCH), batch=fbFS.batch();
-    slice.forEach(function(k){var m=syncPendingRecords[k];if(!m)return;var ref=fbRecords.doc(k.replace(/[^A-Za-z0-9_-]/g,'_')),pl={key:k,deleted:!!m.deleted,updatedAtMs:m.at,deviceId:deviceId,schemaVersion:2};if(!m.deleted)pl.data=m.data;batch.set(ref,pl,{merge:true});});
-    return batch.commit().then(function(){
-      slice.forEach(function(k){ delete syncPendingRecords[k]; });
-      try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
-      doneCount+=slice.length;
-      window._syncProgressAt=Date.now();   /* heartbeat: sync is making progress */
-      if(total>BATCH){ try{ syncMsg('Syncing… '+Math.min(doneCount,total)+'/'+total,false); }catch(e){} }
-      return commitFrom(i+BATCH);
-    });
-  }
-  return commitFrom(0).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
-function applyRemoteRecords(docs, force){var changed=false;docs.forEach(function(doc){var v=doc.data()||{},key=v.key||doc.id,at=Number(v.updatedAtMs||0),local=syncRecordShadow[key],pending=syncPendingRecords[key],lat=Math.max(local&&local.at||0,pending&&pending.at||0);if(!force && at<=lat)return;applySyncRecord(key,v.data,v.deleted);delete syncPendingRecords[key];syncRecordShadow[key]={hash:v.deleted?'__deleted__':syncHash(v.data),at:Math.max(at,lat),deleted:!!v.deleted};changed=true;});try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}if(changed){window._syncProgressAt=Date.now();state=normState(state);var json=stateJson();if(json){try{localStorage.setItem(KEY,json);}catch(e){}if(nat){try{nat.saveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}return changed;}
+function pushRecordSync(force){if(syncLegacyMode)return pushLegacySync(force);if(!fbRecords||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}queueChangedSyncRecords();var keys=Object.keys(syncPendingRecords);if(!keys.length){setSyncState('synced');return writeSyncMeta('synced').then(function(){setSyncState('synced');});}setSyncState('syncing');var jobs=[];for(var b=0;b<keys.length;b+=400){(function(keys2){var batch=fbFS.batch();keys2.forEach(function(k){var m=syncPendingRecords[k],ref=fbRecords.doc(k.replace(/[^A-Za-z0-9_-]/g,'_')),pl={key:k,deleted:!!m.deleted,updatedAtMs:m.at,deviceId:deviceId,schemaVersion:2};if(!m.deleted)pl.data=m.data;batch.set(ref,pl,{merge:true});});jobs.push(batch.commit());})(keys.slice(b,b+400));}return Promise.all(jobs).then(function(){keys.forEach(function(k){delete syncPendingRecords[k];});try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}return writeSyncMeta('synced');}).then(function(){setSyncState('synced');syncMsg('',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
+function applyRemoteRecords(docs, force){var changed=false;docs.forEach(function(doc){var v=doc.data()||{},key=v.key||doc.id,at=Number(v.updatedAtMs||0),local=syncRecordShadow[key],pending=syncPendingRecords[key],lat=Math.max(local&&local.at||0,pending&&pending.at||0);if(!force && at<=lat)return;applySyncRecord(key,v.data,v.deleted);delete syncPendingRecords[key];syncRecordShadow[key]={hash:v.deleted?'__deleted__':syncHash(v.data),at:Math.max(at,lat),deleted:!!v.deleted};changed=true;});try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}if(changed){state=normState(state);var json=stateJson();if(json){try{localStorage.setItem(KEY,json);}catch(e){}if(nat){try{nat.saveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}return changed;}
 function enableLegacySync(reason){syncLegacyMode=true;if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;setSyncState('syncing');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);syncReconcile().catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);});}
 function attachFirestoreSync(u){
   detachFirestoreSync();
@@ -5618,10 +5577,7 @@ function attachFirestoreSync(u){
   setSyncState('syncing');
   /* Manual-sync model: pull once on open (via syncReconcile's .get), then NO live listener.
      The user taps "Sync now" to push/pull afterwards. This avoids continuous background sync. */
-  loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(e){ syncInitialHydration=false; if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied'); return;} /* ANY other failure must not leave the UI stuck on "syncing" */ setSyncState(isOnline()?'error':'cached'); try{ syncMsg(prettySyncErr(e),true); }catch(_){} });
-  /* Safety net: if the initial sync hasn't resolved within 20s (hung network/Firestore call), stop
-     showing "syncing" so the user isn't stuck. */
-  (function(){ var guard=setTimeout(function(){ if(syncState==='syncing' && syncInitialHydration){ syncInitialHydration=false; setSyncState(isOnline()?'error':'cached'); try{ syncMsg('Sync timed out — tap Sync to retry.',true); }catch(_){} } }, 20000); })();
+  loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(e){ if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');} });
 }
 function detachFirestoreSync(){if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;fbDoc=null;syncMetaDoc=null;syncLegacyMode=false;}
 /* Warn before leaving if there are unsynced changes (browser tab close / refresh). */
@@ -5743,7 +5699,7 @@ function renderTodaySyncUI(){
   var stateClass=syncState==='syncing'?'syncing':(syncState==='cached'||offline?'cached':syncState==='error'?'error':syncState==='pending'?'cached':'synced');
   dot.classList.add(stateClass);
   text.textContent=stateLabel;
-  if(syncState==='error') sub.textContent = window._lastSyncErrMsg || 'Check Settings for details';
+  if(syncState==='error') sub.textContent='Check Settings for details';
   else if(syncState==='syncing') sub.textContent='Updating your cloud data';
   else if(syncState==='pending') sub.textContent='Tap Sync to save changes to the cloud';
   else if(offline) sub.textContent='Changes stay safe on this device';
@@ -5769,7 +5725,7 @@ function renderSyncUI(){
   }else{show('syncSetup',false);show('syncAuth',true);show('syncOn',false);}
 }
 function show(id,on){var el=$(id);if(el)el.style.display=on?'':'none';}
-function syncMsg(t,err){ if(err && t) window._lastSyncErrMsg=t; else if(!t) window._lastSyncErrMsg=''; var m=$('syncAuthMsg');if(!m)return;m.style.display=t?'':'none';m.textContent=t||'';m.style.color=err?'var(--coral)':'var(--mut)';}
+function syncMsg(t,err){var m=$('syncAuthMsg');if(!m)return;m.style.display=t?'':'none';m.textContent=t||'';m.style.color=err?'var(--coral)':'var(--mut)';}
 function prettyAuthErr(e){var c=e&&e.code||'';if(c.indexOf('email-already-in-use')>=0)return'That email already has an account — use Sign in.';if(c.indexOf('user-not-found')>=0)return'No account yet — use Create account.';if(c.indexOf('wrong-password')>=0||c.indexOf('invalid-credential')>=0)return'Wrong email or password.';if(c.indexOf('weak-password')>=0)return'Password should be at least 6 characters.';if(c.indexOf('invalid-email')>=0)return'That doesn’t look like a valid email.';if(c.indexOf('network')>=0)return'Network error — check your connection.';return(e&&e.message)?e.message:'Something went wrong.';}
 function prettySyncErr(e){
   var c=(e&&e.code)||'', m=(e&&e.message)||'';
@@ -7806,34 +7762,16 @@ function init(){
     }
     toastN('Sync not ready — try Sync now first');
   });
-  function syncWithTimeout(){
-    var done=false; window._syncProgressAt=Date.now();
-    var hint=setTimeout(function(){ if(!done){ try{ syncMsg('Syncing your data… (a large first sync can take a while)',false); }catch(_){} } }, 8000);
-    /* Progress-aware watchdog: only fail if NO batch has committed for 30s (genuinely stalled).
-       A large-but-progressing sync keeps resetting the clock and completes normally. */
-    var stall=new Promise(function(_,rej){
-      var iv=setInterval(function(){
-        if(done){ clearInterval(iv); return; }
-        if(Date.now() - (window._syncProgressAt||0) > 30000){
-          clearInterval(iv);
-          var probe=(fbDoc&&fbDoc.get)?fbDoc.get({source:'server'}):Promise.reject({code:'unavailable'});
-          probe.then(function(){ rej(new Error('Sync stalled — no progress. Tap Sync to resume (already-synced items won\u2019t re-upload).')); })
-               .catch(function(pe){ rej(new Error(prettySyncErr(pe))); });
-        }
-      }, 5000);
-    });
-    return Promise.race([ syncReconcile().then(function(r){done=true;clearTimeout(hint);return r;}), stall ]);
-  }
   $('syncNow').addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
     if(!isOnline()){ setSyncState('cached'); toastN('Offline — local changes are safe'); return; }
-    syncWithTimeout().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
+    syncReconcile().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
   });
   $('todaySyncBtn').addEventListener('click', function(){
     if(!syncEnabled()){ showTab('pgSet'); toastN('Set up Cloud Firestore in Settings'); return; }
     if(!fbUser){ showTab('pgSet'); toastN('Sign in to enable cloud sync'); return; }
     if(!isOnline()){ setSyncState('cached'); toastN('Offline — local changes are safe'); return; }
-    syncWithTimeout().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
+    syncReconcile().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
   });
   window.addEventListener('online', function(){ renderSyncUI(); if(syncEnabled() && !fbAuth) initSync(); else if(fbUser) syncReconcile().catch(function(){}); });
   window.addEventListener('offline', function(){ if(fbUser) setSyncState('cached'); renderSyncUI(); });
