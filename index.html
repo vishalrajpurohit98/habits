@@ -10660,7 +10660,15 @@ function init(){
     }
     toastN('Sync not ready — try Sync now first');
   });
-  function syncWithTimeout(){ return Promise.race([ syncReconcile(), new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('Sync timed out — check connection and try again.')); }, 20000); }) ]); }
+  function syncWithTimeout(){
+    var to;
+    var timeout=new Promise(function(_,rej){ to=setTimeout(function(){
+      var probe = (fbDoc && fbDoc.get) ? fbDoc.get({source:'server'}) : Promise.reject({code:'unavailable'});
+      probe.then(function(){ rej(new Error('Sync is slow — server reachable but the operation didn\u2019t finish. Try again.')); })
+           .catch(function(pe){ var msg=prettySyncErr(pe); rej(new Error(msg)); });
+    }, 12000); });
+    return Promise.race([ syncReconcile().then(function(r){clearTimeout(to);return r;}), timeout ]);
+  }
   $('syncNow').addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
     if(!isOnline()){ setSyncState('cached'); toastN('Offline — local changes are safe'); return; }

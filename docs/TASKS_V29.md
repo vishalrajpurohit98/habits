@@ -1545,3 +1545,14 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   (known timing), suite2 25/25; zero errors.
 - HONEST: the underlying cause of YOUR hang is likely Firestore Rules not published / network — this fix
   makes it fail visibly (error + retry) instead of hanging. Publish the Firestore Rules to enable real sync.
+
+---
+# V1.47.0 — sync timeout now DIAGNOSES the real cause (was generic "timed out")
+- The v1.46 timeout showed a generic "Sync timed out" which hid WHY. Now on timeout (shortened 20s->12s),
+  it fires a server probe (fbDoc.get source:server) and surfaces the actual Firestore error via
+  prettySyncErr -> e.g. "permission denied — publish Firestore Rules" or "unavailable — check connection".
+- Verified: hung reconcile + permission-denied probe -> shows rules message; + unavailable probe -> shows
+  network message; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- LIKELY ROOT CAUSE for user's timeout: Firestore Rules not published (or Firestore DB not created / network).
+  The new message will state which. Cure: Firebase Console -> Firestore -> create DB + publish the rules
+  block + enable Email/Password auth.
