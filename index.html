@@ -8401,9 +8401,10 @@ function ensureFirebaseReady(){
       try{ fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
       // Firestore local cache with multi-tab synchronization.
       return fbFS.enablePersistence({synchronizeTabs:true}).catch(function(e){
-        // Another tab may already own persistence. Firestore will still work online.
-        if(e && (e.code==='failed-precondition'||e.code==='unimplemented')) return;
-        throw e;
+        /* Persistence is OPTIONAL — Firestore works fully online without it. In some WebViews IndexedDB
+           is blocked/throws; swallow ALL persistence errors so init always proceeds to auth wiring. */
+        try{ console.warn('Firestore persistence unavailable:', e&&e.code); }catch(_){}
+        return;
       }).then(function(){
         fbAuth.onAuthStateChanged(function(u){
           fbUser=u;
@@ -8613,7 +8614,7 @@ function renderTodaySyncUI(){
   var stateClass=syncState==='syncing'?'syncing':(syncState==='cached'||offline?'cached':syncState==='error'?'error':syncState==='pending'?'cached':'synced');
   dot.classList.add(stateClass);
   text.textContent=stateLabel;
-  if(syncState==='error') sub.textContent='Check Settings for details';
+  if(syncState==='error') sub.textContent = window._lastSyncErrMsg || 'Check Settings for details';
   else if(syncState==='syncing') sub.textContent='Updating your cloud data';
   else if(syncState==='pending') sub.textContent='Tap Sync to save changes to the cloud';
   else if(offline) sub.textContent='Changes stay safe on this device';
@@ -8639,7 +8640,7 @@ function renderSyncUI(){
   }else{show('syncSetup',false);show('syncAuth',true);show('syncOn',false);}
 }
 function show(id,on){var el=$(id);if(el)el.style.display=on?'':'none';}
-function syncMsg(t,err){var m=$('syncAuthMsg');if(!m)return;m.style.display=t?'':'none';m.textContent=t||'';m.style.color=err?'var(--coral)':'var(--mut)';}
+function syncMsg(t,err){ if(err && t) window._lastSyncErrMsg=t; else if(!t) window._lastSyncErrMsg=''; var m=$('syncAuthMsg');if(!m)return;m.style.display=t?'':'none';m.textContent=t||'';m.style.color=err?'var(--coral)':'var(--mut)';}
 function prettyAuthErr(e){var c=e&&e.code||'';if(c.indexOf('email-already-in-use')>=0)return'That email already has an account — use Sign in.';if(c.indexOf('user-not-found')>=0)return'No account yet — use Create account.';if(c.indexOf('wrong-password')>=0||c.indexOf('invalid-credential')>=0)return'Wrong email or password.';if(c.indexOf('weak-password')>=0)return'Password should be at least 6 characters.';if(c.indexOf('invalid-email')>=0)return'That doesn’t look like a valid email.';if(c.indexOf('network')>=0)return'Network error — check your connection.';return(e&&e.message)?e.message:'Something went wrong.';}
 function prettySyncErr(e){
   var c=(e&&e.code)||'', m=(e&&e.message)||'';

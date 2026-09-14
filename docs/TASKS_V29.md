@@ -1571,3 +1571,14 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
 - suite1 51/52 (known timing), suite2 25/25; zero errors.
 - HONEST: real fix for the user is that the first big sync just needs to complete — this makes it
   progress-resumable so it will. Live confirmation on-device.
+
+---
+# V1.49.0 — surface real sync error on banner + persistence can't break init
+- Banner said generic "Check Settings for details". Now syncMsg caches the last error (window._lastSyncErrMsg)
+  and the Today banner shows the ACTUAL message (permission/unavailable/precondition/etc.) when signed in.
+- Firebase init: enablePersistence().catch previously re-threw non-precondition errors, which could abort
+  the whole init chain (auth never wires -> sync silently broken) in WebViews with blocked IndexedDB.
+  Now swallows ALL persistence errors (persistence is optional; Firestore works online without it).
+- Verified: banner shows real error when signed in + error; cleared on success; suite1 51/52 (known timing),
+  suite2 25/25; zero errors.
+- NEXT: user should read the specific message the banner now shows and report it — that pinpoints the cause.
