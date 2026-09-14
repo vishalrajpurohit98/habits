@@ -1517,3 +1517,18 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
 - Verified: no-op persist ~3ms, data integrity intact; suite1 51/52 (known timing), suite2 25/25; zero errors.
 - HONEST: measured on a fast machine/headless; real-device gain will vary. "General heaviness" may also
   involve WebView/scroll/animation factors I can't measure here — report back which screen still feels heavy.
+
+---
+# V1.45.0 — scroll performance (120Hz jank)
+- Root cause of slow scrolling on high-refresh displays: the fixed bottom nav (.dock) used
+  backdrop-filter:blur(12px) over scrolling content -> browser re-samples+re-blurs behind it EVERY
+  scroll frame (kills the ~8ms/frame budget at 120Hz).
+- FIX: removed backdrop-filter from .dock; made --dockBg opaque (#0a0806/#0a0a0a/#f4f4f6) — visually
+  near-identical, zero per-frame blur cost. Added transform:translateZ(0) (own compositor layer).
+- Added content-visibility:auto + contain-intrinsic-size to long-list cards (jrCard/taskCard/txRow/
+  vaultCard) so off-screen items skip layout/paint while scrolling.
+- Left backdrop-filter on modal scrims only (appear when a sheet is open, not during scroll).
+- Verified: dock has 0 backdrop-filter, opaque bg, nav looks identical; suite1 51/52 (known timing),
+  suite2 25/25; zero errors.
+- HONEST: can't measure on-device fps here; backdrop-filter-over-scroll is the textbook cause of exactly
+  this symptom, so this should help materially. If specific long lists still jank, report which.
