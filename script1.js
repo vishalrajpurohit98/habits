@@ -5386,6 +5386,46 @@ function resolvedLight(){
 }
 var PAL_LIGHT_BG = {ember:'#F6F1E7', lagoon:'#EEF5F1', frost:'#EEF3FA', sakura:'#F8EFF3', violet:'#F1EFFA', mono:'#F6F1E7'};
 var PAL_ALL = ['ember','lagoon','frost','sakura','violet','mono'];
+function applyUiTune(){
+  var u = (state.set && state.set.ui) || {};
+  var root = document.documentElement;
+  var borderA = (u.borderA!=null?u.borderA:100)/100;
+  var borderW = (u.borderW!=null?u.borderW:1);
+  var radius  = (u.radius!=null?u.radius:100)/100;
+  var shadow  = (u.shadow!=null?u.shadow:100)/100;
+  var tint    = (u.tint!=null?u.tint:0)/100;
+  var weight  = (u.weight!=null?u.weight:0);
+  var fontsc  = (u.textsize!=null?u.textsize:100)/100;
+  var pad     = (u.pad!=null?u.pad:100)/100;
+  var gap     = (u.gap!=null?u.gap:100)/100;
+  var icon    = (u.icon!=null?u.icon:100)/100;
+  var motion  = u.motion||'standard';
+  /* card override active? */
+  var cardTune = (u.borderA!=null&&u.borderA!=100)||(u.borderW!=null&&u.borderW!=1)||(u.radius!=null&&u.radius!=100)||(u.shadow!=null&&u.shadow!=100)||(u.tint!=null&&u.tint!=0)||(u.textsize!=null&&u.textsize!=100);
+  root.style.setProperty('--ui-border-a', String(borderA));
+  root.style.setProperty('--ui-border-w', borderW+'px');
+  root.style.setProperty('--ui-radius', String(radius));
+  root.style.setProperty('--ui-cardtint', String(tint));
+  root.style.setProperty('--ui-fontscale', String(fontsc));
+  var sy=Math.round(2*shadow), sb=Math.round(8*shadow), op=Math.min(0.35,0.10*shadow);
+  root.style.setProperty('--ui-shadow-val', shadow===0?'none':('0 '+sy+'px '+sb+'px rgba(0,0,0,'+op.toFixed(3)+')'));
+  root.toggleAttribute('data-uitune', cardTune);
+  /* font weight */
+  if(weight>0){ root.setAttribute('data-uitune-weight','1'); root.style.setProperty('--ui-weight', String(weight)); }
+  else root.removeAttribute('data-uitune-weight');
+  /* padding */
+  if(u.pad!=null&&u.pad!=100){ root.setAttribute('data-uipad','1'); root.style.setProperty('--ui-pad', String(pad)); } else root.removeAttribute('data-uipad');
+  /* gap */
+  if(u.gap!=null&&u.gap!=100){ root.setAttribute('data-uigap','1'); root.style.setProperty('--ui-gap', String(gap)); } else root.removeAttribute('data-uigap');
+  /* icon */
+  if(u.icon!=null&&u.icon!=100){ root.setAttribute('data-uiicon','1'); root.style.setProperty('--ui-iconscale', String(icon)); } else root.removeAttribute('data-uiicon');
+  /* motion: reuse the prefers-reduced-motion CSS by adding a class */
+  root.classList.toggle('ui-motion-none', motion==='none');
+  root.classList.toggle('ui-motion-reduced', motion==='reduced');
+  /* accessibility toggles */
+  root.classList.toggle('ui-a11y-touch', !!u.a11yTouch);
+  root.classList.toggle('ui-a11y-focus', !!u.a11yFocus);
+}
 function applyTheme(){
   var L = resolvedLight();
   var root = document.documentElement;
@@ -6383,6 +6423,43 @@ function init(){
     selChip('thRow','data-th',state.set.theme);
     applyTheme(); persist();
   });
+  /* ===== Appearance tuner wiring (expanded) ===== */
+  (function(){
+    var sliders=[['tuneBorderA','borderA','%',100],['tuneBorderW','borderW','px',1],['tuneRadius','radius','%',100],['tuneShadow','shadow','%',100],['tuneTint','tint','%',0],['tunePad','pad','%',100],['tuneGap','gap','%',100],['tuneIcon','icon','%',100]];
+    var segs=[['density','density'],['textsize','textsize'],['weight','weight'],['motion','motion']];
+    var toggles=[['tuneA11yTouch','a11yTouch'],['tuneA11yFocus','a11yFocus']];
+    function fmtVal(m,v){ return m[2]==='px'?v+'px':(m[2]==='%'?Math.round(v)+'%':v); }
+    function syncInputs(){
+      var u=state.set.ui||{};
+      sliders.forEach(function(m){ var el=$(m[0]); if(!el)return; var v=(u[m[1]]!=null?u[m[1]]:m[3]); el.value=v; var lab=$(m[0]+'V'); if(lab) lab.textContent=fmtVal(m,v); });
+      /* density preset -> maps to pad+gap */
+      setSeg('density', u.density||'default');
+      setSeg('textsize', String(u.textsize!=null?u.textsize:100));
+      setSeg('weight', String(u.weight!=null?u.weight:0));
+      setSeg('motion', u.motion||'standard');
+      toggles.forEach(function(t){ var el=$(t[0]); if(el) el.checked=!!u[t[1]]; });
+    }
+    function setSeg(name,val){ document.querySelectorAll('[data-tuneseg="'+name+'"] button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-v')===String(val)); }); }
+    /* sliders */
+    sliders.forEach(function(m){ var el=$(m[0]); if(!el)return;
+      el.addEventListener('input', function(){ state.set.ui=state.set.ui||{}; state.set.ui[m[1]]=parseFloat(this.value); var lab=$(m[0]+'V'); if(lab) lab.textContent=fmtVal(m,this.value); applyUiTune(); });
+      el.addEventListener('change', function(){ persist(); });
+    });
+    /* segment presets */
+    document.querySelectorAll('[data-tuneseg]').forEach(function(seg){ var name=seg.getAttribute('data-tuneseg');
+      seg.addEventListener('click', function(e){ var b=e.target.closest('button[data-v]'); if(!b)return; var val=b.getAttribute('data-v'); state.set.ui=state.set.ui||{};
+        if(name==='density'){ state.set.ui.density=val; var map={compact:{pad:80,gap:60},'default':{pad:100,gap:100},spacious:{pad:125,gap:150}}; var mm=map[val]||map['default']; state.set.ui.pad=mm.pad; state.set.ui.gap=mm.gap; }
+        else if(name==='textsize'){ state.set.ui.textsize=parseInt(val); }
+        else if(name==='weight'){ state.set.ui.weight=parseInt(val); }
+        else if(name==='motion'){ state.set.ui.motion=val; }
+        setSeg(name,val); applyUiTune(); syncInputs(); persist();
+      });
+    });
+    /* toggles */
+    toggles.forEach(function(t){ var el=$(t[0]); if(el) el.addEventListener('change', function(){ state.set.ui=state.set.ui||{}; state.set.ui[t[1]]=this.checked; applyUiTune(); persist(); }); });
+    var rst=$('tuneReset'); if(rst) rst.addEventListener('click', function(){ state.set.ui={}; applyUiTune(); syncInputs(); persist(); toastN('Appearance reset'); });
+    window._syncTuneInputs=syncInputs; syncInputs();
+  })();
   $('palRow').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-pal'); if(!b) return;
     state.set.pal = b.getAttribute('data-pal');
@@ -7969,6 +8046,7 @@ function init(){
   if(typeof initSync==='function') setTimeout(initSync, 400);
   if(state.set.pin) showLock('unlock');
   try{ initOnboarding(); }catch(e){}
+  try{ applyUiTune(); }catch(e){}
 }
 /* ===== Onboarding (first run) ===== */
 function initOnboarding(){

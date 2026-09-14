@@ -1153,6 +1153,57 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+/* ===== Appearance engine: live-adjustable overrides driven by CSS vars on <html> ===== */
+:root{ --ui-border-a:1; --ui-border-w:1px; --ui-radius:1; --ui-weight:0; --ui-shadow:1; --ui-cardtint:0; --ui-fontscale:1;
+  --ui-density:1; --ui-pad:1; --ui-gap:1; --ui-iconscale:1; }
+html[data-uitune] .card,html[data-uitune] .setCard,html[data-uitune] .jrCard,html[data-uitune] .taskCard,
+html[data-uitune] .chartBox,html[data-uitune] .todayProgress,html[data-uitune] .expHero2,html[data-uitune] .moreCard,
+html[data-uitune] .vaultCard,html[data-uitune] .jrStatCard,html[data-uitune] .aiCard,html[data-uitune] .promptCard,
+html[data-uitune] .setRow,html[data-uitune] .budgRow,html[data-uitune] .segX,html[data-uitune] .seg,
+html[data-uitune] .empty,html[data-uitune] .uaiBox,html[data-uitune] .aiCfg,html[data-uitune] .exCard,
+html[data-uitune] .acctCard,html[data-uitune] .vaultSumCard,html[data-uitune] .heroTop{
+  border-width:var(--ui-border-w)!important;
+  border-color:color-mix(in srgb, var(--line) calc(var(--ui-border-a)*100%), transparent)!important;
+  border-radius:calc(16px * var(--ui-radius))!important;
+  box-shadow:var(--ui-shadow-val, var(--shadow))!important;
+  background:color-mix(in srgb, var(--card) calc(100% - var(--ui-cardtint)*100%), var(--card3) calc(var(--ui-cardtint)*100%))!important;
+}
+/* Card padding scale */
+html[data-uipad] .card,html[data-uipad] .setCard,html[data-uipad] .jrCard,html[data-uipad] .taskCard,
+html[data-uipad] .chartBox,html[data-uipad] .todayProgress,html[data-uipad] .moreCard,html[data-uipad] .vaultCard{
+  padding:calc(15px * var(--ui-pad))!important;
+}
+/* Element spacing / density: scale card gaps + section margins */
+html[data-uigap] .card,html[data-uigap] .setCard,html[data-uigap] .jrCard,html[data-uigap] .taskCard,
+html[data-uigap] .moreCard,html[data-uigap] .vaultCard,html[data-uigap] .txRow{ margin-bottom:calc(10px * var(--ui-gap))!important; }
+/* Icon scale */
+html[data-uiicon] svg{ transform:scale(var(--ui-iconscale)); }
+html[data-uitune]{ font-size:calc(15.5px * var(--ui-fontscale)); }
+html[data-uitune-weight] body,html[data-uitune-weight] .card,html[data-uitune-weight] button,html[data-uitune-weight] .setT{ font-weight:calc(400 + var(--ui-weight)); }
+/* Appearance tuner UI */
+.tuneGroup{margin-top:14px}
+.tuneGroupT{font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mut2);margin:6px 2px 8px}
+.tuneRow{display:flex;align-items:center;gap:12px;padding:8px 0}
+.tuneRow label{flex:0 0 116px;font-size:12.5px;font-weight:700;color:var(--ink2)}
+.tuneRow input[type=range]{flex:1;-webkit-appearance:none;height:4px;border-radius:3px;background:var(--card3);outline:none}
+.tuneRow input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:20px;border-radius:50%;background:var(--amber);cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.tuneRow .tuneVal{flex:0 0 46px;text-align:right;font-size:11px;color:var(--mut);font-variant-numeric:tabular-nums}
+.tuneSeg{display:flex;gap:4px;flex:1;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:3px}
+.tuneSeg button{flex:1;border:0;background:transparent;color:var(--mut);font-size:11px;font-weight:700;padding:7px 4px;border-radius:8px;cursor:pointer;white-space:nowrap}
+.tuneSeg button.on{background:var(--amber);color:var(--onAccent,#171310)}
+.tuneSegRow{display:flex;align-items:center;gap:12px;padding:8px 0}
+.tuneSegRow>label{flex:0 0 116px;font-size:12.5px;font-weight:700;color:var(--ink2)}
+.tuneReset{width:100%;margin-top:14px;background:var(--card2);border:1px solid var(--line);color:var(--coral);font-weight:700;font-size:13px;padding:11px;border-radius:12px;cursor:pointer}
+.tunePreviewNote{font-size:11px;color:var(--mut2);margin:4px 2px 10px}
+.tuneToggleRow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:13px;font-weight:600;color:var(--ink2)}
+/* Motion levels (user-controlled, layered on prefers-reduced-motion) */
+html.ui-motion-none *{ transition-duration:1ms!important; animation-duration:1ms!important; }
+html.ui-motion-reduced *{ transition-duration:.5 !important; animation-duration:80ms!important; }
+html.ui-motion-reduced .page.on{ animation-duration:120ms!important; }
+/* Accessibility */
+html.ui-a11y-touch button,html.ui-a11y-touch .chip,html.ui-a11y-touch .tab,html.ui-a11y-touch input[type=checkbox]{ min-height:48px; }
+html.ui-a11y-touch .srchBtn,html.ui-a11y-touch .iconbtn,html.ui-a11y-touch .profileChip{ min-width:48px; min-height:48px; }
+html.ui-a11y-focus button:focus-visible,html.ui-a11y-focus input:focus-visible,html.ui-a11y-focus a:focus-visible{ outline:3px solid var(--amber)!important; outline-offset:2px!important; }
 /* Light theme: give the sync/sign-in button a touch more definition against cream banner */
 html.light .todaySyncBtn{ background:#fff; border-color:rgba(0,0,0,.14); box-shadow:0 1px 2px rgba(0,0,0,.04); }
 /* Accessibility: minimum 44px touch targets for icon-only controls */
@@ -2201,6 +2252,50 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         </div>
       </div>
       <div class="setCol">
+        <div class="setT" style="margin-bottom:4px">Fine-tune appearance</div>
+        <div class="tunePreviewNote">Adjust the look live. Changes apply instantly and are saved. Uses controlled presets so the UI never breaks.</div>
+
+        <div class="tuneGroup">
+          <div class="tuneGroupT">Layout &amp; density</div>
+          <div class="tuneSegRow"><label>Density</label><div class="tuneSeg" data-tuneseg="density"><button data-v="compact">Compact</button><button data-v="default">Default</button><button data-v="spacious">Spacious</button></div></div>
+          <div class="tuneRow"><label>Card padding</label><input type="range" id="tunePad" min="70" max="140" value="100"><span class="tuneVal" id="tunePadV">100%</span></div>
+          <div class="tuneRow"><label>Element spacing</label><input type="range" id="tuneGap" min="40" max="200" value="100"><span class="tuneVal" id="tuneGapV">100%</span></div>
+        </div>
+
+        <div class="tuneGroup">
+          <div class="tuneGroupT">Cards</div>
+          <div class="tuneRow"><label>Border contrast</label><input type="range" id="tuneBorderA" min="0" max="200" value="100"><span class="tuneVal" id="tuneBorderAV">100%</span></div>
+          <div class="tuneRow"><label>Border width</label><input type="range" id="tuneBorderW" min="0" max="3" step="0.5" value="1"><span class="tuneVal" id="tuneBorderWV">1px</span></div>
+          <div class="tuneRow"><label>Corner radius</label><input type="range" id="tuneRadius" min="0" max="200" value="100"><span class="tuneVal" id="tuneRadiusV">100%</span></div>
+          <div class="tuneRow"><label>Card depth</label><input type="range" id="tuneShadow" min="0" max="300" value="100"><span class="tuneVal" id="tuneShadowV">100%</span></div>
+          <div class="tuneRow"><label>Card tint</label><input type="range" id="tuneTint" min="0" max="100" value="0"><span class="tuneVal" id="tuneTintV">0%</span></div>
+        </div>
+
+        <div class="tuneGroup">
+          <div class="tuneGroupT">Typography</div>
+          <div class="tuneSegRow"><label>Text size</label><div class="tuneSeg" data-tuneseg="textsize"><button data-v="90">Small</button><button data-v="100">Default</button><button data-v="110">Large</button><button data-v="120">XL</button></div></div>
+          <div class="tuneSegRow"><label>Font weight</label><div class="tuneSeg" data-tuneseg="weight"><button data-v="0">Normal</button><button data-v="50">Medium</button><button data-v="100">Semibold</button><button data-v="200">Bold</button></div></div>
+        </div>
+
+        <div class="tuneGroup">
+          <div class="tuneGroupT">Controls</div>
+          <div class="tuneRow"><label>Icon size</label><input type="range" id="tuneIcon" min="80" max="130" value="100"><span class="tuneVal" id="tuneIconV">100%</span></div>
+        </div>
+
+        <div class="tuneGroup">
+          <div class="tuneGroupT">Motion</div>
+          <div class="tuneSegRow"><label>Animation</label><div class="tuneSeg" data-tuneseg="motion"><button data-v="none">None</button><button data-v="reduced">Reduced</button><button data-v="standard">Standard</button></div></div>
+        </div>
+
+        <div class="tuneGroup">
+          <div class="tuneGroupT">Accessibility</div>
+          <label class="tuneToggleRow"><span>Larger touch targets</span><input type="checkbox" id="tuneA11yTouch"></label>
+          <label class="tuneToggleRow"><span>Strong focus indicators</span><input type="checkbox" id="tuneA11yFocus"></label>
+        </div>
+
+        <button class="tuneReset" id="tuneReset">Reset all to defaults</button>
+      </div>
+      <div class="setCol">
         <div class="setT" style="margin-bottom:4px">Palette</div>
         <div class="setS" style="margin-bottom:10px">Accent color across the whole app</div>
         <div class="chips" id="palRow">
@@ -2226,7 +2321,6 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         </div>
       </div>
       <div class="setRow"><div class="setInfo"><div class="setT">Greyscale mode</div><div class="setS">Calmer, distraction-free colors</div></div><div class="tog" id="greyTog"></div></div>
-      <div class="setRow" style="display:block"><div class="setInfo" style="margin-bottom:10px"><div class="setT">App icon</div><div class="setS">Pick the icon shown across the app</div></div><div class="iconPickGrid" id="iconPickGrid"></div></div>
     </div>
 
     <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Money &amp; currency</div>
@@ -8314,6 +8408,46 @@ function resolvedLight(){
 }
 var PAL_LIGHT_BG = {ember:'#F6F1E7', lagoon:'#EEF5F1', frost:'#EEF3FA', sakura:'#F8EFF3', violet:'#F1EFFA', mono:'#F6F1E7'};
 var PAL_ALL = ['ember','lagoon','frost','sakura','violet','mono'];
+function applyUiTune(){
+  var u = (state.set && state.set.ui) || {};
+  var root = document.documentElement;
+  var borderA = (u.borderA!=null?u.borderA:100)/100;
+  var borderW = (u.borderW!=null?u.borderW:1);
+  var radius  = (u.radius!=null?u.radius:100)/100;
+  var shadow  = (u.shadow!=null?u.shadow:100)/100;
+  var tint    = (u.tint!=null?u.tint:0)/100;
+  var weight  = (u.weight!=null?u.weight:0);
+  var fontsc  = (u.textsize!=null?u.textsize:100)/100;
+  var pad     = (u.pad!=null?u.pad:100)/100;
+  var gap     = (u.gap!=null?u.gap:100)/100;
+  var icon    = (u.icon!=null?u.icon:100)/100;
+  var motion  = u.motion||'standard';
+  /* card override active? */
+  var cardTune = (u.borderA!=null&&u.borderA!=100)||(u.borderW!=null&&u.borderW!=1)||(u.radius!=null&&u.radius!=100)||(u.shadow!=null&&u.shadow!=100)||(u.tint!=null&&u.tint!=0)||(u.textsize!=null&&u.textsize!=100);
+  root.style.setProperty('--ui-border-a', String(borderA));
+  root.style.setProperty('--ui-border-w', borderW+'px');
+  root.style.setProperty('--ui-radius', String(radius));
+  root.style.setProperty('--ui-cardtint', String(tint));
+  root.style.setProperty('--ui-fontscale', String(fontsc));
+  var sy=Math.round(2*shadow), sb=Math.round(8*shadow), op=Math.min(0.35,0.10*shadow);
+  root.style.setProperty('--ui-shadow-val', shadow===0?'none':('0 '+sy+'px '+sb+'px rgba(0,0,0,'+op.toFixed(3)+')'));
+  root.toggleAttribute('data-uitune', cardTune);
+  /* font weight */
+  if(weight>0){ root.setAttribute('data-uitune-weight','1'); root.style.setProperty('--ui-weight', String(weight)); }
+  else root.removeAttribute('data-uitune-weight');
+  /* padding */
+  if(u.pad!=null&&u.pad!=100){ root.setAttribute('data-uipad','1'); root.style.setProperty('--ui-pad', String(pad)); } else root.removeAttribute('data-uipad');
+  /* gap */
+  if(u.gap!=null&&u.gap!=100){ root.setAttribute('data-uigap','1'); root.style.setProperty('--ui-gap', String(gap)); } else root.removeAttribute('data-uigap');
+  /* icon */
+  if(u.icon!=null&&u.icon!=100){ root.setAttribute('data-uiicon','1'); root.style.setProperty('--ui-iconscale', String(icon)); } else root.removeAttribute('data-uiicon');
+  /* motion: reuse the prefers-reduced-motion CSS by adding a class */
+  root.classList.toggle('ui-motion-none', motion==='none');
+  root.classList.toggle('ui-motion-reduced', motion==='reduced');
+  /* accessibility toggles */
+  root.classList.toggle('ui-a11y-touch', !!u.a11yTouch);
+  root.classList.toggle('ui-a11y-focus', !!u.a11yFocus);
+}
 function applyTheme(){
   var L = resolvedLight();
   var root = document.documentElement;
@@ -9311,6 +9445,43 @@ function init(){
     selChip('thRow','data-th',state.set.theme);
     applyTheme(); persist();
   });
+  /* ===== Appearance tuner wiring (expanded) ===== */
+  (function(){
+    var sliders=[['tuneBorderA','borderA','%',100],['tuneBorderW','borderW','px',1],['tuneRadius','radius','%',100],['tuneShadow','shadow','%',100],['tuneTint','tint','%',0],['tunePad','pad','%',100],['tuneGap','gap','%',100],['tuneIcon','icon','%',100]];
+    var segs=[['density','density'],['textsize','textsize'],['weight','weight'],['motion','motion']];
+    var toggles=[['tuneA11yTouch','a11yTouch'],['tuneA11yFocus','a11yFocus']];
+    function fmtVal(m,v){ return m[2]==='px'?v+'px':(m[2]==='%'?Math.round(v)+'%':v); }
+    function syncInputs(){
+      var u=state.set.ui||{};
+      sliders.forEach(function(m){ var el=$(m[0]); if(!el)return; var v=(u[m[1]]!=null?u[m[1]]:m[3]); el.value=v; var lab=$(m[0]+'V'); if(lab) lab.textContent=fmtVal(m,v); });
+      /* density preset -> maps to pad+gap */
+      setSeg('density', u.density||'default');
+      setSeg('textsize', String(u.textsize!=null?u.textsize:100));
+      setSeg('weight', String(u.weight!=null?u.weight:0));
+      setSeg('motion', u.motion||'standard');
+      toggles.forEach(function(t){ var el=$(t[0]); if(el) el.checked=!!u[t[1]]; });
+    }
+    function setSeg(name,val){ document.querySelectorAll('[data-tuneseg="'+name+'"] button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-v')===String(val)); }); }
+    /* sliders */
+    sliders.forEach(function(m){ var el=$(m[0]); if(!el)return;
+      el.addEventListener('input', function(){ state.set.ui=state.set.ui||{}; state.set.ui[m[1]]=parseFloat(this.value); var lab=$(m[0]+'V'); if(lab) lab.textContent=fmtVal(m,this.value); applyUiTune(); });
+      el.addEventListener('change', function(){ persist(); });
+    });
+    /* segment presets */
+    document.querySelectorAll('[data-tuneseg]').forEach(function(seg){ var name=seg.getAttribute('data-tuneseg');
+      seg.addEventListener('click', function(e){ var b=e.target.closest('button[data-v]'); if(!b)return; var val=b.getAttribute('data-v'); state.set.ui=state.set.ui||{};
+        if(name==='density'){ state.set.ui.density=val; var map={compact:{pad:80,gap:60},'default':{pad:100,gap:100},spacious:{pad:125,gap:150}}; var mm=map[val]||map['default']; state.set.ui.pad=mm.pad; state.set.ui.gap=mm.gap; }
+        else if(name==='textsize'){ state.set.ui.textsize=parseInt(val); }
+        else if(name==='weight'){ state.set.ui.weight=parseInt(val); }
+        else if(name==='motion'){ state.set.ui.motion=val; }
+        setSeg(name,val); applyUiTune(); syncInputs(); persist();
+      });
+    });
+    /* toggles */
+    toggles.forEach(function(t){ var el=$(t[0]); if(el) el.addEventListener('change', function(){ state.set.ui=state.set.ui||{}; state.set.ui[t[1]]=this.checked; applyUiTune(); persist(); }); });
+    var rst=$('tuneReset'); if(rst) rst.addEventListener('click', function(){ state.set.ui={}; applyUiTune(); syncInputs(); persist(); toastN('Appearance reset'); });
+    window._syncTuneInputs=syncInputs; syncInputs();
+  })();
   $('palRow').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-pal'); if(!b) return;
     state.set.pal = b.getAttribute('data-pal');
@@ -10897,6 +11068,7 @@ function init(){
   if(typeof initSync==='function') setTimeout(initSync, 400);
   if(state.set.pin) showLock('unlock');
   try{ initOnboarding(); }catch(e){}
+  try{ applyUiTune(); }catch(e){}
 }
 /* ===== Onboarding (first run) ===== */
 function initOnboarding(){

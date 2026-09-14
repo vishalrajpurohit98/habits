@@ -1681,3 +1681,46 @@ Verified: suite1 51/52 (known timing), suite2 25/25; zero errors.
   the new bg.
 - Verified: cards now have visible separation + depth in light (Today/Tasks screenshots); CSS valid;
   suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V2.6.0 — Appearance tuner (live UI adjustment controls)
+- Base: v2.4.0 (light-theme-depth), NOT the B&W experiment.
+- Added Settings -> Appearance -> "Fine-tune appearance" with 7 live sliders saved to state.set.ui:
+  Border contrast (0-200%), Border width (0-3px), Corner radius (0-200%), Card depth/shadow (0-300%),
+  Card tint (0-100%, mixes card->card3), Font weight (+0-200), Text size (85-120%). Reset button.
+- Implementation: override CSS layer gated by html[data-uitune]; applyUiTune() sets --ui-* vars on <html>
+  and re-derives card border-width/color(via color-mix)/radius/shadow/bg/font. Removes attrs when all
+  default (zero overhead when untouched). Applied on init + live on slider input; persisted on change.
+- Works in BOTH themes (operates on existing tokens). color-mix requires modern WebView (Chrome 111+);
+  degrades gracefully (border color falls back).
+- Verified: default=no override; tuning sets vars + a card's computed radius reflects it (16px->8px @50%);
+  reset clears; 7 sliders + reset in UI; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V2.7.0 — Appearance customization system (per 1.docx spec)
+Expanded the v2.6.0 tuner into the structured, PRESET-based system the doc recommends (controlled presets,
+not 40 arbitrary sliders, so the UI never breaks). Grouped in Settings -> Appearance:
+- LAYOUT & DENSITY: Density preset (Compact/Default/Spacious -> maps pad+gap) + Card padding + Element spacing.
+- CARDS: Border contrast, Border width, Corner radius, Card depth (shadow), Card tint.
+- TYPOGRAPHY: Text size (Small/Default/Large/XL preset) + Font weight (Normal/Medium/Semibold/Bold preset).
+- CONTROLS: Icon size.
+- MOTION: Animation level (None/Reduced/Standard) -> ui-motion-* classes.
+- ACCESSIBILITY: Larger touch targets (min 48px) + Strong focus indicators (3px outline).
+- Reset all to defaults.
+Engine: --ui-* vars on <html> gated by data-uitune/uipad/uigap/uiicon attrs + ui-motion-*/ui-a11y-* classes;
+zero overhead at defaults; works in both themes; all saved to state.set.ui + applied on init.
+Verified each: density/textsize/weight/motion/a11y/icon/reset all apply + clear correctly; 8 sliders,
+4 preset segments, 2 toggles, 6 groups render; suite1 51/52 (known timing), suite2 25/25; zero errors.
+HONEST scope: implemented the 🔴Must + 🟠High + key 🟡Medium controls that are safely CSS-var-drivable.
+Deferred (need deeper per-component work / assets): icon-family switching, nav-style variants, per-chart
+controls, dashboard section reorder (drag), surface "glass/blur" styles — each a larger separate pass.
+
+---
+# V2.7.1 — remove App icon picker from Appearance
+- Removed the in-app "App icon" chooser (10 monk-logo variants grid) from Settings -> Appearance — redundant
+  since the official InnerOs icon is already the default everywhere.
+- Only the picker MARKUP removed; the render/click code is guarded (if(grid)) so it safely no-ops. Default
+  icon still applies on load via applyIcon(current()) (defaults to 'orbit'). No behavior change to the actual
+  app icon, just removed the ability to swap it in-app.
+- Verified: iconPickGrid + "Pick the icon" text gone, icon still applies, zero errors; suite1 51/52 (known
+  timing), suite2 25/25.
