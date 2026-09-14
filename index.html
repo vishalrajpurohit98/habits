@@ -2992,6 +2992,7 @@ function normHabit(h){
   h.start = h.start || h.created;
   h.end = h.end || '';
   h.done = h.done || {}; h.frozen = h.frozen || {};
+  if(!h.rem || typeof h.rem!=='object') h.rem={times:[],repeat:false,missed:false}; if(!Array.isArray(h.rem.times)) h.rem.times=[];
   h.arch = !!h.arch; h.archAt = h.archAt || '';
   h.dnotes = h.dnotes || {};
   if(typeof h.fz !== 'number') h.fz = 1;
@@ -3227,7 +3228,16 @@ var _persistT=null, _persistPending=false;
 function _persistHeavy(){
   _persistPending=false;
   var json=stateJson();
-  if(json){ if(nat){try{nat.saveState(json);}catch(e){}} }
+  if(json){
+    /* Skip the expensive native save + sync-hash when the state is byte-identical to what we last
+       saved (persist often fires on no-op re-renders / mtime-only bumps). Compare a cheap fingerprint
+       that ignores the mtime field so a timestamp-only change doesn't force a full save. */
+    var fp;
+    try{ fp = json.length + ':' + json.replace(/"mtime":\d+/, ''); }catch(e){ fp = json; }
+    if(fp === window._lastHeavyFP){ return; }   /* nothing meaningful changed -> skip ALL heavy work */
+    window._lastHeavyFP = fp;
+    if(nat){try{nat.saveState(json);}catch(e){}}
+  }
   pushAlarms();
   if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}}
   /* Manual sync: changes are queued (above) but NOT auto-pushed. User taps "Sync now" to push.
@@ -3698,7 +3708,7 @@ function cardHTML(h){
   }
   var chkCls = 'chk' + (done?' on':(t>1&&v>0?' part':''));
   var remHtml = '';
-  if(h.rem.times.length > 0){
+  if(h.rem && h.rem.times && h.rem.times.length > 0){
     remHtml = '<div class="crem">';
     for(var ri=0; ri<h.rem.times.length; ri++){
       remHtml += '<span class="pill"><span class="pi">\u23F0</span>' + timeFmt(h.rem.times[ri]) + '</span>';
@@ -3723,6 +3733,7 @@ function nextReminderStr(){
   for(var i=0;i<state.habits.length;i++){
     var h = state.habits[i];
     if(!dueOn(h, now) || isDone(h, ts)) continue;
+    if(!h.rem || !h.rem.times) continue;
     for(var j=0;j<h.rem.times.length;j++){
       var p = h.rem.times[j].split(':');
       var d = new Date(); d.setHours(+p[0], +p[1], 0, 0);

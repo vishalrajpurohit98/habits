@@ -1503,3 +1503,17 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   against non-array targets (one bad record can't break the whole pull).
 - Verified: round-trip drops NOTHING; suite1 51/52 (known timing), suite2 25/25; zero errors.
 - HONEST: live cross-device Firebase round-trip still needs on-device confirmation.
+
+---
+# V1.44.0 — perf: skip redundant heavy-persist + habit rem crash fixes
+- Profiled heavy dataset (12 habits/400d,200 tasks,250 jr,600 tx; 422KB state). Heavy persist was ~76ms
+  (stateJson+nat.saveState+pushAlarms+queueChangedSyncRecords) and runs after every logging action.
+- FIX (perf): _persistHeavy now fingerprints the serialized state (ignoring mtime) and SKIPS the native
+  save + alarm recompute + sync hashing when nothing meaningful changed. No-op persist 76ms -> ~3ms (23x).
+  Real changes still fully save (verified localStorage: change->saved, 5 no-ops->no loss, next change->saved).
+- FIX (crash/robustness, found during profiling): habits without a `rem` object crashed renderToday
+  (nextReminderStr + cardHTML read h.rem.times unguarded) -> frozen Today. normHabit now guarantees
+  h.rem={times:[],...}; both read sites guarded. Also fixed earlier: goals init, isFroz guard.
+- Verified: no-op persist ~3ms, data integrity intact; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: measured on a fast machine/headless; real-device gain will vary. "General heaviness" may also
+  involve WebView/scroll/animation factors I can't measure here — report back which screen still feels heavy.
