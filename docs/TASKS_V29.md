@@ -1475,3 +1475,31 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
 - HONEST: native layer (sync round-trip, widgets, notifications, biometric, haptics, APK) untestable here
   — documented as [DEVICE] items needing on-device verification.
 - suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.42.0 — FIX: sleep never synced (id-less records) + sync array audit
+- Root cause: syncRecordEntries().addArray() keyed records by v.id, but SLEEP records have no id (keyed by
+  d=date). So every sleep record was silently skipped -> sleep never pushed/pulled. User saw "synced but
+  card still says Log sleep" because the data never actually arrived.
+- Fix: addArray takes an optional id-field; sleep now keyed by 'd' (date). applySyncRecord matches/replaces
+  sleep by d (not id), with de-dupe. Verified: sleep now in sync entries (sleep:YYYY-MM-DD), queues for
+  push, applies on pull without dupes, card updates.
+- Audit: sleep was the ONLY synced array without an id (habits/tx/accts/exs/wlog/jr/jrTpl/goals/tasks all
+  have .id; mood/hlog/closed/budg/etc are maps keyed correctly). No other id-less array found.
+- Rendering confirmed OK: sleepOn(d)+renderSleepCard read today's record correctly; reRenderCurrent updates
+  it after a pull.
+- suite1 51/52 (known timing artifact — mood sheet re-verified working), suite2 25/25; zero errors.
+- HONEST: live cross-device round-trip still needs on-device confirmation (Firebase).
+
+---
+# V1.43.0 — full sync coverage audit + goals-init fix
+- Audited EVERY state.* type: seeded one record each, ran syncRecordEntries (push) AND applied all back
+  onto a wiped state (pull round-trip).
+- RESULT: all 24 data types sync AND round-trip: habits, tasks, jr, jrTpl, jrDrafts, tx, accts, exs(exercise),
+  wlog(workout), sleep, goals, mood, moodNotes, hlog, closed, budg, budgets, cats, fxRates, incCats, set,
+  vault, vaultCats, trash. Correctly NOT synced: stack (dead feature), timers (transient/device-local).
+- REAL BUG FOUND + FIXED: state.goals was never initialized in normState -> pulling a 'goal' record onto a
+  fresh device crashed applySyncRecord (arrSet on undefined). Added s.goals=[] init + made arrSet guard
+  against non-array targets (one bad record can't break the whole pull).
+- Verified: round-trip drops NOTHING; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: live cross-device Firebase round-trip still needs on-device confirmation.
