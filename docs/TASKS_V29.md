@@ -1461,3 +1461,17 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
 - Kept the earlier explicit sleep/mood/journal refreshes (harmless, immediate).
 - Verified: task add -> Due today=1, expense -> Spent ₹250, habit complete -> Habits 1/1 + streak, all
   auto-update while on Today with no reopen; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.41.0 — full QA pass + isFroz robustness fix
+- Ran 77 automated checks (functional/logic/negative/edge/boundary/security/resilience) across all modules.
+  72 pass; 1 real bug (fixed); 4 test-harness artifacts (re-verified working); long-standing suite-1
+  "More->Mood" failure re-investigated -> mood sheet DOES open (timing artifact, not a bug).
+- ISSUE-1 FIXED: isFroz(h,ds) guarded (h&&h.frozen&&h.frozen[ds]) — was unguarded, could throw on a
+  habit lacking a frozen map (corrupted/hand-edited import bypassing normState).
+- Verified: XSS-escaping, data resilience (garbage input), boundaries (500 tasks/long text), money math
+  incl xfer, streak gap logic, vault crypto+wrong-PIN-fails+no-AI-access, sync coverage, trash purge,
+  no dup IDs, 5 nav tabs. Report: out/InnerOs_QA_Report.md.
+- HONEST: native layer (sync round-trip, widgets, notifications, biometric, haptics, APK) untestable here
+  — documented as [DEVICE] items needing on-device verification.
+- suite1 51/52 (known timing), suite2 25/25; zero errors.

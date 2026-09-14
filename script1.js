@@ -430,7 +430,7 @@ function dueOn(h, d){
 function targ(h){ return (h.type==='count'||h.type==='time'||h.type==='money') ? Math.max(1,h.target) : 1; }
 function val(h, ds){ return +h.done[ds] || 0; }
 function isDone(h, ds){ return val(h, ds) >= targ(h); }
-function isFroz(h, ds){ return !!h.frozen[ds]; }
+function isFroz(h, ds){ return !!(h && h.frozen && h.frozen[ds]); }
 function stepOf(h){ return h.type === 'time' ? 5 : 1; }
 function quotaProgress(h){
   var now = new Date(), from;
