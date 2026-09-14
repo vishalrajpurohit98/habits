@@ -1490,16 +1490,3 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   it after a pull.
 - suite1 51/52 (known timing artifact — mood sheet re-verified working), suite2 25/25; zero errors.
 - HONEST: live cross-device round-trip still needs on-device confirmation (Firebase).
-
----
-# V1.43.0 — full sync coverage audit + goals-init fix
-- Audited EVERY state.* type: seeded one record each, ran syncRecordEntries (push) AND applied all back
-  onto a wiped state (pull round-trip).
-- RESULT: all 24 data types sync AND round-trip: habits, tasks, jr, jrTpl, jrDrafts, tx, accts, exs(exercise),
-  wlog(workout), sleep, goals, mood, moodNotes, hlog, closed, budg, budgets, cats, fxRates, incCats, set,
-  vault, vaultCats, trash. Correctly NOT synced: stack (dead feature), timers (transient/device-local).
-- REAL BUG FOUND + FIXED: state.goals was never initialized in normState -> pulling a 'goal' record onto a
-  fresh device crashed applySyncRecord (arrSet on undefined). Added s.goals=[] init + made arrSet guard
-  against non-array targets (one bad record can't break the whole pull).
-- Verified: round-trip drops NOTHING; suite1 51/52 (known timing), suite2 25/25; zero errors.
-- HONEST: live cross-device Firebase round-trip still needs on-device confirmation.
