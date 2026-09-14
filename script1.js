@@ -5599,12 +5599,13 @@ function pushRecordSync(force){if(syncLegacyMode)return pushLegacySync(force);if
       slice.forEach(function(k){ delete syncPendingRecords[k]; });
       try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
       doneCount+=slice.length;
+      window._syncProgressAt=Date.now();   /* heartbeat: sync is making progress */
       if(total>BATCH){ try{ syncMsg('Syncing… '+Math.min(doneCount,total)+'/'+total,false); }catch(e){} }
       return commitFrom(i+BATCH);
     });
   }
   return commitFrom(0).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
-function applyRemoteRecords(docs, force){var changed=false;docs.forEach(function(doc){var v=doc.data()||{},key=v.key||doc.id,at=Number(v.updatedAtMs||0),local=syncRecordShadow[key],pending=syncPendingRecords[key],lat=Math.max(local&&local.at||0,pending&&pending.at||0);if(!force && at<=lat)return;applySyncRecord(key,v.data,v.deleted);delete syncPendingRecords[key];syncRecordShadow[key]={hash:v.deleted?'__deleted__':syncHash(v.data),at:Math.max(at,lat),deleted:!!v.deleted};changed=true;});try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}if(changed){state=normState(state);var json=stateJson();if(json){try{localStorage.setItem(KEY,json);}catch(e){}if(nat){try{nat.saveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}return changed;}
+function applyRemoteRecords(docs, force){var changed=false;docs.forEach(function(doc){var v=doc.data()||{},key=v.key||doc.id,at=Number(v.updatedAtMs||0),local=syncRecordShadow[key],pending=syncPendingRecords[key],lat=Math.max(local&&local.at||0,pending&&pending.at||0);if(!force && at<=lat)return;applySyncRecord(key,v.data,v.deleted);delete syncPendingRecords[key];syncRecordShadow[key]={hash:v.deleted?'__deleted__':syncHash(v.data),at:Math.max(at,lat),deleted:!!v.deleted};changed=true;});try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}if(changed){window._syncProgressAt=Date.now();state=normState(state);var json=stateJson();if(json){try{localStorage.setItem(KEY,json);}catch(e){}if(nat){try{nat.saveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}return changed;}
 function enableLegacySync(reason){syncLegacyMode=true;if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;setSyncState('syncing');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);syncReconcile().catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);});}
 function attachFirestoreSync(u){
   detachFirestoreSync();
@@ -7806,17 +7807,22 @@ function init(){
     toastN('Sync not ready — try Sync now first');
   });
   function syncWithTimeout(){
-    var to, done=false;
-    /* A first-time bulk sync (hundreds of records) legitimately takes a while, so use a generous
-       ceiling (45s) and only then probe for the real cause. Show a "still working" hint at 8s so it
-       never looks frozen. */
-    var hint=setTimeout(function(){ if(!done){ try{ syncMsg('Syncing your data… (first sync can take a bit)',false); }catch(_){} } }, 8000);
-    var timeout=new Promise(function(_,rej){ to=setTimeout(function(){
-      var probe = (fbDoc && fbDoc.get) ? fbDoc.get({source:'server'}) : Promise.reject({code:'unavailable'});
-      probe.then(function(){ rej(new Error('Sync is taking too long — your data may be large or the connection slow. It will keep trying in the background; tap Sync again to retry.')); })
-           .catch(function(pe){ rej(new Error(prettySyncErr(pe))); });
-    }, 45000); });
-    return Promise.race([ syncReconcile().then(function(r){done=true;clearTimeout(to);clearTimeout(hint);return r;}), timeout ]);
+    var done=false; window._syncProgressAt=Date.now();
+    var hint=setTimeout(function(){ if(!done){ try{ syncMsg('Syncing your data… (a large first sync can take a while)',false); }catch(_){} } }, 8000);
+    /* Progress-aware watchdog: only fail if NO batch has committed for 30s (genuinely stalled).
+       A large-but-progressing sync keeps resetting the clock and completes normally. */
+    var stall=new Promise(function(_,rej){
+      var iv=setInterval(function(){
+        if(done){ clearInterval(iv); return; }
+        if(Date.now() - (window._syncProgressAt||0) > 30000){
+          clearInterval(iv);
+          var probe=(fbDoc&&fbDoc.get)?fbDoc.get({source:'server'}):Promise.reject({code:'unavailable'});
+          probe.then(function(){ rej(new Error('Sync stalled — no progress. Tap Sync to resume (already-synced items won\u2019t re-upload).')); })
+               .catch(function(pe){ rej(new Error(prettySyncErr(pe))); });
+        }
+      }, 5000);
+    });
+    return Promise.race([ syncReconcile().then(function(r){done=true;clearTimeout(hint);return r;}), stall ]);
   }
   $('syncNow').addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }

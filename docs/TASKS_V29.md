@@ -1582,3 +1582,16 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
 - Verified: banner shows real error when signed in + error; cleared on success; suite1 51/52 (known timing),
   suite2 25/25; zero errors.
 - NEXT: user should read the specific message the banner now shows and report it — that pinpoints the cause.
+
+---
+# V1.50.0 — sync completes for large data (progress-aware timeout)
+- User's real cause confirmed by message: data is large; the fixed 45s timeout killed the sync promise
+  even while batches were still committing in the background.
+- FIX: replaced fixed timeout with a PROGRESS-AWARE watchdog. Each committed batch (and each pull-apply)
+  sets window._syncProgressAt; the watchdog only errors if NO progress for 30s (genuinely stalled). A large
+  but steadily-progressing sync now runs to completion. Shows "Syncing… X/Y".
+- Verified: 900-record slow sync (400ms/batch) COMPLETES with 0 remaining (previously would time out);
+  batches still resumable + per-batch pending cleanup from v1.48. suite1 51/52 (known timing), suite2 25/25;
+  zero errors.
+- HONEST: still bounded by real network speed; if genuinely stalled (no progress 30s) it errors with the
+  true cause + resumes on next Sync tap (already-synced items don't re-upload).
