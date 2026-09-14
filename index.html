@@ -60,21 +60,26 @@ html.font-bricolage{--fDisp:'Bricolage',sans-serif;--fBody:'Bricolage',-apple-sy
 html.font-serif{--fDisp:'Fraunces',Georgia,serif;--fBody:'Fraunces',Georgia,serif}
 html.font-system{--fDisp:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;--fBody:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
 html.light{
-  --bg:#F6F1E7;--bg2:#FBF8F1;--card:#FFFFFF;--card2:#EFE8DA;--card3:#E4DBC8;
-  --line:rgba(46,36,22,.10);--line2:rgba(46,36,22,.20);
-  --ink:#111111;--ink2:#3A3428;--mut:#706858;--mut2:#9E9688;
-  --amber:#DE8500;--amberDeep:#B96E00;--amberSoft:rgba(222,133,0,.13);
-  --coral:#E3554A;--coralSoft:rgba(227,85,74,.12);
-  --green:#199D66;--ice:#2E7FD6;--iceSoft:rgba(46,127,214,.13);
-  --gline:rgba(46,36,22,.09);--ringOff:rgba(46,36,22,.18);--ringOffDim:rgba(46,36,22,.07);
-  --barOff:rgba(46,36,22,.12);--onAccent:#FFF9EE;
-  --dockBg:#f4f4f6;--scrimBg:rgba(38,30,18,.42);
-  --shadow:0 1px 4px rgba(70,55,30,.07);--shadowUp:0 -2px 12px rgba(70,55,30,.1);
+  --bg:#EFE9DC;--bg2:#F7F3EA;--card:#FFFFFF;--card2:#EDE6D6;--card3:#E0D7C4;
+  --line:rgba(46,36,22,.20);--line2:rgba(46,36,22,.32);
+  --ink:#111111;--ink2:#3A3428;--mut:#6B6353;--mut2:#928A7A;
+  --amber:#DE8500;--amberDeep:#B96E00;--amberSoft:rgba(222,133,0,.15);
+  --coral:#E3554A;--coralSoft:rgba(227,85,74,.14);
+  --green:#199D66;--ice:#2E7FD6;--iceSoft:rgba(46,127,214,.15);
+  --gline:rgba(46,36,22,.14);--ringOff:rgba(46,36,22,.20);--ringOffDim:rgba(46,36,22,.09);
+  --barOff:rgba(46,36,22,.14);--onAccent:#FFF9EE;
+  --dockBg:#ffffff;--scrimBg:rgba(38,30,18,.42);
+  --shadow:0 2px 8px rgba(60,45,20,.10), 0 1px 2px rgba(60,45,20,.06);--shadowUp:0 -3px 14px rgba(60,45,20,.12);
   --grad-amber:linear-gradient(135deg,#EE9500,#C97800);
   --emberGlow:radial-gradient(circle,rgba(222,133,0,.13) 0%,rgba(222,133,0,0) 62%);
-  --sBlue:#1D6FD1;--sGreen:#149C63;--sYellow:#C79400;--sPurple:#6D4AE8;--sOrange:#E07B00;
-  --sOrangeSoft:rgba(224,123,0,.12);--sYellowSoft:rgba(199,148,0,.12);
+  --sBlue:#1D6FD1;--sGreen:#149C63;--sYellow:#B58600;--sPurple:#6D4AE8;--sOrange:#E07B00;
+  --sOrangeSoft:rgba(224,123,0,.14);--sYellowSoft:rgba(181,134,0,.14);
 }
+/* Light theme depth polish: crisper card separation + stronger dock/nav definition */
+html.light .card,html.light .setCard,html.light .jrCard,html.light .taskCard,html.light .chartBox,html.light .todayProgress,html.light .expHero2,html.light .moreCard,html.light .vaultCard,html.light .jrStatCard{ box-shadow:var(--shadow); }
+html.light .dock{ box-shadow:0 2px 16px rgba(60,45,20,.14), 0 0 0 1px rgba(46,36,22,.08); border-color:rgba(46,36,22,.10); }
+html.light .tab.on{ background:var(--amberSoft); }
+html.light #fab{ box-shadow:0 6px 18px rgba(46,127,214,.32) !important; }
 /* ============ BASE ============ */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
@@ -1148,6 +1153,24 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+/* Light theme: give the sync/sign-in button a touch more definition against cream banner */
+html.light .todaySyncBtn{ background:#fff; border-color:rgba(0,0,0,.14); box-shadow:0 1px 2px rgba(0,0,0,.04); }
+/* Accessibility: minimum 44px touch targets for icon-only controls */
+.srchBtn,.jrCalNav,.expMon button,.calNav,.profileChip,.iconbtn,.vaultBack,.vaultLockBtn{ min-width:40px; min-height:40px; }
+.moBtn,.jrMoodOpt{ min-width:44px; min-height:44px; }
+/* Onboarding */
+.onbOverlay{position:fixed;inset:0;z-index:100000;background:var(--bg);display:grid;place-items:center;padding:24px}
+.onbCard{width:100%;max-width:380px;text-align:center}
+.onbIcon{font-size:52px;margin-bottom:16px}
+.onbTitle{font-size:24px;font-weight:800;letter-spacing:-.02em;margin-bottom:10px}
+.onbText{font-size:14px;color:var(--mut);line-height:1.6}
+.onbStep .inp{text-align:center;font-size:16px}
+.onbDots{display:flex;gap:8px;justify-content:center;margin:28px 0 20px}
+.onbDots i{width:8px;height:8px;border-radius:50%;background:var(--line2);transition:all .2s}
+.onbDots i.on{background:var(--amber);width:22px;border-radius:4px}
+.onbBtns{display:flex;gap:12px;align-items:center}
+.onbSkip{flex:0 0 auto;background:transparent;border:0;color:var(--mut);font-weight:700;font-size:14px;padding:12px}
+.onbNext{flex:1}
 /* Scroll perf: skip rendering off-screen list cards (big win on long journal/task/tx lists).
    contain-intrinsic-size reserves approximate height so the scrollbar stays stable. */
 .jrCard,.taskCard,.txRow,.vaultCard{ content-visibility:auto; contain-intrinsic-size:auto 84px; }
@@ -1652,6 +1675,39 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
 <div id="app">
 
+  <!-- ============ ONBOARDING (first run) ============ -->
+  <div id="onbOverlay" class="onbOverlay" style="display:none">
+    <div class="onbCard">
+      <div class="onbStep" data-onb="0">
+        <div class="onbIcon">🧠</div>
+        <div class="onbTitle">Welcome to InnerOs</div>
+        <div class="onbText">Your personal space for habits, tasks, journaling, mood, sleep and money — all in one calm place.</div>
+      </div>
+      <div class="onbStep" data-onb="1" style="display:none">
+        <div class="onbIcon">👋</div>
+        <div class="onbTitle">What should we call you?</div>
+        <div class="onbText">We'll use this for your daily greeting.</div>
+        <input class="inp" id="onbName" placeholder="Your name" maxlength="30" style="margin-top:12px">
+      </div>
+      <div class="onbStep" data-onb="2" style="display:none">
+        <div class="onbIcon">⚡</div>
+        <div class="onbTitle">Start with one habit</div>
+        <div class="onbText">Small and daily beats big and rare. Add one you'll actually do (you can skip and add later).</div>
+        <input class="inp" id="onbHabit" placeholder="e.g. Read 20 minutes" maxlength="40" style="margin-top:12px">
+      </div>
+      <div class="onbStep" data-onb="3" style="display:none">
+        <div class="onbIcon">☁️</div>
+        <div class="onbTitle">Sync across devices (optional)</div>
+        <div class="onbText">Sign in later from More → Settings → Cloud sync to back up and sync your data. Everything works offline without it.</div>
+      </div>
+      <div class="onbDots" id="onbDots"></div>
+      <div class="onbBtns">
+        <button class="onbSkip" id="onbSkip">Skip</button>
+        <button class="onbNext primary" id="onbNext">Next</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ============ TODAY ============ -->
   <div class="page on" id="pgToday">
     <div class="eyebrow" id="dateLine"></div>
@@ -1726,9 +1782,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="expSum" id="expSum"></div>
 
     <div class="expMon" id="expMonNav">
-      <button id="expPrev">&#8249;</button>
+      <button id="expPrev" aria-label="Previous month">&#8249;</button>
       <div id="expMonTitle"></div>
-      <button id="expNext">&#8250;</button>
+      <button id="expNext" aria-label="Next month">&#8250;</button>
     </div>
 
     <div class="segX" id="expSeg">
@@ -1748,7 +1804,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       </div>
     </div>
 
-    <div class="selBar" id="txSelBar"><button class="selToggle" id="txSelToggle">Select</button><span class="selCount" id="txSelCount"></span><button class="selDel" id="txSelDel" style="display:none">Delete</button></div>
+    <div class="selBar" id="txSelBar"><button class="selToggle" id="txSelToggle" aria-label="Select transactions">Select</button><span class="selCount" id="txSelCount"></span><button class="selDel" id="txSelDel" aria-label="Delete selected" style="display:none">Delete</button></div>
     <div id="expTx"></div>
     <div id="expUpcoming" style="display:none"></div>
     <div id="expBudg" style="display:none"></div>
@@ -1819,9 +1875,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="lbl"><i class="lic" style="--lc:var(--sBlue)"></i>Calendar</div>
       <div class="calCard">
         <div class="calNav">
-          <button id="calPrev">&#8249;</button>
+          <button id="calPrev" aria-label="Previous">&#8249;</button>
           <div id="calTitle"></div>
-          <button id="calNext">&#8250;</button>
+          <button id="calNext" aria-label="Next">&#8250;</button>
         </div>
         <div class="calDow"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
         <div class="calGrid" id="calGrid"></div>
@@ -1833,7 +1889,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
         </div>
       </div>
       <div class="calDay" id="calDay" style="display:none">
-        <div class="calDayHead"><div class="calDayTitle" id="calDayTitle"></div><button class="calDayClose" id="calDayClose">&#10005;</button></div>
+        <div class="calDayHead"><div class="calDayTitle" id="calDayTitle"></div><button class="calDayClose" id="calDayClose" aria-label="Close">&#10005;</button></div>
         <div class="dailyIns" id="calDIWrap" style="margin:0 0 12px"><div class="diLead">✨</div><div class="diText" id="calDI"></div></div>
         <div id="calDayRows"></div>
       </div>
@@ -5393,8 +5449,28 @@ function hasHistory(){
   return false;
 }
 
+function renderMoodTrendCard(host){
+  var card=document.getElementById('moodTrendCard');
+  if(!card){ card=document.createElement('div'); card.id='moodTrendCard'; card.className='chartBox'; card.setAttribute('data-ssgroup','he'); host.appendChild(card); }
+  card.style.display='';
+  var days=14, pts=[], any=false;
+  for(var i=days-1;i>=0;i--){ var ds=fmt(addDays(new Date(),-i)); var mi=moodOf(ds); if(mi>=0){ pts.push({i:days-1-i, s:MOODS[mi].s, mi:mi, ds:ds}); any=true; } }
+  if(!any){ card.innerHTML='<div class="chartT">Mood — last 14 days</div><div class="setS" style="text-align:center;padding:18px 0">No mood logged yet. Tap a face on Today to start.</div>'; return; }
+  var W=320, H=110, pad=14, maxS=6;
+  function x(idx){ return pad + (idx/(days-1))*(W-2*pad); }
+  function y(sc){ return pad + (1 - sc/maxS)*(H-2*pad); }
+  var path=''; pts.forEach(function(p,k){ path += (k===0?'M':'L') + x(p.i).toFixed(1) + ' ' + y(p.s).toFixed(1) + ' '; });
+  var dots=pts.map(function(p){ return '<circle cx="'+x(p.i).toFixed(1)+'" cy="'+y(p.s).toFixed(1)+'" r="3.2" fill="var(--amber)"/>'; }).join('');
+  var avg=Math.round(pts.reduce(function(a,p){return a+p.s;},0)/pts.length*10)/10;
+  var avgLabel=MOODS[Math.max(0,Math.min(6,Math.round(7-avg)))].l;
+  card.innerHTML='<div class="chartT">Mood — last 14 days · avg '+avgLabel+'</div>'
+    + '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'
+    + '<line x1="'+pad+'" y1="'+y(avg).toFixed(1)+'" x2="'+(W-pad)+'" y2="'+y(avg).toFixed(1)+'" stroke="var(--line2)" stroke-dasharray="3 3"/>'
+    + '<path d="'+path+'" fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    + dots + '</svg>'
+    + '<div class="setS" style="display:flex;justify-content:space-between;margin-top:6px"><span>😔</span><span>2 weeks ago → today</span><span>🤩</span></div>';
+}
 function renderStats(){
-
   var hs = habitsForStats();
   var histOk = hasHistory();
   $('stEmpty').hidden = histOk;
@@ -7824,7 +7900,7 @@ function renderExpBudg(){
   }
   html += '<button class="addT" id="budgEdit">Set budgets</button>';
   html += '<button class="addT" id="catEditBtn" style="margin-top:8px">Manage categories</button>';
-  box.innerHTML = html || '<div class="setS">No budgets set.</div>';
+  box.innerHTML = html || '<div class="empty" style="padding:26px 18px"><div class="big">💰</div><div class="t">No budgets yet</div><div class="s">Set a monthly limit per category to track spending.</div><button class="emptyCtaBtn" id="budgEmptyCta">Set budgets</button></div>';
 }
 
 function expenseInsight(mt, pt, ct, topCat, topV){
@@ -9591,6 +9667,9 @@ function init(){
       /* money bucket: if nothing, show a hint */
       if(sel==='mo'){ var hint=$('statMoHint'); if(!hint){ hint=document.createElement('div'); hint.id='statMoHint'; hint.className='setS'; hint.style.padding='16px 2px'; hint.textContent='See detailed money analytics in the Money tab → Insights.'; main.appendChild(hint);} hint.style.display=''; }
       else { var hh=$('statMoHint'); if(hh) hh.style.display='none'; }
+      /* health bucket: mood-over-time chart */
+      if(sel==='he'){ try{ renderMoodTrendCard(main); }catch(e){} }
+      else { var mtc=$('moodTrendCard'); if(mtc) mtc.style.display='none'; }
     }
     seg.addEventListener('click', function(e){ var btn=e.target.closest('button[data-ss]'); if(!btn) return; Array.prototype.forEach.call(seg.children,function(x){x.classList.remove('on');}); btn.classList.add('on'); apply(btn.getAttribute('data-ss')); });
     /* re-apply after each stats render so dynamically shown sections get filtered */
@@ -10242,7 +10321,7 @@ function init(){
   $('moGrid').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-mi'); if(!b) return;
     var i = +b.getAttribute('data-mi'), t = today();
-    if(moodOf(t)!==i) pulseEl(b,'moodPop');
+    if(moodOf(t)!==i){ pulseEl(b,'moodPop'); if(typeof haptic==='function') haptic(); }
     setMood(t, moodOf(t) === i ? -1 : i);
     renderMood();
     try{ renderStrictReminders(); renderTodayProgress&&renderTodayProgress(); }catch(e){}
@@ -10722,7 +10801,7 @@ function init(){
     var b=climb(e.target,this,'data-acct'); if(b) openAcct(b.getAttribute('data-acct'));
   });
   $('expBudg').addEventListener('click', function(e){
-    if(e.target && e.target.id==='budgEdit'){ openBudg(); return; }
+    if(e.target && (e.target.id==='budgEdit'||e.target.id==='budgEmptyCta')){ openBudg(); return; }
     if(e.target && e.target.id==='catEditBtn'){ openCatEditor(); return; }
   });
 
@@ -10817,6 +10896,28 @@ function init(){
   /* perf: let the first frame paint before the Firebase SDKs load and parse */
   if(typeof initSync==='function') setTimeout(initSync, 400);
   if(state.set.pin) showLock('unlock');
+  try{ initOnboarding(); }catch(e){}
+}
+/* ===== Onboarding (first run) ===== */
+function initOnboarding(){
+  if(state.set && state.set.onboarded) return;
+  /* Skip onboarding if the user already has data (existing user upgrading) */
+  if(hasMeaningfulData(state)){ state.set.onboarded=true; persist(); return; }
+  var ov=$('onbOverlay'); if(!ov) return;
+  var step=0, TOTAL=4;
+  function renderDots(){ var d=$('onbDots'); d.innerHTML=''; for(var i=0;i<TOTAL;i++){ var el=document.createElement('i'); if(i===step) el.className='on'; d.appendChild(el); } }
+  function show(){ document.querySelectorAll('.onbStep').forEach(function(s){ s.style.display = (+s.getAttribute('data-onb')===step)?'':'none'; }); $('onbNext').textContent = step===TOTAL-1?'Get started':'Next'; $('onbSkip').style.display = step===0?'':'none'; renderDots(); if(step===1) setTimeout(function(){var n=$('onbName');if(n)n.focus();},100); }
+  function finish(){
+    var nm=($('onbName').value||'').trim(); if(nm){ state.set.name=nm; }
+    var hb=($('onbHabit').value||'').trim();
+    if(hb && typeof executeAction==='function'){ try{ executeAction({action:'add_habit',params:{name:hb,frequency:'daily'},message:'ok'}); }catch(e){} }
+    state.set.onboarded=true; persist();
+    ov.style.display='none';
+    try{ renderToday(); if(typeof haptic==='function') haptic(); }catch(e){}
+  }
+  $('onbNext').addEventListener('click', function(){ if(step<TOTAL-1){ step++; show(); } else finish(); });
+  $('onbSkip').addEventListener('click', function(){ state.set.onboarded=true; persist(); ov.style.display='none'; });
+  ov.style.display=''; show();
 }
 init();
 /* Widget deep links: runs at boot AND on warm relaunch (onNativeResume). */

@@ -2521,8 +2521,28 @@ function hasHistory(){
   return false;
 }
 
+function renderMoodTrendCard(host){
+  var card=document.getElementById('moodTrendCard');
+  if(!card){ card=document.createElement('div'); card.id='moodTrendCard'; card.className='chartBox'; card.setAttribute('data-ssgroup','he'); host.appendChild(card); }
+  card.style.display='';
+  var days=14, pts=[], any=false;
+  for(var i=days-1;i>=0;i--){ var ds=fmt(addDays(new Date(),-i)); var mi=moodOf(ds); if(mi>=0){ pts.push({i:days-1-i, s:MOODS[mi].s, mi:mi, ds:ds}); any=true; } }
+  if(!any){ card.innerHTML='<div class="chartT">Mood — last 14 days</div><div class="setS" style="text-align:center;padding:18px 0">No mood logged yet. Tap a face on Today to start.</div>'; return; }
+  var W=320, H=110, pad=14, maxS=6;
+  function x(idx){ return pad + (idx/(days-1))*(W-2*pad); }
+  function y(sc){ return pad + (1 - sc/maxS)*(H-2*pad); }
+  var path=''; pts.forEach(function(p,k){ path += (k===0?'M':'L') + x(p.i).toFixed(1) + ' ' + y(p.s).toFixed(1) + ' '; });
+  var dots=pts.map(function(p){ return '<circle cx="'+x(p.i).toFixed(1)+'" cy="'+y(p.s).toFixed(1)+'" r="3.2" fill="var(--amber)"/>'; }).join('');
+  var avg=Math.round(pts.reduce(function(a,p){return a+p.s;},0)/pts.length*10)/10;
+  var avgLabel=MOODS[Math.max(0,Math.min(6,Math.round(7-avg)))].l;
+  card.innerHTML='<div class="chartT">Mood — last 14 days · avg '+avgLabel+'</div>'
+    + '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'
+    + '<line x1="'+pad+'" y1="'+y(avg).toFixed(1)+'" x2="'+(W-pad)+'" y2="'+y(avg).toFixed(1)+'" stroke="var(--line2)" stroke-dasharray="3 3"/>'
+    + '<path d="'+path+'" fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    + dots + '</svg>'
+    + '<div class="setS" style="display:flex;justify-content:space-between;margin-top:6px"><span>😔</span><span>2 weeks ago → today</span><span>🤩</span></div>';
+}
 function renderStats(){
-
   var hs = habitsForStats();
   var histOk = hasHistory();
   $('stEmpty').hidden = histOk;
@@ -4952,7 +4972,7 @@ function renderExpBudg(){
   }
   html += '<button class="addT" id="budgEdit">Set budgets</button>';
   html += '<button class="addT" id="catEditBtn" style="margin-top:8px">Manage categories</button>';
-  box.innerHTML = html || '<div class="setS">No budgets set.</div>';
+  box.innerHTML = html || '<div class="empty" style="padding:26px 18px"><div class="big">💰</div><div class="t">No budgets yet</div><div class="s">Set a monthly limit per category to track spending.</div><button class="emptyCtaBtn" id="budgEmptyCta">Set budgets</button></div>';
 }
 
 function expenseInsight(mt, pt, ct, topCat, topV){
@@ -6719,6 +6739,9 @@ function init(){
       /* money bucket: if nothing, show a hint */
       if(sel==='mo'){ var hint=$('statMoHint'); if(!hint){ hint=document.createElement('div'); hint.id='statMoHint'; hint.className='setS'; hint.style.padding='16px 2px'; hint.textContent='See detailed money analytics in the Money tab → Insights.'; main.appendChild(hint);} hint.style.display=''; }
       else { var hh=$('statMoHint'); if(hh) hh.style.display='none'; }
+      /* health bucket: mood-over-time chart */
+      if(sel==='he'){ try{ renderMoodTrendCard(main); }catch(e){} }
+      else { var mtc=$('moodTrendCard'); if(mtc) mtc.style.display='none'; }
     }
     seg.addEventListener('click', function(e){ var btn=e.target.closest('button[data-ss]'); if(!btn) return; Array.prototype.forEach.call(seg.children,function(x){x.classList.remove('on');}); btn.classList.add('on'); apply(btn.getAttribute('data-ss')); });
     /* re-apply after each stats render so dynamically shown sections get filtered */
@@ -7370,7 +7393,7 @@ function init(){
   $('moGrid').addEventListener('click', function(e){
     var b = climb(e.target, this, 'data-mi'); if(!b) return;
     var i = +b.getAttribute('data-mi'), t = today();
-    if(moodOf(t)!==i) pulseEl(b,'moodPop');
+    if(moodOf(t)!==i){ pulseEl(b,'moodPop'); if(typeof haptic==='function') haptic(); }
     setMood(t, moodOf(t) === i ? -1 : i);
     renderMood();
     try{ renderStrictReminders(); renderTodayProgress&&renderTodayProgress(); }catch(e){}
@@ -7850,7 +7873,7 @@ function init(){
     var b=climb(e.target,this,'data-acct'); if(b) openAcct(b.getAttribute('data-acct'));
   });
   $('expBudg').addEventListener('click', function(e){
-    if(e.target && e.target.id==='budgEdit'){ openBudg(); return; }
+    if(e.target && (e.target.id==='budgEdit'||e.target.id==='budgEmptyCta')){ openBudg(); return; }
     if(e.target && e.target.id==='catEditBtn'){ openCatEditor(); return; }
   });
 
@@ -7945,6 +7968,28 @@ function init(){
   /* perf: let the first frame paint before the Firebase SDKs load and parse */
   if(typeof initSync==='function') setTimeout(initSync, 400);
   if(state.set.pin) showLock('unlock');
+  try{ initOnboarding(); }catch(e){}
+}
+/* ===== Onboarding (first run) ===== */
+function initOnboarding(){
+  if(state.set && state.set.onboarded) return;
+  /* Skip onboarding if the user already has data (existing user upgrading) */
+  if(hasMeaningfulData(state)){ state.set.onboarded=true; persist(); return; }
+  var ov=$('onbOverlay'); if(!ov) return;
+  var step=0, TOTAL=4;
+  function renderDots(){ var d=$('onbDots'); d.innerHTML=''; for(var i=0;i<TOTAL;i++){ var el=document.createElement('i'); if(i===step) el.className='on'; d.appendChild(el); } }
+  function show(){ document.querySelectorAll('.onbStep').forEach(function(s){ s.style.display = (+s.getAttribute('data-onb')===step)?'':'none'; }); $('onbNext').textContent = step===TOTAL-1?'Get started':'Next'; $('onbSkip').style.display = step===0?'':'none'; renderDots(); if(step===1) setTimeout(function(){var n=$('onbName');if(n)n.focus();},100); }
+  function finish(){
+    var nm=($('onbName').value||'').trim(); if(nm){ state.set.name=nm; }
+    var hb=($('onbHabit').value||'').trim();
+    if(hb && typeof executeAction==='function'){ try{ executeAction({action:'add_habit',params:{name:hb,frequency:'daily'},message:'ok'}); }catch(e){} }
+    state.set.onboarded=true; persist();
+    ov.style.display='none';
+    try{ renderToday(); if(typeof haptic==='function') haptic(); }catch(e){}
+  }
+  $('onbNext').addEventListener('click', function(){ if(step<TOTAL-1){ step++; show(); } else finish(); });
+  $('onbSkip').addEventListener('click', function(){ state.set.onboarded=true; persist(); ov.style.display='none'; });
+  ov.style.display=''; show();
 }
 init();
 /* Widget deep links: runs at boot AND on warm relaunch (onNativeResume). */
