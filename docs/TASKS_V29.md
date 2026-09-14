@@ -1413,3 +1413,221 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   suite1 51/52 (known timing), suite2 25/25; zero errors.
 - HONEST: motion adds polish, not raw speed; ring animation skipped (momentum ring was removed from Today
   earlier); native feel needs on-device confirmation.
+
+---
+# V1.37.0 — FIX vault not syncing (record-level mode)
+- Root cause: syncRecordEntries() listed every key EXCEPT state.vault/vaultCats, so in record-level sync
+  mode the vault was never pushed to the cloud (it only rode along in legacy/compatibility whole-blob sync).
+- Fix: added vault:all + vaultCats:all to syncRecordEntries (as config-like value records) and handlers in
+  applySyncRecord to restore them on pull. Not matched by isContent() so they upsert safely and are immune
+  to the content-deletion guards.
+- Verified: vault in sync entries, change queues vault:all push, pulled vault applies, syncs even with no
+  other content; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: live 2-device cloud round-trip untestable here (needs Firebase); logic verified. Requires the
+  Firestore Rules published (same as other record-level sync).
+
+---
+# V1.38.0 — sync audit: add jrDrafts + trash; confirm vault notes sync
+- Audited every state.* key vs syncRecordEntries. Vault secure NOTES already sync (inside encrypted
+  state.vault blob — confirmed decrypt round-trip). Genuine gaps found + fixed:
+  - jrDrafts (journal drafts) -> now synced (jrDrafts:all).
+  - trash (recently-deleted, 30-day) -> now synced (trash:all).
+  Both config-like value records + applySyncRecord handlers; immune to content-deletion guards.
+- Correctly NOT synced (device-local/transient): timers (running timers), mtime (sync metadata),
+  stack (dead — Routine Stack UI removed).
+- Full synced set now: habit/task/journal/jrtpl/jrDrafts/tx/acct/exercise/workout/sleep/goal/mood/
+  moodNote/hlog/closed/budg/budgets/cats/fxRates/incCats/set/vault/vaultCats/trash.
+- Verified: all populated keys appear in sync entries; jrDrafts/trash queue + apply; vault note round-trips;
+  suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.39.0 — FIX: logging sleep/mood/journal didn't refresh Today (card + strict reminder)
+- Root cause: saveSleep only called renderSleepCard() (not renderToday), so the "Today at a glance" Sleep
+  metric AND the strict "Sleep not logged" reminder didn't refresh until the app was reopened (which runs
+  a full renderToday). Same gap for mood (renderMood only) and journal (renderJr only).
+- Fix: saveSleep -> renderToday(); mood-today handler -> renderStrictReminders()+renderTodayProgress();
+  saveJr -> renderStrictReminders(). Now the card updates and the strict nag clears immediately.
+- Verified: strict "Sleep not logged" shows before, GONE immediately after logging (no reopen);
+  suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.40.0 — general fix: any data change auto-refreshes Today (glance + strict reminders)
+- Root pattern (same as sleep bug): many log/save paths (saveTask, toggleTaskComplete, tapMain,
+  toggleDay, setVal, saveExp, addExpense, etc.) persist() but never re-render Today, so the glance card,
+  task summary, and strict reminders went stale until app reopen.
+- Fix: persist() now schedules a debounced (60ms) Today refresh — renderStrictReminders +
+  renderTodayProgress + renderTaskDashboard — but ONLY when #pgToday is the visible tab. Guarded so it
+  never interferes with saving. Catches every current + future data-change path automatically.
+- Kept the earlier explicit sleep/mood/journal refreshes (harmless, immediate).
+- Verified: task add -> Due today=1, expense -> Spent ₹250, habit complete -> Habits 1/1 + streak, all
+  auto-update while on Today with no reopen; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.41.0 — full QA pass + isFroz robustness fix
+- Ran 77 automated checks (functional/logic/negative/edge/boundary/security/resilience) across all modules.
+  72 pass; 1 real bug (fixed); 4 test-harness artifacts (re-verified working); long-standing suite-1
+  "More->Mood" failure re-investigated -> mood sheet DOES open (timing artifact, not a bug).
+- ISSUE-1 FIXED: isFroz(h,ds) guarded (h&&h.frozen&&h.frozen[ds]) — was unguarded, could throw on a
+  habit lacking a frozen map (corrupted/hand-edited import bypassing normState).
+- Verified: XSS-escaping, data resilience (garbage input), boundaries (500 tasks/long text), money math
+  incl xfer, streak gap logic, vault crypto+wrong-PIN-fails+no-AI-access, sync coverage, trash purge,
+  no dup IDs, 5 nav tabs. Report: out/InnerOs_QA_Report.md.
+- HONEST: native layer (sync round-trip, widgets, notifications, biometric, haptics, APK) untestable here
+  — documented as [DEVICE] items needing on-device verification.
+- suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V1.42.0 — FIX: sleep never synced (id-less records) + sync array audit
+- Root cause: syncRecordEntries().addArray() keyed records by v.id, but SLEEP records have no id (keyed by
+  d=date). So every sleep record was silently skipped -> sleep never pushed/pulled. User saw "synced but
+  card still says Log sleep" because the data never actually arrived.
+- Fix: addArray takes an optional id-field; sleep now keyed by 'd' (date). applySyncRecord matches/replaces
+  sleep by d (not id), with de-dupe. Verified: sleep now in sync entries (sleep:YYYY-MM-DD), queues for
+  push, applies on pull without dupes, card updates.
+- Audit: sleep was the ONLY synced array without an id (habits/tx/accts/exs/wlog/jr/jrTpl/goals/tasks all
+  have .id; mood/hlog/closed/budg/etc are maps keyed correctly). No other id-less array found.
+- Rendering confirmed OK: sleepOn(d)+renderSleepCard read today's record correctly; reRenderCurrent updates
+  it after a pull.
+- suite1 51/52 (known timing artifact — mood sheet re-verified working), suite2 25/25; zero errors.
+- HONEST: live cross-device round-trip still needs on-device confirmation (Firebase).
+
+---
+# V1.43.0 — full sync coverage audit + goals-init fix
+- Audited EVERY state.* type: seeded one record each, ran syncRecordEntries (push) AND applied all back
+  onto a wiped state (pull round-trip).
+- RESULT: all 24 data types sync AND round-trip: habits, tasks, jr, jrTpl, jrDrafts, tx, accts, exs(exercise),
+  wlog(workout), sleep, goals, mood, moodNotes, hlog, closed, budg, budgets, cats, fxRates, incCats, set,
+  vault, vaultCats, trash. Correctly NOT synced: stack (dead feature), timers (transient/device-local).
+- REAL BUG FOUND + FIXED: state.goals was never initialized in normState -> pulling a 'goal' record onto a
+  fresh device crashed applySyncRecord (arrSet on undefined). Added s.goals=[] init + made arrSet guard
+  against non-array targets (one bad record can't break the whole pull).
+- Verified: round-trip drops NOTHING; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: live cross-device Firebase round-trip still needs on-device confirmation.
+
+---
+# V1.44.0 — perf: skip redundant heavy-persist + habit rem crash fixes
+- Profiled heavy dataset (12 habits/400d,200 tasks,250 jr,600 tx; 422KB state). Heavy persist was ~76ms
+  (stateJson+nat.saveState+pushAlarms+queueChangedSyncRecords) and runs after every logging action.
+- FIX (perf): _persistHeavy now fingerprints the serialized state (ignoring mtime) and SKIPS the native
+  save + alarm recompute + sync hashing when nothing meaningful changed. No-op persist 76ms -> ~3ms (23x).
+  Real changes still fully save (verified localStorage: change->saved, 5 no-ops->no loss, next change->saved).
+- FIX (crash/robustness, found during profiling): habits without a `rem` object crashed renderToday
+  (nextReminderStr + cardHTML read h.rem.times unguarded) -> frozen Today. normHabit now guarantees
+  h.rem={times:[],...}; both read sites guarded. Also fixed earlier: goals init, isFroz guard.
+- Verified: no-op persist ~3ms, data integrity intact; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: measured on a fast machine/headless; real-device gain will vary. "General heaviness" may also
+  involve WebView/scroll/animation factors I can't measure here — report back which screen still feels heavy.
+
+---
+# V1.45.0 — scroll performance (120Hz jank)
+- Root cause of slow scrolling on high-refresh displays: the fixed bottom nav (.dock) used
+  backdrop-filter:blur(12px) over scrolling content -> browser re-samples+re-blurs behind it EVERY
+  scroll frame (kills the ~8ms/frame budget at 120Hz).
+- FIX: removed backdrop-filter from .dock; made --dockBg opaque (#0a0806/#0a0a0a/#f4f4f6) — visually
+  near-identical, zero per-frame blur cost. Added transform:translateZ(0) (own compositor layer).
+- Added content-visibility:auto + contain-intrinsic-size to long-list cards (jrCard/taskCard/txRow/
+  vaultCard) so off-screen items skip layout/paint while scrolling.
+- Left backdrop-filter on modal scrims only (appear when a sheet is open, not during scroll).
+- Verified: dock has 0 backdrop-filter, opaque bg, nav looks identical; suite1 51/52 (known timing),
+  suite2 25/25; zero errors.
+- HONEST: can't measure on-device fps here; backdrop-filter-over-scroll is the textbook cause of exactly
+  this symptom, so this should help materially. If specific long lists still jank, report which.
+
+---
+# V1.46.0 — FIX: stuck on "syncing" forever
+- Root cause: attachFirestoreSync's initial reconcile .catch only handled 'permission-denied' — ANY other
+  failure (network/unavailable/timeout/failed-precondition) hit an empty catch, leaving syncState stuck on
+  'syncing' with no error/retry. syncInitialHydration also never cleared.
+- FIX: initial-reconcile catch now clears syncInitialHydration + sets error/cached + shows message for ALL
+  non-permission errors. Added a 20s safety-net timeout that unsticks 'syncing' if the initial call hangs.
+  Manual Sync buttons wrapped in syncWithTimeout() (20s Promise.race) so they can't spin forever either.
+- Verified: non-permission error -> 'error'; hung sync -> timeout -> 'error' with message; suite1 51/52
+  (known timing), suite2 25/25; zero errors.
+- HONEST: the underlying cause of YOUR hang is likely Firestore Rules not published / network — this fix
+  makes it fail visibly (error + retry) instead of hanging. Publish the Firestore Rules to enable real sync.
+
+---
+# V1.47.0 — sync timeout now DIAGNOSES the real cause (was generic "timed out")
+- The v1.46 timeout showed a generic "Sync timed out" which hid WHY. Now on timeout (shortened 20s->12s),
+  it fires a server probe (fbDoc.get source:server) and surfaces the actual Firestore error via
+  prettySyncErr -> e.g. "permission denied — publish Firestore Rules" or "unavailable — check connection".
+- Verified: hung reconcile + permission-denied probe -> shows rules message; + unavailable probe -> shows
+  network message; suite1 51/52 (known timing), suite2 25/25; zero errors.
+- LIKELY ROOT CAUSE for user's timeout: Firestore Rules not published (or Firestore DB not created / network).
+  The new message will state which. Cure: Firebase Console -> Firestore -> create DB + publish the rules
+  block + enable Email/Password auth.
+
+---
+# V1.48.0 — large first-sync resilience (was: "operation didn't finish")
+- Diagnosis from user's message: probe succeeded (server reachable, rules OK, authed) but syncReconcile
+  didn't finish in 12s -> a large first-time sync (many records incl. vault import) exceeded the timeout,
+  and Promise.all of parallel batches gave no progress + no partial commit.
+- FIX: pushRecordSync now commits SEQUENTIALLY in batches of 150, clearing pending per batch. Steady
+  progress, shows "Syncing… X/Y", and a mid-sync failure keeps completed batches (retry pushes only the
+  remainder). Verified: 320 recs -> 3 batches [150,150,20], remaining 0; batch-2 failure -> 170 remain (1st
+  batch preserved).
+- Timeout raised 12s->45s with an 8s "first sync can take a bit" hint; on real timeout still probes for the
+  true cause.
+- suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: real fix for the user is that the first big sync just needs to complete — this makes it
+  progress-resumable so it will. Live confirmation on-device.
+
+---
+# V1.49.0 — surface real sync error on banner + persistence can't break init
+- Banner said generic "Check Settings for details". Now syncMsg caches the last error (window._lastSyncErrMsg)
+  and the Today banner shows the ACTUAL message (permission/unavailable/precondition/etc.) when signed in.
+- Firebase init: enablePersistence().catch previously re-threw non-precondition errors, which could abort
+  the whole init chain (auth never wires -> sync silently broken) in WebViews with blocked IndexedDB.
+  Now swallows ALL persistence errors (persistence is optional; Firestore works online without it).
+- Verified: banner shows real error when signed in + error; cleared on success; suite1 51/52 (known timing),
+  suite2 25/25; zero errors.
+- NEXT: user should read the specific message the banner now shows and report it — that pinpoints the cause.
+
+---
+# V1.50.0 — sync completes for large data (progress-aware timeout)
+- User's real cause confirmed by message: data is large; the fixed 45s timeout killed the sync promise
+  even while batches were still committing in the background.
+- FIX: replaced fixed timeout with a PROGRESS-AWARE watchdog. Each committed batch (and each pull-apply)
+  sets window._syncProgressAt; the watchdog only errors if NO progress for 30s (genuinely stalled). A large
+  but steadily-progressing sync now runs to completion. Shows "Syncing… X/Y".
+- Verified: 900-record slow sync (400ms/batch) COMPLETES with 0 remaining (previously would time out);
+  batches still resumable + per-batch pending cleanup from v1.48. suite1 51/52 (known timing), suite2 25/25;
+  zero errors.
+- HONEST: still bounded by real network speed; if genuinely stalled (no progress 30s) it errors with the
+  true cause + resumes on next Sync tap (already-synced items don't re-upload).
+
+---
+# V1.51.0 — FIX "can't connect": bundle Firestore SDK locally (was CDN-only)
+- ROOT CAUSE of "not able to connect": firebase-app + firebase-auth were bundled LOCALLY, but the
+  Firestore SDK was fetched at runtime from https://www.gstatic.com/firebasejs/... . If the WebView
+  couldn't reach gstatic (offline/DNS/firewall/CDN block), Firestore never loaded -> no connection,
+  regardless of login/rules. Rewriting sync logic would NOT have fixed this (it's an SDK-load issue).
+- FIX: downloaded firebase-firestore-compat.js (349KB) and bundled it locally alongside app+auth.
+  loadFirestoreSDK loads all 3 from local files (CDN only as fallback if a local file is missing).
+  build-apk.sh asserts the Firestore asset is present. WEB_DIR rsync stages it into the APK automatically.
+- Verified in-browser: SDK loads firebase+auth+firestore with 0 CDN fetches, 3 LOCAL loads; parses clean.
+- DID NOT rewrite sync from scratch (deliberately): the sync logic was verified working; a blind rewrite of
+  the data-bearing sync would risk data loss (prior incident) and couldn't be tested against real Firebase.
+- suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V2.0.0 — SWITCH sync: Firestore -> Realtime Database (RTDB)
+WHY: Firestore's gRPC/persistence transport was hanging/"can't connect" in the Android WebView. RTDB uses
+a simpler WebSocket/REST transport that connects more reliably in WebViews.
+CHANGES:
+- Bundled firebase-database-compat.js LOCALLY (164KB); removed firebase-firestore-compat.js. loadFirestoreSDK
+  loads app+auth+database from local files (CDN fallback). ensureFirebaseReady uses firebase.database()
+  (no enablePersistence — RTDB doesn't need/have that WebView-breaking layer).
+- Data model UNCHANGED (reused syncRecordEntries/applySyncRecord/shadow/guards/24-type coverage). Stored at
+  /users/{uid}/records/{sanitizedKey}={key,data,updatedAtMs,deviceId}. Meta at /users/{uid}/meta.
+- pushRecordSync: atomic multi-path ref.update() per 200-key batch (deleted -> null removes node),
+  sequential + resumable + progress "Syncing… X/Y". applyRemoteRecords: reads the records tree (snap.val()).
+  syncReconcile: once('value') pull -> apply -> push. attach/detach/restore-from-cloud all RTDB.
+- Config: added REQUIRED databaseURL (https://habits-644e7-default-rtdb.firebaseio.com); cfgLooksValid now
+  requires it. build-apk asserts the RTDB asset. Added database.rules.json (per-user auth rules).
+- Removed all Firestore refs (fbFS/fbDoc/fbRecords) + legacy/compatibility path.
+VERIFIED (mock RTDB): push writes sanitized keys + clears pending; fresh-device pull restores data;
+  0 firestore refs; suite1 51/52 (known timing), suite2 25/25; zero errors.
+HONEST: live RTDB round-trip untestable here. USER MUST: (1) enable Realtime Database in Firebase Console,
+  (2) publish database.rules.json, (3) confirm the databaseURL matches your project's RTDB URL. Backup was
+  taken per user before this switch.

@@ -32,6 +32,7 @@ rsync -a \
   "$WEB_DIR"/ build/stage/assets/web/
 test -f build/stage/assets/web/index.html || { echo "ERROR: index.html not found in $WEB_DIR"; exit 1; }
 test -f build/stage/assets/web/firebase-app-compat.js || { echo "ERROR: Firebase asset missing"; exit 1; }
+test -f build/stage/assets/web/firebase-database-compat.js || { echo "ERROR: RTDB asset missing"; exit 1; }
 test -f build/stage/assets/web/xlsx.min.js || { echo "ERROR: XLSX asset missing"; exit 1; }
 
 MANIFEST="AndroidManifest.xml"
