@@ -1724,3 +1724,41 @@ controls, dashboard section reorder (drag), surface "glass/blur" styles — each
   app icon, just removed the ability to swap it in-app.
 - Verified: iconPickGrid + "Pick the icon" text gone, icon still applies, zero errors; suite1 51/52 (known
   timing), suite2 25/25.
+
+---
+# V2.7.2 — FIX appearance: text size & font weight were not visually working
+- User report confirmed: the app uses fixed px font-sizes EVERYWHERE + body hardcodes font-size:15.5px, so
+  scaling html font-size (rem-based) did nothing to px text -> Text size slider had ~no visible effect.
+  Font weight also got overridden by elements setting their own weight.
+- FIX (text size): use zoom:var(--ui-fontscale) on #app (gated by data-uifont) — actually scales all px text
+  + layout proportionally. Verified: h1 36px->86px at XL; fixed nav stays correctly positioned (zoom on #app,
+  not viewport).
+- FIX (font weight): forceful !important weight override across body/#app/card/button/p/div/span/label/h1-3
+  (gated by data-uitune-weight). Verified: glance elements render 600 at bold.
+- Verified visually (default vs XL+bold+spacious screenshots): text clearly larger + bolder + more spacing.
+  suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V2.7.3 — audit ALL appearance controls; fix Border contrast
+- Measured every control's REAL computed effect (not just var set). Results:
+  Border width ✓ (1->3px), Corner radius ✓ (0/32px), Card depth ✓ (none->6px 24px), Card tint ✓ (bg changes),
+  Card padding ✓ (15->21px), Element spacing ✓ (margin scales), Icon size ✓ (matrix 1.3), Motion none ✓
+  (dur .001s), A11y touch ✓ (min-h 48px), Text size ✓/Font weight ✓ (fixed in v2.7.2).
+- BUG FOUND + FIXED: Border contrast did nothing >100% — color-mix(--line, transparent) can only REDUCE
+  the already-low --line alpha, never increase it. Fixed: border-color now rgba(var(--ui-line-rgb),
+  0.10*ui-border-a) with theme-aware RGB base (dark 255,244,224 / light 46,36,22). Verified scales
+  0.05/0.10/0.20 at 50/100/200%.
+- All 12 appearance controls now verified working. suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+---
+# V2.8.0 — Paper Texture surface system (per spec)
+- Added Settings -> Appearance -> Surface · Paper texture, INDEPENDENT from card transparency (per doc).
+- Controls: level preset (Off/Subtle/Medium/Strong -> intensity 0/15/35/70), Intensity slider (0-100%),
+  Scale (Fine..Coarse), Type (Fine/Natural/Fibrous/Rough), Warmth (0-100%).
+- Engine: procedural SVG feTurbulence grain as base64 data-URI (no image files, crisp at any scale, offline).
+  Fixed full-screen #paperLayer behind content (z-index 0, mix-blend overlay; soft-light for card coverage) +
+  #paperWarm tint overlay. #app forced z-index:1 so content/text stays above + crisp. Off by default.
+- Honors doc guidance: subtle physical-material feel not scrapbook; sweet spot 10-25%; slider still allows
+  100% for control. Verified readable in both light + dark at subtle and strong.
+- Verified: off by default; enable->layer visible+opacity tracks intensity; warmth toggle; type swaps texture;
+  app above layer; all UI present; suite1 51/52 (known timing), suite2 25/25; zero errors.

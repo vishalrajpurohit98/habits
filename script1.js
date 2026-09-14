@@ -5386,8 +5386,41 @@ function resolvedLight(){
 }
 var PAL_LIGHT_BG = {ember:'#F6F1E7', lagoon:'#EEF5F1', frost:'#EEF3FA', sakura:'#F8EFF3', violet:'#F1EFFA', mono:'#F6F1E7'};
 var PAL_ALL = ['ember','lagoon','frost','sakura','violet','mono'];
-function applyUiTune(){
-  var u = (state.set && state.set.ui) || {};
+function paperSvg(type, scale){
+  /* Procedural grain via SVG feTurbulence. Different params per texture "type". */
+  var cfg={
+    fine:    {base:0.90, oct:2, type:'fractalNoise'},
+    natural: {base:0.65, oct:3, type:'fractalNoise'},
+    fibrous: {base:0.40, oct:4, type:'turbulence'},
+    rough:   {base:0.28, oct:5, type:'turbulence'}
+  }[type] || {base:0.90, oct:2, type:'fractalNoise'};
+  var bf = (cfg.base * (1/(scale||1))).toFixed(3);
+  var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180">'
+    + '<filter id="n"><feTurbulence type="'+cfg.type+'" baseFrequency="'+bf+'" numOctaves="'+cfg.oct+'" stitchTiles="stitch"/>'
+    + '<feColorMatrix type="saturate" values="0"/></filter>'
+    + '<rect width="180" height="180" filter="url(#n)" opacity="0.9"/></svg>';
+  return 'data:image/svg+xml;base64,' + btoa(svg);
+}
+function applyPaper(){
+  var p = (state.set && state.set.paper) || {};
+  var root = document.documentElement;
+  var on = !!p.enabled && (p.intensity==null || p.intensity>0);
+  root.classList.toggle('paper-on', on);
+  if(!on){ return; }
+  var type = p.type || 'natural';
+  var scale = (p.scale!=null?p.scale:100)/100;   /* 0.5 fine .. 2 coarse mapped below */
+  var scaleMul = 0.6 + (scale*1.4);              /* 40% slider -> ~1.16, etc. */
+  var intensity = (p.intensity!=null?p.intensity:18)/100;
+  var warmth = (p.warmth!=null?p.warmth:0)/100;
+  var layer = document.getElementById('paperLayer');
+  if(layer){ layer.style.backgroundImage = 'url("'+paperSvg(type, scaleMul)+'")'; }
+  root.style.setProperty('--paper-intensity', String(Math.min(1,intensity)));
+  root.style.setProperty('--paper-scale', String(scaleMul));
+  root.style.setProperty('--paper-warmth', String(warmth));
+  root.classList.toggle('paper-warm', warmth>0);
+  root.classList.toggle('paper-cards', (p.coverage==='cards'));
+}
+function applyUiTune(){  var u = (state.set && state.set.ui) || {};
   var root = document.documentElement;
   var borderA = (u.borderA!=null?u.borderA:100)/100;
   var borderW = (u.borderW!=null?u.borderW:1);
@@ -5403,10 +5436,15 @@ function applyUiTune(){
   /* card override active? */
   var cardTune = (u.borderA!=null&&u.borderA!=100)||(u.borderW!=null&&u.borderW!=1)||(u.radius!=null&&u.radius!=100)||(u.shadow!=null&&u.shadow!=100)||(u.tint!=null&&u.tint!=0)||(u.textsize!=null&&u.textsize!=100);
   root.style.setProperty('--ui-border-a', String(borderA));
+  /* border color base: light borders are dark-on-light, dark borders are light-on-dark */
+  var isLight = document.documentElement.classList.contains('light');
+  root.style.setProperty('--ui-line-rgb', isLight ? '46,36,22' : '255,244,224');
   root.style.setProperty('--ui-border-w', borderW+'px');
   root.style.setProperty('--ui-radius', String(radius));
   root.style.setProperty('--ui-cardtint', String(tint));
   root.style.setProperty('--ui-fontscale', String(fontsc));
+  /* text size uses zoom on #app (px-based app) */
+  root.toggleAttribute('data-uifont', (u.textsize!=null && u.textsize!=100));
   var sy=Math.round(2*shadow), sb=Math.round(8*shadow), op=Math.min(0.35,0.10*shadow);
   root.style.setProperty('--ui-shadow-val', shadow===0?'none':('0 '+sy+'px '+sb+'px rgba(0,0,0,'+op.toFixed(3)+')'));
   root.toggleAttribute('data-uitune', cardTune);
@@ -6457,7 +6495,30 @@ function init(){
     });
     /* toggles */
     toggles.forEach(function(t){ var el=$(t[0]); if(el) el.addEventListener('change', function(){ state.set.ui=state.set.ui||{}; state.set.ui[t[1]]=this.checked; applyUiTune(); persist(); }); });
-    var rst=$('tuneReset'); if(rst) rst.addEventListener('click', function(){ state.set.ui={}; applyUiTune(); syncInputs(); persist(); toastN('Appearance reset'); });
+    var rst=$('tuneReset'); if(rst) rst.addEventListener('click', function(){ state.set.ui={}; state.set.paper={}; applyUiTune(); applyPaper(); syncInputs(); syncPaper(); persist(); toastN('Appearance reset'); });
+    /* ===== Paper texture wiring ===== */
+    function syncPaper(){ var pp=state.set.paper||{};
+      var lvl=pp.enabled?(pp.level||'subtle'):'off'; document.querySelectorAll('[data-tuneseg="paperlevel"] button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-v')===lvl); });
+      document.querySelectorAll('[data-tuneseg="papertype"] button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-v')===(pp.type||'natural')); });
+      var iS=$('paperIntensity'); if(iS){ iS.value=(pp.intensity!=null?pp.intensity:0); $('paperIntensityV').textContent=(pp.intensity!=null?pp.intensity:0)+'%'; }
+      var sS=$('paperScale'); if(sS){ sS.value=(pp.scale!=null?pp.scale:100); $('paperScaleV').textContent=(pp.scale!=null?(pp.scale<80?'Fine':pp.scale>140?'Coarse':'Medium'):'Fine'); }
+      var wS=$('paperWarmth'); if(wS){ wS.value=(pp.warmth!=null?pp.warmth:0); $('paperWarmthV').textContent=(pp.warmth!=null?pp.warmth:0)+'%'; }
+    }
+    var paperLevelMap={off:0, subtle:15, medium:35, strong:70};
+    document.querySelectorAll('[data-tuneseg="paperlevel"] button, [data-tuneseg="papertype"] button').forEach(function(){});
+    var plseg=document.querySelector('[data-tuneseg="paperlevel"]');
+    if(plseg) plseg.addEventListener('click', function(e){ var bb=e.target.closest('button[data-v]'); if(!bb)return; var v=bb.getAttribute('data-v'); state.set.paper=state.set.paper||{};
+      if(v==='off'){ state.set.paper.enabled=false; } else { state.set.paper.enabled=true; state.set.paper.level=v; state.set.paper.intensity=paperLevelMap[v]; }
+      applyPaper(); syncPaper(); persist();
+    });
+    var ptseg=document.querySelector('[data-tuneseg="papertype"]');
+    if(ptseg) ptseg.addEventListener('click', function(e){ var bb=e.target.closest('button[data-v]'); if(!bb)return; state.set.paper=state.set.paper||{}; state.set.paper.type=bb.getAttribute('data-v'); if(state.set.paper.enabled){ applyPaper(); } syncPaper(); persist(); });
+    [['paperIntensity','intensity','%'],['paperScale','scale','scale'],['paperWarmth','warmth','%']].forEach(function(m){ var el=$(m[0]); if(!el)return;
+      el.addEventListener('input', function(){ state.set.paper=state.set.paper||{}; state.set.paper[m[1]]=parseInt(this.value); if(m[1]==='intensity'){ state.set.paper.enabled=parseInt(this.value)>0; }
+        var lab=$(m[0]+'V'); if(lab) lab.textContent=(m[2]==='scale'?(this.value<80?'Fine':this.value>140?'Coarse':'Medium'):this.value+'%'); applyPaper(); });
+      el.addEventListener('change', function(){ persist(); });
+    });
+    window._syncPaper=syncPaper; syncPaper();
     window._syncTuneInputs=syncInputs; syncInputs();
   })();
   $('palRow').addEventListener('click', function(e){
@@ -8047,6 +8108,7 @@ function init(){
   if(state.set.pin) showLock('unlock');
   try{ initOnboarding(); }catch(e){}
   try{ applyUiTune(); }catch(e){}
+  try{ applyPaper(); }catch(e){}
 }
 /* ===== Onboarding (first run) ===== */
 function initOnboarding(){
