@@ -1556,3 +1556,18 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
 - LIKELY ROOT CAUSE for user's timeout: Firestore Rules not published (or Firestore DB not created / network).
   The new message will state which. Cure: Firebase Console -> Firestore -> create DB + publish the rules
   block + enable Email/Password auth.
+
+---
+# V1.48.0 — large first-sync resilience (was: "operation didn't finish")
+- Diagnosis from user's message: probe succeeded (server reachable, rules OK, authed) but syncReconcile
+  didn't finish in 12s -> a large first-time sync (many records incl. vault import) exceeded the timeout,
+  and Promise.all of parallel batches gave no progress + no partial commit.
+- FIX: pushRecordSync now commits SEQUENTIALLY in batches of 150, clearing pending per batch. Steady
+  progress, shows "Syncing… X/Y", and a mid-sync failure keeps completed batches (retry pushes only the
+  remainder). Verified: 320 recs -> 3 batches [150,150,20], remaining 0; batch-2 failure -> 170 remain (1st
+  batch preserved).
+- Timeout raised 12s->45s with an 8s "first sync can take a bit" hint; on real timeout still probes for the
+  true cause.
+- suite1 51/52 (known timing), suite2 25/25; zero errors.
+- HONEST: real fix for the user is that the first big sync just needs to complete — this makes it
+  progress-resumable so it will. Live confirmation on-device.

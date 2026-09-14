@@ -5586,7 +5586,23 @@ function queueChangedSyncRecords(){
 }
 function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){if(!Array.isArray(a))return;var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){var si=state.sleep.findIndex(function(x){return x&&x.d===id;});if(deleted){if(si>=0)state.sleep.splice(si,1);}else if(si>=0)state.sleep[si]=value;else state.sleep.push(value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='jrtpl'){state.jrTpl=state.jrTpl||[];arrSet(state.jrTpl,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='vault'&&id==='all'){if(!deleted)state.vault=(value&&value.value!==undefined?value.value:value);return;}if(d==='vaultCats'&&id==='all'){if(!deleted)state.vaultCats=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='jrDrafts'&&id==='all'){if(!deleted)state.jrDrafts=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='trash'&&id==='all'){if(!deleted)state.trash=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
 function pushLegacySync(force){if(!fbDoc||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}setSyncState('syncing');var payload={data:JSON.stringify(stateForStorage()),version:Number(state.mtime||Date.now()),schemaVersion:2,updatedAtMs:Date.now(),syncMode:'compatibility'};return fbDoc.set(payload,{merge:true}).then(function(){return writeSyncMeta('synced');}).then(function(){setSyncState('synced');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
-function pushRecordSync(force){if(syncLegacyMode)return pushLegacySync(force);if(!fbRecords||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}queueChangedSyncRecords();var keys=Object.keys(syncPendingRecords);if(!keys.length){setSyncState('synced');return writeSyncMeta('synced').then(function(){setSyncState('synced');});}setSyncState('syncing');var jobs=[];for(var b=0;b<keys.length;b+=400){(function(keys2){var batch=fbFS.batch();keys2.forEach(function(k){var m=syncPendingRecords[k],ref=fbRecords.doc(k.replace(/[^A-Za-z0-9_-]/g,'_')),pl={key:k,deleted:!!m.deleted,updatedAtMs:m.at,deviceId:deviceId,schemaVersion:2};if(!m.deleted)pl.data=m.data;batch.set(ref,pl,{merge:true});});jobs.push(batch.commit());})(keys.slice(b,b+400));}return Promise.all(jobs).then(function(){keys.forEach(function(k){delete syncPendingRecords[k];});try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}return writeSyncMeta('synced');}).then(function(){setSyncState('synced');syncMsg('',false);}).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
+function pushRecordSync(force){if(syncLegacyMode)return pushLegacySync(force);if(!fbRecords||!fbUser)return Promise.resolve();if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}queueChangedSyncRecords();var keys=Object.keys(syncPendingRecords);if(!keys.length){setSyncState('synced');return writeSyncMeta('synced').then(function(){setSyncState('synced');});}setSyncState('syncing');
+  /* Commit in smaller batches SEQUENTIALLY, clearing pending per batch. This makes steady progress on a
+     large first sync, shows progress, and means a retry only re-pushes what didn't complete (not everything). */
+  var BATCH=150, total=keys.length, doneCount=0;
+  function commitFrom(i){
+    if(i>=keys.length){ return writeSyncMeta('synced').then(function(){setSyncState('synced');syncMsg('',false);}); }
+    var slice=keys.slice(i,i+BATCH), batch=fbFS.batch();
+    slice.forEach(function(k){var m=syncPendingRecords[k];if(!m)return;var ref=fbRecords.doc(k.replace(/[^A-Za-z0-9_-]/g,'_')),pl={key:k,deleted:!!m.deleted,updatedAtMs:m.at,deviceId:deviceId,schemaVersion:2};if(!m.deleted)pl.data=m.data;batch.set(ref,pl,{merge:true});});
+    return batch.commit().then(function(){
+      slice.forEach(function(k){ delete syncPendingRecords[k]; });
+      try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
+      doneCount+=slice.length;
+      if(total>BATCH){ try{ syncMsg('Syncing… '+Math.min(doneCount,total)+'/'+total,false); }catch(e){} }
+      return commitFrom(i+BATCH);
+    });
+  }
+  return commitFrom(0).catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);throw e;});}
 function applyRemoteRecords(docs, force){var changed=false;docs.forEach(function(doc){var v=doc.data()||{},key=v.key||doc.id,at=Number(v.updatedAtMs||0),local=syncRecordShadow[key],pending=syncPendingRecords[key],lat=Math.max(local&&local.at||0,pending&&pending.at||0);if(!force && at<=lat)return;applySyncRecord(key,v.data,v.deleted);delete syncPendingRecords[key];syncRecordShadow[key]={hash:v.deleted?'__deleted__':syncHash(v.data),at:Math.max(at,lat),deleted:!!v.deleted};changed=true;});try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}if(changed){state=normState(state);var json=stateJson();if(json){try{localStorage.setItem(KEY,json);}catch(e){}if(nat){try{nat.saveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}return changed;}
 function enableLegacySync(reason){syncLegacyMode=true;if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;setSyncState('syncing');syncMsg('Compatibility sync is active. Publish the included Firestore Rules to enable record-level sync.',false);syncReconcile().catch(function(e){setSyncState(isOnline()?'error':'cached');syncMsg(prettySyncErr(e),true);});}
 function attachFirestoreSync(u){
@@ -7789,13 +7805,17 @@ function init(){
     toastN('Sync not ready — try Sync now first');
   });
   function syncWithTimeout(){
-    var to;
+    var to, done=false;
+    /* A first-time bulk sync (hundreds of records) legitimately takes a while, so use a generous
+       ceiling (45s) and only then probe for the real cause. Show a "still working" hint at 8s so it
+       never looks frozen. */
+    var hint=setTimeout(function(){ if(!done){ try{ syncMsg('Syncing your data… (first sync can take a bit)',false); }catch(_){} } }, 8000);
     var timeout=new Promise(function(_,rej){ to=setTimeout(function(){
       var probe = (fbDoc && fbDoc.get) ? fbDoc.get({source:'server'}) : Promise.reject({code:'unavailable'});
-      probe.then(function(){ rej(new Error('Sync is slow — server reachable but the operation didn\u2019t finish. Try again.')); })
-           .catch(function(pe){ var msg=prettySyncErr(pe); rej(new Error(msg)); });
-    }, 12000); });
-    return Promise.race([ syncReconcile().then(function(r){clearTimeout(to);return r;}), timeout ]);
+      probe.then(function(){ rej(new Error('Sync is taking too long — your data may be large or the connection slow. It will keep trying in the background; tap Sync again to retry.')); })
+           .catch(function(pe){ rej(new Error(prettySyncErr(pe))); });
+    }, 45000); });
+    return Promise.race([ syncReconcile().then(function(r){done=true;clearTimeout(to);clearTimeout(hint);return r;}), timeout ]);
   }
   $('syncNow').addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
