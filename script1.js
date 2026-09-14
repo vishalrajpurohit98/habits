@@ -5600,7 +5600,10 @@ function attachFirestoreSync(u){
   setSyncState('syncing');
   /* Manual-sync model: pull once on open (via syncReconcile's .get), then NO live listener.
      The user taps "Sync now" to push/pull afterwards. This avoids continuous background sync. */
-  loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(e){ if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied');} });
+  loadSyncMeta().then(function(){return syncReconcile();}).then(function(){syncInitialHydration=false;setSyncState(isOnline()?'synced':'cached');renderToday();if($('pgTasks').classList.contains('on'))renderTasks();}).catch(function(e){ syncInitialHydration=false; if(e&&e.code==='permission-denied'){enableLegacySync('permission-denied'); return;} /* ANY other failure must not leave the UI stuck on "syncing" */ setSyncState(isOnline()?'error':'cached'); try{ syncMsg(prettySyncErr(e),true); }catch(_){} });
+  /* Safety net: if the initial sync hasn't resolved within 20s (hung network/Firestore call), stop
+     showing "syncing" so the user isn't stuck. */
+  (function(){ var guard=setTimeout(function(){ if(syncState==='syncing' && syncInitialHydration){ syncInitialHydration=false; setSyncState(isOnline()?'error':'cached'); try{ syncMsg('Sync timed out — tap Sync to retry.',true); }catch(_){} } }, 20000); })();
 }
 function detachFirestoreSync(){if(fbUnsub){try{fbUnsub();}catch(e){}}fbUnsub=null;fbRecords=null;fbDoc=null;syncMetaDoc=null;syncLegacyMode=false;}
 /* Warn before leaving if there are unsynced changes (browser tab close / refresh). */
@@ -7785,16 +7788,17 @@ function init(){
     }
     toastN('Sync not ready — try Sync now first');
   });
+  function syncWithTimeout(){ return Promise.race([ syncReconcile(), new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('Sync timed out — check connection and try again.')); }, 20000); }) ]); }
   $('syncNow').addEventListener('click', function(){
     if(!fbUser){ toastN('Sign in first'); return; }
     if(!isOnline()){ setSyncState('cached'); toastN('Offline — local changes are safe'); return; }
-    syncReconcile().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
+    syncWithTimeout().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
   });
   $('todaySyncBtn').addEventListener('click', function(){
     if(!syncEnabled()){ showTab('pgSet'); toastN('Set up Cloud Firestore in Settings'); return; }
     if(!fbUser){ showTab('pgSet'); toastN('Sign in to enable cloud sync'); return; }
     if(!isOnline()){ setSyncState('cached'); toastN('Offline — local changes are safe'); return; }
-    syncReconcile().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
+    syncWithTimeout().then(function(){ toastN('Synced'); }).catch(function(e){ setSyncState('error'); var msg=prettySyncErr(e); syncMsg(msg,true); toastN(msg); });
   });
   window.addEventListener('online', function(){ renderSyncUI(); if(syncEnabled() && !fbAuth) initSync(); else if(fbUser) syncReconcile().catch(function(){}); });
   window.addEventListener('offline', function(){ if(fbUser) setSyncState('cached'); renderSyncUI(); });
