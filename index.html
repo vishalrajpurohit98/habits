@@ -42,7 +42,7 @@
   --green:#3ECF8E;--ice:#4EA8FF;--iceSoft:rgba(78,168,255,.14);
   --gline:rgba(255,244,224,.07);--ringOff:rgba(255,244,224,.14);--ringOffDim:rgba(255,244,224,.05);
   --barOff:rgba(255,244,224,.1);--onAccent:#171310;
-  --dockBg:#0a0806;--scrimBg:rgba(0,0,0,.8);
+  --dockBg:rgba(7,6,5,.92);--scrimBg:rgba(0,0,0,.8);
   --shadow:0 1px 6px rgba(0,0,0,.18);--shadowUp:0 -4px 20px rgba(0,0,0,.25);
   --grad-amber:linear-gradient(135deg,#FFAE1F,#E08900);
   --emberGlow:radial-gradient(circle,rgba(255,174,31,.16) 0%,rgba(255,174,31,0) 62%);
@@ -68,7 +68,7 @@ html.light{
   --green:#199D66;--ice:#2E7FD6;--iceSoft:rgba(46,127,214,.13);
   --gline:rgba(46,36,22,.09);--ringOff:rgba(46,36,22,.18);--ringOffDim:rgba(46,36,22,.07);
   --barOff:rgba(46,36,22,.12);--onAccent:#FFF9EE;
-  --dockBg:#f4f4f6;--scrimBg:rgba(38,30,18,.42);
+  --dockBg:rgba(255,255,255,.88);--scrimBg:rgba(38,30,18,.42);
   --shadow:0 1px 4px rgba(70,55,30,.07);--shadowUp:0 -2px 12px rgba(70,55,30,.1);
   --grad-amber:linear-gradient(135deg,#EE9500,#C97800);
   --emberGlow:radial-gradient(circle,rgba(222,133,0,.13) 0%,rgba(222,133,0,0) 62%);
@@ -299,7 +299,7 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 #fab svg{width:22px;height:22px}
 .dock{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom,0px));
   background:var(--dockBg);border:1px solid var(--line);border-radius:22px;display:flex;z-index:15;
-  box-shadow:var(--shadow);padding:4px;transform:translateZ(0)}
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);box-shadow:var(--shadow);padding:4px}
 .tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 0 6px;
   color:var(--mut);font-size:11px;font-weight:600;letter-spacing:.3px;border-radius:16px;transition:background .2s,color .2s}
 .tab:active{transform:scale(.95)}
@@ -852,7 +852,7 @@ html:not(.light) .otdRow .oy{color:var(--amber)}
 /* AMOLED true-black surfaces */
 html.amoled{--bg:#000000;--bg2:#000000;--card:#000000;--card2:#090909;--card3:#111111;
   --line:rgba(255,255,255,.11);--line2:rgba(255,255,255,.18);--shadow:none;
-  --dockBg:#0a0a0a;--amberSoft:rgba(255,174,31,.10)}
+  --dockBg:rgba(0,0,0,.88);--amberSoft:rgba(255,174,31,.10)}
 html.amoled .card,html.amoled .setCard,html.amoled .jrCard,html.amoled .focusCard,
 html.amoled .chartBox,html.amoled .hmWrap,html.amoled .stackCard{box-shadow:none}
 html.amoled .hero::before{display:none}
@@ -1148,9 +1148,6 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
-/* Scroll perf: skip rendering off-screen list cards (big win on long journal/task/tx lists).
-   contain-intrinsic-size reserves approximate height so the scrollbar stays stable. */
-.jrCard,.taskCard,.txRow,.vaultCard{ content-visibility:auto; contain-intrinsic-size:auto 84px; }
 /* ===== Motion system (transform/opacity only; reduced-motion respected) ===== */
 button,.btn,.sbtn,.chip,.tab,.moreCard,.jrNavItem,.vChip,.taskCard,.vaultCard,.jrCard,.moBtn,.iconTab,.primary{ transition:transform var(--t-fast) var(--e-out), background-color var(--t-fast) var(--e-out), border-color var(--t-fast) var(--e-out), opacity var(--t-fast) var(--e-out); }
 button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:active,.vaultCard:active,.jrCard:active,.primary:active{ transform:scale(.97); }
