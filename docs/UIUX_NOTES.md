@@ -29,3 +29,10 @@
   modal popup: align-items center, panel is a floating rounded card (max 440px / 78vh), scale-in animation
   (removed slide-up + grab handle). Verified fully visible + both rows shown at mobile (390) AND desktop
   (868) widths. suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# CI FIX v2 — remove failing setup-android action
+- setup-android@v3 kept failing inside its own dist (cmdline-tools/16.0 sdkmanager exit 1) even with pins.
+- Fix: removed the action entirely. New step uses the runner's PRE-INSTALLED Android SDK ($ANDROID_SDK_ROOT),
+  finds sdkmanager under cmdline-tools/*/bin, accepts licenses, installs platform-tools + android-34 +
+  build-tools 35.0.0, exports ANDROID_HOME + PATH. Build step already consumes ANDROID_HOME/BUILD_TOOLS_VER.
+- YAML validated. App unchanged (still v4.2.1 drafts popup).
