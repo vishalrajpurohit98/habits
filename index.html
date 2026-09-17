@@ -1153,6 +1153,65 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+/* ============================================================
+   WORLD-CLASS REBUILD — design system layer (html.rebuild)
+   Transforms the look while keeping all markup/logic intact.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap');
+html.rebuild{
+  --bg:#0a0b0f;--bg2:#0e1017;--card:#14161d;--card2:#1c1f28;--card3:#252b3a;
+  --line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.14);
+  --ink:#f7f8fa;--ink2:#c4c8d4;--mut:#8b90a0;--mut2:#5c6070;
+  --amber:#ffb020;--green:#34d399;--ice:#5b9dff;--sBlue:#5b9dff;--sGreen:#34d399;--coral:#fb7185;--purple:#a78bfa;--pink:#f472b6;
+  --grad:linear-gradient(135deg,#a78bfa,#5b9dff);--onAccent:#fff;
+}
+html.rebuild body{ font-family:'Inter',system-ui,sans-serif;
+  background:radial-gradient(900px 500px at 82% -8%,rgba(91,157,255,.10),transparent 55%),radial-gradient(800px 500px at -10% 15%,rgba(167,139,250,.10),transparent 55%),var(--bg); }
+html.rebuild h1{ font-family:'Inter',sans-serif; font-weight:800; letter-spacing:-1px; }
+html.rebuild .eyebrow,html.rebuild .secH{ letter-spacing:1.5px; font-weight:700; }
+/* Cards: generous radius, soft depth, subtle top sheen */
+html.rebuild .card,html.rebuild .setCard,html.rebuild .jrCard,html.rebuild .taskCard,html.rebuild .chartBox,
+html.rebuild .todayProgress,html.rebuild .expHero2,html.rebuild .moreCard,html.rebuild .vaultCard,html.rebuild .jrStatCard,
+html.rebuild .todaySyncBar,html.rebuild .promptCard,html.rebuild .uaiBox,html.rebuild .empty,html.rebuild .reviewCard,
+html.rebuild .aiCfg,html.rebuild .exCard,html.rebuild .acctCard,html.rebuild .heroTop,html.rebuild .sleepCard{
+  border-radius:22px!important; border:1px solid var(--line)!important;
+  background-image:linear-gradient(180deg,rgba(255,255,255,.035),transparent 34%)!important;
+  box-shadow:0 10px 30px rgba(0,0,0,.32)!important;
+}
+/* Gradient primary actions + FAB */
+html.rebuild .primary,html.rebuild #fab,html.rebuild #aiFab,html.rebuild .jrNewBtn,html.rebuild .btn.acc,html.rebuild .uaiSend,html.rebuild .vaultUnlockBtn{
+  background:var(--grad)!important; color:#fff!important; border:0!important; box-shadow:0 8px 24px rgba(120,110,255,.42)!important;
+}
+html.rebuild #fab{ border-radius:18px!important; }
+/* Glassy floating bottom nav */
+html.rebuild .dock{ background:rgba(20,22,29,.82)!important; backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); border:1px solid var(--line2)!important; border-radius:22px!important; box-shadow:0 12px 34px rgba(0,0,0,.45)!important; }
+html.rebuild .dock .tab.on{ color:var(--purple)!important; }
+html.rebuild .dock .tab.on .ti,html.rebuild .dock .tab.on svg{ color:var(--purple)!important; }
+/* Today glance: airy, colored value accents */
+html.rebuild #pgToday .tpGrid8 .tpItem .v{ font-size:20px;font-weight:800;letter-spacing:-.02em }
+html.rebuild #pgToday .tpGrid8 .tpItem .v.amber{ color:var(--amber);text-shadow:0 0 12px rgba(255,176,32,.35) }
+html.rebuild #pgToday .tpGrid8 .tpItem .v.green{ color:var(--green);text-shadow:0 0 12px rgba(52,211,153,.3) }
+html.rebuild #pgToday .tpGrid8 .tpItem .v.coral{ color:var(--coral);text-shadow:0 0 12px rgba(251,113,133,.3) }
+/* Money hero: gradient wash */
+html.rebuild #pgExp .expHero2{ background:linear-gradient(150deg,rgba(52,211,153,.14),rgba(91,157,255,.05) 55%,var(--card))!important;border-color:var(--line2)!important }
+html.rebuild #pgExp .expHeroNum{ font-size:42px;font-weight:900;letter-spacing:-2px }
+html.rebuild #pgExp .txRow{ background:var(--card)!important;border:1px solid var(--line)!important;border-radius:16px!important;margin-bottom:8px!important;padding:13px!important }
+html.rebuild #pgExp .segX button.sel,html.rebuild #pgExp .heroAcctChip.on{ background:var(--grad)!important;color:#fff!important;border-color:transparent!important }
+/* Journal: serif display for titles + body, accent spine */
+html.rebuild #pgJr .jrCard{ position:relative;overflow:hidden;padding-left:18px }
+html.rebuild #pgJr .jrCard::before{ content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--grad) }
+html.rebuild #pgJr .jrTitle,html.rebuild #pgJr .jrCardTitle,html.rebuild #pgJr .jcTitle{ font-family:'Newsreader',serif;font-weight:600;letter-spacing:-.3px }
+html.rebuild #pgJr .jrBody,html.rebuild #pgJr .jrSnip,html.rebuild #pgJr .jcBody{ font-family:'Newsreader',serif }
+html.rebuild #pgJr .jrTime{ color:var(--purple);font-weight:700 }
+/* AI: gradient heading + glassy panel */
+html.rebuild #pgAI .uaiBox{ background:linear-gradient(180deg,rgba(167,139,250,.06),rgba(91,157,255,.03) 30%,var(--card))!important;border:1px solid var(--line2)!important }
+html.rebuild #pgAI .uaiSend{ background:var(--grad)!important }
+/* Vault avatar gradient */
+html.rebuild .vaultDetAvatar{ background:var(--grad)!important;box-shadow:0 6px 16px rgba(120,110,255,.4)!important }
+/* Inputs focus purple */
+html.rebuild .inp:focus,html.rebuild input:focus,html.rebuild textarea:focus{ border-color:var(--purple)!important;box-shadow:0 0 0 3px rgba(167,139,250,.18)!important }
+/* Press feedback */
+html.rebuild button:active,html.rebuild .btn:active,html.rebuild .card:active,html.rebuild .moreCard:active,html.rebuild .taskCard:active{ transform:scale(.98) }
 /* ===== World-class Today ===== */
 /* Glance grid: each metric in a soft tinted tile */
 #pgToday .todayProgress{ border-radius:20px; padding:16px 14px 12px; }
@@ -8663,6 +8722,8 @@ function applyTheme(){
   var root = document.documentElement;
   root.classList.toggle('light', L);
   root.classList.toggle('amoled', !L && (state.set.theme === 'amoled'));
+  /* World-class rebuild design layer: ON by default; user can disable via Settings (uiClassic) */
+  root.classList.toggle('rebuild', !(state.set && state.set.uiClassic));
   var fonts = ['nothing','apple','google','space','bricolage','serif','system'];
   for(var fi=0; fi<fonts.length; fi++) root.classList.toggle('font-'+fonts[fi], state.set.font === fonts[fi]);
   var pal = state.set.pal || 'ember';

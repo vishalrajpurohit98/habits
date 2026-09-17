@@ -37,3 +37,15 @@
 - Feedback: glance tiles too big/boxy. Fixed: removed per-metric card bg/border, compact padding, airy grid
   on the single card; kept subtle colored value glows + tap highlight. Reads as one clean card now.
 - suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# v5 — WORLD-CLASS UI REBUILD (design system layer, ON by default)
+- Implemented the approved concept as html.rebuild CSS layer (ON by default; user can revert via uiClassic).
+  ZERO markup/logic changes -> all functionality preserved.
+- Inter UI font + Newsreader serif for journal; deep blue-black bg w/ radial glows; 22px cards w/ soft depth
+  + top sheen; gradient purple->blue primary/FAB/AI-send; glassy blurred floating nav w/ purple active;
+  Today glance colored value glows; Money green/blue glossy hero + carded tx + gradient tabs; Journal
+  serif entries w/ gradient accent spine + purple timestamps; AI glassy panel + gradient heading; vault
+  gradient avatar; purple focus rings; press feedback.
+- SCREENSHOTTED every screen (Today/Tasks/Money/Journal/More/Stats/AI/Settings/Vault) — all render clean.
+- FUNCTIONALITY VERIFIED under rebuild: habit/task/money/journal/mood/sleep/vault-crypto/sync/nav/tuner ALL
+  pass. suite1 51/52 (known timing), suite2 25/25. Zero errors.
