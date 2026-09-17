@@ -3657,17 +3657,18 @@ function jrCalPick(iso){
 }
 
 /* ---- editor ---- */
-function openJr(id, prompt, tplBody, forceDate){
-  var src = id ? jrFind(id) : null;
+function openJr(id, prompt, tplBody, forceDate, draftObj){
+  var src = id ? jrFind(id) : (draftObj || null);
   var now=new Date();
   jrEd = src ? JSON.parse(JSON.stringify(src)) : {id:'',date:(forceDate||jrToday()),time:now.toTimeString().slice(0,5),title:'',content:'',mood:'',tags:[],favorite:false,template:'',createdAt:Date.now(),updatedAt:Date.now()};
   jrEd._edit = id||'';
-  setText('shJrTitle', id?'Edit entry':'New entry');
+  if(draftObj && !id){ jrEd._draftId = draftObj.id; jrEd._edit=''; }
+  setText('shJrTitle', id?'Edit entry':(draftObj?'Resume draft':'New entry'));
   $('jrTitle').value = jrEd.title||'';
-  $('jrDate').value = jrEd.date;
+  $('jrDate').value = jrEd.date||(forceDate||jrToday());
   $('jrTime').value = jrEd.time||now.toTimeString().slice(0,5);
   if($('jrLocation')) $('jrLocation').value = jrEd.location||'';
-  $('jrBody').innerHTML = src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
+  $('jrBody').innerHTML = (src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':'')));
   if(!$('jrBody').innerHTML.trim()) $('jrBody').innerHTML='<p><br></p>';
   var _ft=$('jrFavTog'); if(_ft){ _ft.classList.toggle('on', !!jrEd.favorite); _ft.setAttribute('aria-checked', !!jrEd.favorite); }
   jrSyncMood();
@@ -6963,7 +6964,7 @@ function init(){
   }
   var _jd=$('jrDraftsBtn'); if(_jd) _jd.addEventListener('click', function(){ renderJrDrafts(); openSheet('jrDraftsSheet'); });
   var _jdl=$('jrDraftsList'); if(_jdl) _jdl.addEventListener('click', function(e){
-    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ closeSheet(); setTimeout(function(){ openJr(null); jrEd._draftId=dr.id; jrEd.mood=dr.mood||''; jrEd.tags=dr.tags||[]; $('jrTitle').value=dr.title||''; $('jrBody').innerHTML=dr.content||''; $('jrDate').value=dr.date||jrToday(); $('jrTime').value=dr.time||''; if($('jrLocation'))$('jrLocation').value=dr.location||''; },160); } return; }
+    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ closeSheet(); setTimeout(function(){ try{ openJr(null,null,null,null,dr); }catch(err){ toastN&&toastN('Could not open draft'); } }, 260); } return; }
     var del=e.target.closest('[data-draft-del]'); if(del){ jrClearDraft(del.getAttribute('data-draft-del')); renderJrDrafts(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeSheet(); return; }
   });
   window._renderJrDraftsBtn=renderJrDraftsBtn;
@@ -7156,22 +7157,29 @@ function init(){
   }
   function vErr(id,msg){ var e=$(id); if(e){ e.textContent=msg; e.style.display=''; } }
   /* ---- detail ---- */
+  function vaultPwStrength(pw){ pw=pw||''; var s=0; if(pw.length>=8)s++; if(pw.length>=12)s++; if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++; if(/[0-9]/.test(pw))s++; if(/[^A-Za-z0-9]/.test(pw))s++; var lvl=s<=1?'Weak':s<=3?'Fair':'Strong'; var col=s<=1?'var(--coral)':s<=3?'var(--sYellow,#E0A11B)':'var(--sGreen,#34C759)'; return {lvl:lvl,col:col,pct:Math.min(100,s*20)}; }
+  function vaultInitial(t){ t=(t||'?').trim(); return t.charAt(0).toUpperCase(); }
   function vaultOpenDetail(type,id){
     var arr=_vaultData[type], idx=arr.findIndex(function(x){return x.id===id;}); if(idx<0) return;
     _vaultDetail={type:type,idx:idx}; var it=arr[idx];
     setText('vaultDetailTitle', it.title||(type==='pw'?'Password':'Note'));
     $('vaultDetailFav').textContent = it.favorite?'★':'☆'; $('vaultDetailFav').classList.toggle('on', it.favorite);
-    var meta='<div class="vaultDetMeta">'+(it.category?esc(it.category):'')+(it.tags&&it.tags.length?' \u00B7 '+it.tags.map(function(t){return '#'+esc(t);}).join(' '):'')+'<br>Updated '+niceDate(fmt(new Date(it.updatedAt)))+'</div>';
+    var catTag = it.category?'<span class="vaultDetChip">'+esc(it.category)+'</span>':'';
+    var tagChips = (it.tags&&it.tags.length)?it.tags.map(function(t){return '<span class="vaultDetChip tag">#'+esc(t)+'</span>';}).join(''):'';
+    var meta='<div class="vaultDetMeta">Updated '+niceDate(fmt(new Date(it.updatedAt)))+(it.createdAt?' · Added '+niceDate(fmt(new Date(it.createdAt))):'')+'</div>';
+    var hero='<div class="vaultDetHero"><div class="vaultDetAvatar">'+(type==='pw'?vaultInitial(it.title):'📝')+'</div><div class="vaultDetHeadInfo"><div class="vaultDetName">'+esc(it.title||'Untitled')+'</div><div class="vaultDetChips">'+catTag+tagChips+'</div></div></div>';
     var html;
     if(type==='pw'){
-      html='<div class="vaultDetField"><span class="vdLbl">Username</span><div class="vdVal"><span>'+esc(it.user||'—')+'</span>'+(it.user?'<button class="vaultBtn" data-vcopyuser="1">Copy</button>':'')+'</div></div>'
-        +'<div class="vaultDetField"><span class="vdLbl">Password</span><div class="vdVal"><span id="vdPass">••••••••</span><button class="vaultBtn" id="vdReveal">Show</button><button class="vaultBtn" data-vcopypass="1">Copy</button></div></div>'
-        +(it.url?'<div class="vaultDetField"><span class="vdLbl">Website</span><div class="vdVal"><span>'+esc(it.url)+'</span><button class="vaultBtn" data-vopenurl="1">Open</button></div></div>':'')
-        +(it.notes?'<div class="vaultDetField"><span class="vdLbl">Notes</span><div class="vdNote">'+esc(it.notes)+'</div></div>':'')
-        +((it.extra&&it.extra.length)?it.extra.map(function(e){return '<div class="vaultDetField"><span class="vdLbl">'+esc(e.label||'Detail')+'</span><div class="vdVal"><span>'+esc(e.value||'')+'</span><button class="vaultBtn" data-vcopyextra="'+esc(e.value||'')+'">Copy</button></div></div>';}).join(''):'')
+      var st=vaultPwStrength(it.pass);
+      html=hero
+        +(it.user?'<div class="vaultDetCard"><div class="vdRow"><span class="vdIcon">👤</span><div class="vdBody"><div class="vdLbl">Username / email</div><div class="vdVal">'+esc(it.user)+'</div></div><button class="vdAct" data-vcopyuser="1" title="Copy">⧉</button></div></div>':'')
+        +'<div class="vaultDetCard"><div class="vdRow"><span class="vdIcon">🔑</span><div class="vdBody"><div class="vdLbl">Password</div><div class="vdVal mono" id="vdPass">••••••••••</div><div class="vdStrength"><div class="vdStrengthBar"><i style="width:'+st.pct+'%;background:'+st.col+'"></i></div><span style="color:'+st.col+'">'+st.lvl+'</span></div></div><button class="vdAct" id="vdReveal" title="Show/Hide">👁</button><button class="vdAct" data-vcopypass="1" title="Copy">⧉</button></div></div>'
+        +(it.url?'<div class="vaultDetCard"><div class="vdRow"><span class="vdIcon">🌐</span><div class="vdBody"><div class="vdLbl">Website</div><div class="vdVal link">'+esc(it.url)+'</div></div><button class="vdAct" data-vopenurl="1" title="Open">↗</button></div></div>':'')
+        +((it.extra&&it.extra.length)?'<div class="vdSectionLbl">Additional details</div>'+it.extra.map(function(e){return '<div class="vaultDetCard"><div class="vdRow"><span class="vdIcon">📄</span><div class="vdBody"><div class="vdLbl">'+esc(e.label||'Detail')+'</div><div class="vdVal">'+esc(e.value||'')+'</div></div><button class="vdAct" data-vcopyextra="'+esc(e.value||'')+'" title="Copy">⧉</button></div></div>';}).join(''):'')
+        +(it.notes?'<div class="vaultDetCard"><div class="vdLbl" style="margin-bottom:6px">📝 Notes</div><div class="vdNote">'+esc(it.notes)+'</div></div>':'')
         +meta;
     } else {
-      html='<div class="vaultDetNoteBody">'+esc(it.body||'').replace(/\n/g,'<br>')+'</div>'+meta;
+      html=hero+'<div class="vaultDetCard"><div class="vaultDetNoteBody">'+esc(it.body||'').replace(/\n/g,'<br>')+'</div></div>'+meta;
     }
     $('vaultDetailBody').innerHTML=html; vShow('vaultDetail');
   }

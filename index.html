@@ -1153,6 +1153,117 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+/* ===== World-class Today ===== */
+/* Glance grid: each metric in a soft tinted tile */
+#pgToday .todayProgress{ border-radius:20px; padding:16px 14px 12px; }
+#pgToday .tpGrid8{ gap:4px 2px; }
+#pgToday .tpGrid8 .tpItem{ background:transparent; border:0; border-radius:12px; padding:10px 4px; transition:background .16s; }
+#pgToday .tpGrid8 .tpItem:active{ background:var(--card2); }
+#pgToday .tpGrid8 .tpItem .v{ font-size:20px; font-weight:800; letter-spacing:-.02em; font-variant-numeric:tabular-nums; }
+#pgToday .tpGrid8 .tpItem .k{ font-size:10px; font-weight:600; letter-spacing:.2px; color:var(--mut2); margin-top:3px; text-transform:none; }
+/* colored value glow per accent */
+#pgToday .tpGrid8 .tpItem .v.amber{ color:var(--amber); text-shadow:0 0 12px rgba(255,174,31,.35); }
+#pgToday .tpGrid8 .tpItem .v.green{ color:var(--green); text-shadow:0 0 12px rgba(52,199,89,.3); }
+#pgToday .tpGrid8 .tpItem .v.coral{ color:var(--coral); text-shadow:0 0 12px rgba(255,107,94,.3); }
+/* Section eyebrow inside glance */
+#pgToday .todayProgress .glanceHead,#pgToday .todayProgress .secH{ font-size:11px; font-weight:800; letter-spacing:1.4px; color:var(--mut2); margin-bottom:12px; }
+/* Habit rows: richer cards */
+#pgToday .habitRow,#pgToday .hcard{ border-radius:16px; transition:transform .16s cubic-bezier(.22,.61,.36,1); }
+#pgToday .habitRow:active,#pgToday .hcard:active{ transform:scale(.985); }
+/* Review card: gentle gradient accent */
+#pgToday .reviewCard,#pgToday .recoverBox{ background-image:linear-gradient(135deg, rgba(91,157,255,.08), transparent 55%); }
+/* Ask AI + FAB press already global; add glow to primary today CTAs */
+#pgToday .aiFab,#pgToday #aiFab{ box-shadow:0 6px 20px rgba(255,174,31,.3); }
+/* ===== World-class Money ===== */
+#pgExp .expHero2{ border-radius:20px; padding:20px; background:linear-gradient(135deg, rgba(52,199,89,.08), rgba(78,168,255,.05) 55%, var(--card)); border:1px solid var(--line2); box-shadow:0 10px 30px rgba(20,40,30,.28), inset 0 1px 0 rgba(255,255,255,.05); }
+#pgExp .expHeroNum{ font-size:40px; letter-spacing:-.035em; }
+#pgExp .heroAcctChip{ transition:transform .14s, background .14s; }
+#pgExp .heroAcctChip:active{ transform:scale(.94); }
+#pgExp .txRow{ background:var(--card); border:1px solid var(--line); border-radius:14px!important; margin-bottom:8px!important; padding:12px 13px!important; transition:transform .14s, border-color .14s; }
+#pgExp .txRow:active{ transform:scale(.99); }
+#pgExp .txIco{ box-shadow:0 2px 8px rgba(0,0,0,.2); }
+#pgExp .segX button.sel{ background:linear-gradient(135deg,#5b9dff,#4a8ae6)!important; color:#fff!important; }
+/* ===== World-class Journal ===== */
+#pgJr .jrCard{ border-radius:16px; border:1px solid var(--line); transition:transform .14s cubic-bezier(.22,.61,.36,1), border-color .14s; background-image:linear-gradient(180deg, rgba(255,255,255,.025), transparent 30%); }
+#pgJr .jrCard:active{ transform:scale(.99); }
+#pgJr .jrCard:hover{ border-color:var(--line2); }
+/* Journal nav pills (Timeline/Calendar/Write/Memories/AI) */
+#pgJr .jrNavItem,#pgJr .jrTab{ transition:transform .14s, border-color .14s; }
+#pgJr .jrNavItem:active,#pgJr .jrTab:active{ transform:scale(.95); }
+/* New Entry button glow */
+#pgJr .jrNewBtn{ box-shadow:0 6px 20px rgba(255,174,31,.28); }
+/* Journey stat card: premium numbers */
+#pgJr .jrStatCard{ border-radius:18px; }
+#pgJr .jrStat4 b{ font-size:22px; letter-spacing:-.02em; }
+/* mood emoji + time accent in entry cards */
+#pgJr .jrTime,#pgJr .jrEntryTime{ color:var(--amber); font-weight:700; }
+/* ===== World-class AI Assistant page ===== */
+#pgAI .aiCommandIntro{ font-size:14px; color:var(--mut); line-height:1.55; margin-bottom:16px; max-width:520px; }
+/* Assistant container: elevated glassy panel */
+#pgAI .uaiBox{ background:linear-gradient(180deg, rgba(155,123,255,.06), rgba(91,157,255,.03) 30%, var(--card)); border:1px solid var(--line2); border-radius:20px; overflow:hidden; box-shadow:0 12px 40px rgba(20,20,40,.35); }
+/* Header with glowing AI avatar */
+#pgAI .uaiTop{ display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--line); background:linear-gradient(180deg, rgba(255,255,255,.03), transparent); }
+#pgAI .uaiTopT{ display:flex; align-items:center; gap:9px; font-size:15px; font-weight:800; letter-spacing:-.01em; }
+#pgAI .uaiClear{ font-size:12px; font-weight:700; color:var(--mut); background:var(--card2); border:1px solid var(--line); border-radius:9px; padding:6px 12px; cursor:pointer; transition:all .14s; }
+#pgAI .uaiClear:active{ transform:scale(.94); }
+/* Welcome state */
+#pgAI .uaiWelcome{ padding:22px 18px 8px; text-align:center; }
+#pgAI .uaiWelcomeTitle{ font-size:19px; font-weight:800; letter-spacing:-.02em; margin-bottom:8px;
+  background:linear-gradient(135deg,#9b7bff,#5b9dff); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+#pgAI .uaiWelcomeText{ font-size:13px; color:var(--mut); line-height:1.6; max-width:340px; margin:0 auto 18px; }
+/* Category chips -> prompt cards */
+#pgAI .uaiCategoryRow{ display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:6px; }
+#pgAI .uaiCategory{ background:var(--card2); border:1px solid var(--line); border-radius:13px; padding:13px 12px; font-size:13.5px; font-weight:700; color:var(--ink2); cursor:pointer; text-align:left; transition:transform .14s, border-color .14s, background .14s; position:relative; }
+#pgAI .uaiCategory::before{ content:''; display:inline-block; width:7px; height:7px; border-radius:50%; margin-right:8px; vertical-align:middle; background:linear-gradient(135deg,#9b7bff,#5b9dff); }
+#pgAI .uaiCategory:active{ transform:scale(.97); }
+#pgAI .uaiCategory:hover{ border-color:var(--line2); background:var(--card3); }
+/* Chat log messages */
+#pgAI .uaiLog{ padding:8px 14px; }
+#pgAI .uaiMsg,#pgAI .uaiUser,#pgAI .uaiAi{ animation:aiMsgIn .3s cubic-bezier(.22,.61,.36,1); }
+@keyframes aiMsgIn{ from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:none} }
+/* Input row: premium bar with gradient send */
+#pgAI .uaiInputRow{ display:flex; align-items:center; gap:8px; padding:12px 14px; border-top:1px solid var(--line); background:linear-gradient(0deg, rgba(255,255,255,.02), transparent); }
+#pgAI .uaiMic{ width:40px; height:40px; flex:0 0 auto; border:1px solid var(--line); background:var(--card2); color:var(--ink2); border-radius:12px; display:grid; place-items:center; cursor:pointer; transition:all .14s; }
+#pgAI .uaiMic:active{ transform:scale(.9); }
+#pgAI .uaiMic svg{ width:19px; height:19px; }
+#pgAI .uaiInp{ flex:1; min-width:0; border-radius:14px; padding:12px 14px; font-size:14px; }
+#pgAI .uaiInp:focus{ border-color:#8b5cf6; box-shadow:0 0 0 3px rgba(139,92,246,.18); }
+#pgAI .uaiSend{ width:44px; height:44px; flex:0 0 auto; border:0; border-radius:14px; background:linear-gradient(135deg,#8b5cf6,#5b9dff); color:#fff; font-size:20px; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(123,110,255,.4); transition:transform .14s; display:grid; place-items:center; }
+#pgAI .uaiSend:active{ transform:scale(.9); }
+/* Quick hint pills */
+#pgAI .uaiHints{ display:flex; flex-wrap:wrap; gap:7px; padding:0 14px 16px; }
+#pgAI .uaiHint{ font-size:12px; font-weight:700; color:var(--mut); background:var(--card2); border:1px solid var(--line); border-radius:20px; padding:7px 13px; cursor:pointer; transition:all .14s; }
+#pgAI .uaiHint:active{ transform:scale(.94); }
+#pgAI .uaiHint:hover{ border-color:#8b5cf6; color:var(--ink2); }
+/* Config card refined */
+#pgAI .aiCfg{ border-radius:16px; margin-top:14px; }
+#pgAI .aiCfgIcon{ background:linear-gradient(135deg,rgba(139,92,246,.2),rgba(91,157,255,.2)); border-radius:11px; }
+/* ===== World-class polish layer (all pages) ===== */
+/* Refined depth + press feedback on interactive cards */
+.moreCard,.taskCard,.jrCard,.vaultCard,.setCard{ transition:transform .16s cubic-bezier(.22,.61,.36,1), box-shadow .16s ease, border-color .16s ease; }
+.moreCard:active,.taskCard:active,.vaultCard:active{ transform:scale(.98); }
+/* More page: richer icon tiles with soft tinted glow */
+#pgMore .moreCard{ position:relative; overflow:hidden; }
+#pgMore .moreCard .mi,#pgMore .moreCard .moreIco{ filter:drop-shadow(0 2px 4px rgba(0,0,0,.25)); }
+#pgMore .moreCard::after{ content:''; position:absolute; top:-40%; right:-30%; width:120px; height:120px; border-radius:50%; background:radial-gradient(circle, var(--amberSoft), transparent 70%); opacity:.6; pointer-events:none; }
+/* Journal timeline entries: cleaner cards + hover lift on desktop */
+.jrCard{ border-radius:16px; }
+.jrCard:hover{ border-color:var(--line2); }
+/* Section eyebrows: tighter, more premium */
+.eyebrow,.secH{ letter-spacing:1.4px; }
+/* AI page: prettier suggestion chips */
+#pgAI .chip,.aiChip{ transition:transform .14s ease, background .14s ease; }
+#pgAI .chip:active,.aiChip:active{ transform:scale(.94); }
+/* Money hero number: tighter tracking for a premium feel */
+.expHeroNum{ letter-spacing:-.03em; }
+/* Smooth number/stat emphasis */
+.tpCell b,.jrStat4 b,.taskStatRow b{ font-variant-numeric:tabular-nums; }
+/* Inputs: nicer focus ring everywhere */
+.inp:focus,input:focus,textarea:focus{ border-color:var(--amber); box-shadow:0 0 0 3px var(--amberSoft); outline:none; }
+/* Buttons: consistent press */
+button:active,.btn:active,.sbtn:active,.primary:active{ transform:scale(.97); }
+/* Cards get a hairline top-sheen for material depth */
+.todayProgress,.expHero2,.jrStatCard,.chartBox{ background-image:linear-gradient(180deg, rgba(255,255,255,.03), transparent 34%); }
 /* ===== Paper texture layer (subtle physical-material feel, behind all content) ===== */
 :root{ --paper-intensity:0; --paper-scale:0.9; --paper-warmth:0; }
 #paperLayer{ position:fixed; inset:0; z-index:0; pointer-events:none; display:none;
@@ -1323,7 +1434,32 @@ button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:a
 .vaultFormBtns>button{flex:1}
 .vaultFormBtns .del{color:var(--coral)}
 .vaultDetField{margin-bottom:12px}
-.vdLbl{display:block;font-size:11px;font-weight:700;color:var(--mut2);margin-bottom:4px}
+/* World-class vault detail view */
+.vaultDetHero{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.vaultDetAvatar{width:56px;height:56px;border-radius:16px;background:linear-gradient(135deg,var(--amber),var(--amberDeep));color:#171310;font-size:24px;font-weight:800;display:grid;place-items:center;flex:0 0 auto;box-shadow:0 6px 16px rgba(255,174,31,.3)}
+.vaultDetHeadInfo{flex:1;min-width:0}
+.vaultDetName{font-size:20px;font-weight:800;letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vaultDetChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.vaultDetChip{font-size:10.5px;font-weight:700;background:var(--card2);border:1px solid var(--line);color:var(--mut);border-radius:8px;padding:3px 8px}
+.vaultDetChip.tag{color:var(--ice)}
+.vaultDetCard{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-bottom:10px}
+.vdRow{display:flex;align-items:center;gap:12px}
+.vdIcon{font-size:18px;flex:0 0 auto;width:24px;text-align:center}
+.vdBody{flex:1;min-width:0}
+.vdLbl{font-size:10.5px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;color:var(--mut2)}
+.vdVal{font-size:15px;font-weight:600;color:var(--ink);margin-top:2px;word-break:break-word}
+.vdVal.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;letter-spacing:1px}
+.vdVal.link{color:var(--ice)}
+.vdAct{flex:0 0 auto;width:38px;height:38px;border:1px solid var(--line);background:var(--card2);color:var(--ink2);border-radius:11px;font-size:16px;cursor:pointer;transition:transform .12s,background .15s}
+.vdAct:active{transform:scale(.9)}
+.vdStrength{display:flex;align-items:center;gap:8px;margin-top:8px}
+.vdStrengthBar{flex:1;height:4px;border-radius:3px;background:var(--card3);overflow:hidden}
+.vdStrengthBar i{display:block;height:100%;border-radius:3px;transition:width .4s ease}
+.vdStrength span{font-size:10.5px;font-weight:800}
+.vdSectionLbl{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mut2);margin:16px 2px 8px}
+.vdNote{font-size:13.5px;color:var(--ink2);line-height:1.55;white-space:pre-wrap}
+.vaultDetNoteBody{font-size:15px;color:var(--ink);line-height:1.7;white-space:pre-wrap}
+.vaultDetMeta{font-size:11px;color:var(--mut2);text-align:center;margin-top:16px;line-height:1.5}.vdLbl{display:block;font-size:11px;font-weight:700;color:var(--mut2);margin-bottom:4px}
 .vdVal{display:flex;align-items:center;gap:8px}.vdVal>span{flex:1;font-size:14px;word-break:break-all}
 .vdNote{font-size:13px;color:var(--ink2);line-height:1.5;background:var(--card2);border-radius:10px;padding:10px}
 .vaultDetNoteBody{font-size:14px;color:var(--ink);line-height:1.6;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;min-height:120px}
@@ -6714,17 +6850,18 @@ function jrCalPick(iso){
 }
 
 /* ---- editor ---- */
-function openJr(id, prompt, tplBody, forceDate){
-  var src = id ? jrFind(id) : null;
+function openJr(id, prompt, tplBody, forceDate, draftObj){
+  var src = id ? jrFind(id) : (draftObj || null);
   var now=new Date();
   jrEd = src ? JSON.parse(JSON.stringify(src)) : {id:'',date:(forceDate||jrToday()),time:now.toTimeString().slice(0,5),title:'',content:'',mood:'',tags:[],favorite:false,template:'',createdAt:Date.now(),updatedAt:Date.now()};
   jrEd._edit = id||'';
-  setText('shJrTitle', id?'Edit entry':'New entry');
+  if(draftObj && !id){ jrEd._draftId = draftObj.id; jrEd._edit=''; }
+  setText('shJrTitle', id?'Edit entry':(draftObj?'Resume draft':'New entry'));
   $('jrTitle').value = jrEd.title||'';
-  $('jrDate').value = jrEd.date;
+  $('jrDate').value = jrEd.date||(forceDate||jrToday());
   $('jrTime').value = jrEd.time||now.toTimeString().slice(0,5);
   if($('jrLocation')) $('jrLocation').value = jrEd.location||'';
-  $('jrBody').innerHTML = src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
+  $('jrBody').innerHTML = (src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':'')));
   if(!$('jrBody').innerHTML.trim()) $('jrBody').innerHTML='<p><br></p>';
   var _ft=$('jrFavTog'); if(_ft){ _ft.classList.toggle('on', !!jrEd.favorite); _ft.setAttribute('aria-checked', !!jrEd.favorite); }
   jrSyncMood();
@@ -10020,7 +10157,7 @@ function init(){
   }
   var _jd=$('jrDraftsBtn'); if(_jd) _jd.addEventListener('click', function(){ renderJrDrafts(); openSheet('jrDraftsSheet'); });
   var _jdl=$('jrDraftsList'); if(_jdl) _jdl.addEventListener('click', function(e){
-    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ closeSheet(); setTimeout(function(){ openJr(null); jrEd._draftId=dr.id; jrEd.mood=dr.mood||''; jrEd.tags=dr.tags||[]; $('jrTitle').value=dr.title||''; $('jrBody').innerHTML=dr.content||''; $('jrDate').value=dr.date||jrToday(); $('jrTime').value=dr.time||''; if($('jrLocation'))$('jrLocation').value=dr.location||''; },160); } return; }
+    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ closeSheet(); setTimeout(function(){ try{ openJr(null,null,null,null,dr); }catch(err){ toastN&&toastN('Could not open draft'); } }, 260); } return; }
     var del=e.target.closest('[data-draft-del]'); if(del){ jrClearDraft(del.getAttribute('data-draft-del')); renderJrDrafts(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeSheet(); return; }
   });
   window._renderJrDraftsBtn=renderJrDraftsBtn;
@@ -10213,22 +10350,29 @@ function init(){
   }
   function vErr(id,msg){ var e=$(id); if(e){ e.textContent=msg; e.style.display=''; } }
   /* ---- detail ---- */
+  function vaultPwStrength(pw){ pw=pw||''; var s=0; if(pw.length>=8)s++; if(pw.length>=12)s++; if(/[A-Z]/.test(pw)&&/[a-z]/.test(pw))s++; if(/[0-9]/.test(pw))s++; if(/[^A-Za-z0-9]/.test(pw))s++; var lvl=s<=1?'Weak':s<=3?'Fair':'Strong'; var col=s<=1?'var(--coral)':s<=3?'var(--sYellow,#E0A11B)':'var(--sGreen,#34C759)'; return {lvl:lvl,col:col,pct:Math.min(100,s*20)}; }
+  function vaultInitial(t){ t=(t||'?').trim(); return t.charAt(0).toUpperCase(); }
   function vaultOpenDetail(type,id){
     var arr=_vaultData[type], idx=arr.findIndex(function(x){return x.id===id;}); if(idx<0) return;
     _vaultDetail={type:type,idx:idx}; var it=arr[idx];
     setText('vaultDetailTitle', it.title||(type==='pw'?'Password':'Note'));
     $('vaultDetailFav').textContent = it.favorite?'★':'☆'; $('vaultDetailFav').classList.toggle('on', it.favorite);
-    var meta='<div class="vaultDetMeta">'+(it.category?esc(it.category):'')+(it.tags&&it.tags.length?' \u00B7 '+it.tags.map(function(t){return '#'+esc(t);}).join(' '):'')+'<br>Updated '+niceDate(fmt(new Date(it.updatedAt)))+'</div>';
+    var catTag = it.category?'<span class="vaultDetChip">'+esc(it.category)+'</span>':'';
+    var tagChips = (it.tags&&it.tags.length)?it.tags.map(function(t){return '<span class="vaultDetChip tag">#'+esc(t)+'</span>';}).join(''):'';
+    var meta='<div class="vaultDetMeta">Updated '+niceDate(fmt(new Date(it.updatedAt)))+(it.createdAt?' · Added '+niceDate(fmt(new Date(it.createdAt))):'')+'</div>';
+    var hero='<div class="vaultDetHero"><div class="vaultDetAvatar">'+(type==='pw'?vaultInitial(it.title):'📝')+'</div><div class="vaultDetHeadInfo"><div class="vaultDetName">'+esc(it.title||'Untitled')+'</div><div class="vaultDetChips">'+catTag+tagChips+'</div></div></div>';
     var html;
     if(type==='pw'){
-      html='<div class="vaultDetField"><span class="vdLbl">Username</span><div class="vdVal"><span>'+esc(it.user||'—')+'</span>'+(it.user?'<button class="vaultBtn" data-vcopyuser="1">Copy</button>':'')+'</div></div>'
-        +'<div class="vaultDetField"><span class="vdLbl">Password</span><div class="vdVal"><span id="vdPass">••••••••</span><button class="vaultBtn" id="vdReveal">Show</button><button class="vaultBtn" data-vcopypass="1">Copy</button></div></div>'
-        +(it.url?'<div class="vaultDetField"><span class="vdLbl">Website</span><div class="vdVal"><span>'+esc(it.url)+'</span><button class="vaultBtn" data-vopenurl="1">Open</button></div></div>':'')
-        +(it.notes?'<div class="vaultDetField"><span class="vdLbl">Notes</span><div class="vdNote">'+esc(it.notes)+'</div></div>':'')
-        +((it.extra&&it.extra.length)?it.extra.map(function(e){return '<div class="vaultDetField"><span class="vdLbl">'+esc(e.label||'Detail')+'</span><div class="vdVal"><span>'+esc(e.value||'')+'</span><button class="vaultBtn" data-vcopyextra="'+esc(e.value||'')+'">Copy</button></div></div>';}).join(''):'')
+      var st=vaultPwStrength(it.pass);
+      html=hero
+        +(it.user?'<div class="vaultDetCard"><div class="vdRow"><span class="vdIcon">👤</span><div class="vdBody"><div class="vdLbl">Username / email</div><div class="vdVal">'+esc(it.user)+'</div></div><button class="vdAct" data-vcopyuser="1" title="Copy">⧉</button></div></div>':'')
+        +'<div class="vaultDetCard"><div class="vdRow"><span class="vdIcon">🔑</span><div class="vdBody"><div class="vdLbl">Password</div><div class="vdVal mono" id="vdPass">••••••••••</div><div class="vdStrength"><div class="vdStrengthBar"><i style="width:'+st.pct+'%;background:'+st.col+'"></i></div><span style="color:'+st.col+'">'+st.lvl+'</span></div></div><button class="vdAct" id="vdReveal" title="Show/Hide">👁</button><button class="vdAct" data-vcopypass="1" title="Copy">⧉</button></div></div>'
+        +(it.url?'<div class="vaultDetCard"><div class="vdRow"><span class="vdIcon">🌐</span><div class="vdBody"><div class="vdLbl">Website</div><div class="vdVal link">'+esc(it.url)+'</div></div><button class="vdAct" data-vopenurl="1" title="Open">↗</button></div></div>':'')
+        +((it.extra&&it.extra.length)?'<div class="vdSectionLbl">Additional details</div>'+it.extra.map(function(e){return '<div class="vaultDetCard"><div class="vdRow"><span class="vdIcon">📄</span><div class="vdBody"><div class="vdLbl">'+esc(e.label||'Detail')+'</div><div class="vdVal">'+esc(e.value||'')+'</div></div><button class="vdAct" data-vcopyextra="'+esc(e.value||'')+'" title="Copy">⧉</button></div></div>';}).join(''):'')
+        +(it.notes?'<div class="vaultDetCard"><div class="vdLbl" style="margin-bottom:6px">📝 Notes</div><div class="vdNote">'+esc(it.notes)+'</div></div>':'')
         +meta;
     } else {
-      html='<div class="vaultDetNoteBody">'+esc(it.body||'').replace(/\n/g,'<br>')+'</div>'+meta;
+      html=hero+'<div class="vaultDetCard"><div class="vaultDetNoteBody">'+esc(it.body||'').replace(/\n/g,'<br>')+'</div></div>'+meta;
     }
     $('vaultDetailBody').innerHTML=html; vShow('vaultDetail');
   }
