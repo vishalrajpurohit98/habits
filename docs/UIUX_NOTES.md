@@ -23,3 +23,9 @@
   * Own CSS: bright panel, carded rows (#262a35), grab handle, close ✕, red trash delete, spring slide-in.
 - Verified: overlay opens (2 rows), resume opens editor w/ title+content+draftId, delete removes row;
   suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# drafts -> centered popup (v4.2.1)
+- Feedback: drafts bottom-sheet got cut off on wide/desktop screens. Converted #draftsOverlay to a CENTERED
+  modal popup: align-items center, panel is a floating rounded card (max 440px / 78vh), scale-in animation
+  (removed slide-up + grab handle). Verified fully visible + both rows shown at mobile (390) AND desktop
+  (868) widths. suite1 51/52 (known timing), suite2 25/25; zero errors.
