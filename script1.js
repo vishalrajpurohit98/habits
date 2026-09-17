@@ -5470,6 +5470,8 @@ function applyTheme(){
   var root = document.documentElement;
   root.classList.toggle('light', L);
   root.classList.toggle('amoled', !L && (state.set.theme === 'amoled'));
+  /* World-class rebuild design layer: ON by default; user can disable via Settings (uiClassic) */
+  root.classList.toggle('rebuild', !(state.set && state.set.uiClassic));
   var fonts = ['nothing','apple','google','space','bricolage','serif','system'];
   for(var fi=0; fi<fonts.length; fi++) root.classList.toggle('font-'+fonts[fi], state.set.font === fonts[fi]);
   var pal = state.set.pal || 'ember';
@@ -6964,7 +6966,7 @@ function init(){
   }
   var _jd=$('jrDraftsBtn'); if(_jd) _jd.addEventListener('click', function(){ renderJrDrafts(); openSheet('jrDraftsSheet'); });
   var _jdl=$('jrDraftsList'); if(_jdl) _jdl.addEventListener('click', function(e){
-    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ closeSheet(); setTimeout(function(){ try{ openJr(null,null,null,null,dr); }catch(err){ toastN&&toastN('Could not open draft'); } }, 260); } return; }
+    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ try{ var ds=document.getElementById('jrDraftsSheet'); if(ds) ds.classList.remove('open'); openJr(null,null,null,null,dr); }catch(err){ toastN&&toastN('Could not open draft'); } } return; }
     var del=e.target.closest('[data-draft-del]'); if(del){ jrClearDraft(del.getAttribute('data-draft-del')); renderJrDrafts(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeSheet(); return; }
   });
   window._renderJrDraftsBtn=renderJrDraftsBtn;

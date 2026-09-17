@@ -49,3 +49,12 @@
 - SCREENSHOTTED every screen (Today/Tasks/Money/Journal/More/Stats/AI/Settings/Vault) — all render clean.
 - FUNCTIONALITY VERIFIED under rebuild: habit/task/money/journal/mood/sleep/vault-crypto/sync/nav/tuner ALL
   pass. suite1 51/52 (known timing), suite2 25/25. Zero errors.
+
+# v5.1 — FIX CI build (obsolete 'tools' pkg) + draft-open robustness
+- CI: setup-android@v3 auto-tried obsolete 'tools' SDK pkg on new runner -> build failed. Fixed: pin
+  cmdline-tools-version + packages:'' so only our explicit sdkmanager step installs (platform-tools,
+  android-34, build-tools 35). Code was never the problem.
+- Journal draft blank-on-open: removed the fragile closeSheet->setTimeout->openJr race that left a dim
+  in-between state on slower devices. Now hides drafts sheet 'open' class + opens editor immediately (no
+  timeout). Verified draft opens with title+content+mood on mobile AND desktop widths.
+- suite1 51/52 (known timing), suite2 25/25; zero errors.

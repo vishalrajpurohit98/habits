@@ -10218,7 +10218,7 @@ function init(){
   }
   var _jd=$('jrDraftsBtn'); if(_jd) _jd.addEventListener('click', function(){ renderJrDrafts(); openSheet('jrDraftsSheet'); });
   var _jdl=$('jrDraftsList'); if(_jdl) _jdl.addEventListener('click', function(e){
-    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ closeSheet(); setTimeout(function(){ try{ openJr(null,null,null,null,dr); }catch(err){ toastN&&toastN('Could not open draft'); } }, 260); } return; }
+    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ try{ var ds=document.getElementById('jrDraftsSheet'); if(ds) ds.classList.remove('open'); openJr(null,null,null,null,dr); }catch(err){ toastN&&toastN('Could not open draft'); } } return; }
     var del=e.target.closest('[data-draft-del]'); if(del){ jrClearDraft(del.getAttribute('data-draft-del')); renderJrDrafts(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeSheet(); return; }
   });
   window._renderJrDraftsBtn=renderJrDraftsBtn;
