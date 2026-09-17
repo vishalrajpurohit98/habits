@@ -3657,14 +3657,15 @@ function jrCalPick(iso){
 }
 
 /* ---- editor ---- */
-function openJr(id, prompt, tplBody, forceDate){
-  var src = id ? jrFind(id) : null;
+function openJr(id, prompt, tplBody, forceDate, draftObj){
+  var src = id ? jrFind(id) : (draftObj || null);
   var now=new Date();
   jrEd = src ? JSON.parse(JSON.stringify(src)) : {id:'',date:(forceDate||jrToday()),time:now.toTimeString().slice(0,5),title:'',content:'',mood:'',tags:[],favorite:false,template:'',createdAt:Date.now(),updatedAt:Date.now()};
   jrEd._edit = id||'';
-  setText('shJrTitle', id?'Edit entry':'New entry');
+  if(draftObj && !id){ jrEd._draftId = draftObj.id; jrEd.id=''; jrEd._edit=''; }
+  setText('shJrTitle', id?'Edit entry':(draftObj?'Resume draft':'New entry'));
   $('jrTitle').value = jrEd.title||'';
-  $('jrDate').value = jrEd.date;
+  $('jrDate').value = jrEd.date||(forceDate||jrToday());
   $('jrTime').value = jrEd.time||now.toTimeString().slice(0,5);
   if($('jrLocation')) $('jrLocation').value = jrEd.location||'';
   $('jrBody').innerHTML = src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
@@ -6953,18 +6954,39 @@ function init(){
     window.addEventListener('online', function(){ try{renderSyncIcon();}catch(e){} });
     window.addEventListener('offline', function(){ try{renderSyncIcon();}catch(e){} });
   })();
-  /* ===== Journal drafts ===== */
-  function renderJrDraftsBtn(){ var btn=$('jrDraftsBtn'); if(!btn) return; var n=(state.jrDrafts||[]).length; btn.style.display=n?'':'none'; btn.textContent='📝 Drafts ('+n+')'; }
-  function renderJrDrafts(){
-    var box=$('jrDraftsList'); if(!box) return;
+  /* ===== Journal drafts (rebuilt: self-contained overlay, no shared sheet/scrim) ===== */
+  function renderJrDraftsBtn(){ var btn=$('jrDraftsBtn'); if(!btn) return; var n=(state.jrDrafts||[]).length; btn.style.display=n?'':'none'; btn.textContent='\uD83D\uDCDD Drafts ('+n+')'; }
+  function draftLabel(dr){ var t=(dr.title||'').trim(); if(!t){ try{ t=(jrStrip(dr.content||'')||'').trim().slice(0,50); }catch(e){ t=''; } } return t||'Untitled draft'; }
+  function renderDraftsList(){
+    var box=$('draftsList'); if(!box) return;
     var d=state.jrDrafts||[];
-    if(!d.length){ box.innerHTML='<div class="setS" style="text-align:center;padding:20px">No drafts.</div>'; return; }
-    box.innerHTML=d.map(function(dr,i){ var t=(dr.title||jrStrip(dr.content).slice(0,40)||'Untitled draft'); return '<div class="trashRow"><div class="trashInfo" data-draft-open="'+dr.id+'" style="cursor:pointer"><div class="trashLabel">'+esc(t)+'</div><div class="trashMeta">'+(dr.date||'')+' · saved '+niceDate(fmt(new Date(dr.savedAt)))+'</div></div><button class="sbtn" data-draft-del="'+dr.id+'">Delete</button></div>'; }).join('');
+    if(!d.length){ box.innerHTML='<div class="draftsEmpty">No drafts yet.</div>'; return; }
+    box.innerHTML=d.map(function(dr){
+      var when=''; try{ when=(dr.date||'')+' \u00B7 saved '+niceDate(fmt(new Date(dr.savedAt))); }catch(e){ when=dr.date||''; }
+      return '<div class="draftItem" data-draft="'+esc(dr.id)+'">'
+        + '<div class="draftItemMain" data-draft-open="'+esc(dr.id)+'">'
+        +   '<div class="draftItemTitle">'+esc(draftLabel(dr))+'</div>'
+        +   '<div class="draftItemMeta">'+esc(when)+'</div>'
+        + '</div>'
+        + '<button class="draftItemDel" data-draft-del="'+esc(dr.id)+'" aria-label="Delete draft">\uD83D\uDDD1</button>'
+        + '</div>';
+    }).join('');
   }
-  var _jd=$('jrDraftsBtn'); if(_jd) _jd.addEventListener('click', function(){ renderJrDrafts(); openSheet('jrDraftsSheet'); });
-  var _jdl=$('jrDraftsList'); if(_jdl) _jdl.addEventListener('click', function(e){
-    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ closeSheet(); setTimeout(function(){ openJr(null); jrEd._draftId=dr.id; jrEd.mood=dr.mood||''; jrEd.tags=dr.tags||[]; $('jrTitle').value=dr.title||''; $('jrBody').innerHTML=dr.content||''; $('jrDate').value=dr.date||jrToday(); $('jrTime').value=dr.time||''; if($('jrLocation'))$('jrLocation').value=dr.location||''; },160); } return; }
-    var del=e.target.closest('[data-draft-del]'); if(del){ jrClearDraft(del.getAttribute('data-draft-del')); renderJrDrafts(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeSheet(); return; }
+  function openDraftsOverlay(){ var ov=$('draftsOverlay'); if(!ov) return; renderDraftsList(); ov.style.display='flex'; requestAnimationFrame(function(){ ov.classList.add('on'); }); }
+  function closeDraftsOverlay(){ var ov=$('draftsOverlay'); if(!ov) return; ov.classList.remove('on'); setTimeout(function(){ ov.style.display='none'; }, 220); }
+  function resumeDraft(id){
+    var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(!dr) return;
+    closeDraftsOverlay();
+    /* open the editor directly with the draft loaded (openJr supports a draftObj param) */
+    try{ openJr(null,null,null,null,dr); }
+    catch(e){ /* fallback: manual load */ try{ openJr(null); jrEd._draftId=dr.id; jrEd.mood=dr.mood||''; jrEd.tags=dr.tags||[]; if($('jrTitle'))$('jrTitle').value=dr.title||''; if($('jrBody'))$('jrBody').innerHTML=dr.content||'<p><br></p>'; if($('jrDate'))$('jrDate').value=dr.date||jrToday(); if($('jrTime'))$('jrTime').value=dr.time||''; if($('jrLocation'))$('jrLocation').value=dr.location||''; }catch(e2){ toastN&&toastN('Could not open draft'); } }
+  }
+  var _jdBtn=$('jrDraftsBtn'); if(_jdBtn) _jdBtn.addEventListener('click', openDraftsOverlay);
+  var _jdClose=$('draftsClose'); if(_jdClose) _jdClose.addEventListener('click', closeDraftsOverlay);
+  var _jdOv=$('draftsOverlay'); if(_jdOv) _jdOv.addEventListener('click', function(e){
+    if(e.target===_jdOv){ closeDraftsOverlay(); return; }              /* tap backdrop closes */
+    var op=e.target.closest('[data-draft-open]'); if(op){ resumeDraft(op.getAttribute('data-draft-open')); return; }
+    var del=e.target.closest('[data-draft-del]'); if(del){ e.stopPropagation(); jrClearDraft(del.getAttribute('data-draft-del')); renderDraftsList(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeDraftsOverlay(); return; }
   });
   window._renderJrDraftsBtn=renderJrDraftsBtn;
   /* Save a draft when the journal editor is dismissed without saving */

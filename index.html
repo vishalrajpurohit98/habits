@@ -1153,6 +1153,31 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+/* ===== Drafts overlay (rebuilt from scratch — independent of shared sheet/scrim) ===== */
+.draftsOverlay{ position:fixed; inset:0; z-index:100000; display:none; align-items:flex-end; justify-content:center;
+  background:rgba(0,0,0,.5); opacity:0; transition:opacity .22s ease; }
+.draftsOverlay.on{ opacity:1; }
+.draftsPanel{ width:100%; max-width:480px; max-height:80vh; display:flex; flex-direction:column;
+  background:#1b1e27; border:1px solid rgba(255,255,255,.14); border-bottom:0;
+  border-radius:24px 24px 0 0; box-shadow:0 -24px 70px rgba(0,0,0,.6);
+  transform:translateY(100%); transition:transform .28s cubic-bezier(.22,.61,.36,1);
+  padding:8px 18px calc(20px + env(safe-area-inset-bottom,0px)); }
+.draftsOverlay.on .draftsPanel{ transform:translateY(0); }
+.draftsPanel::before{ content:''; display:block; width:38px; height:4px; border-radius:3px; background:rgba(255,255,255,.22); margin:6px auto 12px; }
+.draftsHead{ display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+.draftsTitle{ font-size:19px; font-weight:800; color:#fff; }
+.draftsClose{ width:34px; height:34px; border-radius:11px; border:1px solid rgba(255,255,255,.14); background:#262a35; color:#cfd3dd; font-size:15px; cursor:pointer; }
+.draftsHint{ font-size:12.5px; color:#9aa0ad; line-height:1.5; margin-bottom:14px; }
+.draftsList{ overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.draftsEmpty{ text-align:center; color:#8b90a0; padding:28px 10px; font-size:14px; }
+.draftItem{ display:flex; align-items:center; gap:10px; background:#262a35; border:1px solid rgba(255,255,255,.12);
+  border-radius:14px; padding:14px; margin-bottom:10px; }
+.draftItemMain{ flex:1; min-width:0; cursor:pointer; }
+.draftItemTitle{ font-size:15px; font-weight:700; color:#fff; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.draftItemMeta{ font-size:11.5px; color:#9aa0ad; margin-top:3px; }
+.draftItemDel{ flex:0 0 auto; width:40px; height:40px; border-radius:11px; border:1px solid rgba(255,255,255,.12);
+  background:#2f2330; color:#fb7185; font-size:17px; cursor:pointer; }
+.draftItemDel:active,.draftsClose:active{ transform:scale(.9); }
 /* ===== Paper texture layer (subtle physical-material feel, behind all content) ===== */
 :root{ --paper-intensity:0; --paper-scale:0.9; --paper-warmth:0; }
 #paperLayer{ position:fixed; inset:0; z-index:0; pointer-events:none; display:none;
@@ -2128,11 +2153,15 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="taskExportBtns" style="margin-top:12px"><button class="sbtn" id="taskExportPdf">PDF</button><button class="sbtn acc" id="taskExportXlsx">Excel</button></div>
   </div>
 
-  <div class="sheet" id="jrDraftsSheet">
-    <div class="grab"></div>
-    <h2>📝 Drafts</h2>
-    <div class="setS" style="margin-bottom:10px">Entries you started but didn't save. Tap to resume, or delete.</div>
-    <div id="jrDraftsList"></div>
+  <div class="draftsOverlay" id="draftsOverlay" style="display:none">
+    <div class="draftsPanel">
+      <div class="draftsHead">
+        <div class="draftsTitle">📝 Drafts</div>
+        <button class="draftsClose" id="draftsClose" aria-label="Close">✕</button>
+      </div>
+      <div class="draftsHint">Entries you started but didn't save. Tap one to resume, or delete.</div>
+      <div class="draftsList" id="draftsList"></div>
+    </div>
   </div>
 
   <div class="page" id="pgVault">
@@ -6714,14 +6743,15 @@ function jrCalPick(iso){
 }
 
 /* ---- editor ---- */
-function openJr(id, prompt, tplBody, forceDate){
-  var src = id ? jrFind(id) : null;
+function openJr(id, prompt, tplBody, forceDate, draftObj){
+  var src = id ? jrFind(id) : (draftObj || null);
   var now=new Date();
   jrEd = src ? JSON.parse(JSON.stringify(src)) : {id:'',date:(forceDate||jrToday()),time:now.toTimeString().slice(0,5),title:'',content:'',mood:'',tags:[],favorite:false,template:'',createdAt:Date.now(),updatedAt:Date.now()};
   jrEd._edit = id||'';
-  setText('shJrTitle', id?'Edit entry':'New entry');
+  if(draftObj && !id){ jrEd._draftId = draftObj.id; jrEd.id=''; jrEd._edit=''; }
+  setText('shJrTitle', id?'Edit entry':(draftObj?'Resume draft':'New entry'));
   $('jrTitle').value = jrEd.title||'';
-  $('jrDate').value = jrEd.date;
+  $('jrDate').value = jrEd.date||(forceDate||jrToday());
   $('jrTime').value = jrEd.time||now.toTimeString().slice(0,5);
   if($('jrLocation')) $('jrLocation').value = jrEd.location||'';
   $('jrBody').innerHTML = src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
@@ -10010,18 +10040,39 @@ function init(){
     window.addEventListener('online', function(){ try{renderSyncIcon();}catch(e){} });
     window.addEventListener('offline', function(){ try{renderSyncIcon();}catch(e){} });
   })();
-  /* ===== Journal drafts ===== */
-  function renderJrDraftsBtn(){ var btn=$('jrDraftsBtn'); if(!btn) return; var n=(state.jrDrafts||[]).length; btn.style.display=n?'':'none'; btn.textContent='📝 Drafts ('+n+')'; }
-  function renderJrDrafts(){
-    var box=$('jrDraftsList'); if(!box) return;
+  /* ===== Journal drafts (rebuilt: self-contained overlay, no shared sheet/scrim) ===== */
+  function renderJrDraftsBtn(){ var btn=$('jrDraftsBtn'); if(!btn) return; var n=(state.jrDrafts||[]).length; btn.style.display=n?'':'none'; btn.textContent='\uD83D\uDCDD Drafts ('+n+')'; }
+  function draftLabel(dr){ var t=(dr.title||'').trim(); if(!t){ try{ t=(jrStrip(dr.content||'')||'').trim().slice(0,50); }catch(e){ t=''; } } return t||'Untitled draft'; }
+  function renderDraftsList(){
+    var box=$('draftsList'); if(!box) return;
     var d=state.jrDrafts||[];
-    if(!d.length){ box.innerHTML='<div class="setS" style="text-align:center;padding:20px">No drafts.</div>'; return; }
-    box.innerHTML=d.map(function(dr,i){ var t=(dr.title||jrStrip(dr.content).slice(0,40)||'Untitled draft'); return '<div class="trashRow"><div class="trashInfo" data-draft-open="'+dr.id+'" style="cursor:pointer"><div class="trashLabel">'+esc(t)+'</div><div class="trashMeta">'+(dr.date||'')+' · saved '+niceDate(fmt(new Date(dr.savedAt)))+'</div></div><button class="sbtn" data-draft-del="'+dr.id+'">Delete</button></div>'; }).join('');
+    if(!d.length){ box.innerHTML='<div class="draftsEmpty">No drafts yet.</div>'; return; }
+    box.innerHTML=d.map(function(dr){
+      var when=''; try{ when=(dr.date||'')+' \u00B7 saved '+niceDate(fmt(new Date(dr.savedAt))); }catch(e){ when=dr.date||''; }
+      return '<div class="draftItem" data-draft="'+esc(dr.id)+'">'
+        + '<div class="draftItemMain" data-draft-open="'+esc(dr.id)+'">'
+        +   '<div class="draftItemTitle">'+esc(draftLabel(dr))+'</div>'
+        +   '<div class="draftItemMeta">'+esc(when)+'</div>'
+        + '</div>'
+        + '<button class="draftItemDel" data-draft-del="'+esc(dr.id)+'" aria-label="Delete draft">\uD83D\uDDD1</button>'
+        + '</div>';
+    }).join('');
   }
-  var _jd=$('jrDraftsBtn'); if(_jd) _jd.addEventListener('click', function(){ renderJrDrafts(); openSheet('jrDraftsSheet'); });
-  var _jdl=$('jrDraftsList'); if(_jdl) _jdl.addEventListener('click', function(e){
-    var op=e.target.closest('[data-draft-open]'); if(op){ var id=op.getAttribute('data-draft-open'); var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(dr){ closeSheet(); setTimeout(function(){ openJr(null); jrEd._draftId=dr.id; jrEd.mood=dr.mood||''; jrEd.tags=dr.tags||[]; $('jrTitle').value=dr.title||''; $('jrBody').innerHTML=dr.content||''; $('jrDate').value=dr.date||jrToday(); $('jrTime').value=dr.time||''; if($('jrLocation'))$('jrLocation').value=dr.location||''; },160); } return; }
-    var del=e.target.closest('[data-draft-del]'); if(del){ jrClearDraft(del.getAttribute('data-draft-del')); renderJrDrafts(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeSheet(); return; }
+  function openDraftsOverlay(){ var ov=$('draftsOverlay'); if(!ov) return; renderDraftsList(); ov.style.display='flex'; requestAnimationFrame(function(){ ov.classList.add('on'); }); }
+  function closeDraftsOverlay(){ var ov=$('draftsOverlay'); if(!ov) return; ov.classList.remove('on'); setTimeout(function(){ ov.style.display='none'; }, 220); }
+  function resumeDraft(id){
+    var dr=(state.jrDrafts||[]).find(function(x){return x.id===id;}); if(!dr) return;
+    closeDraftsOverlay();
+    /* open the editor directly with the draft loaded (openJr supports a draftObj param) */
+    try{ openJr(null,null,null,null,dr); }
+    catch(e){ /* fallback: manual load */ try{ openJr(null); jrEd._draftId=dr.id; jrEd.mood=dr.mood||''; jrEd.tags=dr.tags||[]; if($('jrTitle'))$('jrTitle').value=dr.title||''; if($('jrBody'))$('jrBody').innerHTML=dr.content||'<p><br></p>'; if($('jrDate'))$('jrDate').value=dr.date||jrToday(); if($('jrTime'))$('jrTime').value=dr.time||''; if($('jrLocation'))$('jrLocation').value=dr.location||''; }catch(e2){ toastN&&toastN('Could not open draft'); } }
+  }
+  var _jdBtn=$('jrDraftsBtn'); if(_jdBtn) _jdBtn.addEventListener('click', openDraftsOverlay);
+  var _jdClose=$('draftsClose'); if(_jdClose) _jdClose.addEventListener('click', closeDraftsOverlay);
+  var _jdOv=$('draftsOverlay'); if(_jdOv) _jdOv.addEventListener('click', function(e){
+    if(e.target===_jdOv){ closeDraftsOverlay(); return; }              /* tap backdrop closes */
+    var op=e.target.closest('[data-draft-open]'); if(op){ resumeDraft(op.getAttribute('data-draft-open')); return; }
+    var del=e.target.closest('[data-draft-del]'); if(del){ e.stopPropagation(); jrClearDraft(del.getAttribute('data-draft-del')); renderDraftsList(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeDraftsOverlay(); return; }
   });
   window._renderJrDraftsBtn=renderJrDraftsBtn;
   /* Save a draft when the journal editor is dismissed without saving */
