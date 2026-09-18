@@ -1153,6 +1153,136 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+/* ===== Sticky primary-action bar in editor sheets (Save always reachable) ===== */
+html.osui #taskSheet{
+  display:flex!important; flex-direction:column; max-height:90vh; overflow-y:auto!important;
+  padding-bottom:0!important; scrollbar-width:none;
+}
+html.osui #taskSheet > *{ flex:0 0 auto; }
+html.osui #taskSheet .half:has(#taskSave){
+  position:sticky; bottom:0; margin:16px -18px 0!important; padding:14px 18px calc(14px + env(safe-area-inset-bottom,0px));
+  background:var(--card); border-top:1px solid var(--line2); z-index:5;
+}
+html.osui #taskSheet #taskDelete{ margin:10px 0 calc(8px + env(safe-area-inset-bottom,0px))!important; }
+/* ===== Money: remove redundant "Financial Tools" section label above the card titled the same ===== */
+html.osui #pgExp .secH:has(+ * #featureRefresh),html.osui #pgExp .financialToolsHead{ /* handled in JS below if needed */ }
+/* ===== ENTRY SCREENS: onboarding + lock must be fully immersive (no app chrome bleed) ===== */
+#lock{ z-index:100001!important; }
+#lock.on ~ .dock, #lock.on ~ #fab, #lock.on ~ #aiFab,
+html.locked .dock, html.locked #fab, html.locked #aiFab, html.locked #profileChip, html.locked #srchBtn{ display:none!important; }
+html.onboarding .dock, html.onboarding #fab, html.onboarding #aiFab, html.onboarding #profileChip, html.onboarding #srchBtn{ display:none!important; }
+/* Lock keypad: center the bottom row (0 under 8, backspace on the right) like a real phone keypad */
+#lock .padRow:last-child,#lock .lockPadRow:last-child{ display:grid; grid-template-columns:repeat(3,1fr); }
+/* Onboarding: refined, full-screen, calm */
+.onbOverlay{ background:var(--bg)!important; }
+.onbCard{ max-width:360px; }
+.onbIcon{ font-size:60px; margin-bottom:20px; filter:drop-shadow(0 8px 24px rgba(109,139,255,.25)); }
+.onbTitle{ font-size:26px; letter-spacing:-.025em; }
+.onbText{ font-size:14.5px; line-height:1.65; color:var(--mut); }
+.onbNext{ padding:15px; font-size:15.5px; }
+/* ===== Journal editor: WRITING-FIRST (text area gets the visual attention) =====
+   Reorder via flex `order` — no IDs/handlers touched. */
+#jrSheet{ display:flex; flex-direction:column; }
+#jrSheet > .grab{ order:0; }
+#jrSheet > h2,#jrSheet > .shHead,#jrSheet > #shJrTitle{ order:1; }
+#jrSheet > #jrTitle{ order:2; font-size:17px; font-weight:600; }
+#jrSheet > #jrToolbar{ order:3; margin-top:8px; }
+#jrSheet > #jrBody{ order:4; min-height:220px; font-size:16px; line-height:1.7; margin-top:8px; }
+#jrSheet > .jrTagHint,#jrSheet > #jrTagLine{ order:5; }
+/* compact meta strip below the writing area */
+#jrSheet > .jrMetaRow{ order:6; margin-top:14px; }
+#jrSheet > #jrLocation{ order:7; }
+#jrSheet > #jrMoodRow{ order:8; }
+#jrSheet > #jrTplPickBtn,#jrSheet > #jrTplPick{ order:9; }
+#jrSheet > .jrMetaRow .inp{ font-size:13px; padding:10px 12px; }
+#jrSheet > #jrLocation{ font-size:13px; padding:10px 12px; }
+#jrSheet .jrMoodOpt{ padding:8px 4px; }
+#jrSheet .jrMoodOpt .ml{ font-size:10px; }
+/* everything else (favorite, AI actions, save/delete) stays after */
+#jrSheet > *{ order:10; }
+#jrSheet > .grab{ order:0; } #jrSheet > h2,#jrSheet > .shHead{ order:1; } #jrSheet > #jrTitle{ order:2; } #jrSheet > #jrToolbar{ order:3; } #jrSheet > #jrBody{ order:4; } #jrSheet > .jrTagHint,#jrSheet > #jrTagLine{ order:5; } #jrSheet > .jrMetaRow{ order:6; } #jrSheet > #jrLocation{ order:7; } #jrSheet > #jrMoodRow{ order:8; } #jrSheet > #jrTplPickBtn,#jrSheet > #jrTplPick{ order:9; }
+/* ============================================================
+   InnerOs — World-Class Design System (html.osui, on by default)
+   Calm · minimal · strong hierarchy. Refs: Linear/Things/Notion.
+   Restrained: NO heavy gradients/glassmorphism/giant cards.
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&display=swap');
+html.osui{
+  /* semantic color tokens */
+  --bg:#0b0c0e; --bg2:#101216; --card:#16181d; --card2:#1d2026; --card3:#262a31;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
+  --ink:#f4f5f7; --ink2:#c9cdd6; --mut:#8b909b; --mut2:#5f6470;
+  --accent:var(--amber); --accentSoft:var(--amberSoft); --accentInk:#fff;
+  --success:#3ecf8e; --warning:#ffb454; --error:#f97066; --info:#5b9dff;
+  --green:#3ecf8e; --coral:#f97066; --ice:#5b9dff; --onAccent:#fff;
+  --sBlue:#5b9dff;--sGreen:#3ecf8e;--sYellow:#ffb454;--sPurple:#9b8cff;--sOrange:#ff9f5a;
+  --dockBg:#14161b; --scrimBg:rgba(0,0,0,.55);
+  /* controlled elevation — subtle only */
+  --shadow:0 1px 2px rgba(0,0,0,.20), 0 4px 14px rgba(0,0,0,.16);
+  --shadowUp:0 -6px 24px rgba(0,0,0,.28);
+  /* spacing + radius scale */
+  --sp1:4px;--sp2:8px;--sp3:12px;--sp4:16px;--sp5:20px;--sp6:24px;--sp8:32px;
+  --r-sm:10px;--r-md:14px;--r-lg:18px;--r-xl:22px;
+  --fBody:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+}
+/* osui default accent = indigo, ONLY when the user hasn't chosen a palette.
+   When a palette (p-lagoon/frost/sakura/violet/mono/ember) is set, its --amber flows to --accent. */
+html.osui:not(.p-lagoon):not(.p-frost):not(.p-sakura):not(.p-violet):not(.p-mono):not(.p-ember):not(.p-ocean):not(.p-forest):not(.p-rose):not(.p-gold){
+  --amber:#6d8bff; --amberDeep:#5570e6; --amberSoft:rgba(109,139,255,.14);
+}
+html.osui.light{
+  --bg:#f6f7f9; --bg2:#eef0f3; --card:#ffffff; --card2:#f3f4f7; --card3:#e8eaee;
+  --line:rgba(15,20,30,.10); --line2:rgba(15,20,30,.16);
+  --ink:#14171c; --ink2:#3a4049; --mut:#6b717c; --mut2:#9aa0ab;
+  --accentSoft:rgba(109,139,255,.12); --amberSoft:rgba(109,139,255,.12);
+  --dockBg:#ffffff; --scrimBg:rgba(20,24,32,.4);
+  --shadow:0 1px 2px rgba(20,24,32,.06), 0 4px 14px rgba(20,24,32,.08);
+}
+html.osui body{ font-family:var(--fBody); letter-spacing:-.005em; }
+/* Typography hierarchy */
+html.osui h1{ font-weight:800; letter-spacing:-.03em; }
+html.osui .eyebrow,html.osui .secH{ font-weight:600; letter-spacing:.6px; font-size:11px; color:var(--mut2); }
+html.osui .setT,html.osui .cardTitle,html.osui .taskTitle{ font-weight:650; letter-spacing:-.01em; }
+/* Cards: purposeful, controlled radius, subtle elevation (no giant rounding / heavy shadow) */
+html.osui .card,html.osui .setCard,html.osui .jrCard,html.osui .taskCard,html.osui .chartBox,
+html.osui .todayProgress,html.osui .expHero2,html.osui .moreCard,html.osui .vaultCard,html.osui .jrStatCard,
+html.osui .todaySyncBar,html.osui .promptCard,html.osui .uaiBox,html.osui .empty,html.osui .reviewCard,
+html.osui .aiCfg,html.osui .exCard,html.osui .acctCard,html.osui .heroTop,html.osui .sleepCard{
+  border-radius:var(--r-lg)!important; border:1px solid var(--line)!important;
+  background:var(--card)!important; box-shadow:var(--shadow)!important;
+}
+/* Accent (calm indigo, not amber gradient) for primary actions */
+html.osui .primary,html.osui #fab,html.osui .jrNewBtn,html.osui .btn.acc,html.osui .uaiSend,html.osui .vaultUnlockBtn,html.osui .draftItemMain{
+  background:var(--accent)!important; color:var(--accentInk)!important; border:0!important; box-shadow:0 2px 8px rgba(109,139,255,.28)!important;
+}
+html.osui #fab{ background:var(--accent)!important; border-radius:var(--r-md)!important; }
+/* Bottom nav: integrated, not a heavy floating rectangle */
+html.osui .dock{ background:var(--dockBg)!important; border:1px solid var(--line)!important; border-radius:var(--r-xl)!important; box-shadow:var(--shadow)!important; }
+html.osui .dock .tab.on{ color:var(--accent)!important; }
+/* Chips / segments */
+html.osui .chip.sel,html.osui .vChip.on,html.osui .fchip.on,html.osui .segX button.sel,html.osui .heroAcctChip.on{ background:var(--accent)!important; color:#fff!important; border-color:transparent!important; }
+/* Today glance: restrained, no colored glow spam */
+html.osui #pgToday .tpGrid8 .tpItem .v{ font-weight:750; letter-spacing:-.02em; }
+html.osui #pgToday .tpGrid8 .tpItem .v.amber{ color:var(--accent); text-shadow:none; }
+html.osui #pgToday .tpGrid8 .tpItem .v.green{ color:var(--success); text-shadow:none; }
+html.osui #pgToday .tpGrid8 .tpItem .v.coral{ color:var(--error); text-shadow:none; }
+/* Money hero: clean fintech, subtle */
+html.osui #pgExp .expHero2{ background:var(--card)!important; }
+html.osui #pgExp .expHeroNum{ font-weight:800; letter-spacing:-.03em; }
+html.osui #pgExp .txRow{ background:var(--card)!important; border:1px solid var(--line)!important; border-radius:var(--r-md)!important; margin-bottom:var(--sp2)!important; padding:var(--sp3)!important; }
+/* Journal: reflective, timeline; serif only for entry titles (calm accent) */
+html.osui #pgJr .jrCard{ border-radius:var(--r-lg)!important; }
+html.osui #pgJr .jrTime{ color:var(--accent); font-weight:600; }
+/* AI: core capability, not an ad pill */
+html.osui #pgAI .uaiBox{ background:var(--card)!important; border:1px solid var(--line)!important; }
+html.osui #pgAI .uaiSend{ background:var(--accent)!important; }
+/* Inputs: clear focus */
+html.osui .inp:focus,html.osui input:focus,html.osui textarea:focus{ border-color:var(--accent)!important; box-shadow:0 0 0 3px var(--accentSoft)!important; outline:none; }
+/* Interaction: subtle press feedback */
+html.osui button:active,html.osui .btn:active,html.osui .card:active,html.osui .moreCard:active,html.osui .taskCard:active{ transform:scale(.985); }
+/* Accessibility: focus-visible + reduced motion */
+html.osui *:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+@media (prefers-reduced-motion: reduce){ html.osui *{ transition-duration:1ms!important; animation-duration:1ms!important; } }
 /* ===== Drafts overlay (rebuilt from scratch — independent of shared sheet/scrim) ===== */
 .draftsOverlay{ position:fixed; inset:0; z-index:100000; display:none; align-items:center; justify-content:center;
   background:rgba(0,0,0,.5); opacity:0; transition:opacity .22s ease; padding:20px; }
@@ -7474,7 +7604,7 @@ function openSleep(ds){
   $('sleepDateLbl').textContent = d===today() ? 'Last night \u2192 this morning' : niceDate(d);
   $('bedTxt').textContent = sleepEd.bed ? timeFmt(sleepEd.bed) : '\u2014';
   $('wakeTxt').textContent = sleepEd.wake ? timeFmt(sleepEd.wake) : '\u2014';
-  $('sleepNote').value = sleepEd.note;
+  $('sleepNote').value = sleepEd.note || '';
   $('sleepDel').style.display = sl ? '' : 'none';
   updSleepDur();
   openSheet('sleepSheet');
@@ -8413,16 +8543,16 @@ function updDots(){
   var is = $('lockDots').children;
   for(var i=0;i<4;i++) is[i].classList.toggle('f', i < pinBuf.length);
 }
-function showLock(mode){
+function showLock(mode){ try{document.documentElement.classList.add('locked');}catch(e){}
   lockMode = mode; pinBuf = ''; updDots();
   var T = {unlock:'Enter PIN', new1:'Choose a PIN', new2:'Repeat PIN', ver:'Enter current PIN', off:'Enter current PIN'};
   var S = {unlock:'InnerOs is locked', new1:'4 digits', new2:'Type it once more', ver:'To change it', off:'To remove the lock'};
   $('lockT').textContent = T[mode]; $('lockS').textContent = S[mode];
-  $('kBio').style.display = (mode==='unlock' && state.set.bio && bioAvailSafe()) ? '' : 'none';
+  $('kBio').style.visibility = (mode==='unlock' && state.set.bio && bioAvailSafe()) ? 'visible' : 'hidden'; $('kBio').style.display='';
   $('lock').classList.add('on');
   if(mode==='unlock' && state.set.bio && bioAvailSafe()) setTimeout(tryBio, 380);
 }
-function hideLock(){ $('lock').classList.remove('on'); lockMode=''; pinBuf=''; }
+function hideLock(){ $('lock').classList.remove('on'); lockMode=''; pinBuf=''; try{document.documentElement.classList.remove('locked');}catch(e){} }
 function lockNow(){
   if(!state.set.pin) return;
   if(Date.now() - lastUnlock < 4000) return;
@@ -8555,6 +8685,10 @@ function applyTheme(){
   var L = resolvedLight();
   var root = document.documentElement;
   root.classList.toggle('light', L);
+  /* InnerOs world-class design system — on by default (reversible via state.set.uiClassic) */
+  root.classList.toggle('osui', !(state.set && state.set.uiClassic));
+  /* safety net: never leave entry-screen chrome-hiding classes stuck if the overlay isn't visible */
+  try{ var _onb=document.getElementById('onbOverlay'); if(!_onb || getComputedStyle(_onb).display==='none') root.classList.remove('onboarding'); var _lk=document.getElementById('lock'); if(!_lk || !_lk.classList.contains('on')) root.classList.remove('locked'); }catch(e){}
   root.classList.toggle('amoled', !L && (state.set.theme === 'amoled'));
   var fonts = ['nothing','apple','google','space','bricolage','serif','system'];
   for(var fi=0; fi<fonts.length; fi++) root.classList.toggle('font-'+fonts[fi], state.set.font === fonts[fi]);
@@ -9205,6 +9339,8 @@ function handleAddAction(kind){
 }
 
 function showTab(id){
+  /* If the user is navigating tabs, no entry screen is active — never keep chrome hidden. */
+  try{ var _o=document.getElementById('onbOverlay'); if(!_o||getComputedStyle(_o).display==='none') document.documentElement.classList.remove('onboarding'); var _l=document.getElementById('lock'); if(!_l||!_l.classList.contains('on')) document.documentElement.classList.remove('locked'); }catch(e){}
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
   var pgs = ['pgToday','pgTasks','pgExp','pgStats','pgJr','pgAI','pgSet','pgMore','pgVault'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
@@ -11232,12 +11368,12 @@ function initOnboarding(){
     var hb=($('onbHabit').value||'').trim();
     if(hb && typeof executeAction==='function'){ try{ executeAction({action:'add_habit',params:{name:hb,frequency:'daily'},message:'ok'}); }catch(e){} }
     state.set.onboarded=true; persist();
-    ov.style.display='none';
+    ov.style.display='none'; try{document.documentElement.classList.remove('onboarding');}catch(e){}
     try{ renderToday(); if(typeof haptic==='function') haptic(); }catch(e){}
   }
   $('onbNext').addEventListener('click', function(){ if(step<TOTAL-1){ step++; show(); } else finish(); });
-  $('onbSkip').addEventListener('click', function(){ state.set.onboarded=true; persist(); ov.style.display='none'; });
-  ov.style.display=''; show();
+  $('onbSkip').addEventListener('click', function(){ state.set.onboarded=true; persist(); ov.style.display='none'; try{document.documentElement.classList.remove('onboarding');}catch(e){} });
+  ov.style.display=''; try{document.documentElement.classList.add('onboarding');}catch(e){} show();
 }
 init();
 /* Widget deep links: runs at boot AND on warm relaunch (onNativeResume). */
