@@ -1153,84 +1153,6 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
-/* ============================================================
-   InnerOs — World-Class Design System (html.osui, on by default)
-   Calm · minimal · strong hierarchy. Refs: Linear/Things/Notion.
-   Restrained: NO heavy gradients/glassmorphism/giant cards.
-   ============================================================ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;450;500;600;700;800&display=swap');
-html.osui{
-  /* semantic color tokens */
-  --bg:#0b0c0e; --bg2:#101216; --card:#16181d; --card2:#1d2026; --card3:#262a31;
-  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.14);
-  --ink:#f4f5f7; --ink2:#c9cdd6; --mut:#8b909b; --mut2:#5f6470;
-  --accent:#6d8bff; --accentSoft:rgba(109,139,255,.14); --accentInk:#fff;
-  --success:#3ecf8e; --warning:#ffb454; --error:#f97066; --info:#5b9dff;
-  --amber:#6d8bff; --amberDeep:#5570e6; --amberSoft:rgba(109,139,255,.14);
-  --green:#3ecf8e; --coral:#f97066; --ice:#5b9dff; --onAccent:#fff;
-  --sBlue:#5b9dff;--sGreen:#3ecf8e;--sYellow:#ffb454;--sPurple:#9b8cff;--sOrange:#ff9f5a;
-  --dockBg:#14161b; --scrimBg:rgba(0,0,0,.55);
-  /* controlled elevation — subtle only */
-  --shadow:0 1px 2px rgba(0,0,0,.20), 0 4px 14px rgba(0,0,0,.16);
-  --shadowUp:0 -6px 24px rgba(0,0,0,.28);
-  /* spacing + radius scale */
-  --sp1:4px;--sp2:8px;--sp3:12px;--sp4:16px;--sp5:20px;--sp6:24px;--sp8:32px;
-  --r-sm:10px;--r-md:14px;--r-lg:18px;--r-xl:22px;
-  --fBody:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-}
-html.osui.light{
-  --bg:#f6f7f9; --bg2:#eef0f3; --card:#ffffff; --card2:#f3f4f7; --card3:#e8eaee;
-  --line:rgba(15,20,30,.10); --line2:rgba(15,20,30,.16);
-  --ink:#14171c; --ink2:#3a4049; --mut:#6b717c; --mut2:#9aa0ab;
-  --accentSoft:rgba(109,139,255,.12); --amberSoft:rgba(109,139,255,.12);
-  --dockBg:#ffffff; --scrimBg:rgba(20,24,32,.4);
-  --shadow:0 1px 2px rgba(20,24,32,.06), 0 4px 14px rgba(20,24,32,.08);
-}
-html.osui body{ font-family:var(--fBody); letter-spacing:-.005em; }
-/* Typography hierarchy */
-html.osui h1{ font-weight:800; letter-spacing:-.03em; }
-html.osui .eyebrow,html.osui .secH{ font-weight:600; letter-spacing:.6px; font-size:11px; color:var(--mut2); }
-html.osui .setT,html.osui .cardTitle,html.osui .taskTitle{ font-weight:650; letter-spacing:-.01em; }
-/* Cards: purposeful, controlled radius, subtle elevation (no giant rounding / heavy shadow) */
-html.osui .card,html.osui .setCard,html.osui .jrCard,html.osui .taskCard,html.osui .chartBox,
-html.osui .todayProgress,html.osui .expHero2,html.osui .moreCard,html.osui .vaultCard,html.osui .jrStatCard,
-html.osui .todaySyncBar,html.osui .promptCard,html.osui .uaiBox,html.osui .empty,html.osui .reviewCard,
-html.osui .aiCfg,html.osui .exCard,html.osui .acctCard,html.osui .heroTop,html.osui .sleepCard{
-  border-radius:var(--r-lg)!important; border:1px solid var(--line)!important;
-  background:var(--card)!important; box-shadow:var(--shadow)!important;
-}
-/* Accent (calm indigo, not amber gradient) for primary actions */
-html.osui .primary,html.osui #fab,html.osui .jrNewBtn,html.osui .btn.acc,html.osui .uaiSend,html.osui .vaultUnlockBtn,html.osui .draftItemMain{
-  background:var(--accent)!important; color:var(--accentInk)!important; border:0!important; box-shadow:0 2px 8px rgba(109,139,255,.28)!important;
-}
-html.osui #fab{ background:var(--accent)!important; border-radius:var(--r-md)!important; }
-/* Bottom nav: integrated, not a heavy floating rectangle */
-html.osui .dock{ background:var(--dockBg)!important; border:1px solid var(--line)!important; border-radius:var(--r-xl)!important; box-shadow:var(--shadow)!important; }
-html.osui .dock .tab.on{ color:var(--accent)!important; }
-/* Chips / segments */
-html.osui .chip.sel,html.osui .vChip.on,html.osui .fchip.on,html.osui .segX button.sel,html.osui .heroAcctChip.on{ background:var(--accent)!important; color:#fff!important; border-color:transparent!important; }
-/* Today glance: restrained, no colored glow spam */
-html.osui #pgToday .tpGrid8 .tpItem .v{ font-weight:750; letter-spacing:-.02em; }
-html.osui #pgToday .tpGrid8 .tpItem .v.amber{ color:var(--accent); text-shadow:none; }
-html.osui #pgToday .tpGrid8 .tpItem .v.green{ color:var(--success); text-shadow:none; }
-html.osui #pgToday .tpGrid8 .tpItem .v.coral{ color:var(--error); text-shadow:none; }
-/* Money hero: clean fintech, subtle */
-html.osui #pgExp .expHero2{ background:var(--card)!important; }
-html.osui #pgExp .expHeroNum{ font-weight:800; letter-spacing:-.03em; }
-html.osui #pgExp .txRow{ background:var(--card)!important; border:1px solid var(--line)!important; border-radius:var(--r-md)!important; margin-bottom:var(--sp2)!important; padding:var(--sp3)!important; }
-/* Journal: reflective, timeline; serif only for entry titles (calm accent) */
-html.osui #pgJr .jrCard{ border-radius:var(--r-lg)!important; }
-html.osui #pgJr .jrTime{ color:var(--accent); font-weight:600; }
-/* AI: core capability, not an ad pill */
-html.osui #pgAI .uaiBox{ background:var(--card)!important; border:1px solid var(--line)!important; }
-html.osui #pgAI .uaiSend{ background:var(--accent)!important; }
-/* Inputs: clear focus */
-html.osui .inp:focus,html.osui input:focus,html.osui textarea:focus{ border-color:var(--accent)!important; box-shadow:0 0 0 3px var(--accentSoft)!important; outline:none; }
-/* Interaction: subtle press feedback */
-html.osui button:active,html.osui .btn:active,html.osui .card:active,html.osui .moreCard:active,html.osui .taskCard:active{ transform:scale(.985); }
-/* Accessibility: focus-visible + reduced motion */
-html.osui *:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-@media (prefers-reduced-motion: reduce){ html.osui *{ transition-duration:1ms!important; animation-duration:1ms!important; } }
 /* ===== Drafts overlay (rebuilt from scratch — independent of shared sheet/scrim) ===== */
 .draftsOverlay{ position:fixed; inset:0; z-index:100000; display:none; align-items:center; justify-content:center;
   background:rgba(0,0,0,.5); opacity:0; transition:opacity .22s ease; padding:20px; }
@@ -8633,8 +8555,6 @@ function applyTheme(){
   var L = resolvedLight();
   var root = document.documentElement;
   root.classList.toggle('light', L);
-  /* InnerOs world-class design system — on by default (reversible via state.set.uiClassic) */
-  root.classList.toggle('osui', !(state.set && state.set.uiClassic));
   root.classList.toggle('amoled', !L && (state.set.theme === 'amoled'));
   var fonts = ['nothing','apple','google','space','bricolage','serif','system'];
   for(var fi=0; fi<fonts.length; fi++) root.classList.toggle('font-'+fonts[fi], state.set.font === fonts[fi]);
