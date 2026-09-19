@@ -72,3 +72,95 @@ zero errors.
   violet/rose/gold/mono/ember/ocean/forest) now flow into --accent app-wide.
 - Verified: default=indigo; sakura->FAB pink; violet->purple; frost->blue; lagoon->teal; nav+AskAI+FAB all
   recolor. suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# v5.3 — Compact / minimal density (space-saving)
+- Global: tighter page padding (14px), card padding 14px + 10px gaps, tighter section headers.
+- Today: compact glance (18px values, 6px gaps), smaller habit-row icons (38px), smaller title/sub.
+- MORE + SETTINGS: converted tall 2-col stacked tiles -> compact single-column ICON-ROW list
+  (icon-left 38px tile, title + subtitle, chevron-right) like iOS Settings/Notion. All items fit without
+  the chunky grid; fixed CSS chevron escape (\203A).
+- Money tx rows + Tasks cards tightened.
+- Verified: More mood card + Settings cards still tappable; suite1 51/52 (known timing), suite2 25/25; 0 errors.
+
+# v5.3.2 — palette straggler fixes (accent everywhere)
+- Found via non-default-palette scan: some elements were HARDCODED amber, ignoring the chosen palette:
+  * .srItem strict-reminder banner (e.g. "Sleep not logged") — amber gradient bg + border -> now
+    color-mix from var(--accent).
+  * .srGo "Log now" button, .wkAddBtn -> var(--accent).
+  * osui --grad-amber now derived from var(--accent); #aiFab glow uses accent.
+- Verified under sakura: Ask AI, FAB, nav, glance values, Sign in, "Log now", reminder banner all pink.
+- NOT changed (by design): habit icon tile + weekday chain use h.color (each habit's OWN color, default
+  amber) — that's per-habit theming, not the app accent. Documented so it's a known intentional behavior.
+- suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# v5.4 — Per-section show/hide (customize each page)
+- Users can hide/unhide sections per tab. Gear button in the Today header opens "Customize Today" popup with
+  a toggle per section (Cloud sync, Today at a glance, Task summary, Sleep card). Money + Journal registered too
+  (Balance hero, Financial tools; Your journey).
+- Hidden state persists (state.set.hiddenSections), UI reflows automatically (display:none, no leftover gap),
+  reapplied on every tab switch + render so it survives re-renders. Unhide -> section reappears.
+- Extensible via SECTION_REGISTRY (id + label + optional fallback selector).
+- Verified: open editor (4 rows), hide glance+cloud sync -> hidden+persisted, survive re-render, unhide ->
+  reappears; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# v5.5 — Section show/hide + REORDER on all tabs
+- Extended customize system to Today, Tasks, Money, Journal (gear button in each header).
+  Registry: Today {Cloud sync, Glance, Task summary, Sleep}; Tasks {Summary counts, Search bar, Filter chips};
+  Money {Balance summary, Account chips}; Journal {Your journey}.
+- REORDER: each editor row has ▲▼ move buttons; order saved to state.set.sectionOrder[pg]; applied by
+  re-appending elements in saved order within their parent (verified DOM order changes). Ends disabled.
+- Show/hide unchanged (persist + reflow). Both survive re-render + reapply on tab switch.
+- Fixed: gave Tasks search wrapper stable id (taskSearchWrap); removed mis-placed taskDashSummary from Tasks
+  registry (it lives in pgToday).
+- Verified: gears on all tabs; reorder moves DOM + persists; hide persists; habit/task/money/journal/vault/nav
+  all work; suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# v5.5.1 — header icon alignment + section coverage verified
+- Customize icon changed from ambiguous cog/sun glyph -> clear SLIDERS/adjust icon (rearrange affordance).
+- Fixed header alignment on all tabs: Today = fixed top-right cluster (search+customize+profile evenly
+  spaced/aligned); Money/Journal = search+customize grouped right (removed big gap); Tasks = Export/+Task/
+  customize in one nowrap row. Consistent 42px icon buttons.
+- Section coverage verified: ALL registered sections exist + editors populate — Today 4, Tasks 3, Money 2,
+  Journal 1 (each with working toggle + ▲▼ reorder). resolveSectionEl confirmed exists:true for every entry.
+- Verified: suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# v5.6 — Journal SUB-TAB sections in customize editor
+- Journal has sub-views (Timeline/Calendar/Write/Memories/AI). Previously only Timeline's "Your journey" was
+  customizable. Now the Journal customize editor covers sections across sub-tabs, GROUPED by sub-tab heading.
+- Registered: Timeline {Your journey, Ask about my day}; Write {Today's prompt, Templates, AI context}.
+  Gave Write's prompt card (#jrWritePrompt) + template card (#jrWriteTemplates) stable ids.
+- Editor renders sub-group headings (TIMELINE / WRITE) with toggle + ▲▼ reorder per row. Reorder is now
+  parent-aware (each element reorders within its own sub-view parent). Hidden sections stay hidden inside
+  their sub-view (verified: hiding "Today's prompt" -> display:none in Write view).
+- Verified: editor shows 5 rows across 2 groups; sub-tab switch works; habit/journal/vault/nav all pass;
+  suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# v5.7 — World-class refinement pass (senior-designer polish)
+- Systemic refinements applied via design layer (not per-screen risky rewrites): unified section-label
+  diamonds to one consistent accent (was mixed blue/orange), tighter type rhythm + tabular numerals,
+  graceful empty states, tactile chips/segments with consistent press, refined card hover hairline,
+  consistent button press, trend-range pill selection, subtle page-enter animation (reduced-motion safe).
+- Verified across Today/Tasks/Money/Journal/More/Stats/AI/Settings in dark + light.
+- Functionality: habit/task/money/journal/vault/nav all pass; suite1 51/52 (known timing), suite2 25/25;
+  zero errors.
+
+# v5.8 — Light theme fix + per-screen list VIEW MODES
+- LIGHT THEME FIX: was washed-out (bg too close to white cards). Darkened bg (#eceef2) + stronger card
+  borders/shadows so cards separate crisply; warmer neutral; clearer dock edge.
+- LIST VIEW MODES (Detail / Card / Line) on Tasks, Habits (Today), Money — 3-way on-screen selector per
+  screen (icons: detail/card/line), remembered PER SCREEN (state.set.viewMode.{tasks,habits,money}).
+  * Detail = full cards (default). Card = medium (title + key chips, no subtask bar/chain).
+  * Line = single-row hairline list (title + one key detail). CSS-only via html.view-KEY-MODE classes;
+    no render changes -> functionality safe.
+- Selector injected after taskFilters / strictRem / expSeg; reapplied on tab switch.
+- Verified: 3 modes render distinctly on Tasks; per-screen persist; light theme ok; habit/task/money/nav pass;
+  suite1 51/52 (known timing), suite2 25/25; zero errors.
+
+# v5.8.1 — material line mode + more appealing light theme
+- LINE MODE redesign (Tasks): true dense material row — colored LEFT PRIORITY ACCENT bar (red/orange/blue),
+  compact check, single-line ellipsis title, status underneath, hairline separators. No more wrapped chunky
+  chips. Added pri-{high|medium|low} class to task card. (Habits/Money line modes already single-row.)
+- LIGHT THEME: was flat washed-out grey. Now soft gradient-tinted bg (subtle indigo/green), crisp white
+  cards w/ clear border+shadow, recessed chips/inputs, warmer neutrals -> premium appealing light look.
+- Verified: line mode task complete works, pri accent present, light gradient applies, 3-way selector intact;
+  habit/task/money/nav pass; suite1 51/52 (known timing), suite2 25/25; zero errors.

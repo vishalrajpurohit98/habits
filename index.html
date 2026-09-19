@@ -1153,6 +1153,192 @@ html:not(.light) select.inp,html:not(.light) input.inp{color-scheme:dark}
 @keyframes jrVoicePulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
 .jrLoc{font-size:12px;color:var(--mut);margin:2px 0}
 /* journal enhancements */
+/* ============================================================
+   LIST VIEW MODES — per screen: Detail / Card / Line
+   ============================================================ */
+/* On-screen 3-way selector */
+.viewSeg{ display:inline-flex; gap:2px; background:var(--card2); border:1px solid var(--line); border-radius:11px; padding:3px; }
+.viewSeg button{ width:34px; height:30px; border:0; background:transparent; color:var(--mut); border-radius:8px; cursor:pointer; display:grid; place-items:center; transition:all .14s; }
+.viewSeg button.on{ background:var(--accent); color:#fff; }
+.viewSeg button svg{ width:16px; height:16px; }
+.viewSegRow{ display:flex; justify-content:flex-end; margin:2px 2px 8px; }
+
+/* ---- TASKS ---- */
+/* CARD mode: hide description, subtask bar, extra meta — keep title + priority + check */
+html.view-tasks-card #pgTasks .taskDesc,html.view-tasks-card #pgTasks .taskSubProgress,html.view-tasks-card #pgTasks .taskSubBar{ display:none!important; }
+html.view-tasks-card #pgTasks .taskCard{ padding:11px 12px!important; }
+/* LINE mode: true dense material list row */
+html.view-tasks-line #pgTasks .taskCard{ padding:12px 6px 12px 12px!important; margin-bottom:0!important; border:0!important; border-bottom:1px solid var(--line)!important; border-radius:0!important; box-shadow:none!important; background:transparent!important; position:relative; }
+html.view-tasks-line #pgTasks .taskCard:active{ background:var(--card2)!important; }
+/* priority as a colored left accent bar instead of a chunky chip */
+html.view-tasks-line #pgTasks .taskCard::before{ content:''; position:absolute; left:0; top:8px; bottom:8px; width:3px; border-radius:2px; background:var(--mut2); }
+html.view-tasks-line #pgTasks .taskCard.pri-high::before{ background:var(--coral); }
+html.view-tasks-line #pgTasks .taskCard.pri-medium::before{ background:var(--sOrange); }
+html.view-tasks-line #pgTasks .taskCard.pri-low::before{ background:var(--sBlue); }
+html.view-tasks-line #pgTasks .taskDesc,html.view-tasks-line #pgTasks .taskSubProgress,html.view-tasks-line #pgTasks .taskSubBar{ display:none!important; }
+html.view-tasks-line #pgTasks .taskTop{ align-items:center!important; gap:11px!important; }
+html.view-tasks-line #pgTasks .taskCheck{ width:24px!important; height:24px!important; flex-basis:24px!important; border-radius:7px!important; border-width:1.5px!important; }
+html.view-tasks-line #pgTasks .taskTitle{ font-size:14.5px!important; font-weight:600!important; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+html.view-tasks-line #pgTasks .taskTitle > span:first-child{ display:none!important; }
+/* meta: only the date, small + muted, no chip bg */
+html.view-tasks-line #pgTasks .taskMeta{ margin-top:2px!important; gap:6px!important; }
+html.view-tasks-line #pgTasks .taskMeta span{ font-size:11px!important; background:transparent!important; padding:0!important; color:var(--mut)!important; font-weight:600!important; }
+html.view-tasks-line #pgTasks .taskMeta .taskPri{ display:none!important; }
+html.view-tasks-line #pgTasks .taskMeta span:nth-child(n+3){ display:none!important; }
+
+/* ---- HABITS (Today .card list) ---- */
+html.view-habits-card #pgToday .card .cwrap .crow ~ *,html.view-habits-card #pgToday .card .habitMeta{ }
+html.view-habits-card #pgToday .card{ padding:11px 12px!important; }
+html.view-habits-card #pgToday .card .cstreak{ font-size:11px!important; }
+/* CARD: hide the weekday chain row (svg mini history) but keep icon+name+streak+check */
+html.view-habits-card #pgToday .card svg.hist,html.view-habits-card #pgToday .card .histRow,html.view-habits-card #pgToday .card .miniWk{ display:none!important; }
+/* LINE: single row — small icon + name + check, no chain, no card chrome */
+html.view-habits-line #pgToday .card{ padding:9px 6px!important; margin-bottom:0!important; border:0!important; border-bottom:1px solid var(--line)!important; border-radius:0!important; box-shadow:none!important; background:transparent!important; }
+html.view-habits-line #pgToday .card svg.hist,html.view-habits-line #pgToday .card .histRow,html.view-habits-line #pgToday .card .miniWk,html.view-habits-line #pgToday .card .cstreak{ display:none!important; }
+html.view-habits-line #pgToday .card .emo{ width:32px!important; height:32px!important; border-radius:9px!important; font-size:16px!important; }
+html.view-habits-line #pgToday .card .cname{ font-size:14px!important; }
+
+/* ---- MONEY (.txRow list) ---- */
+/* CARD: full detail is default; CARD keeps icon+name+sub+amount but tighter */
+html.view-money-card #pgExp .txRow{ padding:9px 10px!important; }
+/* LINE: single row — name + amount only, hide icon + sub */
+html.view-money-line #pgExp .txRow{ padding:7px 4px!important; margin-bottom:0!important; border-radius:0!important; border-bottom:1px solid var(--line)!important; }
+html.view-money-line #pgExp .txIco{ display:none!important; }
+html.view-money-line #pgExp .txSub{ display:none!important; }
+html.view-money-line #pgExp .txName{ font-size:13.5px!important; }
+/* ============================================================
+   WORLD-CLASS REFINEMENT LAYER (senior-designer polish pass)
+   ============================================================ */
+html.osui{
+  /* refined type rhythm */
+  --lh-tight:1.15; --lh-normal:1.5; --lh-relaxed:1.65;
+}
+/* 1. Consistent section labels — unify the ◆ diamonds to one subtle accent dot */
+html.osui .secH,html.osui .eyebrow,html.osui .statSecLbl,html.osui .lbl{
+  font-size:11px!important; font-weight:700!important; letter-spacing:1.2px!important; text-transform:uppercase;
+  color:var(--mut2)!important;
+}
+html.osui .statSecLbl i,html.osui .secDiamond,html.osui .lic{ background:var(--accent)!important; }
+/* 2. Refined stat/metric numbers — tighter, more confident */
+html.osui .n,html.osui .tpItem .v,html.osui .jrStat4 b,html.osui .statBig,html.osui .expHeroNum{
+  letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+}
+/* 3. Graceful empty states — smaller, centered, less cavernous */
+html.osui .chartBox .setS,html.osui .empty .s,html.osui .emptyHint{ color:var(--mut); font-size:13px; }
+html.osui .chartEmpty,html.osui .noData{ padding:20px 16px!important; text-align:center; color:var(--mut); font-size:13px; }
+/* 4. Chips + segments — refined, consistent, tactile */
+html.osui .chip,html.osui .segX button,html.osui .vChip,html.osui .fchip{
+  transition:transform .14s var(--e-out,ease), background .16s ease, border-color .16s ease;
+}
+html.osui .chip:active,html.osui .segX button:active,html.osui .vChip:active{ transform:scale(.95); }
+html.osui .segX{ padding:4px; gap:2px; }
+/* 5. Cards — refined hairline + hover lift on desktop */
+html.osui .card:hover,html.osui .taskCard:hover,html.osui .jrCard:hover,html.osui .moreCard:hover{ border-color:var(--line2); }
+/* 6. Buttons — consistent weight + subtle press everywhere */
+html.osui button,html.osui .sbtn,html.osui .btn{ transition:transform .13s var(--e-out,ease), background .15s ease, opacity .15s ease; }
+html.osui .sbtn:active{ transform:scale(.96); }
+/* 7. Trend range chips (7D/30D/1Y) — pill group, selected accent */
+html.osui .trendRange button.on,html.osui .rangeChip.on{ background:var(--accent)!important; color:#fff!important; border-color:transparent!important; }
+/* 8. Consistent divider color */
+html.osui hr,html.osui .divider{ border-color:var(--line); }
+/* 9. Smooth page-enter (subtle, respects reduced motion) */
+html.osui .page.on{ animation:pageIn .26s var(--e-out,cubic-bezier(.22,.61,.36,1)); }
+@keyframes pageIn{ from{opacity:0;transform:translateY(4px)} to{opacity:1;transform:none} }
+@media (prefers-reduced-motion: reduce){ html.osui .page.on{ animation:none; } }
+/* ===== Header action buttons: consistent right-aligned group (search + customize) ===== */
+html.osui .h1row{ padding-right:0!important; gap:8px; }
+/* wrap the action buttons so they sit together at the right */
+html.osui .h1row > .srchBtn,html.osui .h1row > .secEditBtn{ flex:0 0 auto; }
+html.osui .h1row > h1{ flex:1; min-width:0; }
+/* consistent icon button sizing + alignment */
+html.osui .srchBtn,html.osui .secEditBtn{ width:42px; height:42px; border-radius:13px; display:flex; align-items:center; justify-content:center; }
+html.osui .secEditBtn svg{ width:20px; height:20px; }
+html.osui .srchBtn svg{ width:19px; height:19px; }
+/* Today header: profile chip is fixed top-right; keep search + customize inline in the row, right-aligned */
+html.osui #pgToday .h1row{ padding-right:150px!important; min-height:52px; }
+/* place search + customize as a fixed cluster left of the profile chip, all vertically aligned */
+html.osui #pgToday #srchBtn{ position:fixed; top:calc(10px + env(safe-area-inset-top)); right:112px; z-index:58; width:42px; height:42px; }
+html.osui #pgToday .secEditBtn{ position:fixed; top:calc(10px + env(safe-area-inset-top)); right:62px; z-index:58; width:42px; height:42px; }
+html.osui #pgToday .profileChip{ top:calc(12px + env(safe-area-inset-top))!important; right:14px!important; }
+/* Tasks header: keep Export/+Task/customize in one tidy row */
+html.osui .taskHeadBtns{ display:flex; align-items:center; gap:8px; flex-wrap:nowrap; }
+html.osui .taskHeadBtns .secEditBtn{ flex:0 0 auto; }
+/* Money + Journal headers: search + customize grouped right */
+html.osui #pgExp .h1row,html.osui #pgJr .h1row{ padding-right:0!important; }
+/* ===== Section customize (show/hide) ===== */
+.secEditBtn svg{ width:19px; height:19px; }
+.secEditRow{ display:flex; align-items:center; justify-content:space-between; padding:13px 4px; border-bottom:1px solid var(--line); }
+.secEditRow:last-child{ border-bottom:0; }
+.secEditLabel{ font-size:15px; font-weight:600; color:var(--ink); }
+.secEditToggle{ width:46px; height:28px; border-radius:15px; background:var(--card3); border:1px solid var(--line); position:relative; cursor:pointer; transition:background .18s; flex:0 0 auto; }
+.secEditToggle.on{ background:var(--accent); border-color:transparent; }
+.secEditKnob{ position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:50%; background:#fff; transition:transform .2s cubic-bezier(.34,1.4,.64,1); box-shadow:0 1px 3px rgba(0,0,0,.3); }
+.secEditToggle.on .secEditKnob{ transform:translateX(18px); }
+.secEditEmpty{ text-align:center; color:var(--mut); padding:24px 0; font-size:14px; }
+.secEditReorder{ display:flex; flex-direction:column; gap:2px; margin-right:12px; flex:0 0 auto; }
+.secEditMove{ width:26px; height:20px; border:1px solid var(--line); background:var(--card2); color:var(--ink2); border-radius:6px; font-size:9px; cursor:pointer; display:grid; place-items:center; }
+.secEditMove:disabled{ opacity:.3; cursor:default; }
+.secEditMove:active:not(:disabled){ transform:scale(.9); }
+.secEditRow{ align-items:center; }
+.secEditGroup{ font-size:11px; font-weight:800; letter-spacing:.8px; text-transform:uppercase; color:var(--mut2); margin:14px 2px 6px; }
+.secEditGroup:first-child{ margin-top:2px; }
+/* ===== Palette consistency: route remaining hardcoded-amber elements through --accent ===== */
+html.osui .srItem{
+  background:color-mix(in srgb, var(--accent) 12%, transparent)!important;
+  border:1px solid color-mix(in srgb, var(--accent) 34%, transparent)!important;
+}
+html.osui .srGo{ background:var(--accent)!important; color:#fff!important; }
+html.osui .wkAddBtn{ background:var(--accent)!important; }
+/* any element still pulling the amber gradient -> use accent-based gradient */
+html.osui{ --grad-amber:linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 75%, #000)); }
+html.osui #aiFab{ box-shadow:0 6px 20px color-mix(in srgb, var(--accent) 40%, transparent)!important; }
+/* ============================================================
+   COMPACT DENSITY — tighter spacing, minimal, space-saving
+   ============================================================ */
+/* tighter page + card rhythm */
+html.osui .page{ padding-left:14px; padding-right:14px; }
+html.osui .card,html.osui .setCard,html.osui .jrCard,html.osui .taskCard,html.osui .chartBox,
+html.osui .todayProgress,html.osui .expHero2,html.osui .moreCard,html.osui .vaultCard,html.osui .jrStatCard,
+html.osui .reviewCard,html.osui .exCard,html.osui .acctCard,html.osui .sleepCard{ padding:14px!important; margin-bottom:10px!important; }
+html.osui .secH,html.osui .eyebrow{ margin:14px 2px 8px!important; }
+/* Today glance: tighter */
+html.osui .todayProgress{ padding:14px 14px 10px!important; }
+html.osui #pgToday .tpGrid8{ gap:6px 2px!important; }
+html.osui #pgToday .tpGrid8 .tpItem{ padding:8px 4px!important; }
+html.osui #pgToday .tpGrid8 .tpItem .v{ font-size:18px!important; }
+/* Habit cards on Today: compact — smaller icon + tighter */
+html.osui #pgToday .card .emo{ width:38px!important; height:38px!important; border-radius:11px!important; font-size:19px!important; }
+html.osui #pgToday .card .cname{ font-size:15px!important; }
+html.osui #pgToday .card .crow{ gap:10px!important; }
+html.osui #pgToday .card .cstreak,html.osui #pgToday .card .crem{ font-size:12px!important; }
+/* ===== More page: compact ICON-ROW layout (icon left, text right) ===== */
+html.osui #pgMore .moreGrid{ display:flex!important; flex-direction:column; gap:8px!important; }
+html.osui #pgMore .moreCard{
+  display:grid!important; grid-template-columns:38px 1fr auto; align-items:center; column-gap:13px; row-gap:0;
+  padding:11px 14px!important; margin-bottom:0!important; min-height:0!important; text-align:left!important;
+}
+html.osui #pgMore .moreCard .mi{
+  grid-row:1 / span 2; width:38px; height:38px; display:grid; place-items:center; font-size:19px;
+  background:var(--card2); border-radius:11px; margin:0!important;
+}
+html.osui #pgMore .moreCard .mt{ grid-column:2; font-size:15px!important; font-weight:650; }
+html.osui #pgMore .moreCard .ms{ grid-column:2; font-size:12px!important; color:var(--mut); }
+html.osui #pgMore .moreCard::after{ content:"\203A"; grid-column:3; grid-row:1 / span 2; color:var(--mut2); font-size:20px; }
+/* ===== Settings: same compact icon-row layout ===== */
+html.osui #setCardGrid{ display:flex!important; flex-direction:column; gap:8px!important; }
+html.osui .setCard2{
+  display:grid!important; grid-template-columns:38px 1fr auto; align-items:center; column-gap:13px;
+  padding:11px 14px!important; text-align:left!important;
+}
+html.osui .setCard2 .setCard2Ic{ grid-row:1 / span 2; width:38px; height:38px; display:grid; place-items:center; font-size:19px; background:var(--card2); border-radius:11px; }
+html.osui .setCard2 .setCard2T{ grid-column:2; font-size:15px!important; font-weight:650; }
+html.osui .setCard2 .setCard2S{ grid-column:2; font-size:12px!important; color:var(--mut); }
+html.osui .setCard2::after{ content:"\203A"; grid-column:3; grid-row:1 / span 2; color:var(--mut2); font-size:20px; }
+/* Money transaction rows: compact */
+html.osui #pgExp .txRow{ padding:10px 12px!important; margin-bottom:6px!important; }
+html.osui #pgExp .txIco{ width:34px!important; height:34px!important; font-size:16px!important; }
+/* Tasks: slightly tighter cards */
+html.osui #pgTasks .taskCard{ padding:12px!important; margin-bottom:8px!important; }
 /* ===== Sticky primary-action bar in editor sheets (Save always reachable) ===== */
 html.osui #taskSheet{
   display:flex!important; flex-direction:column; max-height:90vh; overflow-y:auto!important;
@@ -1231,13 +1417,29 @@ html.osui:not(.p-lagoon):not(.p-frost):not(.p-sakura):not(.p-violet):not(.p-mono
   --amber:#6d8bff; --amberDeep:#5570e6; --amberSoft:rgba(109,139,255,.14);
 }
 html.osui.light{
-  --bg:#f6f7f9; --bg2:#eef0f3; --card:#ffffff; --card2:#f3f4f7; --card3:#e8eaee;
-  --line:rgba(15,20,30,.10); --line2:rgba(15,20,30,.16);
-  --ink:#14171c; --ink2:#3a4049; --mut:#6b717c; --mut2:#9aa0ab;
-  --accentSoft:rgba(109,139,255,.12); --amberSoft:rgba(109,139,255,.12);
-  --dockBg:#ffffff; --scrimBg:rgba(20,24,32,.4);
-  --shadow:0 1px 2px rgba(20,24,32,.06), 0 4px 14px rgba(20,24,32,.08);
+  --bg:#eef1f6; --bg2:#e6eaf1; --card:#ffffff; --card2:#f5f7fb; --card3:#eaeef4;
+  --line:rgba(26,32,46,.10); --line2:rgba(26,32,46,.18);
+  --ink:#161a22; --ink2:#39414f; --mut:#6a7180; --mut2:#9aa1b0;
+  --accentSoft:rgba(109,139,255,.13); --amberSoft:rgba(109,139,255,.13);
+  --dockBg:#ffffff; --scrimBg:rgba(20,24,34,.4);
+  --shadow:0 1px 3px rgba(26,32,46,.07), 0 8px 22px rgba(26,32,46,.09);
 }
+/* Light: subtle gradient page bg for depth (not flat grey) */
+html.osui.light body{ background:
+  radial-gradient(1000px 600px at 100% -10%, rgba(109,139,255,.05), transparent 55%),
+  radial-gradient(900px 500px at -10% 5%, rgba(62,207,142,.04), transparent 50%),
+  var(--bg)!important; }
+/* Light: crisp defined cards */
+html.osui.light .card,html.osui.light .setCard,html.osui.light .jrCard,html.osui.light .taskCard,
+html.osui.light .chartBox,html.osui.light .todayProgress,html.osui.light .expHero2,html.osui.light .moreCard,
+html.osui.light .vaultCard,html.osui.light .jrStatCard,html.osui.light .todaySyncBar,html.osui.light .reviewCard,
+html.osui.light .sleepCard,html.osui.light .promptCard,html.osui.light .uaiBox,html.osui.light .empty,html.osui.light .setCard2{
+  border:1px solid rgba(26,32,46,.09)!important;
+  box-shadow:0 1px 2px rgba(26,32,46,.05), 0 10px 24px rgba(26,32,46,.07)!important;
+}
+html.osui.light .dock{ box-shadow:0 -1px 0 rgba(26,32,46,.05), 0 10px 28px rgba(26,32,46,.12)!important; }
+/* Light: softer secondary surfaces (chips/inputs) so they read as slightly recessed */
+html.osui.light .chip,html.osui.light .segX,html.osui.light .inp,html.osui.light .taskCheck{ background:var(--card2)!important; }
 html.osui body{ font-family:var(--fBody); letter-spacing:-.005em; }
 /* Typography hierarchy */
 html.osui h1{ font-weight:800; letter-spacing:-.03em; }
@@ -1946,6 +2148,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <h1 id="greet">Today</h1>
       <button class="profileChip" id="profileChip" aria-label="Switch profile"><span id="profileChipAv">?</span></button>
       <button class="srchBtn" id="srchBtn" aria-label="Search habits"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <button class="srchBtn secEditBtn" data-secedit="pgToday" aria-label="Customize sections"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M18 18h2"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="15" cy="18" r="2"/></svg></button>
     </div>
     <div class="profileMenu" id="profileMenu" style="display:none"></div>
     <div class="todaySyncBar" id="todaySyncBar" aria-live="polite">
@@ -2006,7 +2209,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <div class="page" id="pgExp">
     <div class="eyebrow" id="expMonthLbl"></div>
     <div class="h1row"><h1>Money</h1>
-      <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <button class="srchBtn" id="expSrchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button><button class="srchBtn secEditBtn" data-secedit="pgExp" aria-label="Customize sections"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M18 18h2"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="15" cy="18" r="2"/></svg></button>
     </div>
     <div style="height:12px"></div>
 
@@ -2134,7 +2337,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="eyebrow">Your story</div>
     <div class="h1row">
       <h1>Journal</h1>
-      <button class="srchBtn" id="jrSrchBtn" aria-label="Search journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button>
+      <button class="srchBtn" id="jrSrchBtn" aria-label="Search journal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg></button><button class="srchBtn secEditBtn" data-secedit="pgJr" aria-label="Customize sections"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M18 18h2"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="15" cy="18" r="2"/></svg></button>
     </div>
 
     <div class="jrNav" id="jrNav">
@@ -2148,7 +2351,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <!-- TIMELINE -->
     <div id="jrView-timeline">
       <button class="jrNewBtn" id="jrNewBtn"><span style="font-size:20px">&#65291;</span> New Entry</button>
-      <div class="jrStatCard">
+      <div class="jrStatCard" id="jrJourneyCard">
         <div class="jrStatCardTop">
           <span class="jrStatCardTitle">Your journey</span>
           <div class="jrStatActions">
@@ -2193,14 +2396,14 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 
     <!-- WRITE -->
     <div id="jrView-write" style="display:none">
-      <div class="promptCard">
+      <div class="promptCard" id="jrWritePrompt">
         <div class="lbl" style="margin:0">&#128161; Today's prompt</div>
         <div class="pq" id="jrPromptText"></div>
         <div class="jrPromptRow"><button class="sbtn acc" id="jrWriteBtn">Write about this</button><button class="sbtn" id="jrAnotherPrompt">Another prompt</button></div>
       </div>
       <button class="jrAiBtn" style="width:100%;margin-bottom:12px" id="jrTalkBtn">&#10024; Talk / Write About My Day</button>
       <div id="jrCtx" style="display:none"></div>
-      <div class="setCard" style="padding:16px">
+      <div class="setCard" id="jrWriteTemplates" style="padding:16px">
         <div class="lbl" style="margin:0 0 8px">Templates</div>
         <div class="jrTplGrid" id="jrTplGrid"></div>
       </div>
@@ -2262,9 +2465,9 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ TASKS ============ -->
   <div class="page" id="pgTasks">
     <div class="eyebrow">Plan &amp; execute</div>
-    <div class="taskPageHead"><h1>Tasks</h1><div class="taskHeadBtns"><button class="sbtn" id="taskExportToggle" title="Export tasks">⬇ Export</button><button class="sbtn acc" id="taskAddTop">+ Task</button></div></div>
+    <div class="taskPageHead"><h1>Tasks</h1><div class="taskHeadBtns"><button class="sbtn" id="taskExportToggle" title="Export tasks">⬇ Export</button><button class="sbtn acc" id="taskAddTop">+ Task</button><button class="srchBtn secEditBtn" data-secedit="pgTasks" aria-label="Customize sections"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M18 18h2"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="15" cy="18" r="2"/></svg></button></div></div>
     <div class="taskSummary" id="taskSummary"></div>
-    <div class="taskSearch"><input id="taskSearch" class="inp materialSearch" placeholder="Search tasks, descriptions, subtasks…" autocomplete="off"></div>
+    <div class="taskSearch" id="taskSearchWrap"><input id="taskSearch" class="inp materialSearch" placeholder="Search tasks, descriptions, subtasks…" autocomplete="off"></div>
     <div class="taskFilters" id="taskFilters">
       <button class="chip sel" data-tf="all">All</button><button class="chip" data-tf="overdue">Overdue</button><button class="chip" data-tf="today">Today</button><button class="chip" data-tf="upcoming">Upcoming</button><button class="chip" data-tf="completed">Completed</button>
     </div>
@@ -2283,8 +2486,17 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="taskExportBtns" style="margin-top:12px"><button class="sbtn" id="taskExportPdf">PDF</button><button class="sbtn acc" id="taskExportXlsx">Excel</button></div>
   </div>
 
-  <div class="draftsOverlay" id="draftsOverlay" style="display:none">
+  <div class="draftsOverlay" id="sectionEditOverlay" style="display:none">
     <div class="draftsPanel">
+      <div class="draftsHead">
+        <div class="draftsTitle" id="sectionEditTitle">Customize page</div>
+        <button class="draftsClose" id="sectionEditClose" aria-label="Close">✕</button>
+      </div>
+      <div class="draftsHint">Turn sections on or off. Hidden sections disappear from the page; turn them back on anytime.</div>
+      <div id="sectionEditList"></div>
+    </div>
+  </div>
+  <div class="draftsOverlay" id="draftsOverlay" style="display:none">    <div class="draftsPanel">
       <div class="draftsHead">
         <div class="draftsTitle">📝 Drafts</div>
         <button class="draftsClose" id="draftsClose" aria-label="Close">✕</button>
@@ -8681,6 +8893,130 @@ function applyUiTune(){  var u = (state.set && state.set.ui) || {};
   root.classList.toggle('ui-a11y-touch', !!u.a11yTouch);
   root.classList.toggle('ui-a11y-focus', !!u.a11yFocus);
 }
+/* ===== Section show/hide + reorder: customize each tab ===== */
+var SECTION_REGISTRY = {
+  pgToday: [
+    {id:'todaySyncBar', label:'Cloud sync'},
+    {id:'todayProgress', label:'Today at a glance'},
+    {id:'taskDashSummary', label:'Task summary'},
+    {id:'sleepCard', label:'Sleep card'}
+  ],
+  pgTasks: [
+    {id:'taskSummary', label:'Summary counts'},
+    {id:'taskSearchWrap', label:'Search bar'},
+    {id:'taskFilters', label:'Filter chips'}
+  ],
+  pgExp: [
+    {id:'expSum', label:'Balance summary'},
+    {id:'expAcct', label:'Account chips'}
+  ],
+  pgJr: [
+    {id:'jrJourneyCard', label:'Your journey', sub:'Timeline'},
+    {id:'jrAskDayBtn', label:'Ask about my day', sub:'Timeline'},
+    {id:'jrWritePrompt', label:"Today's prompt", sub:'Write'},
+    {id:'jrWriteTemplates', label:'Templates', sub:'Write'},
+    {id:'jrCtx', label:'AI context', sub:'Write'}
+  ]
+};
+function sectionHidden(){ return (state.set && state.set.hiddenSections) || {}; }
+function sectionOrder(pg){ return (state.set && state.set.sectionOrder && state.set.sectionOrder[pg]) || null; }
+function resolveSectionEl(sec){ var el=document.getElementById(sec.id); if(!el && sec.fallback) el=document.querySelector(sec.fallback); return el; }
+function applySectionVisibility(){
+  var hid = sectionHidden();
+  Object.keys(SECTION_REGISTRY).forEach(function(pg){
+    /* order first — reorder each element within its OWN parent (handles sub-tab views) */
+    var ord = sectionOrder(pg);
+    if(ord && ord.length){
+      ord.forEach(function(id){ var sec=SECTION_REGISTRY[pg].find(function(s){return s.id===id;}); if(!sec)return; var el=resolveSectionEl(sec); if(!el||!el.parentNode)return; el.parentNode.appendChild(el); });
+    }
+    /* then visibility */
+    SECTION_REGISTRY[pg].forEach(function(sec){
+      var el=resolveSectionEl(sec); if(!el) return;
+      if(hid[sec.id]){ el.setAttribute('data-user-hidden','1'); el.style.display='none'; }
+      else if(el.getAttribute('data-user-hidden')){ el.removeAttribute('data-user-hidden'); el.style.display=''; }
+    });
+  });
+}
+function toggleSectionHidden(id){
+  state.set.hiddenSections = state.set.hiddenSections || {};
+  if(state.set.hiddenSections[id]) delete state.set.hiddenSections[id]; else state.set.hiddenSections[id]=true;
+  persist(); applySectionVisibility(); renderSectionEditor(_sectionEditPg);
+}
+function moveSectionOrder(pg, id, dir){
+  var reg=SECTION_REGISTRY[pg]; if(!reg) return;
+  var cur = sectionOrder(pg) ? sectionOrder(pg).slice() : reg.map(function(s){return s.id;});
+  /* ensure all reg ids present in cur */
+  reg.forEach(function(s){ if(cur.indexOf(s.id)<0) cur.push(s.id); });
+  var i=cur.indexOf(id); if(i<0) return; var j=i+dir; if(j<0||j>=cur.length) return;
+  var t=cur[i]; cur[i]=cur[j]; cur[j]=t;
+  state.set.sectionOrder = state.set.sectionOrder || {}; state.set.sectionOrder[pg]=cur;
+  persist(); applySectionVisibility(); renderSectionEditor(pg);
+}
+var _sectionEditPg=null;
+function openSectionEditor(pg){
+  _sectionEditPg=pg; var ov=$('sectionEditOverlay'); if(!ov) return;
+  $('sectionEditTitle').textContent='Customize '+({pgToday:'Today',pgTasks:'Tasks',pgExp:'Money',pgJr:'Journal'}[pg]||'page');
+  renderSectionEditor(pg); ov.style.display='flex'; requestAnimationFrame(function(){ov.classList.add('on');});
+}
+function closeSectionEditor(){ var ov=$('sectionEditOverlay'); if(!ov)return; ov.classList.remove('on'); setTimeout(function(){ov.style.display='none';},220); }
+function renderSectionEditor(pg){
+  var box=$('sectionEditList'); if(!box||!pg) return; var hid=sectionHidden();
+  var reg=SECTION_REGISTRY[pg]||[];
+  var ord = sectionOrder(pg); var ordered = ord ? ord.map(function(id){return reg.find(function(s){return s.id===id;});}).filter(Boolean) : reg.slice();
+  reg.forEach(function(s){ if(ordered.indexOf(s)<0) ordered.push(s); });
+  if(!ordered.length){ box.innerHTML='<div class="secEditEmpty">No customizable sections here.</div>'; return; }
+  var html=''; var lastSub=null;
+  ordered.forEach(function(sec,idx){
+    if(sec.sub && sec.sub!==lastSub){ html+='<div class="secEditGroup">'+esc(sec.sub)+'</div>'; lastSub=sec.sub; }
+    var on = !hid[sec.id];
+    /* reorder only within same sub-group makes sense; keep arrows but they swap adjacent */
+    html += '<div class="secEditRow">'
+      + '<div class="secEditReorder">'
+      +   '<button class="secEditMove" data-secmove="'+sec.id+'" data-dir="-1" '+(idx===0?'disabled':'')+' aria-label="Move up">▲</button>'
+      +   '<button class="secEditMove" data-secmove="'+sec.id+'" data-dir="1" '+(idx===ordered.length-1?'disabled':'')+' aria-label="Move down">▼</button>'
+      + '</div>'
+      + '<span class="secEditLabel">'+esc(sec.label)+'</span>'
+      + '<button class="secEditToggle'+(on?' on':'')+'" data-sectoggle="'+sec.id+'" role="switch" aria-checked="'+on+'"><span class="secEditKnob"></span></button></div>';
+  });
+  box.innerHTML=html;
+}
+/* ===== List view modes (Detail / Card / Line) per screen ===== */
+var VIEW_MODES=['detail','card','line'];
+var VIEW_ICONS={
+  detail:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="7" rx="2"/><rect x="4" y="14" width="16" height="6" rx="2"/></svg>',
+  card:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="4" width="16" height="4.5" rx="1.5"/><rect x="4" y="10" width="16" height="4.5" rx="1.5"/><rect x="4" y="16" width="16" height="4.5" rx="1.5"/></svg>',
+  line:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>'
+};
+function viewModeOf(key){ return (state.set && state.set.viewMode && state.set.viewMode[key]) || 'detail'; }
+function applyViewModes(){
+  var root=document.documentElement;
+  ['tasks','habits','money'].forEach(function(key){
+    VIEW_MODES.forEach(function(m){ root.classList.remove('view-'+key+'-'+m); });
+    var mode=viewModeOf(key); if(mode!=='detail') root.classList.add('view-'+key+'-'+mode);
+  });
+}
+function setViewMode(key,mode){
+  state.set.viewMode=state.set.viewMode||{}; state.set.viewMode[key]=mode; persist(); applyViewModes(); renderViewSegs();
+}
+function viewSegHtml(key){
+  var cur=viewModeOf(key);
+  return '<div class="viewSeg" data-viewseg="'+key+'">'+VIEW_MODES.map(function(m){
+    return '<button data-vm="'+m+'" class="'+(m===cur?'on':'')+'" aria-label="'+m+' view" title="'+m+'">'+VIEW_ICONS[m]+'</button>';
+  }).join('')+'</div>';
+}
+function ensureViewSeg(key, anchorId, position){
+  var anchor=document.getElementById(anchorId); if(!anchor) return;
+  var existing=document.getElementById('viewSegRow-'+key);
+  if(!existing){ existing=document.createElement('div'); existing.className='viewSegRow'; existing.id='viewSegRow-'+key;
+    if(position==='before') anchor.parentNode.insertBefore(existing, anchor); else anchor.parentNode.insertBefore(existing, anchor.nextSibling);
+  }
+  existing.innerHTML=viewSegHtml(key);
+}
+function renderViewSegs(){
+  ensureViewSeg('tasks','taskFilters','after');
+  ensureViewSeg('habits','strictRem','after');
+  ensureViewSeg('money','expSeg','after');
+}
 function applyTheme(){
   var L = resolvedLight();
   var root = document.documentElement;
@@ -9342,6 +9678,8 @@ function showTab(id){
   /* If the user is navigating tabs, no entry screen is active — never keep chrome hidden. */
   try{ var _o=document.getElementById('onbOverlay'); if(!_o||getComputedStyle(_o).display==='none') document.documentElement.classList.remove('onboarding'); var _l=document.getElementById('lock'); if(!_l||!_l.classList.contains('on')) document.documentElement.classList.remove('locked'); }catch(e){}
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
+  try{ if(typeof applySectionVisibility==='function') setTimeout(applySectionVisibility, 30); }catch(e){}
+  try{ if(typeof renderViewSegs==='function') setTimeout(function(){ renderViewSegs(); applyViewModes(); }, 40); }catch(e){}
   var pgs = ['pgToday','pgTasks','pgExp','pgStats','pgJr','pgAI','pgSet','pgMore','pgVault'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
   var tabs = $('tabbar').children;
@@ -9447,7 +9785,7 @@ function haptic(){ try{ if(typeof nat!=="undefined"&&nat&&nat.haptic) nat.haptic
 function toggleTaskComplete(id){var t=state.tasks.find(function(x){return x.id===id;});if(!t)return;var was=t.status==='completed';if(was){t.status='open';t.completedAt=0;t.updatedAt=Date.now();}else{t.status='completed';t.completedAt=Date.now();t.updatedAt=t.completedAt;haptic();var nx=taskCreateNextOccurrence(t);if(nx)toastN('Completed · next '+taskDateLabel(nx));}persist();renderTasks();}
 function toggleHabitTask(id){var p=String(id).split(':');if(p.length<3)return;var h=findHabit(p[1]),ds=p[2];if(!h)return;if(isDone(h,ds))setVal(h.id,ds,0);else if(dueOn(h,toDate(ds))){setVal(h.id,ds,targ(h));haptic();}renderTasks();}
 function taskFilterMatch(t){var st=taskEffectiveStatus(t);if(taskFilter==='overdue')return st==='overdue';if(taskFilter==='today')return t.dueDate===today()&&st!=='completed';if(taskFilter==='upcoming')return !!t.dueDate&&t.dueDate>today()&&st!=='completed';if(taskFilter==='completed')return st==='completed';return true;}
-function renderTaskCard(t){var st=taskEffectiveStatus(t),sp=taskSubProgress(t),over=st==='overdue',virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var actions=virtual?'':'<div class="taskCardActions"><button class="tcAct tcMore" data-task-more="'+esc(t.id)+'" title="Actions">⋯</button><div class="tcMenu" data-tcmenu="'+esc(t.id)+'"><button class="tcAct" data-task-pin="'+esc(t.id)+'" title="Pin">'+(t.pinned?'📌':'📍')+'</button><button class="tcAct" data-task-snooze="'+esc(t.id)+'" title="Snooze to tomorrow">😴</button><button class="tcAct" data-task-dup="'+esc(t.id)+'" title="Duplicate">⧉</button></div></div>';return '<div class="taskCard '+(over?'overdue':'')+(t.pinned?' pinned':'')+'" data-task-id="'+esc(t.id)+'"><div class="taskTop"><button class="taskCheck '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><div class="taskBody"><div class="taskTitle '+(check?'done':'')+'">'+(t.pinned?'📌 ':'')+(t.priority==='high'?'🔴 ':'')+esc(t.title)+'</div>'+(t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+'<div class="taskMeta"><span class="taskPri '+t.priority+'">'+t.priority.toUpperCase()+'</span><span class="taskStatus">'+(st==='inprogress'?'In Progress':st.charAt(0).toUpperCase()+st.slice(1))+'</span><span>'+esc(taskDateLabel(t))+'</span>'+(t.recurrence&&t.recurrence.freq!=='none'?'<span class="taskSeries">↻ '+t.recurrence.freq+(t.recurrence.interval>1?' ×'+t.recurrence.interval:'')+'</span>':'')+(virtual?'<span class="taskSeries">Habit</span>':'')+'</div>'+(sp.total?'<div class="taskSubProgress">'+sp.done+' / '+sp.total+' subtasks<div class="taskSubBar"><i style="width:'+Math.round(sp.done/sp.total*100)+'%"></i></div></div>':'')+((t.comments&&t.comments.length)?'<div class="taskMeta"><span>💬 '+t.comments.length+' comment'+(t.comments.length===1?'':'s')+'</span></div>':'')+'</div>'+actions+'</div></div>';}
+function renderTaskCard(t){var st=taskEffectiveStatus(t),sp=taskSubProgress(t),over=st==='overdue',virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var actions=virtual?'':'<div class="taskCardActions"><button class="tcAct tcMore" data-task-more="'+esc(t.id)+'" title="Actions">⋯</button><div class="tcMenu" data-tcmenu="'+esc(t.id)+'"><button class="tcAct" data-task-pin="'+esc(t.id)+'" title="Pin">'+(t.pinned?'📌':'📍')+'</button><button class="tcAct" data-task-snooze="'+esc(t.id)+'" title="Snooze to tomorrow">😴</button><button class="tcAct" data-task-dup="'+esc(t.id)+'" title="Duplicate">⧉</button></div></div>';return '<div class="taskCard '+(over?'overdue':'')+(t.pinned?' pinned':'')+' pri-'+t.priority+'" data-task-id="'+esc(t.id)+'"><div class="taskTop"><button class="taskCheck '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><div class="taskBody"><div class="taskTitle '+(check?'done':'')+'">'+(t.pinned?'📌 ':'')+(t.priority==='high'?'🔴 ':'')+esc(t.title)+'</div>'+(t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+'<div class="taskMeta"><span class="taskPri '+t.priority+'">'+t.priority.toUpperCase()+'</span><span class="taskStatus">'+(st==='inprogress'?'In Progress':st.charAt(0).toUpperCase()+st.slice(1))+'</span><span>'+esc(taskDateLabel(t))+'</span>'+(t.recurrence&&t.recurrence.freq!=='none'?'<span class="taskSeries">↻ '+t.recurrence.freq+(t.recurrence.interval>1?' ×'+t.recurrence.interval:'')+'</span>':'')+(virtual?'<span class="taskSeries">Habit</span>':'')+'</div>'+(sp.total?'<div class="taskSubProgress">'+sp.done+' / '+sp.total+' subtasks<div class="taskSubBar"><i style="width:'+Math.round(sp.done/sp.total*100)+'%"></i></div></div>':'')+((t.comments&&t.comments.length)?'<div class="taskMeta"><span>💬 '+t.comments.length+' comment'+(t.comments.length===1?'':'s')+'</span></div>':'')+'</div>'+actions+'</div></div>';}
 function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle">'+pair[1]+'</div>'+a.map(renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStatRow"><span class="tsr over"><b>'+over+'</b> Overdue</span><span class="tsr today"><b>'+tn+'</b> Today</span><span class="tsr up"><b>'+up+'</b> Upcoming</span><span class="tsr done"><b>'+done+'</b> Done</span></div>';}
 function exportTaskRows(from,to){var rows=[['Task','Description','Due date','Due time','Priority','Status','Subtasks','Comments']];state.tasks.filter(function(t){return t.dueDate&&t.dueDate>=from&&t.dueDate<=to;}).sort(function(a,b){return taskDueMs(a)-taskDueMs(b);}).forEach(function(t){var sp=taskSubProgress(t);rows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),sp.done+'/'+sp.total]);});return rows;}
 function taskExportBounds(){if(taskExportMode==='custom')return{from:$('taskExportFrom').value,to:$('taskExportTo').value};return taskRangeBounds(taskExportMode);}
@@ -11352,6 +11690,20 @@ function init(){
   if(state.set.pin) showLock('unlock');
   try{ initOnboarding(); }catch(e){}
   try{ applyUiTune(); }catch(e){}
+  try{ applyViewModes(); renderViewSegs();
+    document.addEventListener('click', function(e){ var b=e.target.closest('[data-viewseg] [data-vm]'); if(b){ var key=b.closest('[data-viewseg]').getAttribute('data-viewseg'); setViewMode(key, b.getAttribute('data-vm')); } });
+  }catch(e){}
+  /* Section show/hide wiring */
+  try{
+    applySectionVisibility();
+    document.addEventListener('click', function(e){
+      var openBtn=e.target.closest('[data-secedit]'); if(openBtn){ openSectionEditor(openBtn.getAttribute('data-secedit')); return; }
+      var tog=e.target.closest('[data-sectoggle]'); if(tog){ toggleSectionHidden(tog.getAttribute('data-sectoggle')); return; }
+      var mv=e.target.closest('[data-secmove]'); if(mv && !mv.disabled){ moveSectionOrder(_sectionEditPg, mv.getAttribute('data-secmove'), parseInt(mv.getAttribute('data-dir'))); return; }
+    });
+    var _sc=$('sectionEditClose'); if(_sc) _sc.addEventListener('click', closeSectionEditor);
+    var _so=$('sectionEditOverlay'); if(_so) _so.addEventListener('click', function(e){ if(e.target===_so) closeSectionEditor(); });
+  }catch(e){}
   try{ applyPaper(); }catch(e){}
 }
 /* ===== Onboarding (first run) ===== */
