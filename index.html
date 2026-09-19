@@ -1542,6 +1542,63 @@ button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:a
 .trashMeta{font-size:11px;color:var(--mut2);margin-top:2px}
 .taskHeadBtns{display:flex;gap:8px;align-items:center}
 .taskHeadBtns .sbtn{white-space:nowrap}
+/* ============ TASKS SCREEN REDESIGN (pink accent, premium/minimal) ============ */
+#pgTasks{--tAccent:var(--amber);--tAccentSoft:var(--amberSoft);--tAccentBorder:var(--amber);max-width:760px;margin-left:auto;margin-right:auto}
+#pgTasks .eyebrow{color:var(--mut)}
+.taskPageHead{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px}
+.taskHeadTitle h1{margin:0;line-height:1.05}
+.taskSubtitle{font-size:13px;color:var(--mut);margin-top:5px}
+.taskHeadBtn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 15px;border-radius:12px;font-size:13.5px;font-weight:700;cursor:pointer;white-space:nowrap;border:1px solid var(--line);background:var(--card2);color:var(--ink2)}
+.taskHeadBtn .thbIc{font-size:14px;line-height:1}
+.taskExportBtn:active{transform:scale(.96)}
+.taskAddBtn{background:var(--tAccent);border-color:var(--tAccent);color:#fff}
+.taskAddBtn:active{transform:scale(.96)}
+.taskStatCardV2{display:flex;align-items:stretch;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 6px;margin:2px 0 16px}
+.taskStatCardV2 .tscv{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-width:0}
+.taskStatCardV2 .tscvIc{font-size:11px;line-height:1;opacity:.9}
+.taskStatCardV2 .tscv b{font-size:25px;font-weight:800;line-height:1;color:var(--ink)}
+.taskStatCardV2 .tscvL{font-size:10.5px;font-weight:600;color:var(--mut);letter-spacing:.2px}
+.taskStatCardV2 .over b{color:var(--coral)}
+.taskStatCardV2 .today b{color:var(--sOrange)}
+.taskStatCardV2 .up b{color:var(--sBlue)}
+.taskStatCardV2 .done b{color:var(--sGreen)}
+.taskStatCardV2 .tscvSep{width:1px;background:var(--line);margin:3px 0;flex:0 0 1px}
+.taskSearchRow{display:flex;gap:8px;align-items:stretch;margin-bottom:12px}
+.taskSearch{position:relative;flex:1}
+.taskSearch .taskSearchIc{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:14px;pointer-events:none;opacity:.75;z-index:1}
+#pgTasks .materialSearch{padding-left:40px!important;height:46px;border-radius:14px!important}
+#pgTasks .materialSearch:focus{border-color:var(--tAccent)!important;box-shadow:0 0 0 3px var(--tAccentSoft)!important}
+.taskSortBtn{flex:0 0 46px;width:46px;border:1px solid var(--line);background:var(--card2);border-radius:14px;font-size:18px;cursor:pointer;color:var(--mut);display:flex;align-items:center;justify-content:center}
+.taskSortBtn.on{color:var(--tAccent);border-color:var(--tAccentBorder);background:var(--tAccentSoft)}
+.taskSortBtn:active{transform:scale(.94)}
+.taskFilters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;scrollbar-width:none}
+.taskFilters::-webkit-scrollbar{display:none}
+.taskPill{white-space:nowrap;padding:9px 16px;font-size:13px;font-weight:700;border-radius:11px;border:1px solid var(--line);background:var(--card2);color:var(--mut);cursor:pointer;transition:all .16s ease}
+.taskPill:active{transform:scale(.96)}
+.taskPill.sel{background:var(--tAccentSoft);border-color:var(--tAccentBorder);color:var(--tAccent)}
+.taskSectionTitle{display:flex;align-items:baseline;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--mut);margin:22px 2px 10px}
+.taskSectionTitle .tsCount{font-size:10.5px;font-weight:700;letter-spacing:.4px;color:var(--mut2)}
+#pgTasks .taskCard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 14px;margin-bottom:11px;box-shadow:none;overflow:hidden;transition:transform .14s ease,border-color .16s ease,background-color .16s ease}
+#pgTasks .taskCard:active{transform:scale(.99);background:var(--card2)}
+#pgTasks .taskCard.overdue{border-color:var(--line)}
+#pgTasks .taskCard.overdue::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--coral);border-radius:3px 0 0 3px}
+#pgTasks .taskCard.pinned::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tAccent);border-radius:3px 0 0 3px}
+#pgTasks .taskCheck{width:26px;height:26px;border-radius:9px;border:2px solid var(--line2);background:transparent;flex:0 0 26px;font-size:15px;transition:all .18s cubic-bezier(.2,.8,.2,1)}
+#pgTasks .taskCheck.done{background:var(--sGreen);border-color:var(--sGreen);color:#06120d}
+#pgTasks .taskCheck:active{transform:scale(.85)}
+#pgTasks .taskTitle{font-size:15.5px;font-weight:700;line-height:1.35}
+#pgTasks .taskDesc{font-size:12.5px;margin-top:5px}
+#pgTasks .taskMeta{gap:7px;margin-top:9px}
+#pgTasks .taskMeta span{font-size:11px;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:4px 9px}
+#pgTasks .taskMeta .taskPri.high{color:var(--coral)!important;background:var(--coralSoft)!important;border-color:transparent!important}
+#pgTasks .taskMeta .taskPri.medium{color:var(--sOrange)!important}
+#pgTasks .taskMeta .taskPri.low{color:var(--sBlue)!important}
+.taskAgeLine{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;margin-top:9px;color:var(--mut)}
+.taskAgeLine .taskAgeDot{font-size:9px;line-height:1}
+.taskAgeLine.bad{color:var(--coral)}
+.taskAgeLine.soon{color:var(--sOrange)}
+.taskAgeLine.aging{color:var(--sOrange)}
+@media(max-width:420px){.taskStatCardV2 .tscv b{font-size:22px}}
 .taskCardActions{display:flex;gap:4px;flex:0 0 auto;align-items:flex-start;position:relative}
 .tcMenu{display:none;position:absolute;right:0;top:36px;z-index:5;background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:5px;gap:4px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
 .tcMenu.on{display:flex}
@@ -2352,11 +2409,11 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ TASKS ============ -->
   <div class="page" id="pgTasks">
     <div class="eyebrow">Plan &amp; execute</div>
-    <div class="taskPageHead"><h1>Tasks</h1><div class="taskHeadBtns"><button class="sbtn" id="taskExportToggle" title="Export tasks">⬇ Export</button><button class="sbtn acc" id="taskAddTop">+ Task</button></div></div>
+    <div class="taskPageHead"><div class="taskHeadTitle"><h1>Tasks</h1><div class="taskSubtitle">Stay on top of what matters</div></div><div class="taskHeadBtns"><button class="taskHeadBtn taskExportBtn" id="taskExportToggle" title="Export tasks"><span class="thbIc">📤</span><span class="thbTxt">Export</span></button><button class="taskHeadBtn taskAddBtn" id="taskAddTop"><span class="thbIc">➕</span><span class="thbTxt">Task</span></button></div></div>
     <div class="taskSummary" id="taskSummary"></div>
-    <div class="taskSearch"><input id="taskSearch" class="inp materialSearch" placeholder="Search tasks, descriptions, subtasks…" autocomplete="off"></div>
+    <div class="taskSearchRow"><div class="taskSearch"><span class="taskSearchIc">🔍</span><input id="taskSearch" class="inp materialSearch" placeholder="Search tasks, descriptions, subtasks…" autocomplete="off"></div><button class="taskSortBtn" id="taskSortBtn" title="Sort by due date"><span>🔀</span></button></div>
     <div class="taskFilters" id="taskFilters">
-      <button class="chip sel" data-tf="all">All</button><button class="chip" data-tf="overdue">Overdue</button><button class="chip" data-tf="today">Today</button><button class="chip" data-tf="upcoming">Upcoming</button><button class="chip" data-tf="completed">Completed</button>
+      <button class="taskPill sel" data-tf="all">All</button><button class="taskPill" data-tf="overdue">Overdue</button><button class="taskPill" data-tf="today">Today</button><button class="taskPill" data-tf="upcoming">Upcoming</button><button class="taskPill" data-tf="completed">Completed</button>
     </div>
     <div id="taskList"></div>
     <div class="empty taskEmpty" id="taskEmpty" hidden><div class="big">✓</div><div class="t">No tasks here</div><div class="s">Create a task and keep the important work visible.</div><button class="emptyCtaBtn" id="taskEmptyCta">Create a task</button></div>
@@ -5542,7 +5599,7 @@ function blankHabit(){
     section:'any', cat:'Health', start: today()});
 }
 function selChip(rowId, attr, value){
-  var row = $(rowId), btns = row.querySelectorAll('.chip');
+  var row = $(rowId), btns = row.querySelectorAll('.chip, .taskPill');
   for(var i=0;i<btns.length;i++)
     btns[i].classList.toggle('sel', btns[i].getAttribute(attr) === value);
 }
@@ -9512,7 +9569,7 @@ function climb(el, root, attr){
 
 
 /* ================= TASK MANAGEMENT ================= */
-var taskSearchQ='',taskFilter='all',taskExportMode='today',taskEd=null,taskShowAllDone=false; /* perf: completed list capped until expanded */
+var taskSearchQ='',taskFilter='all',taskExportMode='today',taskEd=null,taskShowAllDone=false,taskSortMode='smart'; /* perf: completed list capped until expanded */
 function taskCommentTime(ts){try{return new Date(ts).toLocaleString(undefined,{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return '';}}
 function renderTaskComments(){
   var wrap=$('taskComments'),list=$('taskCommentList'),count=$('taskCommentCount');
@@ -9590,7 +9647,7 @@ function toggleTaskComplete(id){var t=state.tasks.find(function(x){return x.id==
 function toggleHabitTask(id){var p=String(id).split(':');if(p.length<3)return;var h=findHabit(p[1]),ds=p[2];if(!h)return;if(isDone(h,ds))setVal(h.id,ds,0);else if(dueOn(h,toDate(ds))){setVal(h.id,ds,targ(h));haptic();}renderTasks();}
 function taskFilterMatch(t){var st=taskEffectiveStatus(t);if(taskFilter==='overdue')return st==='overdue';if(taskFilter==='today')return t.dueDate===today()&&st!=='completed';if(taskFilter==='upcoming')return !!t.dueDate&&t.dueDate>today()&&st!=='completed';if(taskFilter==='completed')return st==='completed';return true;}
 function renderTaskCard(t){var st=taskEffectiveStatus(t),sp=taskSubProgress(t),over=st==='overdue',virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var actions=virtual?'':'<div class="taskCardActions"><button class="tcAct tcMore" data-task-more="'+esc(t.id)+'" title="Actions">'+ICON('dots')+'</button><div class="tcMenu" data-tcmenu="'+esc(t.id)+'"><button class="tcAct'+(t.pinned?' on':'')+'" data-task-pin="'+esc(t.id)+'" title="Pin">'+ICON('pin')+'</button><button class="tcAct" data-task-snooze="'+esc(t.id)+'" title="Snooze to tomorrow">'+ICON('snooze')+'</button><button class="tcAct" data-task-dup="'+esc(t.id)+'" title="Duplicate">'+ICON('copy')+'</button></div></div>';return '<div class="taskCard '+(over?'overdue':'')+(t.pinned?' pinned':'')+'" data-task-id="'+esc(t.id)+'"><div class="taskTop"><button class="taskCheck '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><div class="taskBody"><div class="taskTitle '+(check?'done':'')+'">'+(t.pinned?'<span class="tPinDot" title="Pinned">'+ICON('pin')+'</span>':'')+esc(t.title)+'</div>'+(t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+'<div class="taskMeta"><span class="taskPri '+t.priority+'">'+t.priority.toUpperCase()+'</span><span class="taskStatus">'+(st==='inprogress'?'In Progress':st.charAt(0).toUpperCase()+st.slice(1))+'</span><span>'+esc(taskDateLabel(t))+'</span>'+(t.recurrence&&t.recurrence.freq!=='none'?'<span class="taskSeries">'+ICON('repeat')+' '+t.recurrence.freq+(t.recurrence.interval>1?' ×'+t.recurrence.interval:'')+'</span>':'')+(virtual?'<span class="taskSeries">Habit</span>':'')+((t.comments&&t.comments.length)?'<span class="taskCmt">'+ICON('comment')+' '+t.comments.length+'</span>':'')+'</div>'+(sp.total?'<div class="taskSubProgress">'+sp.done+' / '+sp.total+' subtasks<div class="taskSubBar"><i style="width:'+Math.round(sp.done/sp.total*100)+'%"></i></div></div>':'')+'</div>'+actions+'</div></div>';}
-function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle">'+pair[1]+'</div>'+a.map(renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStatRow"><span class="tsr over"><b>'+over+'</b> Overdue</span><span class="tsr today"><b>'+tn+'</b> Today</span><span class="tsr up"><b>'+up+'</b> Upcoming</span><span class="tsr done"><b>'+done+'</b> Done</span></div>';}
+function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){if(taskSortMode==='due'){var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));}var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var cnt=a.length;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle"><span class="tsLbl">'+pair[1]+'</span><span class="tsCount">'+cnt+(cnt===1?' task':' tasks')+'</span></div>'+a.map(renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStatCardV2"><div class="tscv over"><span class="tscvIc">🔴</span><b>'+over+'</b><span class="tscvL">Overdue</span></div><div class="tscvSep"></div><div class="tscv today"><span class="tscvIc">🟠</span><b>'+tn+'</b><span class="tscvL">Today</span></div><div class="tscvSep"></div><div class="tscv up"><span class="tscvIc">🔵</span><b>'+up+'</b><span class="tscvL">Upcoming</span></div><div class="tscvSep"></div><div class="tscv done"><span class="tscvIc">🟢</span><b>'+done+'</b><span class="tscvL">Done</span></div></div>';}
 function exportTaskRows(from,to){var rows=[['Task','Description','Due date','Due time','Priority','Status','Subtasks','Comments']];state.tasks.filter(function(t){return t.dueDate&&t.dueDate>=from&&t.dueDate<=to;}).sort(function(a,b){return taskDueMs(a)-taskDueMs(b);}).forEach(function(t){var sp=taskSubProgress(t);rows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),sp.done+'/'+sp.total]);});return rows;}
 function taskExportBounds(){if(taskExportMode==='custom')return{from:$('taskExportFrom').value,to:$('taskExportTo').value};return taskRangeBounds(taskExportMode);}
 function taskPdfSafe(v){return String(v==null?'':v).replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
@@ -9660,6 +9717,7 @@ function init(){
   $('taskEmptyCta').addEventListener('click',function(){openTask(null);});
   var taskSrchT=null;$('taskSearch').addEventListener('input',function(){taskSearchQ=this.value;if(taskSrchT)clearTimeout(taskSrchT);taskSrchT=setTimeout(function(){taskSrchT=null;renderTasks();},180);});
   $('taskFilters').addEventListener('click',function(e){var b=climb(e.target,this,'data-tf');if(!b)return;taskFilter=b.getAttribute('data-tf');selChip('taskFilters','data-tf',taskFilter);renderTasks();});
+  (function(){var sb=$('taskSortBtn');if(sb)sb.addEventListener('click',function(){taskSortMode=taskSortMode==='smart'?'due':'smart';sb.classList.toggle('on',taskSortMode==='due');sb.title=taskSortMode==='due'?'Sorted by due date':'Smart sort (status + due)';renderTasks();});})();
   $('taskList').addEventListener('click',function(e){var sd=climb(e.target,this,'data-task-showdone');if(sd){taskShowAllDone=true;renderTasks();return;}var cb=climb(e.target,this,'data-task-check');if(cb){toggleTaskComplete(cb.getAttribute('data-task-check'));return;}var hb=climb(e.target,this,'data-habit-task');if(hb){toggleHabitTask(hb.getAttribute('data-habit-task'));return;}
     var more=climb(e.target,this,'data-task-more');if(more){e.stopPropagation();var mid=more.getAttribute('data-task-more');var menu=this.querySelector('.tcMenu[data-tcmenu="'+mid+'"]');this.querySelectorAll('.tcMenu.on').forEach(function(mm){if(mm!==menu)mm.classList.remove('on');});if(menu)menu.classList.toggle('on');return;}
     var pin=climb(e.target,this,'data-task-pin');if(pin){e.stopPropagation();var pt=state.tasks.find(function(x){return x.id===pin.getAttribute('data-task-pin');});if(pt){pt.pinned=!pt.pinned;pt.updatedAt=Date.now();persist();renderTasks();try{pushPinnedTasksNotif();}catch(e){}toastN(pt.pinned?'Pinned to top':'Unpinned');}return;}
@@ -12286,8 +12344,7 @@ function closeReview(){var m=$('dailyReviewModal');if(m)m.remove();document.body
 function saveReview(){ensureReviewState();state.set.dailyReviews[today()]={win:($('reviewWin')||{}).value||'',next:($('reviewNext')||{}).value||'',savedAt:Date.now()};persist();closeReview();renderReviewCard();renderProDashboard();toast('Daily review saved');}
 
 function enhanceTaskCards(){
- var cards=document.querySelectorAll('#taskList .taskCard');for(var i=0;i<cards.length;i++){var id=cards[i].getAttribute('data-task-id'),t=state.tasks.find(function(x){return x.id===id;});if(!t||t.virtualHabit)continue;var meta=cards[i].querySelector('.taskMeta');if(!meta)continue;var risk=taskRisk(t);var age=taskAging(t);if(risk||age){var old=meta.querySelector('[data-aging]');if(!old){var s=document.createElement('span');s.setAttribute('data-aging','');s.className='taskAging '+(risk==='Overdue'?'bad':risk==='Due soon'?'soon':'');s.textContent=(risk?risk+' · ':'')+'Age '+taskAgingLabel(t);meta.appendChild(s);}}
- }
+ var cards=document.querySelectorAll('#taskList .taskCard');for(var i=0;i<cards.length;i++){var id=cards[i].getAttribute('data-task-id'),t=state.tasks.find(function(x){return x.id===id;});if(!t||t.virtualHabit)continue;var body=cards[i].querySelector('.taskBody');if(!body)continue;var risk=taskRisk(t);var age=taskAging(t);if(risk||age){var old=body.querySelector('[data-aging]');if(!old){var s=document.createElement('div');s.setAttribute('data-aging','');var cls=risk==='Overdue'?'bad':risk==='Due soon'?'soon':'aging';var dot=risk==='Overdue'?'🔴':risk==='Due soon'?'🟠':'🟡';s.className='taskAgeLine '+cls;s.innerHTML='<span class="taskAgeDot">'+dot+'</span>'+(risk?esc(risk)+' · ':'')+'Age '+esc(taskAgingLabel(t));body.appendChild(s);}}}
 }
 function renderTaskAgingSummary(){
  var host=$('taskAgingSummary');if(!host)return;var active=state.tasks.filter(function(t){return taskEffectiveStatus(t)!=='completed';}),over=active.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,old=active.filter(function(t){return taskAging(t)>=7;}).length,soon=active.filter(function(t){return t.dueDate&&dayDiff(today(),t.dueDate)<=1&&taskEffectiveStatus(t)!=='overdue';}).length,avg=active.length?Math.round(active.reduce(function(a,t){return a+taskAging(t);},0)/active.length):0;host.innerHTML='<div><b>'+over+'</b><span>Overdue</span></div><div><b>'+soon+'</b><span>Due soon</span></div><div><b>'+old+'</b><span>7d+ aging</span></div><div><b>'+avg+'d</b><span>Avg age</span></div>';
