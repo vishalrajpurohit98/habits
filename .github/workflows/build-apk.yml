@@ -28,10 +28,29 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Set up Android SDK (use preinstalled runner SDK)
+        run: |
+          set -euo pipefail
+          # ubuntu-latest ships an Android SDK already; ANDROID_HOME/ANDROID_SDK_ROOT are preset.
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK"        >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK"    >> "$GITHUB_ENV"
+          # Locate a usable sdkmanager (prefer the versioned cmdline-tools already on the runner).
+          SDKMANAGER="$(command -v sdkmanager || true)"
+          if [ -z "$SDKMANAGER" ]; then
+            SDKMANAGER="$(ls "$SDK"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -n1 || true)"
+          fi
+          if [ -z "$SDKMANAGER" ]; then
+            echo "ERROR: sdkmanager not found under $SDK"; exit 1
+          fi
+          echo "Using sdkmanager: $SDKMANAGER"
+          yes | "$SDKMANAGER" --licenses >/dev/null 2>&1 || true
       - name: Install SDK packages
-        run: sdkmanager "platform-tools" "platforms;android-34" "build-tools;35.0.0"
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+          SDKMANAGER="$(command -v sdkmanager || ls "$SDK"/cmdline-tools/*/bin/sdkmanager 2>/dev/null | head -n1)"
+          "$SDKMANAGER" "platform-tools" "platforms;android-34" "build-tools;35.0.0"
       - name: Decode keystore from committed file
         run: |
           if [ ! -f android-wrapper/keystore.b64 ]; then
@@ -97,4 +116,3 @@ jobs:
           tag_name: latest
           name: Latest APK
           files: PersonalTracker.apk
-          make_latest: true
