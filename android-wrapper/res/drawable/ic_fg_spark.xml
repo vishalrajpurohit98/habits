@@ -2,16 +2,13 @@
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="108dp" android:height="108dp"
     android:viewportWidth="108" android:viewportHeight="108">
-    <!-- Momentum mark: progress ring + flame core. Authored in a 512 box, scaled into the safe zone. -->
-    <group android:scaleX="0.135" android:scaleY="0.135" android:translateX="10" android:translateY="10">
-        <!-- progress ring (open at bottom-left) -->
+    <!-- Momentum mark: progress ring + flame core. Centered in the 108 viewport. -->
+    <group android:scaleX="0.2847" android:scaleY="0.2847" android:translateX="-18.88" android:translateY="-20.58">
         <path android:strokeColor="#FFFFFF" android:strokeWidth="34" android:strokeLineCap="round"
               android:fillColor="#00000000"
               android:pathData="M215.0,149.2 A120,120 0 1 1 137.8,241.2"/>
-        <!-- flame / drop core -->
         <path android:fillColor="#FFFFFF"
               android:pathData="M256,168 C258,200 292,214 292,256 a36,36 0 0,1 -72,0 c0,-26 24,-34 30,-54 C253,190 255,179 256,168 Z"/>
-        <!-- inner amber dot -->
         <path android:fillColor="#F5990A" android:pathData="M256,258 m-13,0 a13,13 0 1,0 26,0 a13,13 0 1,0 -26,0 Z"/>
     </group>
 </vector>
