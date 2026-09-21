@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>InnerOs</title>
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=inneros2">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=inneros2">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=inneros2">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=inneros3">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=inneros3">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=inneros3">
 <link rel="manifest" href="manifest.json">
 <style>
 @font-face{
@@ -95,8 +95,8 @@ input,textarea{font-family:inherit;-webkit-appearance:none}
 
 #app{height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;
   padding:14px 18px calc(180px + env(safe-area-inset-bottom,0px)) 18px}
-.page{display:none;animation:fadeUp .3s ease-out}.page.on{display:block;opacity:1!important}
-@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.page{display:none}.page.on{display:block;opacity:1!important;animation:pageFade .16s ease-out}
+@keyframes pageFade{from{opacity:0}to{opacity:1}}
 
 /* ============ HEADER ============ */
 .eyebrow{font-size:12.5px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--mut);margin-bottom:4px}
@@ -283,6 +283,10 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .taskCommentsHead b{font-size:13px}
 .taskCommentComposer{display:flex;gap:7px;align-items:flex-end;margin-top:8px}
 .taskCommentComposer textarea{min-height:72px;resize:vertical;flex:1}
+.taskCommentBtns{display:flex;flex-direction:column;gap:7px;flex:0 0 auto}
+.taskCmtMic{width:44px;height:38px;border:1px solid var(--line);background:var(--card2);border-radius:11px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.taskCmtMic:active{transform:scale(.94)}
+.taskCmtMic.listening{background:var(--coralSoft);color:var(--coral);animation:jrMicPulse 1.2s ease-in-out infinite}
 .taskCommentList{display:flex;flex-direction:column;gap:8px}
 .taskComment{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:9px}
 .taskCommentText{font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
@@ -1289,9 +1293,7 @@ html.light .todaySyncBtn{ background:#fff; border-color:rgba(0,0,0,.14); box-sha
 /* ===== Motion system (transform/opacity only; reduced-motion respected) ===== */
 button,.btn,.sbtn,.chip,.tab,.moreCard,.jrNavItem,.vChip,.taskCard,.vaultCard,.jrCard,.moBtn,.iconTab,.primary{ transition:transform var(--t-fast) var(--e-out), background-color var(--t-fast) var(--e-out), border-color var(--t-fast) var(--e-out), opacity var(--t-fast) var(--e-out); }
 button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:active,.vaultCard:active,.jrCard:active,.primary:active{ transform:scale(.97); }
-/* page transition: subtle slide + fade in */
-.page.on{ animation:pageIn var(--t-normal) var(--e-out); }
-@keyframes pageIn{ from{opacity:.4;transform:translateX(6px)} to{opacity:1;transform:none} }
+/* page transition: single quick fade (defined near .page) — keep it simple/fast */
 /* toggle thumb smoothing */
 .tog,.jrTog{ transition:background-color var(--t-normal) var(--e-inout); }
 .tog::after,.jrTog::after{ transition:transform var(--t-normal) var(--e-inout), background-color var(--t-normal) var(--e-inout); }
@@ -1437,7 +1439,7 @@ button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:a
 .expHeroR .coral{color:var(--coral);font-weight:700;white-space:nowrap}
 /* Money hero — Remaining is the headline; income/spending below (no arrows) */
 .expHero2{background:linear-gradient(135deg,var(--card),rgba(255,174,31,.06));border:1px solid var(--line2);border-radius:var(--cardR);padding:20px;margin-bottom:8px}
-.heroSpark{margin-top:14px}
+.heroSpark{margin-top:14px;overflow:hidden;border-radius:8px}
 .heroSparkSvg{width:100%;height:44px;display:block}
 .heroSparkCap{font-size:10px;color:var(--mut);margin-top:5px;letter-spacing:.3px}
 .expHeroLbl{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--mut2);font-weight:700;margin-bottom:6px}
@@ -1580,9 +1582,9 @@ button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:a
 .taskSectionTitle .tsCount{font-size:10.5px;font-weight:700;letter-spacing:.4px;color:var(--mut2)}
 #pgTasks .taskCard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 14px;margin-bottom:11px;box-shadow:none;overflow:hidden;transition:transform .14s ease,border-color .16s ease,background-color .16s ease}
 #pgTasks .taskCard:active{transform:scale(.99);background:var(--card2)}
-#pgTasks .taskCard.overdue{border-color:var(--line)}
-#pgTasks .taskCard.overdue::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--coral);border-radius:3px 0 0 3px}
-#pgTasks .taskCard.pinned::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tAccent);border-radius:3px 0 0 3px}
+#pgTasks .taskCard.pinned{background:var(--tAccentSoft);border-color:var(--tAccentBorder)}
+#pgTasks .taskCard.hi{border-color:rgba(255,107,94,.30);background:var(--coralSoft)}
+#pgTasks .taskCard.overdue{border-color:rgba(255,107,94,.35);background:var(--coralSoft)}
 #pgTasks .taskCheck{width:26px;height:26px;border-radius:9px;border:2px solid var(--line2);background:transparent;flex:0 0 26px;font-size:15px;transition:all .18s cubic-bezier(.2,.8,.2,1)}
 #pgTasks .taskCheck.done{background:var(--sGreen);border-color:var(--sGreen);color:#06120d}
 #pgTasks .taskCheck:active{transform:scale(.85)}
@@ -1598,6 +1600,17 @@ button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:a
 .taskAgeLine.bad{color:var(--coral)}
 .taskAgeLine.soon{color:var(--sOrange)}
 .taskAgeLine.aging{color:var(--sOrange)}
+/* Compact task list */
+.taskCardC{display:flex;align-items:center;gap:11px;position:relative;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:7px;overflow:hidden;cursor:pointer}
+.taskCardC:active{transform:scale(.99);background:var(--card2)}
+.taskCardC.overdue{background:var(--coralSoft);border-color:rgba(255,107,94,.35)}
+.taskCardC.hi{background:var(--coralSoft);border-color:rgba(255,107,94,.35)}
+.taskCheckC{width:22px;height:22px;flex:0 0 22px;border-radius:7px;border:2px solid var(--line2);background:transparent;color:transparent;font-size:13px;font-weight:900;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.taskCheckC.done{background:var(--sGreen);border-color:var(--sGreen);color:#06120d}
+.taskTitleC{flex:1;min-width:0;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink)}
+.taskTitleC.hi{color:var(--coral);font-weight:700}
+.taskTitleC.done{text-decoration:line-through;color:var(--mut)}
+.taskDueC{flex:0 0 auto;font-size:11.5px;color:var(--mut);font-weight:600}
 @media(max-width:420px){.taskStatCardV2 .tscv b{font-size:22px}}
 .taskCardActions{display:flex;gap:4px;flex:0 0 auto;align-items:flex-start;position:relative}
 .tcMenu{display:none;position:absolute;right:0;top:36px;z-index:5;background:var(--card2);border:1px solid var(--line2);border-radius:12px;padding:5px;gap:4px;box-shadow:0 8px 24px rgba(0,0,0,.5)}
@@ -1633,6 +1646,14 @@ button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:a
 .selMode .txRow.rowSel::before,.selMode .jrCard.rowSel::before{background:var(--amber);border-color:var(--amber)}
 .selMode .txRow.rowSel::after,.selMode .jrCard.rowSel::after{content:'\2713';position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--onAccent,#171310);font-size:13px;font-weight:800}
 .selMode .txRow.rowSel,.selMode .jrCard.rowSel{border-color:var(--amber)}
+/* Selection clarity: stronger highlight + hide timeline dots/rail while selecting */
+#jrList.selMode.jrTimeline{padding-left:0}
+#jrList.selMode.jrTimeline:before{display:none}
+#jrList.selMode .jrCard:before{content:'';position:absolute;left:12px;top:50%;bottom:auto;transform:translateY(-50%);width:20px;height:20px;border:2px solid var(--line2);border-radius:6px;background:var(--card2);box-shadow:none;z-index:2}
+#jrList.selMode .jrCard.rowSel:before{background:var(--amber);border-color:var(--amber)}
+#jrList.selMode .jrCard.rowSel{border-color:var(--amber);background:var(--amberSoft)}
+#jrList.selMode .jrCard.rowSel:after{content:'\2713';position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--onAccent,#171310);font-size:13px;font-weight:800;z-index:3}
+.selMode .txRow.rowSel{background:var(--amberSoft)}
 #uaiReadTog.on{background:var(--amberSoft);color:var(--amber);border-color:var(--amber)}
 .uaiTable{width:100%;border-collapse:collapse;margin:8px 0;font-size:12.5px}
 .uaiTable th,.uaiTable td{border:1px solid var(--line);padding:6px 9px;text-align:left}
@@ -2411,7 +2432,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="eyebrow">Plan &amp; execute</div>
     <div class="taskPageHead"><div class="taskHeadTitle"><h1>Tasks</h1><div class="taskSubtitle">Stay on top of what matters</div></div><div class="taskHeadBtns"><button class="taskHeadBtn taskExportBtn" id="taskExportToggle" title="Export tasks"><span class="thbIc">📤</span><span class="thbTxt">Export</span></button><button class="taskHeadBtn taskAddBtn" id="taskAddTop"><span class="thbIc">➕</span><span class="thbTxt">Task</span></button></div></div>
     <div class="taskSummary" id="taskSummary"></div>
-    <div class="taskSearchRow"><div class="taskSearch"><span class="taskSearchIc">🔍</span><input id="taskSearch" class="inp materialSearch" placeholder="Search tasks, descriptions, subtasks…" autocomplete="off"></div><button class="taskSortBtn" id="taskSortBtn" title="Sort by due date"><span>🔀</span></button></div>
+    <div class="taskSearchRow"><div class="taskSearch"><span class="taskSearchIc">🔍</span><input id="taskSearch" class="inp materialSearch" placeholder="Search tasks, descriptions, subtasks…" autocomplete="off"></div><button class="taskSortBtn" id="taskCompactBtn" title="Compact view"><span>≡</span></button><button class="taskSortBtn" id="taskSortBtn" title="Sort by due date"><span>🔀</span></button></div>
     <div class="taskFilters" id="taskFilters">
       <button class="taskPill sel" data-tf="all">All</button><button class="taskPill" data-tf="overdue">Overdue</button><button class="taskPill" data-tf="today">Today</button><button class="taskPill" data-tf="upcoming">Upcoming</button><button class="taskPill" data-tf="completed">Completed</button>
     </div>
@@ -2802,7 +2823,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="taskCommentList" id="taskCommentList"></div>
     <div class="taskCommentComposer">
       <textarea id="taskCommentInput" class="inp" maxlength="1000" placeholder="Add a comment…"></textarea>
-      <button class="sbtn acc" id="taskCommentAdd">Add</button>
+      <div class="taskCommentBtns"><button class="taskCmtMic" id="taskCommentMic" title="Voice input" aria-label="Voice input">🎤</button><button class="sbtn acc" id="taskCommentAdd">Add</button></div>
     </div>
     <div class="setS" style="margin-top:6px">Comments are saved to this task. AI rephrase creates a preview before replacing your wording.</div>
   </div>
@@ -8274,17 +8295,17 @@ function renderExp(){
       var daily=new Array(daysN).fill(0);
       for(var i=0;i<state.tx.length;i++){ var xt=state.tx[i]; if(xt.kind!=='exp') continue; if(!xt.d||xt.d<ms) continue; var dd=new Date(xt.d); if(dd.getMonth()!==expM||dd.getFullYear()!==expY) continue; daily[dd.getDate()-1]+=(+xt.amt||0); }
       var max=Math.max.apply(null,daily); if(max<=0) return '';
-      var W=300,H=44,n=daily.length, step=n>1?W/(n-1):W;
-      var pts=daily.map(function(v,ix){ var x=ix*step, y=H-2-(v/max)*(H-6); return [x,y]; });
+      var W=300,H=44,padX=4,padY=5,n=daily.length, iw=W-padX*2, step=n>1?iw/(n-1):iw;
+      var pts=daily.map(function(v,ix){ var x=padX+ix*step, y=(H-padY)-(v/max)*(H-padY*2); return [x,y]; });
       var line=pts.map(function(p,ix){ return (ix?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1); }).join(' ');
-      var area=line+' L'+W+' '+H+' L0 '+H+' Z';
+      var area=line+' L'+(W-padX)+' '+(H-padY)+' L'+padX+' '+(H-padY)+' Z';
       var cum=daily.reduce(function(a,b){return a+b;},0);
       var tD=new Date(); var todayIdx=(tD.getMonth()===expM&&tD.getFullYear()===expY)?tD.getDate()-1:n-1;
       var lp=pts[Math.max(0,Math.min(n-1,todayIdx))];
       return '<div class="heroSpark"><svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" class="heroSparkSvg">'
         +'<defs><linearGradient id="hsg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--amber)" stop-opacity=".28"/><stop offset="1" stop-color="var(--amber)" stop-opacity="0"/></linearGradient></defs>'
         +'<path d="'+area+'" fill="url(#hsg)"/>'
-        +'<path d="'+line+'" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/>'
+        +'<path d="'+line+'" fill="none" stroke="var(--amber)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
         +'<circle cx="'+lp[0].toFixed(1)+'" cy="'+lp[1].toFixed(1)+'" r="2.6" fill="var(--amber)"/></svg>'
         +'<div class="heroSparkCap">Daily spending this month</div></div>';
     }catch(e){ return ''; }
@@ -9569,7 +9590,7 @@ function climb(el, root, attr){
 
 
 /* ================= TASK MANAGEMENT ================= */
-var taskSearchQ='',taskFilter='all',taskExportMode='today',taskEd=null,taskShowAllDone=false,taskSortMode='smart'; /* perf: completed list capped until expanded */
+var taskSearchQ='',taskFilter='all',taskExportMode='today',taskEd=null,taskShowAllDone=false,taskSortMode='smart',taskCompact=false; /* perf: completed list capped until expanded */
 function taskCommentTime(ts){try{return new Date(ts).toLocaleString(undefined,{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'});}catch(e){return '';}}
 function renderTaskComments(){
   var wrap=$('taskComments'),list=$('taskCommentList'),count=$('taskCommentCount');
@@ -9646,8 +9667,9 @@ function haptic(){ try{ if(typeof nat!=="undefined"&&nat&&nat.haptic) nat.haptic
 function toggleTaskComplete(id){var t=state.tasks.find(function(x){return x.id===id;});if(!t)return;var was=t.status==='completed';if(was){t.status='open';t.completedAt=0;t.updatedAt=Date.now();}else{t.status='completed';t.completedAt=Date.now();t.updatedAt=t.completedAt;haptic();var nx=taskCreateNextOccurrence(t);if(nx)toastN('Completed · next '+taskDateLabel(nx));}persist();renderTasks();}
 function toggleHabitTask(id){var p=String(id).split(':');if(p.length<3)return;var h=findHabit(p[1]),ds=p[2];if(!h)return;if(isDone(h,ds))setVal(h.id,ds,0);else if(dueOn(h,toDate(ds))){setVal(h.id,ds,targ(h));haptic();}renderTasks();}
 function taskFilterMatch(t){var st=taskEffectiveStatus(t);if(taskFilter==='overdue')return st==='overdue';if(taskFilter==='today')return t.dueDate===today()&&st!=='completed';if(taskFilter==='upcoming')return !!t.dueDate&&t.dueDate>today()&&st!=='completed';if(taskFilter==='completed')return st==='completed';return true;}
-function renderTaskCard(t){var st=taskEffectiveStatus(t),sp=taskSubProgress(t),over=st==='overdue',virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var actions=virtual?'':'<div class="taskCardActions"><button class="tcAct tcMore" data-task-more="'+esc(t.id)+'" title="Actions">'+ICON('dots')+'</button><div class="tcMenu" data-tcmenu="'+esc(t.id)+'"><button class="tcAct'+(t.pinned?' on':'')+'" data-task-pin="'+esc(t.id)+'" title="Pin">'+ICON('pin')+'</button><button class="tcAct" data-task-snooze="'+esc(t.id)+'" title="Snooze to tomorrow">'+ICON('snooze')+'</button><button class="tcAct" data-task-dup="'+esc(t.id)+'" title="Duplicate">'+ICON('copy')+'</button></div></div>';return '<div class="taskCard '+(over?'overdue':'')+(t.pinned?' pinned':'')+'" data-task-id="'+esc(t.id)+'"><div class="taskTop"><button class="taskCheck '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><div class="taskBody"><div class="taskTitle '+(check?'done':'')+'">'+(t.pinned?'<span class="tPinDot" title="Pinned">'+ICON('pin')+'</span>':'')+esc(t.title)+'</div>'+(t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+'<div class="taskMeta"><span class="taskPri '+t.priority+'">'+t.priority.toUpperCase()+'</span><span class="taskStatus">'+(st==='inprogress'?'In Progress':st.charAt(0).toUpperCase()+st.slice(1))+'</span><span>'+esc(taskDateLabel(t))+'</span>'+(t.recurrence&&t.recurrence.freq!=='none'?'<span class="taskSeries">'+ICON('repeat')+' '+t.recurrence.freq+(t.recurrence.interval>1?' ×'+t.recurrence.interval:'')+'</span>':'')+(virtual?'<span class="taskSeries">Habit</span>':'')+((t.comments&&t.comments.length)?'<span class="taskCmt">'+ICON('comment')+' '+t.comments.length+'</span>':'')+'</div>'+(sp.total?'<div class="taskSubProgress">'+sp.done+' / '+sp.total+' subtasks<div class="taskSubBar"><i style="width:'+Math.round(sp.done/sp.total*100)+'%"></i></div></div>':'')+'</div>'+actions+'</div></div>';}
-function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){if(taskSortMode==='due'){var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));}var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var cnt=a.length;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle"><span class="tsLbl">'+pair[1]+'</span><span class="tsCount">'+cnt+(cnt===1?' task':' tasks')+'</span></div>'+a.map(renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStatCardV2"><div class="tscv over"><span class="tscvIc">🔴</span><b>'+over+'</b><span class="tscvL">Overdue</span></div><div class="tscvSep"></div><div class="tscv today"><span class="tscvIc">🟠</span><b>'+tn+'</b><span class="tscvL">Today</span></div><div class="tscvSep"></div><div class="tscv up"><span class="tscvIc">🔵</span><b>'+up+'</b><span class="tscvL">Upcoming</span></div><div class="tscvSep"></div><div class="tscv done"><span class="tscvIc">🟢</span><b>'+done+'</b><span class="tscvL">Done</span></div></div>';}
+function renderTaskCardCompact(t){var st=taskEffectiveStatus(t),virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var hi=t.priority==='high';return '<div class="taskCardC '+(st==='overdue'?'overdue':'')+(hi?' hi':'')+'" data-task-id="'+esc(t.id)+'"><button class="taskCheckC '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><span class="taskTitleC '+(check?'done':'')+(hi?' hi':'')+'">'+esc(t.title)+'</span><span class="taskDueC">'+esc(taskDateLabel(t))+'</span></div>';}
+function renderTaskCard(t){var st=taskEffectiveStatus(t),sp=taskSubProgress(t),over=st==='overdue',virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var actions=virtual?'':'<div class="taskCardActions"><button class="tcAct tcMore" data-task-more="'+esc(t.id)+'" title="Actions">'+ICON('dots')+'</button><div class="tcMenu" data-tcmenu="'+esc(t.id)+'"><button class="tcAct'+(t.pinned?' on':'')+'" data-task-pin="'+esc(t.id)+'" title="Pin">'+ICON('pin')+'</button><button class="tcAct" data-task-snooze="'+esc(t.id)+'" title="Snooze to tomorrow">'+ICON('snooze')+'</button><button class="tcAct" data-task-dup="'+esc(t.id)+'" title="Duplicate">'+ICON('copy')+'</button></div></div>';return '<div class="taskCard '+(over?'overdue':'')+(t.pinned?' pinned':'')+((t.priority==='high'&&!over&&!check)?' hi':'')+'" data-task-id="'+esc(t.id)+'"><div class="taskTop"><button class="taskCheck '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><div class="taskBody"><div class="taskTitle '+(check?'done':'')+'">'+(t.pinned?'<span class="tPinDot" title="Pinned">'+ICON('pin')+'</span>':'')+esc(t.title)+'</div>'+(t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+'<div class="taskMeta"><span class="taskPri '+t.priority+'">'+t.priority.toUpperCase()+'</span><span class="taskStatus">'+(st==='inprogress'?'In Progress':st.charAt(0).toUpperCase()+st.slice(1))+'</span><span>'+esc(taskDateLabel(t))+'</span>'+(t.recurrence&&t.recurrence.freq!=='none'?'<span class="taskSeries">'+ICON('repeat')+' '+t.recurrence.freq+(t.recurrence.interval>1?' ×'+t.recurrence.interval:'')+'</span>':'')+(virtual?'<span class="taskSeries">Habit</span>':'')+((t.comments&&t.comments.length)?'<span class="taskCmt" data-task-comment="'+esc(t.id)+'">'+ICON('comment')+' '+t.comments.length+'</span>':'')+'</div>'+(sp.total?'<div class="taskSubProgress">'+sp.done+' / '+sp.total+' subtasks<div class="taskSubBar"><i style="width:'+Math.round(sp.done/sp.total*100)+'%"></i></div></div>':'')+'</div>'+actions+'</div></div>';}
+function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){if(taskSortMode==='due'){var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));}var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var cnt=a.length;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle"><span class="tsLbl">'+pair[1]+'</span><span class="tsCount">'+cnt+(cnt===1?' task':' tasks')+'</span></div>'+a.map(taskCompact?renderTaskCardCompact:renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStatCardV2"><div class="tscv over"><b>'+over+'</b><span class="tscvL">Overdue</span></div><div class="tscvSep"></div><div class="tscv today"><b>'+tn+'</b><span class="tscvL">Today</span></div><div class="tscvSep"></div><div class="tscv up"><b>'+up+'</b><span class="tscvL">Upcoming</span></div><div class="tscvSep"></div><div class="tscv done"><b>'+done+'</b><span class="tscvL">Done</span></div></div>';}
 function exportTaskRows(from,to){var rows=[['Task','Description','Due date','Due time','Priority','Status','Subtasks','Comments']];state.tasks.filter(function(t){return t.dueDate&&t.dueDate>=from&&t.dueDate<=to;}).sort(function(a,b){return taskDueMs(a)-taskDueMs(b);}).forEach(function(t){var sp=taskSubProgress(t);rows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),sp.done+'/'+sp.total]);});return rows;}
 function taskExportBounds(){if(taskExportMode==='custom')return{from:$('taskExportFrom').value,to:$('taskExportTo').value};return taskRangeBounds(taskExportMode);}
 function taskPdfSafe(v){return String(v==null?'':v).replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
@@ -9718,11 +9740,13 @@ function init(){
   var taskSrchT=null;$('taskSearch').addEventListener('input',function(){taskSearchQ=this.value;if(taskSrchT)clearTimeout(taskSrchT);taskSrchT=setTimeout(function(){taskSrchT=null;renderTasks();},180);});
   $('taskFilters').addEventListener('click',function(e){var b=climb(e.target,this,'data-tf');if(!b)return;taskFilter=b.getAttribute('data-tf');selChip('taskFilters','data-tf',taskFilter);renderTasks();});
   (function(){var sb=$('taskSortBtn');if(sb)sb.addEventListener('click',function(){taskSortMode=taskSortMode==='smart'?'due':'smart';sb.classList.toggle('on',taskSortMode==='due');sb.title=taskSortMode==='due'?'Sorted by due date':'Smart sort (status + due)';renderTasks();});})();
+  (function(){var cb=$('taskCompactBtn');if(cb)cb.addEventListener('click',function(){taskCompact=!taskCompact;cb.classList.toggle('on',taskCompact);cb.title=taskCompact?'Detailed view':'Compact view';renderTasks();});})();
   $('taskList').addEventListener('click',function(e){var sd=climb(e.target,this,'data-task-showdone');if(sd){taskShowAllDone=true;renderTasks();return;}var cb=climb(e.target,this,'data-task-check');if(cb){toggleTaskComplete(cb.getAttribute('data-task-check'));return;}var hb=climb(e.target,this,'data-habit-task');if(hb){toggleHabitTask(hb.getAttribute('data-habit-task'));return;}
     var more=climb(e.target,this,'data-task-more');if(more){e.stopPropagation();var mid=more.getAttribute('data-task-more');var menu=this.querySelector('.tcMenu[data-tcmenu="'+mid+'"]');this.querySelectorAll('.tcMenu.on').forEach(function(mm){if(mm!==menu)mm.classList.remove('on');});if(menu)menu.classList.toggle('on');return;}
     var pin=climb(e.target,this,'data-task-pin');if(pin){e.stopPropagation();var pt=state.tasks.find(function(x){return x.id===pin.getAttribute('data-task-pin');});if(pt){pt.pinned=!pt.pinned;pt.updatedAt=Date.now();persist();renderTasks();try{pushPinnedTasksNotif();}catch(e){}toastN(pt.pinned?'Pinned to top':'Unpinned');}return;}
     var sn=climb(e.target,this,'data-task-snooze');if(sn){e.stopPropagation();var stk=state.tasks.find(function(x){return x.id===sn.getAttribute('data-task-snooze');});if(stk){stk.dueDate=fmt(addDays(new Date(),1));if(stk.status==='completed'){stk.status='open';stk.completedAt=0;}stk.updatedAt=Date.now();persist();renderTasks();toastN('Snoozed to tomorrow');}return;}
     var dup=climb(e.target,this,'data-task-dup');if(dup){e.stopPropagation();var dt=state.tasks.find(function(x){return x.id===dup.getAttribute('data-task-dup');});if(dt){var copy=JSON.parse(JSON.stringify(dt));copy.id='k'+Date.now().toString(36)+Math.random().toString(36).slice(2,8);copy.title=(dt.title+' (copy)').slice(0,100);copy.status='open';copy.completedAt=0;copy.pinned=false;copy.createdAt=Date.now();copy.updatedAt=Date.now();(copy.subtasks||[]).forEach(function(s){s.done=false;});state.tasks.push(normTask(copy));persist();renderTasks();toastN('Task duplicated');}return;}
+    var cc=climb(e.target,this,'data-task-comment');if(cc){openTask(cc.getAttribute('data-task-comment'));setTimeout(function(){var c=$('taskComments');if(c){c.scrollIntoView({behavior:'smooth',block:'center'});}var ci=$('taskCommentInput');if(ci)ci.focus();},260);return;}
     var b=climb(e.target,this,'data-task-id');if(b)openTask(b.getAttribute('data-task-id'));});
   $('taskExportRange').addEventListener('click',function(e){var b=climb(e.target,this,'data-ter');if(!b)return;taskExportMode=b.getAttribute('data-ter');selChip('taskExportRange','data-ter',taskExportMode);$('taskExportCustom').style.display=taskExportMode==='custom'?'':'none';});
   var _tex=$('taskExportToggle'); if(_tex) _tex.addEventListener('click', function(){ openSheet('taskExportSheet'); });
@@ -9738,6 +9762,24 @@ function init(){
   $('taskSubInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();addTaskSub();}});
   $('taskSubList').addEventListener('click',function(e){var b=climb(e.target,this,'data-sub-del');if(b){taskEd.subtasks.splice(+b.getAttribute('data-sub-del'),1);renderTaskSubEditor();return;}var c=climb(e.target,this,'data-sub-toggle');if(c){taskEd.subtasks[+c.getAttribute('data-sub-toggle')].done=!taskEd.subtasks[+c.getAttribute('data-sub-toggle')].done;renderTaskSubEditor();}});
   $('taskCommentAdd').addEventListener('click',addTaskComment);
+  (function(){
+    var micBtn=$('taskCommentMic'); if(!micBtn) return;
+    var rec=null, active=false, finalTxt='', silence=null;
+    function setL(on){ active=on; micBtn.classList.toggle('listening',on); }
+    micBtn.addEventListener('click',function(){
+      if(active){ try{ rec&&rec.stop(); }catch(e){} setL(false); return; }
+      var SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+      if(!SR){ toastN('Voice input is not available on this device'); return; }
+      var inp=$('taskCommentInput'); finalTxt=inp&&inp.value?inp.value+' ':'';
+      try{
+        rec=new SR(); rec.lang=(navigator.language||'en-US'); rec.continuous=true; rec.interimResults=true; setL(true);
+        rec.onresult=function(ev){ var interim=''; for(var i=ev.resultIndex;i<ev.results.length;i++){ var r=ev.results[i]; if(r.isFinal) finalTxt+=r[0].transcript+' '; else interim+=r[0].transcript; } if(inp) inp.value=(finalTxt+interim).replace(/\s+/g,' ').trimStart(); if(silence) clearTimeout(silence); silence=setTimeout(function(){ try{ rec.stop(); }catch(e){} },2500); };
+        rec.onerror=function(ev){ setL(false); if(ev&&ev.error&&ev.error!=='no-speech'&&ev.error!=='aborted'){ toastN(ev.error==='not-allowed'?'Microphone permission denied':'Voice input error'); } };
+        rec.onend=function(){ if(active){ try{ rec.start(); return; }catch(e){} } setL(false); };
+        rec.start();
+      }catch(e){ setL(false); toastN('Voice input error'); }
+    });
+  })();
   $('taskCommentInput').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){e.preventDefault();addTaskComment();}});
   $('taskCommentList').addEventListener('click',function(e){
     var b=climb(e.target,this,'data-comment-edit');if(b){editTaskComment(b.getAttribute('data-comment-edit'));return;}
