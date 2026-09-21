@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<title>InnerOs</title>
+<title>Momentum</title>
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=inneros3">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=inneros3">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=inneros3">
@@ -868,15 +868,16 @@ html:not(.light) .otdRow .oy{color:var(--amber)}
 .promptCard .pq{font-size:13.5px;font-style:italic;color:var(--ink2);line-height:1.5;margin:5px 0 12px}
 
 /* AMOLED true-black surfaces */
-html.amoled{--bg:#000000;--bg2:#000000;--card:#000000;--card2:#090909;--card3:#111111;
-  --line:rgba(255,255,255,.11);--line2:rgba(255,255,255,.18);--shadow:none;
-  --dockBg:#0a0a0a;--amberSoft:rgba(255,174,31,.10)}
+html.amoled{--bg:#000000;--bg2:#000000;--card:#000000;--card2:#000000;--card3:#050505;
+  --line:rgba(255,255,255,.12);--line2:rgba(255,255,255,.20);--shadow:none;
+  --dockBg:#000000;--amberSoft:rgba(255,174,31,.12);--primarySoft:rgba(255,174,31,.12)}
 html.amoled .card,html.amoled .setCard,html.amoled .jrCard,html.amoled .focusCard,
 html.amoled .chartBox,html.amoled .hmWrap,html.amoled .stackCard{box-shadow:none}
 html.amoled .hero::before{display:none}
 html.amoled body,html.amoled #app,html.amoled .page{background:#000000!important}
-html.amoled .card,html.amoled .setCard,html.amoled .jrCard,html.amoled .focusCard,html.amoled .chartBox,html.amoled .hmWrap,html.amoled .stackCard,html.amoled .promptCard,html.amoled .empty,html.amoled .aiCfg,html.amoled .uaiBox{background:#000000!important;box-shadow:none!important}
-html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#090909!important}
+html.amoled .card,html.amoled .setCard,html.amoled .jrCard,html.amoled .focusCard,html.amoled .chartBox,html.amoled .hmWrap,html.amoled .stackCard,html.amoled .promptCard,html.amoled .empty,html.amoled .aiCfg,html.amoled .uaiBox,html.amoled .taskCard,html.amoled .taskCardC,html.amoled .taskStatCardV2,html.amoled .moreRow,html.amoled .moreCard,html.amoled .qaTile,html.amoled .setCard2,html.amoled .taskPill,html.amoled .expHero2,html.amoled .reviewCard{background:#000000!important;box-shadow:none!important}
+html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet,html.amoled .jrSumCard{background:#050505!important}
+html.amoled #tabbar,html.amoled .dock{background:#000000!important}
 
 
 /* focus-first home */
@@ -1112,7 +1113,7 @@ html.amoled .sheet,html.amoled .modal,html.amoled .bottomSheet{background:#09090
 
 /* ============ POLISHED PRODUCT SYSTEM ============ */
 :root{--primary:#4EA8FF;--primarySoft:rgba(78,168,255,.13);--primaryDeep:#2E7FD6;--surface0:#000;--surface1:#0D1218;--surface2:#151D27;--radius-card:20px;--radius-input:16px;--radius-btn:14px;--radius-chip:10px}
-html.amoled{--surface1:#050505;--surface2:#0E0D0B}
+html.amoled{--surface1:#000000;--surface2:#050505}
 .h1row{align-items:center}.h1row h1{letter-spacing:-.7px}.heroTop{background:linear-gradient(135deg,var(--card),rgba(78,168,255,.045));border:1px solid var(--line);border-radius:20px;padding:18px 16px;margin:12px 0 10px;min-height:146px;box-shadow:var(--shadow)}.heroTop .hero{justify-content:center}.heroTop .hero::before{width:150px;height:150px}.momBig{font-size:48px;letter-spacing:-2px}.momBig small{font-size:22px}.momLbl{font-size:9px;letter-spacing:2.2px;margin-top:5px;margin-bottom:7px}.chainLine{font-size:12px;color:var(--ink2)}.dayMsg{font-style:normal;background:var(--primarySoft);border:1px solid rgba(78,168,255,.16);border-radius:12px;padding:10px 12px;margin:8px 0 12px;color:var(--ink2)}.wkRow{padding:2px 4px;margin-bottom:12px}.secH{font-size:11px;letter-spacing:1.8px;margin:20px 2px 9px;color:var(--mut2)}.card{border-radius:20px;padding:15px 15px 12px;margin-bottom:10px}.card .emo{width:46px;height:46px;border-radius:14px}.cname{font-size:16px}.cstreak{font-size:12px}.habitMeta{display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap}.habitTarget{font-size:12px;color:var(--mut);font-weight:600}.habitStreak{font-size:11px;color:var(--mut);font-weight:700;background:var(--card2);border-radius:10px;padding:3px 8px}.chk{width:40px;height:40px;border-radius:12px}#fab{height:50px!important;min-height:50px!important;border-radius:14px!important;background:var(--primary)!important;color:#06101A!important;box-shadow:0 8px 24px rgba(78,168,255,.22)!important}#fabLbl{font-weight:800}.segX{border-radius:14px;padding:3px;background:var(--card2);border:1px solid var(--line);gap:2px}.segX button{border-radius:11px;min-height:40px;font-weight:700;color:var(--mut)}.segX button.sel{background:var(--primary);color:#06101A;box-shadow:0 2px 8px rgba(78,168,255,.18)}.expSum .es{border-radius:18px;padding:13px 8px}.expSum .es b{font-size:17px}.expSum .es span{font-size:8px}.txDay{font-size:10px!important;font-weight:800!important;letter-spacing:1.5px!important;text-transform:uppercase;color:var(--mut2)!important;margin-top:17px!important;margin-bottom:7px!important}.txRow{border-radius:16px!important;padding:12px 10px!important;margin-bottom:6px!important}.txIco{border-radius:12px!important}.aiCommandIntro{font-size:12px;color:var(--mut);margin:0 2px 8px}.uaiBox{border-radius:20px;background:linear-gradient(160deg,var(--card),rgba(78,168,255,.035))}.uaiInputRow{border-top:none;padding:10px}.uaiInp{background:var(--bg2);border:1px solid var(--line);border-radius:14px}.uaiSend{background:var(--primary);color:#06101A;border-radius:14px}.uaiHints{padding:0 10px 10px}.uaiHint{border-radius:10px}.aiRecentTitle{font-size:11px;font-weight:800;letter-spacing:1.7px;text-transform:uppercase;color:var(--mut2);margin:20px 2px 8px}.aiRecentEmpty{padding:14px;background:var(--card);border:1px solid var(--line);border-radius:16px;color:var(--mut);font-size:12px}.aiCfg{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;margin-top:12px}.aiCfgHead{display:flex;align-items:center;gap:10px;padding:14px 15px;cursor:pointer}.aiCfgIcon{width:36px;height:36px;border-radius:11px;background:var(--primarySoft);display:flex;align-items:center;justify-content:center;font-size:16px}.aiCfgMain{flex:1;min-width:0}.aiCfgTitle{font-weight:800;font-size:14px}.aiCfgSub{font-size:11px;color:var(--mut);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.aiCfgChevron{color:var(--mut);transition:transform .2s}.aiCfg.open .aiCfgChevron{transform:rotate(180deg)}.aiCfgBody{display:none;border-top:1px solid var(--line);padding:12px 15px 15px}.aiCfg.open .aiCfgBody{display:block}.aiStatusLine{display:flex;align-items:center;gap:6px;font-size:11px;margin-top:7px;color:var(--mut)}.aiStatusDot{width:7px;height:7px;border-radius:50%;background:var(--sGreen);display:inline-block}.aiStatusDot.off{background:var(--mut2)}.empty{border-radius:20px!important;background:var(--card)!important;border:1px solid var(--line)!important;padding:30px 18px!important}@media(min-width:700px){#app{max-width:720px;margin:0 auto}.heroTop{min-height:160px}.card{padding-left:18px;padding-right:18px}}
 
 
@@ -2099,7 +2100,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="onbCard">
       <div class="onbStep" data-onb="0">
         <div class="onbIcon">🧠</div>
-        <div class="onbTitle">Welcome to InnerOs</div>
+        <div class="onbTitle">Welcome to Momentum</div>
         <div class="onbText">Your personal space for habits, tasks, journaling, mood, sleep and money — all in one calm place.</div>
       </div>
       <div class="onbStep" data-onb="1" style="display:none">
@@ -2597,7 +2598,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
   <!-- ============ UNIVERSAL AI ASSISTANT ============ -->
   <div class="page" id="pgAI">
     <div class="eyebrow">Personal command center</div><h1>AI Assistant</h1><div class="aiCommandIntro">Ask naturally. The assistant can understand your tracker, answer questions, and help you make changes safely.</div>
-    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ InnerOs AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask about your habits, tasks, spending, mood, sleep, workouts, journal, or planning. I’ll ask for missing details before making changes.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div></div><div id="uaiInsights" class="uaiInsights" style="display:none"></div><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><button class="uaiMic" id="uaiReadTog" aria-label="Read answers aloud" title="Read answers aloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8a5 5 0 010 8"/></svg></button><button class="uaiMic" id="uaiMic" aria-label="Voice input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything about your tracker…" autocomplete="off"><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span><span class="uaiHint" data-cmd="Give me a detailed review of this month with a table of key numbers">Monthly review</span></div></div>
+    <div class="uaiBox"><div class="uaiTop"><span class="uaiTopT">✨ Momentum AI</span><button class="uaiClear" id="uaiClear">Clear</button></div><div id="uaiWelcome" class="uaiWelcome"><div class="uaiWelcomeTitle">What can I help with?</div><div class="uaiWelcomeText">Ask about your habits, tasks, spending, mood, sleep, workouts, journal, or planning. I’ll ask for missing details before making changes.</div><div class="uaiCategoryRow"><button class="uaiCategory" data-cmd="Show my habits and their progress">Habits</button><button class="uaiCategory" data-cmd="Show my tasks for today">Tasks</button><button class="uaiCategory" data-cmd="How much did I spend this week?">Money</button><button class="uaiCategory" data-cmd="How was my sleep this week?">Insights</button></div></div><div id="uaiInsights" class="uaiInsights" style="display:none"></div><div id="uaiLog" class="uaiLog"></div><div class="uaiInputRow"><button class="uaiMic" id="uaiReadTog" aria-label="Read answers aloud" title="Read answers aloud"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M16 8a5 5 0 010 8"/></svg></button><button class="uaiMic" id="uaiMic" aria-label="Voice input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v3"/></svg></button><input class="inp uaiInp" id="uaiInput" placeholder="Ask anything about your tracker…" autocomplete="off"><button class="uaiSend" id="uaiSend" aria-label="Send">→</button></div><div class="uaiHints"><span class="uaiHint" data-cmd="Add a habit for drinking water">+ Habit</span><span class="uaiHint" data-cmd="Add a task to call John">+ Task</span><span class="uaiHint" data-cmd="Add an expense of ₹500">+ Expense</span><span class="uaiHint" data-cmd="Show my overdue tasks">Overdue</span><span class="uaiHint" data-cmd="Show my habit progress this week">Habit progress</span><span class="uaiHint" data-cmd="Give me a summary of this week">Weekly review</span><span class="uaiHint" data-cmd="Give me a detailed review of this month with a table of key numbers">Monthly review</span></div></div>
     
     <div class="aiCfg" id="aiCfg"><div class="aiCfgHead" id="aiCfgHead"><div class="aiCfgIcon">⚙</div><div class="aiCfgMain"><div class="aiCfgTitle">AI configuration</div><div class="aiCfgSub" id="aiCfgSummary">Not configured</div></div><span class="aiCfgChevron">⌄</span></div><div class="aiCfgBody">
       <div class="setRow"><div class="setInfo"><div class="setT">Provider</div><div class="setS">Choose a provider with a free tier.</div></div></div><select class="inp" id="aiProvider" style="margin:6px 0 10px;padding:12px 14px"><option value="gemini">Google Gemini · aistudio.google.com</option><option value="groq">Groq · console.groq.com</option><option value="openrouter">OpenRouter · openrouter.ai</option><option value="mistral">Mistral · console.mistral.ai</option><option value="cerebras">Cerebras · cerebras.ai</option><option value="grok">xAI Grok · console.x.ai</option></select>
@@ -2625,7 +2626,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
     <div class="setCard">
       <div class="setCol">
         <div class="setT" style="margin-bottom:4px">Theme</div>
-        <div class="setS" style="margin-bottom:10px">Choose how InnerOs looks</div>
+        <div class="setS" style="margin-bottom:10px">Choose how Momentum looks</div>
         <div class="chips" id="thRow">
           <button class="chip" data-th="dark">&#127769; Dark</button>
           <button class="chip" data-th="amoled">&#9899; AMOLED</button>
@@ -2800,7 +2801,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
       <div class="setRow"><div class="setInfo"><div class="setT">Automatic backup</div><div class="setS" id="stBk">A local backup is saved once a day</div></div></div>
     </div>
 
-    <div class="setS" style="text-align:center;padding:8px 0 4px" id="verLine">InnerOs</div>
+    <div class="setS" style="text-align:center;padding:8px 0 4px" id="verLine">Momentum</div>
     <div class="setS" style="text-align:center;padding:0 0 4px;font-size:11px;color:var(--mut2)">Developed by Vishal</div>
     <div class="setS" style="text-align:center;padding:0 0 10px;font-size:10px;color:var(--mut2)">For personal use only · Not for commercial distribution</div>
   </div>
@@ -3062,7 +3063,7 @@ if('serviceWorker' in navigator && location.protocol.indexOf('http') === 0){
 </div>
 
 <div class="dock" id="tabbar">
-  <div class="navBrand"><span class="navLogo">🧠</span>InnerOs</div>
+  <div class="navBrand"><span class="navLogo">🧠</span>Momentum</div>
   <button class="tab on" data-tab="pgToday"><span class="tabEmo">🏠</span>Today</button>
   <button class="tab" data-tab="pgTasks"><span class="tabEmo">✅</span>Tasks</button>
   <button class="tab" data-tab="pgExp"><span class="tabEmo">💰</span>Money</button>
@@ -4939,7 +4940,7 @@ function aiResolveTask(name,id){
   return {error:'I could not find a task named “'+name+'”.'};
 }
 function uaiPrompt(text,conversationContext){
-  return 'You are the universal AI assistant for InnerOs. You can READ/CREATE/UPDATE/DELETE across the app: Habits, Tasks, Expenses/Transactions, Mood, Sleep, Journal, Workouts/Exercises, Settings and Navigation.\n\n'
+  return 'You are the universal AI assistant for Momentum. You can READ/CREATE/UPDATE/DELETE across the app: Habits, Tasks, Expenses/Transactions, Mood, Sleep, Journal, Workouts/Exercises, Settings and Navigation.\n\n'
   +'APP DATA:\n'+buildDataContext(text)+'\n\nPERSISTENT USER PREFERENCES (explicitly saved):\n'+preferenceText()+'\n\n'
   +'RESPOND WITH ONLY ONE JSON OBJECT (no markdown, no backticks, no extra text):\n'
   +'{"action":"TYPE","params":{...},"message":"..."}\\n'
@@ -5292,7 +5293,7 @@ function periodRate(h,days){var now=new Date(),due=0,done=0;for(var i=0;i<days;i
 // ---- AI weekly narrative ----
 function genWeeklyNarrative(){
   var ctx=buildDataContext(text);
-  var prompt='You are a supportive InnerOs AI. Write a 2-3 sentence weekly summary for the user based on this data. Be specific, mention actual habit names and numbers. Be encouraging but honest. No generic advice.\n\nDATA:\n'+ctx;
+  var prompt='You are a supportive Momentum AI. Write a 2-3 sentence weekly summary for the user based on this data. Be specific, mention actual habit names and numbers. Be encouraging but honest. No generic advice.\n\nDATA:\n'+ctx;
   gemCall(prompt,200).then(function(r){
     localStorage.setItem('ai_weekly_narr',r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
     localStorage.setItem('ai_weekly_narr_day',today());
@@ -8842,7 +8843,7 @@ function updDots(){
 function showLock(mode){
   lockMode = mode; pinBuf = ''; updDots();
   var T = {unlock:'Enter PIN', new1:'Choose a PIN', new2:'Repeat PIN', ver:'Enter current PIN', off:'Enter current PIN'};
-  var S = {unlock:'InnerOs is locked', new1:'4 digits', new2:'Type it once more', ver:'To change it', off:'To remove the lock'};
+  var S = {unlock:'Momentum is locked', new1:'4 digits', new2:'Type it once more', ver:'To change it', off:'To remove the lock'};
   $('lockT').textContent = T[mode]; $('lockS').textContent = S[mode];
   $('kBio').style.display = (mode==='unlock' && state.set.bio && bioAvailSafe()) ? '' : 'none';
   $('lock').classList.add('on');
@@ -8895,7 +8896,7 @@ function padKey(k){
 function resolvedLight(){
   var t = state.set.theme || 'dark';
   if(t === 'light') return true;
-  if(t === 'dark') return false;
+  if(t === 'dark' || t === 'amoled') return false;
   try{ return window.matchMedia('(prefers-color-scheme: light)').matches; }catch(e){ return false; }
 }
 var PAL_LIGHT_BG = {ember:'#F6F1E7', lagoon:'#EEF5F1', frost:'#EEF3FA', sakura:'#F8EFF3', violet:'#F1EFFA', mono:'#F6F1E7'};
@@ -9051,8 +9052,8 @@ function renderSet(){
     'Saved daily \u00B7 last: ' + state.set.lastAutoBk
     : 'A local backup is saved once a day';
   $('verLine').textContent = nat
-    ? ('InnerOs v' + (function(){try{return nat.appVer();}catch(e){return '2';}})() + ' \u00b7 private')
-    : 'InnerOs \u00b7 web \u00b7 private';
+    ? ('Momentum v' + (function(){try{return nat.appVer();}catch(e){return '2';}})() + ' \u00b7 private')
+    : 'Momentum \u00b7 web \u00b7 private';
 }
 
 /* ================= cloud sync (Firebase Cloud Firestore) ================= */
@@ -10213,7 +10214,7 @@ function init(){
       +'@media print{body{padding:16px}}';
 
     var h='<!DOCTYPE html><html><head><meta charset="utf-8"><title>Monthly Report — '+monthName+'</title><style>'+css+'</style></head><body>';
-    h+='<h1>Monthly Report</h1><div class="sub">'+monthName+' · InnerOs</div>';
+    h+='<h1>Monthly Report</h1><div class="sub">'+monthName+' · Momentum</div>';
 
     // Overview stats
     var totalDue=0,totalDone=0;
@@ -10285,10 +10286,10 @@ function init(){
         if(jrMonth.length>20) h+='<p style="font-size:11px;color:#888">Showing the 20 most recent of '+jrMonth.length+' entries.</p>';
       }
     }catch(e){}
-    h+='<div class="footer">Generated by InnerOs · Developed by Vishal · For personal use only<br>'+new Date().toLocaleDateString()+'</div>';
+    h+='<div class="footer">Generated by Momentum · Developed by Vishal · For personal use only<br>'+new Date().toLocaleDateString()+'</div>';
     h+='</body></html>';
 
-    exportHtmlDoc(h, 'InnerOs-report-'+monthName.replace(/[^a-z0-9]+/gi,'-').toLowerCase());
+    exportHtmlDoc(h, 'Momentum-report-'+monthName.replace(/[^a-z0-9]+/gi,'-').toLowerCase());
   }
 
   $('btnBk').addEventListener('click', function(){
