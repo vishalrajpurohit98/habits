@@ -1948,16 +1948,22 @@ function renderTodayProgress(){
   var curr=(state.set&&state.set.curr)||'\u20B9';
   /* tasks overdue + due today */
   var overdue=0, dueToday=0; try{ taskAllVisible().filter(function(t){return !t.virtualHabit;}).forEach(function(t){ var stt=taskEffectiveStatus(t); if(stt==='completed')return; if(t.dueDate){ if(t.dueDate<ts) overdue++; else if(t.dueDate===ts) dueToday++; } }); }catch(e){}
-  function cell(k,v,cls){ return '<div class="tpItem"><span class="v'+(cls?' '+cls:'')+'">'+v+'</span><span class="k">'+k+'</span></div>'; }
+  /* each metric = icon (follows the app's emoji/line icon mode) + value + label */
+  function ico(n){ return (typeof ICON==='function')?ICON(n):''; }
+  function cell(k,v,cls,ic){ return '<div class="tpItem"><span class="tpIc">'+(ic||'')+'</span><span class="v'+(cls?' '+cls:'')+'">'+v+'</span><span class="k">'+k+'</span></div>'; }
+  /* mood: once logged, the icon IS the logged mood and the value names it (no generic smiley beside "Sad") */
+  var moodIdx=(state.mood&&state.mood[ts]!==undefined)?state.mood[ts]:-1;
+  var moodEmo=['\uD83E\uDD29','\uD83D\uDE04','\uD83D\uDE0C','\uD83D\uDE10','\uD83D\uDE2A','\uD83D\uDE14','\uD83D\uDE30'][moodIdx];
+  var moodWord=['Excellent','Happy','Calm','Neutral','Tired','Sad','Stressed'][moodIdx];
   setHTML(box,'<div class="tpTitle">Today at a glance</div><div class="tpGrid8">'
-    +cell('Habits', due?doneH+'/'+due:'\u2014','amber')
-    +cell('Tasks', ttot?tdone+'/'+ttot:'\u2014')
-    +cell('Mood', (state.mood&&state.mood[ts]!==undefined)?(['\uD83E\uDD29','\uD83D\uDE04','\uD83D\uDE0C','\uD83D\uDE10','\uD83D\uDE2A','\uD83D\uDE14','\uD83D\uDE30'][state.mood[ts]]||'\u2014'):'\u2014')
-    +cell('Sleep', sleepStr)
-    +cell('Streak', bestStreak?('<span class="glanceFlame">'+ICON('flame')+'</span>'+bestStreak):'\u2014','green')
-    +cell('Spent', spentToday>0?(curr+Math.round(spentToday)):'\u2014')
-    +cell('Overdue', overdue||'0', overdue?'coral':'')
-    +cell('Due today', dueToday||'0')
+    +cell('Habits', due?doneH+'/'+due:'\u2014','amber',ico('repeat'))
+    +cell('Tasks', ttot?tdone+'/'+ttot:'\u2014','',ico('task'))
+    +cell('Mood', moodWord||'\u2014', moodWord?'txt':'', moodEmo?'<span class="ic icEmo" aria-hidden="true">'+moodEmo+'</span>':ico('mood'))
+    +cell('Sleep', sleepStr,'',ico('sleep'))
+    +cell('Streak', bestStreak||'\u2014','green',ico('flame'))
+    +cell('Spent', spentToday>0?(curr+Math.round(spentToday)):'\u2014','',ico('expense'))
+    +cell('Overdue', overdue||'0', overdue?'coral':'',ico('alarm'))
+    +cell('Due today', dueToday||'0','',ico('calendar'))
     +'</div>');
 }
 function renderTaskDashboard(){var b=$('taskDashSummary');if(!b)return;b.style.display='none';b.innerHTML='';return;}
@@ -2134,8 +2140,13 @@ function renderToday(){
 var sheetOpen = null, popGuard = false, delTimer = null;
 function openSheet(id){
   if(sheetOpen) return;
+  var el=$(id); if(!el) return;
+  /* A sheet must sit directly under <body>. Nested inside #app (position:relative + z-index:1 = its own
+     stacking context) it paints BELOW the body-level #scrim: a blurred screen that swallows every tap.
+     That was the Tasks Export / Recently deleted bug; re-home any stray sheet defensively. */
+  if(el.parentNode!==document.body) document.body.appendChild(el);
   sheetOpen = id;
-  $(id).classList.add('open');
+  el.classList.add('open');
   $('scrim').classList.add('on');
   try{ history.pushState({s:1},''); }catch(e){}
 }
@@ -6273,6 +6284,8 @@ function handleAddAction(kind){
     else if(kind==='expense'){ showTab('pgExp'); setTimeout(function(){openExp(null);},60); }
     else if(kind==='mood'){ if(typeof openSheet==='function') openSheet('moodSheet'); setTimeout(function(){ try{ if($('moGrid')) renderMoodToday(); if($('mogrid')){ renderMoodCal(); renderMoodStats(); } }catch(e){} },80); }
     else if(kind==='journal'){ setTimeout(function(){openJr(null);},60); }
+    else if(kind==='workout'){ openWkModule(); if(!(state.exs&&state.exs.length)) setTimeout(function(){ openEx(null); },60); }
+    else if(kind==='income'){ showTab('pgExp'); setTimeout(function(){ openExp(null); if(sheetOpen==='expSheet'){ expKindSel='inc'; expSubSel=''; paintKind(); paintExpPickers(); } },60); }
     else if(kind==='sleep'){ showTab('pgToday'); setTimeout(function(){openSleep(today());},60); }
   },80);
 }
@@ -6293,6 +6306,7 @@ function _showTabInner(id){
   var navFor = subPages[id] ? 'pgSet' : id;
   for(var j=0;j<tabs.length;j++) tabs[j].classList.toggle('on', tabs[j].getAttribute('data-tab')===navFor);
   var _aif=$('aiFab'); if(_aif) _aif.style.display = (id==='pgAI') ? 'none' : '';
+  var _fs=$('fabStack'); if(_fs) _fs.classList.toggle('liftAi', id==='pgVault' && !!$('vaultHome') && $('vaultHome').style.display!=='none'); /* Vault's own + owns the bottom slot (only shown on the unlocked vault home) */
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : 'Add anything';
   if(id==='pgStats') renderStats();
   if(id==='pgTasks') renderTasks();
@@ -6404,10 +6418,11 @@ function exportTasks(kind){
     if(typeof XLSX==='undefined'){ensureXlsx(function(){exportTasks('xlsx');});return;}
     var rows=[['Task','Description','Due date','Due time','Priority','Status','Subtasks','Comments']];
     tasks.forEach(function(t){var sp=taskSubProgress(t);rows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),sp.done+'/'+sp.total,(t.comments||[]).map(function(c){return c.text;}).join(' || ')]);});
-    var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Tasks');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='tasks-'+b.from+'-to-'+b.to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);toastN('Tasks Excel saved');return;}catch(e){}}if(webSave(name,XMIME,out))toastN('Downloading Excel…');else toastN('Export failed');return;
+    var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(rows),'Tasks');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='tasks-'+b.from+'-to-'+b.to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);toastN('Tasks Excel saved');taskExportDone();return;}catch(e){}}if(webSave(name,XMIME,out)){toastN('Downloading Excel…');taskExportDone();}else toastN('Export failed');return;
   }
-  var pdf=makeTaskPdf(tasks,'Task Report',b.from,b.to),name='tasks-'+b.from+'-to-'+b.to+'.pdf';if(nat&&nat.saveFile){try{nat.saveFile(name,'application/pdf',pdf);toastN('Task PDF saved');return;}catch(e){}}if(webSave(name,'application/pdf',pdf))toastN('Downloading PDF…');else toastN('PDF export failed');
+  var pdf=makeTaskPdf(tasks,'Task Report',b.from,b.to),name='tasks-'+b.from+'-to-'+b.to+'.pdf';if(nat&&nat.saveFile){try{nat.saveFile(name,'application/pdf',pdf);toastN('Task PDF saved');taskExportDone();return;}catch(e){}}if(webSave(name,'application/pdf',pdf)){toastN('Downloading PDF…');taskExportDone();}else toastN('PDF export failed');
 }
+function taskExportDone(){ if(sheetOpen==='taskExportSheet') closeSheet(); }
 function makeTaskPdf(tasks,title,from,to){
   var pageW=595,pageH=842,margin=42,contentTop=780,bottom=48,lineH=14,pages=[],cur=[],y=contentTop;
   function newPage(){if(cur.length)pages.push(cur);cur=[];y=contentTop;}
@@ -7200,7 +7215,7 @@ function init(){
     var pi=$('vaultPin'); if(pi) pi.value=''; var hint=$('vaultPinHint'); if(hint) hint.style.display='none';
     showTab('pgVault'); setTimeout(function(){ if(pi) pi.focus(); },120);
   };
-  function vShow(which){ ['vaultLocked','vaultHome','vaultPwForm','vaultNoteForm','vaultDetail'].forEach(function(id){ var el=$(id); if(el) el.style.display = (id===which)?'':'none'; }); var am=$('vaultAddMenu'); if(am) am.style.display='none'; }
+  function vShow(which){ ['vaultLocked','vaultHome','vaultPwForm','vaultNoteForm','vaultDetail'].forEach(function(id){ var el=$(id); if(el) el.style.display = (id===which)?'':'none'; }); var am=$('vaultAddMenu'); if(am) am.style.display='none'; var fs=$('fabStack'); if(fs) fs.classList.toggle('liftAi', which==='vaultHome' && $('pgVault').classList.contains('on')); }
   function vaultUnlock(){
     var pin=$('vaultPin').value.trim(); var hint=$('vaultPinHint');
     if(pinHash(pin)!==state.set.pin){ if(hint){hint.textContent='Wrong PIN.';hint.style.display='';} return; }
