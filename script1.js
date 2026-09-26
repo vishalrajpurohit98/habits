@@ -3542,11 +3542,14 @@ function _reducedMotion(){ try{ return window.matchMedia('(prefers-reduced-motio
 function pulseEl(el, cls){
   /* perf: restart the animation on the next frame instead of forcing a synchronous layout (offsetWidth) */
   if(!el) return; if(_reducedMotion()) return;
+  if(!el.__pulseEnd){ el.__pulseEnd=function(e){ if(e.target===el) el.classList.remove('chkPop','streakPulse','moodPop'); }; el.addEventListener('animationend', el.__pulseEnd); }
   if(!el.classList.contains(cls)){ el.classList.add(cls); return; }
   el.classList.remove(cls); requestAnimationFrame(function(){ el.classList.add(cls); });
 }
 /* animate a number from its current displayed value to `to` (never from 0), transform/opacity-free */
 function animNum(el, to, dur, fmt){
+  /* SIMPLE MOTION: numbers are shown immediately (no per-frame count-up loop) */
+  if(el){ el.textContent=fmt?fmt(to):to; } return;
   if(!el) return; dur=dur||400;
   var from=parseFloat(String(el.textContent).replace(/[^0-9.\-]/g,''))||0;
   if(_reducedMotion() || from===to){ el.textContent=fmt?fmt(to):to; return; }
@@ -5559,13 +5562,18 @@ function applyPaper(){
   var intensity = (p.intensity!=null?p.intensity:18)/100;
   var warmth = (p.warmth!=null?p.warmth:0)/100;
   var layer = document.getElementById('paperLayer');
-  if(layer){ layer.style.backgroundImage = 'url("'+paperSvg(type, scaleMul)+'")'; }
+  /* perf: only regenerate/decode the noise tile when type or scale actually changed (sliders fire continuously) */
+  if(layer){ var _pk=type+'|'+scaleMul; if(layer.__pk!==_pk){ layer.__pk=_pk; layer.style.backgroundImage = 'url("'+paperSvg(type, scaleMul)+'")'; } }
   root.style.setProperty('--paper-intensity', String(Math.min(1,intensity)));
   root.style.setProperty('--paper-scale', String(scaleMul));
   root.style.setProperty('--paper-warmth', String(warmth));
   root.classList.toggle('paper-warm', warmth>0);
   root.classList.toggle('paper-cards', (p.coverage==='cards'));
 }
+/* perf: slider 'input' events fire faster than the screen refreshes; each applyUiTune() restyles the whole
+   document. Coalesce to at most one apply per frame (rAF is the right tool here: it is a visual update). */
+var _tuneQ=[],_tuneRafId=0;
+function _tuneFrame(fn){ if(_tuneQ.indexOf(fn)<0) _tuneQ.push(fn); if(!_tuneRafId) _tuneRafId=requestAnimationFrame(function(){ _tuneRafId=0; var q=_tuneQ; _tuneQ=[]; q.forEach(function(f){ try{ f(); }catch(e){} }); }); }
 function applyUiTune(){  var u = (state.set && state.set.ui) || {};
   var root = document.documentElement;
   var borderA = (u.borderA!=null?u.borderA:100)/100;
@@ -6270,6 +6278,13 @@ function handleAddAction(kind){
 }
 
 function showTab(id){
+  /* SIMPLE MOTION / perf: reset the scroller BEFORE swapping pages. The layout tree is still clean here, so this
+     is cheap; doing it at the end forced a synchronous layout of the freshly rendered page inside the tap handler. */
+  var _app=$('app'); if(_app) _app.scrollTop=0;
+  window._inShowTab=true;
+  try{ _showTabInner(id); }finally{ window._inShowTab=false; }
+}
+function _showTabInner(id){
   var wm = $('wkModule'); if(wm && wm.classList.contains('on')) wm.classList.remove('on');
   var pgs = ['pgToday','pgTasks','pgExp','pgStats','pgJr','pgAI','pgSet','pgMore','pgVault'];
   for(var i=0;i<pgs.length;i++) $(pgs[i]).classList.toggle('on', pgs[i]===id);
@@ -6283,11 +6298,10 @@ function showTab(id){
   if(id==='pgTasks') renderTasks();
   if(id==='pgExp') renderExp();
   if(id==='pgSet'){ renderSet(); try{ if(typeof _settingsToLanding==='function') _settingsToLanding(); }catch(e){} }
-  if(id==='pgJr'){ if(typeof jrCalY!=='undefined'&&!jrCalY){var _n=new Date();jrCalY=_n.getFullYear();jrCalM=_n.getMonth();} renderJr(); window._inShowTab=true; try{ jrGo(jrView||'timeline'); }finally{ window._inShowTab=false; } }
+  if(id==='pgJr'){ if(typeof jrCalY!=='undefined'&&!jrCalY){var _n=new Date();jrCalY=_n.getFullYear();jrCalM=_n.getMonth();} renderJr(); jrGo(jrView||'timeline'); }
   if(id==='pgAI') renderAI();
   $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : id==='pgTasks' ? 'Add task' : 'Add anything';
-  $('app').scrollTop = 0;
 }
 function climb(el, root, attr){
   while(el && el !== root){
@@ -6655,7 +6669,7 @@ function init(){
     function setSeg(name,val){ document.querySelectorAll('[data-tuneseg="'+name+'"] button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-v')===String(val)); }); }
     /* sliders */
     sliders.forEach(function(m){ var el=$(m[0]); if(!el)return;
-      el.addEventListener('input', function(){ state.set.ui=state.set.ui||{}; state.set.ui[m[1]]=parseFloat(this.value); var lab=$(m[0]+'V'); if(lab) lab.textContent=fmtVal(m,this.value); applyUiTune(); });
+      el.addEventListener('input', function(){ state.set.ui=state.set.ui||{}; state.set.ui[m[1]]=parseFloat(this.value); var lab=$(m[0]+'V'); if(lab) lab.textContent=fmtVal(m,this.value); _tuneFrame(applyUiTune); });
       el.addEventListener('change', function(){ persist(); });
     });
     /* segment presets */
@@ -6690,7 +6704,7 @@ function init(){
     if(ptseg) ptseg.addEventListener('click', function(e){ var bb=e.target.closest('button[data-v]'); if(!bb)return; state.set.paper=state.set.paper||{}; state.set.paper.type=bb.getAttribute('data-v'); if(state.set.paper.enabled){ applyPaper(); } syncPaper(); persist(); });
     [['paperIntensity','intensity','%'],['paperScale','scale','scale'],['paperWarmth','warmth','%']].forEach(function(m){ var el=$(m[0]); if(!el)return;
       el.addEventListener('input', function(){ state.set.paper=state.set.paper||{}; state.set.paper[m[1]]=parseInt(this.value); if(m[1]==='intensity'){ state.set.paper.enabled=parseInt(this.value)>0; }
-        var lab=$(m[0]+'V'); if(lab) lab.textContent=(m[2]==='scale'?(this.value<80?'Fine':this.value>140?'Coarse':'Medium'):this.value+'%'); applyPaper(); });
+        var lab=$(m[0]+'V'); if(lab) lab.textContent=(m[2]==='scale'?(this.value<80?'Fine':this.value>140?'Coarse':'Medium'):this.value+'%'); _tuneFrame(applyPaper); });
       el.addEventListener('change', function(){ persist(); });
     });
     window._syncPaper=syncPaper; syncPaper();
@@ -7460,7 +7474,7 @@ function init(){
     function showLanding(){
       grid.style.display=''; backBar.style.display='none';
       groups.forEach(function(g){ g.head.style.display='none'; g.body.forEach(function(b){ b.style.display='none'; }); });
-      try{ pg.scrollTop=0; var app=$('app'); if(app) app.scrollTop=0; }catch(e){}
+      if(!window._inShowTab){ try{ pg.scrollTop=0; var app=$('app'); if(app) app.scrollTop=0; }catch(e){} } /* showTab already reset scroll */
     }
     function showSection(idx){
       grid.style.display='none'; backBar.style.display='';

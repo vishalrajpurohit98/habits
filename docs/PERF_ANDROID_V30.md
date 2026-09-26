@@ -51,3 +51,22 @@ All inline scripts parse. No page errors. Smoke flows (task add/complete, habit/
 journal views, Stats/AI/More/Settings, Android back) identical to the original build; data survives reload.
 Sync migration verified against a control (original→original): 0 extra pending records, timestamps unchanged,
 shadow 1.5 MB → 0.24 MB.
+
+## Round 3 — Simple motion (v1.3.10)
+Philosophy: tap → immediate response → one short transition → ready.
+
+| Area | Before | After |
+|---|---|---|
+| Tab/page entrance | `fadeUp` 320ms, translateY(8px), plus `opacity:1!important` that cancelled the fade, so only the slide ran | ONE animation on the page: `simpleTabEnter` 120ms (opacity + 3px); Android `simpleTabFade` 100ms (opacity only) |
+| Children replaying on every tab show | every completed checkbox `chkPop` (11 at once on Today), hero ring `ringIn` spring, Stats bars `barUp` spring + 0.9s line draw, `.calDay` / `.exDetail` / `.srchWrap` fade-ups | removed; content is shown immediately |
+| Workout module | `fadeUp` 280ms | same single 120ms/100ms transition as tabs |
+| Bottom navigation | 180ms highlight | 120ms colour fade, no movement |
+| FAB | spring 180ms, scale .93 | 120ms ease-out, scale .96 |
+| Bottom sheets | custom curves 260–320ms | translateY 220ms ease-out (open) / 180ms ease-in (close); scrim 180ms |
+| Modals / dialogs | milestone `popIn` scale .5 spring; drafts panel scale spring; journal summary 12px + scale; pro dialog (broken var) | `simpleModalIn` 150ms opacity + 4px, no scale, no bounce |
+| Snackbar | translateY(130%) 250ms | opacity + 6px, 150ms |
+| Dropdown (task menu) | instant | 110ms fade + 2px |
+| Tap feedback | spring pops to 1.18–1.3× | 150–180ms ease-out to 1.06–1.08×; classes removed on `animationend` so they never replay |
+| Money hero number | rAF count-up loop (560ms) | value set immediately |
+| showTab | scroll reset at the end forced a layout of the new page | scroll reset first (clean tree), no forced layout of the new page |
+| UI config sliders | whole-document restyle + noise-tile regeneration on every input event | coalesced to one apply per frame; noise tile regenerated only when type/scale change |
