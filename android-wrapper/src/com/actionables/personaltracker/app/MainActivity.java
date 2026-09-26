@@ -78,9 +78,10 @@ public class MainActivity extends Activity {
         s.setBuiltInZoomControls(false);
         s.setDisplayZoomControls(false);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
-        /* First-paint / smoothness tuning (all low-risk) */
-        try{ w.setLayerType(android.view.View.LAYER_TYPE_HARDWARE, null); }catch(Exception e){}
-        try{ s.setRenderPriority(WebSettings.RenderPriority.HIGH); }catch(Exception e){}
+        /* Perf: do NOT put the WebView on an explicit LAYER_TYPE_HARDWARE layer. The window is already
+           hardware accelerated (manifest). An extra View layer makes every changing web frame render into
+           an offscreen texture first and then get composited again, which costs GPU time on exactly the
+           frames that animate. (setRenderPriority was removed too: deprecated and a no-op since API 18.) */
         if(Build.VERSION.SDK_INT>=21){ try{ s.setMixedContentMode(WebSettings.MIXED_CONTENT_NEVER_ALLOW); }catch(Exception e){} }
         try{ w.setOverScrollMode(android.view.View.OVER_SCROLL_NEVER); }catch(Exception e){}
         if (Build.VERSION.SDK_INT >= 26) s.setSafeBrowsingEnabled(true);
@@ -204,6 +205,13 @@ public class MainActivity extends Activity {
     ValueCallback<Uri[]> fileChooserCallback;
 
     @Override protected void onNewIntent(Intent intent) { super.onNewIntent(intent); setIntent(intent); }
+
+    @Override public void onPause() {
+        /* Perf companion: the web layer now writes local state one frame after a change (off the tap path).
+           Flush anything pending the moment the app leaves the foreground. */
+        if (web != null) { try { web.evaluateJavascript("window.__flushPersist&&window.__flushPersist()", null); } catch (Exception ignored) {} }
+        super.onPause();
+    }
 
     @Override public void onResume() {
         super.onResume();

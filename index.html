@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<script>/* perf: platform hook for lightweight Android rendering paths (see "ANDROID PERF" CSS block) */
+(function(){try{var d=document.documentElement,u=navigator.userAgent||"";if(/Android/i.test(u))d.classList.add("android");if(typeof Bridge!=="undefined"||/; wv\)/.test(u))d.classList.add("wv");}catch(e){}})();</script>
 <title>Momentum</title>
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=inneros3">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=inneros3">
@@ -236,7 +238,7 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .chk{width:38px;height:38px;border-radius:10px;flex-shrink:0;align-self:flex-start;margin-top:2px;
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   border:2.5px solid var(--cs);color:transparent;font-size:11px;font-weight:800;
-  transition:all .15s cubic-bezier(.22,.68,.36,1)}
+  transition:transform .15s cubic-bezier(.22,.68,.36,1), background-color .15s cubic-bezier(.22,.68,.36,1), border-color .15s cubic-bezier(.22,.68,.36,1), color .15s cubic-bezier(.22,.68,.36,1), opacity .15s cubic-bezier(.22,.68,.36,1)}
 .chk:active{transform:scale(.8)}
 .chk.on{background:var(--c);border-color:var(--c);color:var(--onAccent);box-shadow:0 2px 8px var(--cg);animation:chkPop .25s cubic-bezier(.22,.68,.36,1)}
 @keyframes chkPop{0%{transform:scale(.8)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
@@ -286,7 +288,7 @@ h1{font-family:var(--fDisp);font-size:30px;font-weight:700;letter-spacing:-.3px;
 .taskCommentBtns{display:flex;flex-direction:column;gap:7px;flex:0 0 auto}
 .taskCmtMic{width:44px;height:38px;border:1px solid var(--line);background:var(--card2);border-radius:11px;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .taskCmtMic:active{transform:scale(.94)}
-.taskCmtMic.listening{background:var(--coralSoft);color:var(--coral);animation:jrMicPulse 1.2s ease-in-out infinite}
+.taskCmtMic.listening{background:var(--coralSoft);color:var(--coral);position:relative}
 .taskCommentList{display:flex;flex-direction:column;gap:8px}
 .taskComment{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:9px}
 .taskCommentText{font-size:12.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
@@ -368,7 +370,7 @@ textarea.inp{resize:none;min-height:68px}
 /* ============ CHIPS / PICKERS ============ */
 .chips{display:flex;flex-wrap:wrap;gap:8px}
 .chip{background:var(--card);border:1.5px solid var(--line2);border-radius:22px;padding:8px 14px;
-  font-size:14px;font-weight:600;color:var(--mut);transition:all .12s ease-out}
+  font-size:14px;font-weight:600;color:var(--mut);transition:transform .12s ease-out, background-color .12s ease-out, border-color .12s ease-out, color .12s ease-out, opacity .12s ease-out}
 .chip.sel{background:var(--amberSoft);border-color:var(--amber);color:var(--ink)}
 .dows{display:flex;gap:8px;margin-top:10px}
 .dw{width:38px;height:38px;border-radius:10px;background:var(--card);border:1.5px solid var(--line2);
@@ -379,7 +381,7 @@ textarea.inp{resize:none;min-height:68px}
 .numRow span{font-size:13.5px;color:var(--mut)}
 .egrid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
 .ebtn{font-size:23px;padding:10px 0;background:var(--card);border:1.5px solid var(--line);border-radius:13px;
-  line-height:1.3;transition:all .15s}
+  line-height:1.3;transition:transform .15s, background-color .15s, border-color .15s, color .15s, opacity .15s}
 .ebtn:active{transform:scale(.9)}
 .ebtn.sel{background:var(--amberSoft);border-color:var(--amber);transform:scale(1.06)}
 .cgrid{display:flex;flex-wrap:wrap;gap:13px}
@@ -414,11 +416,11 @@ textarea.inp{resize:none;min-height:68px}
 
 /* ============ TOGGLE ============ */
 .tog{width:48px;height:27px;border-radius:14px;background:var(--card2);border:1.5px solid var(--line2);
-  position:relative;flex-shrink:0;transition:all .25s;cursor:pointer}
+  position:relative;flex-shrink:0;transition:background-color .25s,border-color .25s;cursor:pointer}
 .tog::after{content:'';position:absolute;left:3px;top:2.5px;width:19px;height:19px;border-radius:50%;
-  background:var(--mut);transition:all .25s cubic-bezier(.34,1.2,.64,1)}
+  background:var(--mut);transition:transform .25s cubic-bezier(.34,1.2,.64,1),background-color .25s}
 .tog.on{background:var(--amberSoft);border-color:var(--amber)}
-.tog.on::after{left:23px;background:var(--amber)}
+.tog.on::after{transform:translateX(20px);background:var(--amber)}
 
 /* ============ BUTTONS ============ */
 .primary{width:100%;background:var(--grad-amber);color:var(--onAccent);font-size:16px;font-weight:800;
@@ -471,7 +473,7 @@ html:not(.light) .bMk{color:var(--amber)}
 
 /* ============ STATS PAGE ============ */
 .seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin-bottom:16px}
-.seg button{flex:1;padding:10px 0;border-radius:11px;font-size:13px;font-weight:700;color:var(--mut);transition:all .2s}
+.seg button{flex:1;padding:10px 0;border-radius:11px;font-size:13px;font-weight:700;color:var(--mut);transition:transform .2s, background-color .2s, border-color .2s, color .2s, opacity .2s}
 .seg button.sel{background:var(--amberSoft);color:var(--amberDeep)}
 html:not(.light) .seg button.sel{color:var(--amber)}
 .chartBox{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:10px;box-shadow:var(--shadow)}
@@ -599,7 +601,7 @@ html:not(.light) .sbtn.acc{color:var(--amber)}
 .statGrid .sc b small{font-size:14px;font-weight:700}
 .statGrid .sc span{font-size:10.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--mut);margin-top:7px;display:block}
 .trendSeg{display:flex;gap:6px;margin-bottom:12px}
-.trendSeg button{padding:7px 16px;border-radius:11px;font-size:12px;font-weight:800;background:var(--card2);color:var(--mut);transition:all .2s}
+.trendSeg button{padding:7px 16px;border-radius:11px;font-size:12px;font-weight:800;background:var(--card2);color:var(--mut);transition:transform .2s, background-color .2s, border-color .2s, color .2s, opacity .2s}
 .trendSeg button.sel{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 .perfGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:6px}
 .perfCard{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:15px;box-shadow:var(--shadow)}
@@ -828,7 +830,7 @@ html:not(.light) .srchBtn.on{color:var(--amber)}
 .moPrompt{font-family:var(--fDisp);font-size:14px;font-weight:700}
 .moGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .moBtn{background:var(--card2);border:1.5px solid var(--line2);border-radius:14px;padding:10px 2px 8px;
-  display:flex;flex-direction:column;align-items:center;gap:4px;transition:all .15s}
+  display:flex;flex-direction:column;align-items:center;gap:4px;transition:transform .15s, background-color .15s, border-color .15s, color .15s, opacity .15s}
 .moBtn:active{transform:scale(.92)}
 .moBtn .me{font-size:24px;line-height:1.15}
 .moBtn .ml{font-size:9px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;color:var(--mut)}
@@ -944,7 +946,7 @@ html.amoled #tabbar,html.amoled .dock{background:#000000!important}
 .expMon button{width:34px;height:34px;border-radius:11px;background:var(--card2);color:var(--ink);font-size:17px}
 .expMon #expMonTitle{font-family:var(--fDisp);font-size:13px;font-weight:700}
 .segX{display:flex;gap:5px;background:var(--card2);border-radius:14px;padding:4px;margin-bottom:14px;overflow-x:auto}
-.segX button{flex:1;white-space:nowrap;padding:8px 10px;border-radius:10px;font-size:12px;font-weight:800;color:var(--mut);transition:all .2s}
+.segX button{flex:1;white-space:nowrap;padding:8px 10px;border-radius:10px;font-size:12px;font-weight:800;color:var(--mut);transition:transform .2s, background-color .2s, border-color .2s, color .2s, opacity .2s}
 .segX button.sel{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
 .txRow{display:flex;align-items:center;gap:12px;padding:12px 2px;border-bottom:1px solid var(--line)}
 .txRow:last-child{border-bottom:none}
@@ -1264,7 +1266,7 @@ html[data-uitune-weight] input,html[data-uitune-weight] h1,html[data-uitune-weig
 .tuneToggleRow{display:flex;align-items:center;justify-content:space-between;padding:9px 0;font-size:13px;font-weight:600;color:var(--ink2)}
 /* Motion levels (user-controlled, layered on prefers-reduced-motion) */
 html.ui-motion-none *{ transition-duration:1ms!important; animation-duration:1ms!important; }
-html.ui-motion-reduced *{ transition-duration:.5 !important; animation-duration:80ms!important; }
+html.ui-motion-reduced *{ transition-duration:80ms!important; animation-duration:80ms!important; }
 html.ui-motion-reduced .page.on{ animation-duration:120ms!important; }
 /* Accessibility */
 html.ui-a11y-touch button,html.ui-a11y-touch .chip,html.ui-a11y-touch .tab,html.ui-a11y-touch input[type=checkbox]{ min-height:48px; }
@@ -1576,7 +1578,7 @@ button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:a
 .taskSortBtn:active{transform:scale(.94)}
 .taskFilters{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;margin-bottom:6px;scrollbar-width:none}
 .taskFilters::-webkit-scrollbar{display:none}
-.taskPill{white-space:nowrap;padding:9px 16px;font-size:13px;font-weight:700;border-radius:11px;border:1px solid var(--line);background:var(--card2);color:var(--mut);cursor:pointer;transition:all .16s ease}
+.taskPill{white-space:nowrap;padding:9px 16px;font-size:13px;font-weight:700;border-radius:11px;border:1px solid var(--line);background:var(--card2);color:var(--mut);cursor:pointer;transition:transform .16s ease, background-color .16s ease, border-color .16s ease, color .16s ease, opacity .16s ease}
 .taskPill:active{transform:scale(.96)}
 .taskPill.sel{background:var(--tAccentSoft);border-color:var(--tAccentBorder);color:var(--tAccent)}
 .taskSectionTitle{display:flex;align-items:baseline;justify-content:space-between;font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--mut);margin:22px 2px 10px}
@@ -1586,7 +1588,7 @@ button:active,.btn:active,.sbtn:active,.chip:active,.moreCard:active,.taskCard:a
 #pgTasks .taskCard.pinned{background:var(--tAccentSoft);border-color:var(--tAccentBorder)}
 #pgTasks .taskCard.hi{border-color:rgba(255,107,94,.30);background:var(--coralSoft)}
 #pgTasks .taskCard.overdue{border-color:rgba(255,107,94,.35);background:var(--coralSoft)}
-#pgTasks .taskCheck{width:26px;height:26px;border-radius:9px;border:2px solid var(--line2);background:transparent;flex:0 0 26px;font-size:15px;transition:all .18s cubic-bezier(.2,.8,.2,1)}
+#pgTasks .taskCheck{width:26px;height:26px;border-radius:9px;border:2px solid var(--line2);background:transparent;flex:0 0 26px;font-size:15px;transition:transform .18s cubic-bezier(.2,.8,.2,1), background-color .18s cubic-bezier(.2,.8,.2,1), border-color .18s cubic-bezier(.2,.8,.2,1), color .18s cubic-bezier(.2,.8,.2,1), opacity .18s cubic-bezier(.2,.8,.2,1)}
 #pgTasks .taskCheck.done{background:var(--sGreen);border-color:var(--sGreen);color:#06120d}
 #pgTasks .taskCheck:active{transform:scale(.85)}
 #pgTasks .taskTitle{font-size:15.5px;font-weight:700;line-height:1.35}
@@ -1759,10 +1761,10 @@ body.appLocked #aiFab, body.appLocked #fab{display:none!important}
 .jrTplDel{position:absolute;top:6px;right:6px;width:22px;height:22px;border-radius:50%;border:0;background:var(--coralSoft);color:var(--coral);font-size:15px;line-height:1;cursor:pointer;display:grid;place-items:center}
 .jrStatBtn{width:100%;height:100%;border:0;background:var(--amberSoft);color:var(--amber);font-weight:800;font-size:13px;border-radius:12px;cursor:pointer;padding:8px}
 .jrFavRow{display:flex;align-items:center;justify-content:space-between;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin:12px 0;font-size:14px;font-weight:600;cursor:pointer}
-.jrTog{width:46px;height:28px;border-radius:16px;background:var(--card3);border:1px solid var(--line2);position:relative;transition:.18s;flex:0 0 46px}
-.jrTog:after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--mut);transition:.18s}
+.jrTog{width:46px;height:28px;border-radius:16px;background:var(--card3);border:1px solid var(--line2);position:relative;transition:background-color .18s,border-color .18s;flex:0 0 46px}
+.jrTog:after{content:"";position:absolute;top:2px;left:2px;width:22px;height:22px;border-radius:50%;background:var(--mut);transition:transform .18s,background-color .18s}
 .jrTog.on{background:var(--amberSoft);border-color:var(--amber)}
-.jrTog.on:after{left:20px;background:var(--amber)}
+.jrTog.on:after{transform:translateX(18px);background:var(--amber)}
 .jrExpBtns{display:flex;gap:8px;margin-top:8px}
 .jrExpBtns .primary{flex:1}
 .jrStatCards{display:flex;gap:8px}
@@ -1780,8 +1782,11 @@ body.appLocked #aiFab, body.appLocked #fab{display:none!important}
 
 .uaiMic{flex:0 0 auto;width:42px;background:var(--bg2);border:1px solid var(--line);border-radius:14px;color:var(--ink2);cursor:pointer;display:grid;place-items:center}
 .uaiMic svg{width:20px;height:20px}
-.uaiMic.listening{background:var(--coralSoft);border-color:var(--coral);color:var(--coral);animation:uaiPulse 1.2s ease-in-out infinite}
-@keyframes uaiPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,94,.4)}50%{box-shadow:0 0 0 6px rgba(255,107,94,0)}}
+.uaiMic.listening{background:var(--coralSoft);border-color:var(--coral);color:var(--coral);position:relative}
+/* perf: listening pulse was an animated box-shadow (repaint every frame); now a ring scaled/faded on the compositor */
+.uaiMic.listening::after,.jrTb.listening::after,.taskCmtMic.listening::after{content:'';position:absolute;inset:-1px;border-radius:inherit;border:2px solid rgba(255,107,94,.45);pointer-events:none;animation:micRing 1.2s ease-out infinite}
+@keyframes micRing{0%{transform:scale(1);opacity:1}70%,100%{transform:scale(1.28);opacity:0}}
+@media (prefers-reduced-motion:reduce){.uaiMic.listening::after,.jrTb.listening::after,.taskCmtMic.listening::after{animation:none;opacity:.6}}
 .jrNav{display:flex;gap:6px;margin:14px 0 16px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .jrNav::-webkit-scrollbar{display:none}
 .jrNavItem{flex:1 0 auto;min-width:64px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:11px 8px;display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;transition:.15s;color:var(--mut)}
@@ -1879,8 +1884,7 @@ body.appLocked #aiFab, body.appLocked #fab{display:none!important}
 .jrToolbar{display:flex;gap:2px;flex-wrap:wrap;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:5px;margin:10px 0}
 .jrTb{border:0;background:transparent;color:var(--ink2);width:34px;height:32px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:700}
 .jrTb:active{background:var(--card3)}
-.jrTb.listening{background:var(--coralSoft);color:var(--coral);animation:jrMicPulse 1.2s ease-in-out infinite}
-@keyframes jrMicPulse{0%,100%{box-shadow:0 0 0 0 rgba(255,107,94,.4)}50%{box-shadow:0 0 0 5px rgba(255,107,94,0)}}
+.jrTb.listening{background:var(--coralSoft);color:var(--coral);position:relative}
 .jrEditor{width:100%;min-height:180px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:14px;padding:14px;font-size:15px;line-height:1.6;font-family:inherit;outline:none}
 .jrEditor:focus{border-color:var(--amber)}
 /* Reordered editor: writing on top, details below */
@@ -1941,6 +1945,33 @@ body.appLocked #aiFab, body.appLocked #fab{display:none!important}
 .jrRefProg{font-size:12px;color:var(--mut2);margin-bottom:6px}
 .jrRefQ{font-size:17px;font-weight:700;margin-bottom:12px;line-height:1.4}
 
+
+/* ============ ANDROID PERF (html.android) ============
+   Real-time backdrop blur is re-computed by the GPU on every composited frame. On Android
+   WebView the full-screen scrim blur was being recomputed continuously while a sheet was open
+   (the pulsing Ask-AI glow sat underneath it). Blur is replaced by a slightly more opaque tint:
+   under an 80% black scrim the blur was visually imperceptible anyway. Desktop keeps the blur. */
+html.android #scrim,html.android #achvModal,html.android #miles,html.android .glass{backdrop-filter:none;-webkit-backdrop-filter:none}
+/* the blur used to smear the page behind the scrim; a slightly deeper tint gives the same "recessed" look */
+html.android #scrim,html.android #achvModal,html.android #miles{background:rgba(0,0,0,.88)}
+html.android.light #scrim,html.android.light #achvModal,html.android.light #miles{background:rgba(38,30,18,.5)}
+html.android .jrSumOverlay{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(0,0,0,.62)}
+html.android .proBackdrop{backdrop-filter:none;-webkit-backdrop-filter:none;background:rgba(0,0,0,.65)}
+/* Ask-AI glow: keep the same static glow, drop the infinite blurred pulse (it kept the compositor
+   producing frames 100% of the time on every screen). */
+html.android #aiFab::before{animation:none;opacity:.38}
+/* Shadows on animated surfaces (sheets, snackbar, achievements sheet, cards that scale on press):
+   multi-layer / wide-blur shadows are re-rasterized whenever those layers are (re)created. Same look,
+   one layer, smaller radius. */
+html.android{--shadowUp:0 -3px 14px rgba(0,0,0,.25)}
+html.android.light{--shadow:0 2px 7px rgba(60,45,20,.11);--shadowUp:0 -2px 10px rgba(60,45,20,.12)}
+html.android #aiFab{box-shadow:0 6px 18px rgba(255,174,31,.4),0 0 0 1px rgba(255,255,255,.12) inset;transition:transform .18s cubic-bezier(.2,.8,.2,1)}
+/* Press feedback must not animate box-shadow (paint every frame). Transform/colour/opacity only.
+   :where() keeps the same low specificity as the global rule it replaces, so component rules still win. */
+:where(html.android) :is(button,.chip,.qaBtn,.moreCard,.tab,.card,.jrCard,.jrNavItem,.setRow,.jrMoodOpt,.moBtn){transition:transform .16s cubic-bezier(.2,.8,.2,1),background-color .18s ease,border-color .18s ease,opacity .18s ease}
+:where(html.android) .tog{transition:background-color .25s,border-color .25s}
+/* Everywhere: never run the pulse underneath an open overlay (it forces the backdrop to re-blur). */
+body:has(#scrim.on) #aiFab::before,body:has(.proModal) #aiFab::before{animation-play-state:paused}
 </style>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#000000">
@@ -3507,6 +3538,31 @@ var nat = (typeof Bridge !== 'undefined') ? Bridge : null;
 
 /* ================= helpers ================= */
 function $(id){ return document.getElementById(id); }
+/* perf: skip rebuilding a (small) container when the markup is byte-identical to what we last put there and
+   nothing has mutated it since. Otherwise identical to el.innerHTML = html. */
+function setHTML(el, html){
+  if(!el) return;
+  if(el.__h===html && el.__s===el.innerHTML) return;
+  el.innerHTML=html; el.__h=html; el.__s=el.innerHTML;
+}
+/* perf: for long lists. Parses the new markup, keeps every existing child whose serialized DOM is identical
+   to its new counterpart (no re-creation, no style/layout/paint for it), and inserts/moves/removes the rest.
+   The resulting DOM is identical to box.innerHTML = html; only unchanged nodes keep their identity.
+   Only used on containers whose clicks are handled by delegation on the container. */
+function patchHTML(box, html){
+  if(!box) return;
+  if(box.__h===html && box.__n===box.childNodes.length && box.__f===box.firstChild && box.__l===box.lastChild) return;
+  var tpl=document.createElement('template'); tpl.innerHTML=html;
+  var fresh=Array.prototype.slice.call(tpl.content.childNodes), pool={}, c, k, i;
+  function keyOf(n){ return n.nodeType===1 ? n.outerHTML : (n.nodeType===3 ? '#t'+n.data : null); }
+  for(c=box.firstChild;c;c=c.nextSibling){ k=keyOf(c); if(k!==null){ (pool[k]||(pool[k]=[])).push(c); } }
+  var out=[];
+  for(i=0;i<fresh.length;i++){ k=keyOf(fresh[i]); var b=k!==null&&pool[k]; out.push(b&&b.length ? b.shift() : fresh[i]); }
+  var cur=box.firstChild;
+  for(i=0;i<out.length;i++){ if(out[i]===cur){ cur=cur.nextSibling; } else { box.insertBefore(out[i], cur); } }
+  while(cur){ var nx=cur.nextSibling; box.removeChild(cur); cur=nx; }
+  box.__h=html; box.__n=box.childNodes.length; box.__f=box.firstChild; box.__l=box.lastChild;
+}
 function esc(t){ return String(t).replace(/[&<>"']/g, function(c){
   return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function pad(n){ return n < 10 ? '0' + n : '' + n; }
@@ -3527,7 +3583,14 @@ function buzz(ms){ if(navigator.vibrate){ try{ navigator.vibrate(ms); }catch(e){
 function intHash(s){ var h = 5381; for(var i=0;i<s.length;i++){ h = ((h<<5)+h+s.charCodeAt(i))|0; } return (h>>>0)%2000000000; }
 function timeFmt(hm){ var p = hm.split(':'); var d = new Date(); d.setHours(+p[0], +p[1]);
   return d.toLocaleTimeString([], {hour:'numeric', minute:'2-digit'}); }
-function niceDate(iso){ return toDate(iso).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
+var _niceFmt=null,_niceMemo={},_niceMemoN=0;
+function niceDate(iso){
+  /* perf: toLocaleDateString builds a new Intl formatter per call (was ~half of Tasks render time) */
+  var m=_niceMemo[iso]; if(m!==undefined) return m;
+  try{ if(!_niceFmt) _niceFmt=new Intl.DateTimeFormat(undefined,{day:'numeric',month:'short',year:'numeric'}); m=_niceFmt.format(toDate(iso)); }
+  catch(e){ m=toDate(iso).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
+  if(++_niceMemoN>4000){ _niceMemo={}; _niceMemoN=0; } _niceMemo[iso]=m; return m;
+}
 function toastN(m){
   if(nat){ try{ nat.toast(m); return; }catch(e){} }
   try{
@@ -3813,18 +3876,41 @@ function _persistHeavy(){
      (Set state so the UI can show there are unsynced changes.) */
   try{ if(fbUser && Object.keys(syncPendingRecords||{}).length && syncState!=='syncing') setSyncState('pending'); }catch(e){}
 }
-function persist(opts){
-  state.mtime=Date.now(); var json=stateJson();
+/* perf: the local save (full JSON.stringify + synchronous localStorage write, ~100ms+ on large
+   datasets) used to run inside every tap handler, BEFORE the UI could paint the result. It now runs
+   right after the next paint (one frame later), coalescing several persist() calls in the same
+   interaction into one write. It is flushed synchronously when the page is hidden, on pagehide,
+   on native onPause, on exit, and for persist({now:true}). */
+var _fastPending=false,_fastRaf=0,_fastTO=0;
+function _persistFast(){
+  if(!_fastPending) return;
+  _fastPending=false;
+  if(_fastRaf){try{cancelAnimationFrame(_fastRaf);}catch(e){} _fastRaf=0;}
+  if(_fastTO){clearTimeout(_fastTO);_fastTO=0;}
+  var json=stateJson();
   if(json){
-    try{localStorage.setItem(KEY,json);}catch(e){}   /* fast + keeps data safe immediately */
+    try{localStorage.setItem(KEY,json);}catch(e){}
     if(window._widgetFlowArmed){window._widgetFlowArmed=false;setTimeout(function(){try{nat&&nat.widgetDone&&nat.widgetDone();}catch(e){}},300);}
   }
+}
+function _scheduleFastPersist(){
+  _fastPending=true;
+  if(document.hidden){ _persistFast(); return; }
+  if(!_fastRaf) _fastRaf=requestAnimationFrame(function(){ _fastRaf=0; setTimeout(_persistFast,0); });
+  if(!_fastTO) _fastTO=setTimeout(_persistFast,250); /* safety net if rAF is throttled */
+}
+/* heavy work runs when the main thread is idle, so it doesn't land on top of an animation */
+function _idle(fn){ if(window.requestIdleCallback){ try{ requestIdleCallback(fn,{timeout:1200}); return; }catch(e){} } setTimeout(fn,0); }
+window.__flushPersist=function(){ try{ _persistFast(); if(_persistPending){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); } }catch(e){} };
+function persist(opts){
+  state.mtime=Date.now();
+  if(opts && opts.now){ _fastPending=true; _persistFast(); if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); return; }
+  _scheduleFastPersist();
   /* Heavy work (native full-state save, alarm recompute, sync-record hashing) is debounced so
      rapid successive changes don't each serialize/scan the whole dataset -> smoother on Android. */
-  if(opts && opts.now){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); return; }
   _persistPending=true;
   if(_persistT) clearTimeout(_persistT);
-  _persistT=setTimeout(function(){ _persistT=null; _persistHeavy(); }, 500);
+  _persistT=setTimeout(function(){ _persistT=null; _idle(function(){ if(_persistPending) _persistHeavy(); }); }, 500);
   /* Auto-refresh Today's live summary (glance card + strict reminders) after ANY data change,
      but only when Today is the visible tab — so logging sleep/mood/habit/task/expense/etc. always
      updates the card and clears strict reminders without needing to reopen the app. Debounced +
@@ -3833,12 +3919,13 @@ function persist(opts){
     var tp=document.getElementById('pgToday');
     if(tp && tp.classList.contains('on')){
       if(window._todayRefreshT) clearTimeout(window._todayRefreshT);
-      window._todayRefreshT=setTimeout(function(){ window._todayRefreshT=null; try{ if(typeof renderStrictReminders==='function') renderStrictReminders(); if(typeof renderTodayProgress==='function') renderTodayProgress(); if(typeof renderTaskDashboard==='function') renderTaskDashboard(); }catch(e){} }, 60);
+      var _seqAt=_todayRenderSeq;
+      window._todayRefreshT=setTimeout(function(){ window._todayRefreshT=null; if(_todayRenderSeq!==_seqAt) return; /* perf: Today was already fully re-rendered after this change */ try{ if(typeof renderStrictReminders==='function') renderStrictReminders(); if(typeof renderTodayProgress==='function') renderTodayProgress(); if(typeof renderTaskDashboard==='function') renderTaskDashboard(); }catch(e){} }, 60);
     }
   }catch(e){}
 }
 /* flush pending heavy persist when leaving/hiding the app so nothing is lost */
-try{ document.addEventListener('visibilitychange', function(){ if(document.hidden && _persistPending){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); } }); window.addEventListener('pagehide', function(){ if(_persistPending){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); } }); }catch(e){}
+try{ document.addEventListener('visibilitychange', function(){ if(document.hidden) _persistFast(); if(document.hidden && _persistPending){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); } }); window.addEventListener('pagehide', function(){ _persistFast(); if(_persistPending){ if(_persistT){clearTimeout(_persistT);_persistT=null;} _persistHeavy(); } }); }catch(e){}
 function hasMeaningfulData(s){
   s=s||{};
   return !!((s.habits&&s.habits.length)||(s.tx&&s.tx.length)||(s.accts&&s.accts.length)||(s.exs&&s.exs.length)||(s.wlog&&s.wlog.length)||(s.sleep&&s.sleep.length)||(s.jr&&s.jr.length)||(s.tasks&&s.tasks.length)||(s.goals&&s.goals.length)||(s.mood&&Object.keys(s.mood).length)||(s.hlog&&Object.keys(s.hlog).length)||(s.closed&&Object.keys(s.closed).length));
@@ -5331,7 +5418,7 @@ function renderTodayProgress(){
   /* tasks overdue + due today */
   var overdue=0, dueToday=0; try{ taskAllVisible().filter(function(t){return !t.virtualHabit;}).forEach(function(t){ var stt=taskEffectiveStatus(t); if(stt==='completed')return; if(t.dueDate){ if(t.dueDate<ts) overdue++; else if(t.dueDate===ts) dueToday++; } }); }catch(e){}
   function cell(k,v,cls){ return '<div class="tpItem"><span class="v'+(cls?' '+cls:'')+'">'+v+'</span><span class="k">'+k+'</span></div>'; }
-  box.innerHTML='<div class="tpTitle">Today at a glance</div><div class="tpGrid8">'
+  setHTML(box,'<div class="tpTitle">Today at a glance</div><div class="tpGrid8">'
     +cell('Habits', due?doneH+'/'+due:'\u2014','amber')
     +cell('Tasks', ttot?tdone+'/'+ttot:'\u2014')
     +cell('Mood', (state.mood&&state.mood[ts]!==undefined)?(['\uD83E\uDD29','\uD83D\uDE04','\uD83D\uDE0C','\uD83D\uDE10','\uD83D\uDE2A','\uD83D\uDE14','\uD83D\uDE30'][state.mood[ts]]||'\u2014'):'\u2014')
@@ -5340,7 +5427,7 @@ function renderTodayProgress(){
     +cell('Spent', spentToday>0?(curr+Math.round(spentToday)):'\u2014')
     +cell('Overdue', overdue||'0', overdue?'coral':'')
     +cell('Due today', dueToday||'0')
-    +'</div>';
+    +'</div>');
 }
 function renderTaskDashboard(){var b=$('taskDashSummary');if(!b)return;b.style.display='none';b.innerHTML='';return;}
 
@@ -5364,7 +5451,7 @@ function renderStrictReminders(){
   }
   if(!items.length){ box.style.display='none'; box.innerHTML=''; return; }
   box.style.display='';
-  box.innerHTML=items.map(function(it){ return '<div class="srItem" data-sr="'+it.a+'"><div class="srTxt"><div class="srT">'+it.t+'</div><div class="srS">'+it.s+'</div></div><button class="srGo">Log now</button></div>'; }).join('');
+  setHTML(box,items.map(function(it){ return '<div class="srItem" data-sr="'+it.a+'"><div class="srTxt"><div class="srT">'+it.t+'</div><div class="srS">'+it.s+'</div></div><button class="srGo">Log now</button></div>'; }).join(''));
 }
 /* wire strict reminder taps (delegated, once) */
 document.addEventListener('click', function(e){
@@ -5374,7 +5461,9 @@ document.addEventListener('click', function(e){
   else if(a==='journal'){ showTab('pgJr'); setTimeout(function(){ if(typeof openJr==='function') openJr(null); },150); }
   else if(a==='sleep'){ if(typeof openSleep==='function') openSleep(today()); }
 });
+var _todayRenderSeq=0;
 function renderToday(){
+  _todayRenderSeq++;
   try{ renderStrictReminders(); }catch(e){}
   renderTaskDashboard();
   try{ renderTodayProgress(); }catch(e){}
@@ -5387,7 +5476,7 @@ function renderToday(){
   $('qod').textContent = dmsg;
   $('qod').className = 'dayMsg';
   $('qod').style.display = dmsg ? '' : 'none';
-  $('nextRem').innerHTML = nextReminderStr();
+  setHTML($('nextRem'), nextReminderStr());
 
   var ts = today(), due = [], doneN = 0, liveCnt = 0;
   for(var i=0;i<state.habits.length;i++){
@@ -5414,8 +5503,8 @@ function renderToday(){
   }
   var wk = periodStats(weekStart(now), now);
   var momTxt = due.length ? Math.round(doneN / due.length * 100) : Math.round(wk.rate * 100);
-  $('momPct').innerHTML = liveCnt ? momTxt + '<small>%</small>' : '\u2013';
-  $('chainLine').innerHTML = mxs > 0 ? '<span class="chainFlame">'+ICON('flame')+'</span> ' + mxs + '-day chain' : 'Forge your first link today';
+  setHTML($('momPct'), liveCnt ? momTxt + '<small>%</small>' : '\u2013');
+  setHTML($('chainLine'), mxs > 0 ? '<span class="chainFlame">'+ICON('flame')+'</span> ' + mxs + '-day chain' : 'Forge your first link today');
   var wd = '', wdN = new Date();
   for(var wi=6; wi>=0; wi--){
     var wDay = addDays(wdN, -wi), wDs = fmt(wDay);
@@ -5433,7 +5522,7 @@ function renderToday(){
       + '<i class="' + dot + '"></i></div>';
   }
   $('wkdots').style.display = liveCnt ? '' : 'none';
-  $('wkdots').innerHTML = wd;
+  setHTML($('wkdots'), wd);
   renderWkCard();
   renderDailyInsightToday();
 
@@ -5449,7 +5538,7 @@ function renderToday(){
       + '</b>. Use a freeze to recover it?</div>'
       + '<button class="bbtn" data-act="recover" data-id="'+rec[r].id+'">Recover \u2744\uFE0F</button></div>';
   }
-  $('recoverBox').innerHTML = rb;
+  setHTML($('recoverBox'), rb);
 
   var filterOn = srchQ.length > 0 || srchCat !== 'all';
 
@@ -5470,7 +5559,7 @@ function renderToday(){
     }
     sb += '</div>';
   }
-  $('stackBox').innerHTML = sb;
+  setHTML($('stackBox'), sb);
 
   var html = '';
   if(filterOn){
@@ -5506,7 +5595,7 @@ function renderToday(){
       for(var y=0;y<rest.length;y++) html += miniCard(rest[y], restLabel(rest[y]));
     }
   }
-  $('list').innerHTML = html;
+  patchHTML($('list'), html); /* perf: only changed habit cards are rebuilt */
   renderInsights();
 }
 
@@ -5539,6 +5628,7 @@ window.handleAndroidExit=function(){
     document.getElementById('exitLeave').addEventListener('click', function(){
       closeDlg();
       window.__exitAsked=true;
+      try{ window.__flushPersist&&window.__flushPersist(); }catch(e){}
       try{ if(typeof nat!=='undefined' && nat && nat.exitApp){ nat.exitApp(); return; } }catch(e){}
       try{ if(typeof nat!=='undefined' && nat && nat.back){ nat.back(); return; } }catch(e){}
       try{ history.back(); }catch(e){}
@@ -6827,7 +6917,7 @@ function jrFind(id){ for(var i=0;i<state.jr.length;i++) if(state.jr[i].id===id) 
 function jrNiceDay(d){
   if(d===jrToday()) return 'Today';
   var y=fmt(addDays(new Date(),-1)); if(d===y) return 'Yesterday';
-  try{ return new Date(d+'T00:00').toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'}); }catch(e){ return d; }
+  try{ if(!jrNiceDay._f) jrNiceDay._f=new Intl.DateTimeFormat(undefined,{weekday:'long',day:'numeric',month:'long'}); return jrNiceDay._f.format(new Date(d+'T00:00')); }catch(e){ return d; }
 }
 function jrPromptText(){
   if(jrPromptIx<0){ var doy=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/86400000); jrPromptIx=doy%JR_PROMPTS.length; }
@@ -6918,7 +7008,12 @@ function renderJr(){
 function setText(id,v){ var el=$(id); if(el) el.textContent=v; }
 /* ===== Motion helpers ===== */
 function _reducedMotion(){ try{ return window.matchMedia('(prefers-reduced-motion: reduce)').matches; }catch(e){ return false; } }
-function pulseEl(el, cls){ if(!el) return; if(_reducedMotion()) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+function pulseEl(el, cls){
+  /* perf: restart the animation on the next frame instead of forcing a synchronous layout (offsetWidth) */
+  if(!el) return; if(_reducedMotion()) return;
+  if(!el.classList.contains(cls)){ el.classList.add(cls); return; }
+  el.classList.remove(cls); requestAnimationFrame(function(){ el.classList.add(cls); });
+}
 /* animate a number from its current displayed value to `to` (never from 0), transform/opacity-free */
 function animNum(el, to, dur, fmt){
   if(!el) return; dur=dur||400;
@@ -6943,7 +7038,7 @@ function jrGo(v){
     if(typeof jrRenderChat==='function') jrRenderChat();
   }
   if(v==='search'){ jrRenderSearch(); var si=$('jrSearchInp'); if(si) setTimeout(function(){si.focus();},50); }
-  var app=$('app'); if(app) app.scrollTop=0;
+  if(!window._inShowTab){ var app=$('app'); if(app) app.scrollTop=0; } /* perf: showTab resets scroll once at the end */
 }
 
 var _jrTimelineFlat=[], _jrTimelineShown=0, _jrTimelineIO=null;
@@ -8413,6 +8508,11 @@ function renderExp(){
   }
 }
 
+var _txDayFmt=null,_txDayMemo={};
+function txDayLabel(d){ var m=_txDayMemo[d]; if(m!==undefined) return m;
+  try{ if(!_txDayFmt) _txDayFmt=new Intl.DateTimeFormat(undefined,{weekday:'short',day:'numeric',month:'short'}); m=_txDayFmt.format(toDate(d)); }
+  catch(e){ m=toDate(d).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'}); }
+  return (_txDayMemo[d]=m); }
 function renderExpTx(){
   var list = state.tx.slice();
   if(expFilter!=='all') list = list.filter(function(x){ return x.kind===expFilter; });
@@ -8429,7 +8529,7 @@ function renderExpTx(){
   for(var i=0;i<list.length;i++){
     var x=list[i];
     if(x.d!==lastDay){ lastDay=x.d;
-      html += '<div class="txDay">'+toDate(x.d).toLocaleDateString(undefined,{weekday:'short',day:'numeric',month:'short'})+'</div>'; }
+      html += '<div class="txDay">'+txDayLabel(x.d)+'</div>'; }
     var ico, title, sub, cls, sign;
     if(x.kind==='xfer'){ ico='\u21C4'; var af=acctById(x.acct),at=acctById(x.to);
       title=(af?af.name:'?')+' \u2192 '+(at?at.name:'?'); sub='Transfer'; cls='xfer'; sign=''; }
@@ -8441,8 +8541,8 @@ function renderExpTx(){
       + '<div class="txMid"><div class="tn">'+esc(title)+'</div><div class="ts">'+esc(sub)+'</div></div>'
       + '<div class="txAmt '+cls+'">'+sign+inr(x.amt)+'</div></div>';
   }
-  box.innerHTML=html;
-  if(expCapped) box.insertAdjacentHTML('beforeend','<button class="sbtn" id="expShowMore" style="width:100%;margin-top:10px">Show more ('+(expTotalRows-list.length)+' older)</button>');
+  if(expCapped) html+='<button class="sbtn" id="expShowMore" style="width:100%;margin-top:10px">Show more ('+(expTotalRows-list.length)+' older)</button>';
+  patchHTML(box,html); /* perf: rows that did not change are kept */
   /* Export moved to Financial Tools -> Export data; no separate button under transactions. */
 }
 function smartExpensePredictions(daysAhead){ return []; }
@@ -9168,11 +9268,17 @@ function syncRecordEntries(){var out={};function addArray(d,a,idf){(a||[]).forEa
 var syncRecordShadow={};var syncPendingRecords={};
 try{syncRecordShadow=JSON.parse(localStorage.getItem('hb_sync_record_shadow')||'{}')||{};}catch(e){}
 try{syncPendingRecords=JSON.parse(localStorage.getItem('hb_sync_pending')||'{}')||{};}catch(e){}
-function syncHash(v){try{return JSON.stringify(v);}catch(e){return String(v);}}
+/* perf: the shadow used to store each record's FULL JSON as its "hash", so the shadow was as large as the
+   whole dataset and was re-stringified (with double escaping) + re-written to localStorage on every save.
+   It now stores a compact 53-bit digest + length. Legacy full-JSON entries are migrated in place the first
+   time they are compared, WITHOUT marking unchanged records as pending (no re-upload, no timestamp change). */
+function syncJson(v){try{return JSON.stringify(v);}catch(e){return String(v);}}
+function syncDigest(str){var h1=0xdeadbeef^str.length,h2=0x41c6ce57^str.length;for(var i=0,ch;i<str.length;i++){ch=str.charCodeAt(i);h1=Math.imul(h1^ch,2654435761);h2=Math.imul(h2^ch,1597334677);}h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);return 'h:'+str.length+':'+(h2>>>0).toString(36)+(h1>>>0).toString(36);}
+function syncHash(v){return syncDigest(syncJson(v));}
 function queueChangedSyncRecords(){
   var cur=syncRecordEntries(),now=Date.now(),meta=syncRecordShadow||{};
   /* upserts: always safe */
-  Object.keys(cur).forEach(function(k){var h=syncHash(cur[k]),old=meta[k];if(!old||old.hash!==h){meta[k]={hash:h,at:now};syncPendingRecords[k]={data:cur[k],at:now,deleted:false};}});
+  Object.keys(cur).forEach(function(k){var j=syncJson(cur[k]),h=syncDigest(j),old=meta[k];if(old&&old.hash!==h&&!old.deleted&&typeof old.hash==='string'&&old.hash.indexOf('h:')!==0&&old.hash===j){old.hash=h;return;}if(!old||old.hash!==h){meta[k]={hash:h,at:now};syncPendingRecords[k]={data:cur[k],at:now,deleted:false};}});
   /* Deletions are DANGEROUS. Only infer deletions when safe, to avoid wiping synced data on a
      fresh/empty device or before the initial remote pull has finished. We measure "content"
      records (habit/task/journal/tx/etc.) and ignore always-present config keys (set:/cats:/incCats:). */
@@ -9646,7 +9752,7 @@ function showTab(id){
   if(id==='pgTasks') renderTasks();
   if(id==='pgExp') renderExp();
   if(id==='pgSet'){ renderSet(); try{ if(typeof _settingsToLanding==='function') _settingsToLanding(); }catch(e){} }
-  if(id==='pgJr'){ if(typeof jrCalY!=='undefined'&&!jrCalY){var _n=new Date();jrCalY=_n.getFullYear();jrCalM=_n.getMonth();} renderJr(); jrGo(jrView||'timeline'); }
+  if(id==='pgJr'){ if(typeof jrCalY!=='undefined'&&!jrCalY){var _n=new Date();jrCalY=_n.getFullYear();jrCalM=_n.getMonth();} renderJr(); window._inShowTab=true; try{ jrGo(jrView||'timeline'); }finally{ window._inShowTab=false; } }
   if(id==='pgAI') renderAI();
   $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : id==='pgTasks' ? 'Add task' : 'Add anything';
@@ -9741,7 +9847,7 @@ function toggleHabitTask(id){var p=String(id).split(':');if(p.length<3)return;va
 function taskFilterMatch(t){var st=taskEffectiveStatus(t);if(taskFilter==='overdue')return st==='overdue';if(taskFilter==='today')return t.dueDate===today()&&st!=='completed';if(taskFilter==='upcoming')return !!t.dueDate&&t.dueDate>today()&&st!=='completed';if(taskFilter==='completed')return st==='completed';return true;}
 function renderTaskCardCompact(t){var st=taskEffectiveStatus(t),virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var hi=t.priority==='high';return '<div class="taskCardC '+(st==='overdue'?'overdue':'')+(hi?' hi':'')+'" data-task-id="'+esc(t.id)+'"><button class="taskCheckC '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><span class="taskTitleC '+(check?'done':'')+(hi?' hi':'')+'">'+esc(t.title)+'</span><span class="taskDueC">'+esc(taskDateLabel(t))+'</span></div>';}
 function renderTaskCard(t){var st=taskEffectiveStatus(t),sp=taskSubProgress(t),over=st==='overdue',virtual=!!t.virtualHabit;var check=st==='completed'||(virtual&&t.linkedHabitId&&isDone(findHabit(t.linkedHabitId),t.linkedHabitOccurrenceDate));var clickAttr=virtual?'data-habit-task="'+esc(t.id)+'"':'data-task-check="'+esc(t.id)+'"';var actions=virtual?'':'<div class="taskCardActions"><button class="tcAct tcMore" data-task-more="'+esc(t.id)+'" title="Actions">'+ICON('dots')+'</button><div class="tcMenu" data-tcmenu="'+esc(t.id)+'"><button class="tcAct'+(t.pinned?' on':'')+'" data-task-pin="'+esc(t.id)+'" title="Pin">'+ICON('pin')+'</button><button class="tcAct" data-task-snooze="'+esc(t.id)+'" title="Snooze to tomorrow">'+ICON('snooze')+'</button><button class="tcAct" data-task-dup="'+esc(t.id)+'" title="Duplicate">'+ICON('copy')+'</button></div></div>';return '<div class="taskCard '+(over?'overdue':'')+(t.pinned?' pinned':'')+((t.priority==='high'&&!over&&!check)?' hi':'')+'" data-task-id="'+esc(t.id)+'"><div class="taskTop"><button class="taskCheck '+(check?'done':'')+'" '+clickAttr+' aria-label="Complete task">'+(check?'✓':'')+'</button><div class="taskBody"><div class="taskTitle '+(check?'done':'')+'">'+(t.pinned?'<span class="tPinDot" title="Pinned">'+ICON('pin')+'</span>':'')+esc(t.title)+'</div>'+(t.description?'<div class="taskDesc">'+esc(t.description)+'</div>':'')+'<div class="taskMeta"><span class="taskPri '+t.priority+'">'+t.priority.toUpperCase()+'</span><span class="taskStatus">'+(st==='inprogress'?'In Progress':st.charAt(0).toUpperCase()+st.slice(1))+'</span><span>'+esc(taskDateLabel(t))+'</span>'+(t.recurrence&&t.recurrence.freq!=='none'?'<span class="taskSeries">'+ICON('repeat')+' '+t.recurrence.freq+(t.recurrence.interval>1?' ×'+t.recurrence.interval:'')+'</span>':'')+(virtual?'<span class="taskSeries">Habit</span>':'')+((t.comments&&t.comments.length)?'<span class="taskCmt" data-task-comment="'+esc(t.id)+'">'+ICON('comment')+' '+t.comments.length+'</span>':'')+'</div>'+(sp.total?'<div class="taskSubProgress">'+sp.done+' / '+sp.total+' subtasks<div class="taskSubBar"><i style="width:'+Math.round(sp.done/sp.total*100)+'%"></i></div></div>':'')+'</div>'+actions+'</div></div>';}
-function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){if(taskSortMode==='due'){var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));}var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var cnt=a.length;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle"><span class="tsLbl">'+pair[1]+'</span><span class="tsCount">'+cnt+(cnt===1?' task':' tasks')+'</span></div>'+a.map(taskCompact?renderTaskCardCompact:renderTaskCard).join('')+extra);});box.innerHTML=sections.join('');$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;$('taskSummary').innerHTML='<div class="taskStatCardV2"><div class="tscv over"><b>'+over+'</b><span class="tscvL">Overdue</span></div><div class="tscvSep"></div><div class="tscv today"><b>'+tn+'</b><span class="tscvL">Today</span></div><div class="tscvSep"></div><div class="tscv up"><b>'+up+'</b><span class="tscvL">Upcoming</span></div><div class="tscvSep"></div><div class="tscv done"><b>'+done+'</b><span class="tscvL">Done</span></div></div>';}
+function renderTasks(){var box=$('taskList');if(!box)return;var all=taskAllVisible().filter(function(t){return taskFilterMatch(t)&&taskMatches(t,taskSearchQ);});all.sort(function(a,b){if(taskSortMode==='due'){var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));}var sa=taskEffectiveStatus(a),sb=taskEffectiveStatus(b);var rank=function(x){return x==='overdue'?0:x==='open'||x==='inprogress'?1:2;};var ra=rank(sa),rb=rank(sb);if(ra!==rb)return ra-rb;var da=taskDueMs(a),db=taskDueMs(b);if(da!==db)return da-db;return String(a.title).localeCompare(String(b.title));});var sections=[];var groups={pinned:[],overdue:[],today:[],upcoming:[],completed:[],other:[]};all.forEach(function(t){var st=taskEffectiveStatus(t);if(t.pinned&&st!=='completed'){groups.pinned.push(t);return;}if(st==='overdue')groups.overdue.push(t);else if(st==='completed')groups.completed.push(t);else if(t.dueDate===today())groups.today.push(t);else if(t.dueDate&&t.dueDate>today())groups.upcoming.push(t);else groups.other.push(t);});[['pinned','📌 PINNED'],['overdue','OVERDUE'],['today','TODAY'],['upcoming','UPCOMING'],['other','NO DUE DATE'],['completed','COMPLETED']].forEach(function(pair){var a=groups[pair[0]];if(!a.length)return;var cnt=a.length;var extra='';if(pair[0]==='completed'&&!taskShowAllDone&&a.length>30){extra='<button class="sbtn" data-task-showdone style="width:100%;margin:6px 0 2px">Show all completed ('+a.length+')</button>';a=a.slice(0,30);}sections.push('<div class="taskSectionTitle"><span class="tsLbl">'+pair[1]+'</span><span class="tsCount">'+cnt+(cnt===1?' task':' tasks')+'</span></div>'+a.map(taskCompact?renderTaskCardCompact:renderTaskCard).join('')+extra);});patchHTML(box,sections.join(''));$('taskEmpty').hidden=all.length>0;var s=taskAllVisible(),over=s.filter(function(t){return taskEffectiveStatus(t)==='overdue';}).length,tn=s.filter(function(t){return t.dueDate===today()&&taskEffectiveStatus(t)!=='completed';}).length,up=s.filter(function(t){return t.dueDate&&t.dueDate>today()&&taskEffectiveStatus(t)!=='completed';}).length,done=state.tasks.filter(function(t){return t.status==='completed';}).length;setHTML($('taskSummary'),'<div class="taskStatCardV2"><div class="tscv over"><b>'+over+'</b><span class="tscvL">Overdue</span></div><div class="tscvSep"></div><div class="tscv today"><b>'+tn+'</b><span class="tscvL">Today</span></div><div class="tscvSep"></div><div class="tscv up"><b>'+up+'</b><span class="tscvL">Upcoming</span></div><div class="tscvSep"></div><div class="tscv done"><b>'+done+'</b><span class="tscvL">Done</span></div></div>');}
 function exportTaskRows(from,to){var rows=[['Task','Description','Due date','Due time','Priority','Status','Subtasks','Comments']];state.tasks.filter(function(t){return t.dueDate&&t.dueDate>=from&&t.dueDate<=to;}).sort(function(a,b){return taskDueMs(a)-taskDueMs(b);}).forEach(function(t){var sp=taskSubProgress(t);rows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),sp.done+'/'+sp.total]);});return rows;}
 function taskExportBounds(){if(taskExportMode==='custom')return{from:$('taskExportFrom').value,to:$('taskExportTo').value};return taskRangeBounds(taskExportMode);}
 function taskPdfSafe(v){return String(v==null?'':v).replace(/[^\x20-\x7E]/g,'?').replace(/\\/g,'\\\\').replace(/\(/g,'\\(').replace(/\)/g,'\\)');}
@@ -9919,8 +10025,9 @@ function init(){
     if(act === 'chk'){
       /* motion: pop the checkbox + detect completion to pulse streak/haptic */
       var hBefore=findHabit(id), wasDone=hBefore?(val(hBefore,today())>=targ(hBefore)):false;
-      pulseEl(actEl,'chkPop');
       tapMain(id);
+      /* the tapped card is re-rendered by tapMain(); pop the new checkbox (the old node no longer exists) */
+      try{ var _nc=null, _cs=$('list').querySelectorAll('[data-act="chk"]'); for(var _i=0;_i<_cs.length;_i++){ var _h=climb(_cs[_i],$('list'),'data-id'); if(_h&&_h.getAttribute('data-id')===id){ _nc=_cs[_i]; break; } } pulseEl(_nc||actEl,'chkPop'); }catch(_e){}
       var hAfter=findHabit(id), nowDone=hAfter?(val(hAfter,today())>=targ(hAfter)):false;
       if(nowDone && !wasDone){ if(typeof haptic==='function') haptic(); setTimeout(function(){ var sEl=document.querySelector('.streakBadge,.momFlame,.chainLine'); pulseEl(sEl,'streakPulse'); },20); }
       return;
@@ -10841,15 +10948,25 @@ function init(){
   (function(){
     var startY=0, pulling=false, armed=false, ind=null;
     function makeInd(){ if(ind) return ind; ind=document.createElement('div'); ind.id='ptrInd'; ind.textContent='↓ Pull to sync'; document.body.appendChild(ind); return ind; }
-    function atTop(){ return (window.scrollY||document.documentElement.scrollTop||0) <= 0; }
-    document.addEventListener('touchstart', function(e){ if(!atTop()) { pulling=false; return; } startY=e.touches[0].clientY; pulling=true; armed=false; }, {passive:true});
+    /* perf+fix: the app scrolls inside #app (window never scrolls), so the old window.scrollY check was
+       always "at top": the indicator was restyled on every touchmove while scrolling up mid-list and a
+       sync could fire on release. Check the real scroller, ignore overlays, and write styles at most
+       once per frame, only when something changed. */
+    var appEl=null, rafId=0, lastD=-1, lastArmed=null, pendDy=0;
+    function atTop(){ appEl=appEl||$('app'); var st=appEl?appEl.scrollTop:0; return st<=0 && (window.scrollY||document.documentElement.scrollTop||0)<=0; }
+    function inOverlay(t){ try{ return !!(t&&t.closest&&t.closest('.sheet,.proModal,#achvModal,#miles,.jrSumOverlay,#exitSyncDlg')); }catch(e){ return false; } }
+    function paintInd(){
+      rafId=0; var dy=pendDy, i=makeInd(), d=Math.min(dy,90);
+      if(d!==lastD){ i.style.transform='translateX(-50%) translateY('+(d-40)+'px)'; i.style.opacity=Math.min(1,dy/70); lastD=d; }
+      if(armed!==lastArmed){ i.textContent = armed ? '↑ Release to sync' : '↓ Pull to sync'; lastArmed=armed; }
+    }
+    document.addEventListener('touchstart', function(e){ if(inOverlay(e.target) || !atTop()) { pulling=false; return; } startY=e.touches[0].clientY; pulling=true; armed=false; lastD=-1; lastArmed=null; }, {passive:true});
     document.addEventListener('touchmove', function(e){
       if(!pulling) return;
       var dy=e.touches[0].clientY-startY;
       if(dy>0 && atTop()){
-        var i=makeInd(); var d=Math.min(dy,90);
-        i.style.transform='translateX(-50%) translateY('+(d-40)+'px)'; i.style.opacity=Math.min(1,dy/70);
-        armed = dy>70; i.textContent = armed ? '↑ Release to sync' : '↓ Pull to sync';
+        pendDy=dy; armed = dy>70;
+        if(!rafId) rafId=requestAnimationFrame(paintInd);
       }
     }, {passive:true});
     document.addEventListener('touchend', function(){
@@ -10857,8 +10974,9 @@ function init(){
         var i=makeInd(); i.textContent='Syncing…';
         try{ if(typeof fbUser!=='undefined' && fbUser && typeof syncReconcile==='function'){ setSyncState&&setSyncState('syncing'); syncReconcile().then(function(){toastN&&toastN('Synced');}).catch(function(){}); } else { toastN&&toastN('Sign in to sync'); } }catch(e){}
       }
-      if(ind){ ind.style.opacity='0'; ind.style.transform='translateX(-50%) translateY(-40px)'; }
-      pulling=false; armed=false;
+      if(rafId){ cancelAnimationFrame(rafId); rafId=0; }
+      if(ind && lastD!==-1){ ind.style.opacity='0'; ind.style.transform='translateX(-50%) translateY(-40px)'; }
+      pulling=false; armed=false; lastD=-1; lastArmed=null;
     }, {passive:true});
   })();
   /* ===== Multi-select delete (transactions + journal) ===== */
@@ -12446,13 +12564,13 @@ function renderProDashboard(){
  '<div class="pdStats"><div><strong>'+ws.done+'</strong><small>completed</small></div><div><strong>'+os.n+'</strong><small>day streak</small></div><div><strong>'+overdue+'</strong><small>overdue</small></div><div><strong>'+dueToday+'</strong><small>due today</small></div></div>'+
  '<div class="pdTrend">'+days+'</div>'+
  '<div class="pdFooter"><span>✓ '+completedToday+' tasks completed today</span><button type="button" data-review-open>Daily review →</button></div></div></div>';
- host.innerHTML=html;
+ setHTML(host,html);
 }
 function renderReviewCard(){
  var host=$('dailyReviewCard');if(!host)return;
  var r=dayStats(today()), tasks=state.tasks.filter(function(t){return t.dueDate===today()||taskEffectiveStatus(t)==='overdue';}),doneTasks=tasks.filter(function(t){return t.status==='completed';}).length;
  var saved=state.set.dailyReviews[today()];
- host.innerHTML='<div class="reviewCard '+(saved?'reviewDone':'')+'"><div class="reviewIcon">'+(saved?'✓':'◐')+'</div><div class="reviewBody"><div class="reviewTitle">'+(saved?'Daily review completed':'Close the day with a 60-second review')+'</div><div class="reviewSub">Habits '+r.done+'/'+r.due+' · Tasks '+doneTasks+'/'+tasks.length+(saved?' · Saved today':'')+'</div></div><button class="reviewBtn" data-review-open>'+(saved?'View':'Review')+'</button></div>';
+ setHTML(host,'<div class="reviewCard '+(saved?'reviewDone':'')+'"><div class="reviewIcon">'+(saved?'✓':'◐')+'</div><div class="reviewBody"><div class="reviewTitle">'+(saved?'Daily review completed':'Close the day with a 60-second review')+'</div><div class="reviewSub">Habits '+r.done+'/'+r.due+' · Tasks '+doneTasks+'/'+tasks.length+(saved?' · Saved today':'')+'</div></div><button class="reviewBtn" data-review-open>'+(saved?'View':'Review')+'</button></div>');
 }
 function openReview(){
  ensureReviewState();var old=$('dailyReviewModal');if(old)old.remove();

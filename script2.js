@@ -57,15 +57,14 @@
         div.id='featureTools';
         div.className='featureTools';
         div.innerHTML=
-          '<div class="featureToolsHead">'+
-            '<div class="eyebrow">Financial tools</div>'+
-            '<button class="sbtn" id="featureRefresh">Refresh</button>'+
+          '<div class="ftLauncherRow">'+
+            '<button class="financialToolsLauncher" data-ft="financial-tools">'+
+              '<span class="financialToolsIcon">'+(window.ICON?ICON('money'):'')+'</span>'+
+              '<span class="financialToolsCopy"><b>Financial Tools</b><small>Import, card payments, savings &amp; reports</small></span>'+
+              '<span class="financialToolsArrow">'+(window.ICON?ICON('chev'):'')+'</span>'+
+            '</button>'+
+            '<button class="ftRefreshBtn" id="featureRefresh" title="Refresh" aria-label="Refresh">'+(window.ICON?ICON('refresh'):'')+'</button>'+
           '</div>'+
-          '<button class="financialToolsLauncher" data-ft="financial-tools">'+
-            '<span class="financialToolsIcon">💰</span>'+
-            '<span class="financialToolsCopy"><b>Financial Tools</b><small>Import, card payments, savings &amp; reports</small></span>'+
-            '<span class="financialToolsArrow">›</span>'+
-          '</button>'+
           '<div id="featureSummary"></div>';
         if(anchor && anchor.parentNode) anchor.parentNode.insertBefore(div,anchor.nextSibling);
         else pg.insertBefore(div,pg.firstChild);
@@ -87,22 +86,22 @@
       '<div class="financialToolGroup">'+
         '<div class="financialToolGroupTitle">Transactions</div>'+
         '<div class="financialToolGrid">'+
-          '<button class="featureToolBtn" data-ft="import"><b>⬆ Import</b><span>Transactions / bank statement</span></button>'+
-          '<button class="featureToolBtn" data-ft="export"><b>⬇ Export data</b><span>Transactions to Excel / PDF</span></button>'+
-          '<button class="featureToolBtn" data-ft="cards"><b>💳 Card payments</b><span>Pay without double-counting</span></button>'+
-          '<button class="featureToolBtn" data-ft="duplicates"><b>🔎 Duplicates</b><span>Find possible duplicates</span></button>'+
+          '<button class="featureToolBtn" data-ft="import"><span class="ftbIc">'+ICON('import')+'</span><b>Import</b><span>Transactions / bank statement</span></button>'+
+          '<button class="featureToolBtn" data-ft="export"><span class="ftbIc">'+ICON('export')+'</span><b>Export data</b><span>Transactions to Excel / PDF</span></button>'+
+          '<button class="featureToolBtn" data-ft="cards"><span class="ftbIc">'+ICON('card')+'</span><b>Card payments</b><span>Pay without double-counting</span></button>'+
+          '<button class="featureToolBtn" data-ft="duplicates"><span class="ftbIc">'+ICON('search')+'</span><b>Duplicates</b><span>Find possible duplicates</span></button>'+
         '</div>'+
       '</div>'+
       '<div class="financialToolGroup">'+
         '<div class="financialToolGroupTitle">Planning</div>'+
         '<div class="financialToolGrid">'+
-          '<button class="featureToolBtn" data-ft="goals"><b>🎯 Savings goals</b><span>Track targets</span></button>'+
+          '<button class="featureToolBtn" data-ft="goals"><span class="ftbIc">'+ICON('target')+'</span><b>Savings goals</b><span>Track targets</span></button>'+
         '</div>'+
       '</div>'+
       '<div class="financialToolGroup">'+
         '<div class="financialToolGroupTitle">Analysis</div>'+
         '<div class="financialToolGrid">'+
-          '<button class="featureToolBtn" data-ft="report"><b>🧠 Smart report</b><span>Natural-language summary</span></button>'+
+          '<button class="featureToolBtn" data-ft="report"><span class="ftbIc">'+ICON('insight')+'</span><b>Smart report</b><span>Natural-language summary</span></button>'+
         '</div>'+
       '</div>';
     var m=modal('Financial Tools',body);
