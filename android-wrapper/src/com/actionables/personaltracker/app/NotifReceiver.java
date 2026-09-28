@@ -27,7 +27,22 @@ public class NotifReceiver extends BroadcastReceiver {
          .setContentText(body==null?"Time for your reminder.":body)
          .setAutoCancel(true).setContentIntent(pi).setCategory(Notification.CATEGORY_REMINDER)
          .setColor(Color.rgb(255,174,31));
-        ((NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE)).notify(
-                Math.abs((id==null?String.valueOf(System.currentTimeMillis()):id).hashCode()),b.build());
+        int nid=Math.abs((id==null?String.valueOf(System.currentTimeMillis()):id).hashCode());
+        /* actionable reminders: log the habit / task or snooze without opening the app */
+        if((habit!=null&&!habit.isEmpty())||(task!=null&&!task.isEmpty())){
+            int fl=PendingIntent.FLAG_UPDATE_CURRENT|(Build.VERSION.SDK_INT>=23?PendingIntent.FLAG_IMMUTABLE:0);
+            Intent d=new Intent(c,NotifActionReceiver.class).setAction(NotifActionReceiver.DONE); d.putExtras(in); d.putExtra("nid",nid);
+            Intent z=new Intent(c,NotifActionReceiver.class).setAction(NotifActionReceiver.SNOOZE); z.putExtras(in); z.putExtra("nid",nid);
+            PendingIntent pd=PendingIntent.getBroadcast(c,nid*31+1,d,fl), pz=PendingIntent.getBroadcast(c,nid*31+2,z,fl);
+            if(Build.VERSION.SDK_INT>=23){
+                android.graphics.drawable.Icon ic=android.graphics.drawable.Icon.createWithResource(c,com.actionables.personaltracker.app.R.drawable.app_icon);
+                b.addAction(new Notification.Action.Builder(ic,"Done",pd).build());
+                b.addAction(new Notification.Action.Builder(ic,"Snooze 1h",pz).build());
+            } else {
+                b.addAction(new Notification.Action.Builder(0,"Done",pd).build());
+                b.addAction(new Notification.Action.Builder(0,"Snooze 1h",pz).build());
+            }
+        }
+        ((NotificationManager)c.getSystemService(Context.NOTIFICATION_SERVICE)).notify(nid,b.build());
     }
 }

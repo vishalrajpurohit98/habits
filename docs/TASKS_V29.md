@@ -741,8 +741,8 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
   not buttons (per user's choice of the 6 add-buttons).
 
 ---
-# V1.6.5 — renamed app to "inneros"
-- Display name changed to "inneros" everywhere user-facing: title, nav brand, AI name ("inneros AI"),
+# V1.6.5 — renamed app to "Momentum"
+- Display name changed to "Momentum" everywhere user-facing: title, nav brand, AI name ("Momentum AI"),
   PIN-lock text, version line, monthly report footer/subtitle, manifest (name + short_name),
   Android strings.xml app_name.
 - Kept feature-label "Habits" (Stats sub-tab, chart legend, AI category, report section) unchanged.
@@ -765,8 +765,8 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
   swap, which I can do next if you pick ONE concept as the official launcher icon.
 
 ---
-# V1.6.7 — InnerOs naming, in-app 🧠, 3-button notification + body→Today fix
-- Display name capitalized to "InnerOs" everywhere (title, AI, lock, reports, manifest, strings).
+# V1.6.7 — Momentum naming, in-app 🧠, 3-button notification + body→Today fix
+- Display name capitalized to "Momentum" everywhere (title, AI, lock, reports, manifest, strings).
 - In-app brand mark is now the 🧠 emoji (per request). The logo picker still records the chosen
   branded logo but only for the EXTERNAL icon; it no longer overwrites the in-app navLogo.
 - Persistent notification: reduced to EXACTLY 3 actions — Add Task, Journal Entry, Expense.
@@ -776,17 +776,17 @@ Each entry: `{id, date, time, title, content, mood, tags[], favorite, template, 
   concept to render + swap. Not done yet — awaiting user's pick.
 
 ---
-# V1.6.8 — official InnerOs app icon (Logo #2 Monk+Progress) baked in everywhere external
+# V1.6.8 — official Momentum app icon (Logo #2 Monk+Progress) baked in everywhere external
 - Chosen permanent icon: concept #2 (seated meditation figure + upward growth arrow, emerald gradient).
 - Rendered PNGs and replaced: icon-192.png, icon-512.png, apple-touch-icon.png, favicon-32.png, +new favicon-16.png.
-- HTML head: added 16px favicon, cache-busted icon links (?v=inneros2) so browsers refresh the tab icon.
+- HTML head: added 16px favicon, cache-busted icon links (?v=Momentum2) so browsers refresh the tab icon.
 - manifest already points to icon-192/512 (now the new icon), purpose "any maskable".
 - Android launcher: regenerated ic_launcher.png + ic_launcher_round.png at all 5 densities
   (mdpi..xxxhdpi); rewrote adaptive drawables ic_bg_dark (emerald gradient), ic_fg_spark
   (monk+arrow, fits 108 safe zone), ic_mono_spark (Material You monochrome glyph). Adaptive XML
   unchanged (references those names).
 - In-app UI brand stays 🧠 (per earlier request); picker no longer overwrites it.
-- Verified: app loads, title InnerOs, favicon linked, foreground fits safe zone (previewed), all tabs render, zero JS errors.
+- Verified: app loads, title Momentum, favicon linked, foreground fits safe zone (previewed), all tabs render, zero JS errors.
 - HONEST: Android launcher icon change only applies on (re)install/build of the APK; an already-installed
   PWA home-screen icon won't update until reinstalled (browser caches it). The APK build itself is untestable here.
 
@@ -990,10 +990,10 @@ Verified: dedicated tests for each batch pass; Suite 1 51/52 (1 known mood-sheet
   keystroke/tap which is the most likely cause.
 
 ---
-# V1.12.3 — update Android launch splash to InnerOs
+# V1.12.3 — update Android launch splash to Momentum
 - The launch splash (@drawable/launch_brand, LaunchTheme) still showed the OLD logo + wordmark.
-  Regenerated splash app_icon.png at all densities (mdpi..xxxhdpi + 1024 master) from the InnerOs
-  Monk+Progress icon, and brand_word.png (720x104) to read "InnerOs".
+  Regenerated splash app_icon.png at all densities (mdpi..xxxhdpi + 1024 master) from the Momentum
+  Monk+Progress icon, and brand_word.png (720x104) to read "Momentum".
 - No JS change. HONEST: splash only updates after the APK is rebuilt + reinstalled; can't verify on
   device here.
 
@@ -1083,7 +1083,7 @@ HONEST: native Java (onRenderProcessGone, haptic, back eval) is untestable here 
 ---
 # V1.17.0 — Android reliability/perf/polish (remaining items)
 #3 Offline/error page: onReceivedError(main frame) -> showErrorPage() renders an inline retry screen
-   (emoji + "Couldn't load InnerOs" + Retry button) instead of a bare toast.
+   (emoji + "Couldn't load Momentum" + Retry button) instead of a bare toast.
 #6 WebView first-paint tuning: hardware layer, RenderPriority.HIGH, MIXED_CONTENT_NEVER_ALLOW,
    overscroll-none. Low-risk.
 #9 Pull-to-refresh: implemented in WEB layer (touch overscroll-at-top -> release to sync) because the
@@ -1375,7 +1375,7 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
 - Excel import: reads both sheets, merges by title (update existing, add new), Extra parsed from
   "label=value | label=value". Verified: import generated file -> 23 pw + 1 note; extra fields
   (IFSC/CVV/SecQ) land under the password; export button produces xlsx (36KB round-trip).
-- Delivered InnerOs_Vault_Import.xlsx pre-filled with Promega_LLP data (bank/card details in Extra column).
+- Delivered Momentum_Vault_Import.xlsx pre-filled with Promega_LLP data (bank/card details in Extra column).
 - suite1 51/52 (known timing), suite2 25/25; zero errors.
 
 ---
@@ -1386,7 +1386,7 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   toggle-filter the list. Verified: Finance->1, #important->2, chips render (3 cats/3 tags).
 - Excel export: Category columns get a data-validation DROPDOWN restricted to existing categories (pw col E,
   note col C) + a "Categories" reference sheet listing valid values (incl. custom). Verified in exported xlsx.
-- Regenerated InnerOs_Vault_Import.xlsx with the category dropdown + Categories sheet.
+- Regenerated Momentum_Vault_Import.xlsx with the category dropdown + Categories sheet.
 - suite1 51/52 (known timing), suite2 25/25; zero errors.
 
 ---
@@ -1471,7 +1471,7 @@ met by prior work, so I fixed only the genuine remaining discrepancy rather than
   habit lacking a frozen map (corrupted/hand-edited import bypassing normState).
 - Verified: XSS-escaping, data resilience (garbage input), boundaries (500 tasks/long text), money math
   incl xfer, streak gap logic, vault crypto+wrong-PIN-fails+no-AI-access, sync coverage, trash purge,
-  no dup IDs, 5 nav tabs. Report: out/InnerOs_QA_Report.md.
+  no dup IDs, 5 nav tabs. Report: out/Momentum_QA_Report.md.
 - HONEST: native layer (sync round-trip, widgets, notifications, biometric, haptics, APK) untestable here
   — documented as [DEVICE] items needing on-device verification.
 - suite1 51/52 (known timing), suite2 25/25; zero errors.
@@ -1718,7 +1718,7 @@ controls, dashboard section reorder (drag), surface "glass/blur" styles — each
 ---
 # V2.7.1 — remove App icon picker from Appearance
 - Removed the in-app "App icon" chooser (10 monk-logo variants grid) from Settings -> Appearance — redundant
-  since the official InnerOs icon is already the default everywhere.
+  since the official Momentum icon is already the default everywhere.
 - Only the picker MARKUP removed; the render/click code is guarded (if(grid)) so it safely no-ops. Default
   icon still applies on load via applyIcon(current()) (defaults to 'orbit'). No behavior change to the actual
   app icon, just removed the ability to swap it in-app.

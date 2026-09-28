@@ -69,6 +69,9 @@ public class MainActivity extends Activity {
     void configureWebView(WebView w) {
         WebSettings s = w.getSettings();
         s.setJavaScriptEnabled(true);
+        /* text size: the web layer applies the phone font scale itself (Appearance > Text size > System),
+           so the WebView must not scale text a second time */
+        s.setTextZoom(100);
         s.setDomStorageEnabled(true);
         s.setDatabaseEnabled(true);
         s.setAllowFileAccess(false);
@@ -448,7 +451,7 @@ public class MainActivity extends Activity {
             }
             Notification.Builder bld = (Build.VERSION.SDK_INT>=26) ? new Notification.Builder(this, QUICK_CHANNEL) : new Notification.Builder(this);
             bld.setSmallIcon(getApplicationInfo().icon)
-               .setContentTitle("InnerOs")
+               .setContentTitle("Momentum")
                .setContentText("Quick add \u2014 tap here to open Today")
                .setOngoing(true)
                .setContentIntent(quickPI("tab","pgToday"))
@@ -473,7 +476,7 @@ public class MainActivity extends Activity {
                 public void onPageFinished(android.webkit.WebView view, String url){
                     try{
                         android.print.PrintManager pm = (android.print.PrintManager)getSystemService(PRINT_SERVICE);
-                        String jobName = (name!=null?name:"InnerOs") + " document";
+                        String jobName = (name!=null?name:"Momentum") + " document";
                         android.print.PrintDocumentAdapter adapter = view.createPrintDocumentAdapter(jobName);
                         pm.print(jobName, adapter, new android.print.PrintAttributes.Builder().build());
                     }catch(Exception e){ toast("Could not open print dialog"); }
@@ -490,7 +493,7 @@ public class MainActivity extends Activity {
               +".w{text-align:center;padding:24px;max-width:320px}.e{font-size:44px;margin-bottom:14px}.t{font-size:19px;font-weight:700;margin-bottom:6px}"
               +".s{font-size:13px;color:#9a9aa0;line-height:1.5;margin-bottom:20px}"
               +"button{background:linear-gradient(135deg,#FFAE1F,#E08900);color:#171310;border:0;border-radius:14px;padding:13px 26px;font-weight:800;font-size:15px}</style></head>"
-              +"<body><div class='w'><div class='e'>\uD83D\uDCF4</div><div class='t'>Couldn\u2019t load InnerOs</div>"
+              +"<body><div class='w'><div class='e'>\uD83D\uDCF4</div><div class='t'>Couldn\u2019t load Momentum</div>"
               +"<div class='s'>Something went wrong loading the app. Your data is safe on this device \u2014 try again.</div>"
               +"<button onclick=\"location.href='https://"+APP_HOST+"/index.html'\">Retry</button></div></body></html>";
             web.loadDataWithBaseURL("https://"+APP_HOST+"/", html, "text/html", "UTF-8", null);
@@ -718,5 +721,6 @@ public class MainActivity extends Activity {
             catch(Exception e){ return false; }
         }
         @JavascriptInterface public void shareFile(String name,String mime,String b64)throws Exception{MainActivity.this.shareFile(name,mime,b64);}
+        @JavascriptInterface public float fontScale(){ try{ return getResources().getConfiguration().fontScale; }catch(Exception e){ return 1f; } }
     }
 }
