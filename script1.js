@@ -2168,6 +2168,8 @@ window.handleAndroidExit=function(){
   }catch(e){ return false; }
 };
 window.handleAndroidBack=function(){
+    /* topmost layers first: the photo viewer sits above sheets */
+    if(typeof phViewClose==='function' && phViewClose()) return true;
   try{
     /* 1. any open bottom sheet */
     if(typeof sheetOpen!=='undefined' && sheetOpen){ closeSheet(); return true; }
@@ -3501,7 +3503,8 @@ function jrCard(e){
   var snip=jrClean(jrStrip(e.content).replace(/#[A-Za-z0-9_]+/g,''));
   /* if the body starts by repeating the title (common in imported entries), drop that dupe */
   if(title && snip){ var t2=title.toLowerCase(); if(snip.toLowerCase().indexOf(t2)===0) snip=snip.slice(title.length).replace(/^[\s:–—-]+/,''); }
-  return '<div class="jrCard" data-jid="'+e.id+'">'
+  var _ph=(e.photos&&e.photos.length)?'<div class="jrCardPh"><img data-ph="'+esc(e.photos[0])+'_t" alt="">'+(e.photos.length>1?'<span class="jrCardPhN">'+ICON('camera')+e.photos.length+'</span>':'')+'</div>':'';
+  return '<div class="jrCard" data-jid="'+e.id+'">'+_ph
     + '<div class="jrTop"><span class="jrTime">'+esc(e.time||'')+'</span>'
     + (e.mood?'<span class="jrMood">'+(JR_MOODS[e.mood]||'')+'</span>':'')
     + (e.favorite?'<span class="jrFav" title="Favourite" aria-label="Favourite">'+ICON('star')+'</span>':'')
@@ -3888,7 +3891,7 @@ function saveJr(){
   jrEd.mood = jrEd.mood||'';
   jrEd.favorite = !!($('jrFavTog') && $('jrFavTog').classList.contains('on'));
   jrEd.tags = Array.from(new Set((jrText(jrEd).match(/#[A-Za-z0-9_]+/g)||[]).map(function(x){return x.toLowerCase();})));
-  if(!jrEd.title && !jrStrip(jrEd.content)){ $('jrBody').focus(); return; }
+  if(!jrEd.title && !jrStrip(jrEd.content) && !(jrEd.photos&&jrEd.photos.length)){ $('jrBody').focus(); return; }
   jrEd.updatedAt = Date.now();
   if(jrEd._edit){
     var ex=jrFind(jrEd._edit), idx=state.jr.indexOf(ex); delete jrEd._edit;
@@ -4198,6 +4201,7 @@ function jrMigrateEntry(je){
   out.favorite = !!(je.favorite);
   out.template = String(je.template||'').slice(0,40);
   out.location = String(je.location||'').slice(0,80);
+  out.photos = Array.isArray(je.photos) ? je.photos.filter(function(p){ return typeof p==='string' && /^ph[a-z0-9]+$/.test(p); }).slice(0,8) : []; /* on-device photo ids (IndexedDB) */
   out.createdAt = +je.createdAt || +je.created || Date.now();
   out.updatedAt = +je.updatedAt || out.createdAt;
   return out;
@@ -6010,6 +6014,25 @@ function doSyncSignin(create){
 /* ================= export / import ================= */
 function jsonB64(){ return btoa(unescape(encodeURIComponent(JSON.stringify(stateForStorage())))); }
 
+/* ===== Photos travel inside backups (free: no cloud storage) =====
+   Export: every photo referenced by a journal entry is embedded full-size ({id: dataURL}).
+   Import: photos are written back into this device's photo store and thumbnails are rebuilt. */
+function backupPhotos(entries){
+  var ids={}; (entries||[]).forEach(function(e){ (e&&e.photos||[]).forEach(function(p){ if(/^ph[a-z0-9]+$/.test(p)) ids[p]=1; }); });
+  var list=Object.keys(ids); if(!list.length||typeof PhotoDB==='undefined') return Promise.resolve({});
+  return Promise.all(list.map(function(id){ return PhotoDB.get(id).then(function(v){ return [id,v]; },function(){ return [id,null]; }); }))
+    .then(function(pairs){ var out={}; pairs.forEach(function(p){ if(p[1]&&/^data:image\//.test(p[1])) out[p[0]]=p[1]; }); return out; });
+}
+function restoreBackupPhotos(map){
+  if(!map||typeof map!=='object'||typeof PhotoDB==='undefined') return Promise.resolve(0);
+  var ids=Object.keys(map).filter(function(id){ return /^ph[a-z0-9]+$/.test(id) && typeof map[id]==='string' && /^data:image\//.test(map[id]); });
+  return ids.reduce(function(p,id){ return p.then(function(n){ return PhotoDB.put(id,map[id]).then(function(){ return jrScale(map[id],360,.75); }).then(function(t){ return t?PhotoDB.put(id+'_t',t):null; }).then(function(){ return n+1; },function(){ return n; }); }); },Promise.resolve(0))
+    .then(function(n){ try{ if($('pgJr')&&$('pgJr').classList.contains('on')) renderJr(); jrHydrate(document); }catch(e){} return n; });
+}
+function b64Json(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
+function photoSizeLabel(map){ var n=Object.keys(map).length; if(!n) return ''; var mb=Object.keys(map).reduce(function(a,k){ return a+map[k].length*.75; },0)/1048576; return ' \u00b7 '+n+' photo'+(n===1?'':'s')+' ('+(mb<1?Math.max(1,Math.round(mb*1024))+' KB':mb.toFixed(1)+' MB')+')'; }
+function fullBackupB64WithPhotos(){ var st=stateForStorage(); return backupPhotos(st.jr||state.jr).then(function(ph){ var o=JSON.parse(JSON.stringify(st)); if(Object.keys(ph).length) o._photos=ph; return {b64:b64Json(o),label:photoSizeLabel(ph)}; }); }
+
 /* ===== Journal-only backup / restore (V1.4.0) ===== */
 function journalBackupObj(){
   return { type:'journal-backup', version:1, exportedAt:new Date().toISOString(), count:(state.jr||[]).length, jr:(state.jr||[]) };
@@ -6017,8 +6040,11 @@ function journalBackupObj(){
 function journalBackupB64(){ return btoa(unescape(encodeURIComponent(JSON.stringify(journalBackupObj())))); }
 function exportJournalBackup(){
   var name='journal-backup-'+today()+'.json';
-  if(nat && nat.saveFile){ try{ var p=nat.saveFile(name,'application/json',journalBackupB64()); toastN(p?('Saved to '+p):'Saved'); return; }catch(e){} }
-  toastN(webSave(name,'application/json',journalBackupB64()) ? 'Downloading journal backup\u2026' : 'Export failed');
+  backupPhotos(state.jr).then(function(ph){
+    var o=journalBackupObj(); if(Object.keys(ph).length) o.photos=ph; var b64=b64Json(o), lab=photoSizeLabel(ph);
+    if(nat && nat.saveFile){ try{ var p=nat.saveFile(name,'application/json',b64); toastN((p?('Saved to '+p):'Saved')+lab); return; }catch(e){} }
+    toastN(webSave(name,'application/json',b64) ? ('Downloading journal backup'+lab) : 'Export failed');
+  });
 }
 /* Import a journal backup and MERGE into existing entries (dedupe by id). Never wipes other data. */
 window.importJournalBackup = function(b64){
@@ -6033,7 +6059,7 @@ window.importJournalBackup = function(b64){
   var added=0;
   incoming.forEach(function(raw){
     var e = (typeof jrMigrateEntry==='function') ? jrMigrateEntry(raw) : raw;
-    if(!e || (!e.title && !(e.content&&String(e.content).replace(/<[^>]*>/g,'').trim()))) return;
+    if(!e || (!e.title && !(e.content&&String(e.content).replace(/<[^>]*>/g,'').trim()) && !(e.photos&&e.photos.length))) return;
     if(e.id && byId[e.id]) return;              /* skip duplicates */
     if(!e.id){ e.id=Date.now().toString(36)+Math.random().toString(36).slice(2,7)+added; }
     byId[e.id]=1; state.jr.push(e); added++;
@@ -6041,7 +6067,9 @@ window.importJournalBackup = function(b64){
   if(typeof jrSort==='function') jrSort();
   persist();
   if($('pgJr') && $('pgJr').classList.contains('on')) renderJr();
-  toastN(added ? ('Imported '+added+' journal '+(added===1?'entry':'entries')) : 'No new entries to import');
+  var msg = added ? ('Imported '+added+' journal '+(added===1?'entry':'entries')) : 'No new entries to import';
+  if(o && !Array.isArray(o) && o.photos){ restoreBackupPhotos(o.photos).then(function(n){ toastN(msg+(n?(' \u00b7 '+n+' photo'+(n===1?'':'s')+' restored'):'')); }); }
+  else toastN(msg);
 };
 var XMIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 function buildXlsx(){
@@ -6111,7 +6139,8 @@ window.importNative = function(b64){
       state.mtime = Date.now();
       try{ localStorage.setItem(KEY, JSON.stringify(stateForStorage())); }catch(e3){}
       persist(); applyTheme(); applyGrey(); renderToday(); renderSet();
-      toastN('Imported ' + state.habits.length + ' habits \u2713');
+      var _ph=o._photos; if(_ph){ restoreBackupPhotos(_ph).then(function(n){ toastN('Imported ' + state.habits.length + ' habits'+(n?(' \u00b7 '+n+' photo'+(n===1?'':'s')+' restored'):'')); }); }
+      else toastN('Imported ' + state.habits.length + ' habits');
     } else toastN('Not a Habits backup');
   }catch(e4){ toastN('Not a Habits backup'); }
 };
@@ -6676,6 +6705,117 @@ function paneMark(){
   openSheet=function(){ var r=bo.apply(this,arguments); try{ paneMark(); }catch(e){} return r; };
   closeSheet=function(){ var r=bc.apply(this,arguments); try{ setTimeout(paneMark,0); }catch(e){} return r; };
   window.addEventListener('resize',function(){ try{ paneMark(); }catch(e){} },{passive:true});
+})();
+/* ================= Journal photos — stored free, on the device (IndexedDB) ================= */
+var PhotoDB=(function(){
+  var dbp=null;
+  function db(){ if(dbp) return dbp; dbp=new Promise(function(res,rej){ try{ var r=indexedDB.open('momentum_photos',1); r.onupgradeneeded=function(){ r.result.createObjectStore('p'); }; r.onsuccess=function(){ res(r.result); }; r.onerror=function(){ rej(r.error); }; }catch(e){ rej(e); } }); return dbp; }
+  function run(mode,fn){ return db().then(function(d){ return new Promise(function(res,rej){ var t=d.transaction('p',mode), rq=fn(t.objectStore('p')); t.oncomplete=function(){ res(rq?rq.result:undefined); }; t.onerror=function(){ rej(t.error); }; }); }); }
+  return { put:function(k,v){ return run('readwrite',function(st){ return st.put(v,k); }); }, get:function(k){ return run('readonly',function(st){ return st.get(k); }); },
+           del:function(k){ return run('readwrite',function(st){ return st.delete(k); }); }, keys:function(){ return run('readonly',function(st){ return st.getAllKeys(); }); } };
+})();
+var JR_MAX_PHOTOS=8;
+function jrScale(src,max,q){ return new Promise(function(res){ var im=new Image(); im.onload=function(){ var k=Math.min(1,max/Math.max(im.width,im.height)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.width*k)); c.height=Math.max(1,Math.round(im.height*k)); c.getContext('2d').drawImage(im,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',q)); }; im.onerror=function(){ res(null); }; im.src=src; }); }
+function jrAddPhotoData(dataUrl){
+  if(!jrEd) return Promise.resolve();
+  jrEd.photos=jrEd.photos||[]; if(jrEd.photos.length>=JR_MAX_PHOTOS){ toastN('Up to '+JR_MAX_PHOTOS+' photos per entry'); return Promise.resolve(); }
+  var id='ph'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  return Promise.all([jrScale(dataUrl,1600,.82),jrScale(dataUrl,360,.75)]).then(function(r){ if(!r[0]){ toastN('Couldn\u2019t read that image'); return; }
+    return Promise.all([PhotoDB.put(id,r[0]),PhotoDB.put(id+'_t',r[1]||r[0])]).then(function(){ jrEd.photos.push(id); jrRenderEdPhotos(); }); })
+    .catch(function(){ toastN('Couldn\u2019t save the photo on this device'); });
+}
+function jrHydrate(root){ (root||document).querySelectorAll('img[data-ph]:not([src])').forEach(function(im){ var k=im.getAttribute('data-ph'); if(!/^ph[a-z0-9]+(_t)?$/.test(k)) return; PhotoDB.get(k).then(function(v){ if(v) im.src=v; else im.closest('.jrPh,.jrCardPh,.jrReadPh')&&im.closest('.jrPh,.jrCardPh,.jrReadPh').classList.add('phMissing'); }).catch(function(){}); }); }
+function jrRenderEdPhotos(){ var g=$('jrPhotoGrid'); if(!g) return; var ph=(jrEd&&jrEd.photos)||[];
+  g.innerHTML=ph.map(function(id){ return '<div class="jrPh"><img data-ph="'+esc(id)+'_t" alt="Photo"><button class="jrPhX" type="button" data-jrphdel="'+esc(id)+'" aria-label="Remove photo">'+ICON('close')+'</button></div>'; }).join('');
+  g.style.display=ph.length?'':'none'; jrHydrate(g); }
+function jrRenderReadPhotos(e){ var box=$('jrReadPhotos'); if(!box) return; var ph=(e&&e.photos)||[];
+  box.innerHTML=ph.map(function(id){ return '<button class="jrReadPh" type="button" data-phview="'+esc(id)+'" aria-label="Open photo"><img data-ph="'+esc(id)+'_t" alt="Photo"></button>'; }).join('');
+  box.style.display=ph.length?'':'none'; jrHydrate(box); }
+function phViewOpen(id){ var v=$('phView'), im=$('phViewImg'); if(!v||!/^ph[a-z0-9]+$/.test(id)) return; im.removeAttribute('src'); v.hidden=false; PhotoDB.get(id).then(function(d){ if(d) im.src=d; }); }
+function phViewClose(){ var v=$('phView'); if(v&&!v.hidden){ v.hidden=true; return true; } return false; }
+/* photos added to an entry that was never saved are removed after a day */
+function jrPhotoCleanup(){ try{ var txt=JSON.stringify(state)+' '+Object.keys(localStorage).map(function(k){ try{ return localStorage.getItem(k)||''; }catch(e){ return ''; } }).join(' ');
+  PhotoDB.keys().then(function(keys){ var day=Date.now()-864e5; (keys||[]).forEach(function(k){ var base=String(k).replace(/_t$/,''); if(txt.indexOf(base)>=0) return; var ts=parseInt(base.slice(2,10),36); if(ts&&ts<day) PhotoDB.del(k); }); }).catch(function(){}); }catch(e){} }
+(function(){
+  var g=$('jrPhotos'); if(!g) return;
+  var file=$('jrPhotoFile');
+  function pick(cam){ if(typeof nat!=='undefined'&&nat&&(cam?nat.capturePhoto:nat.pickPhoto)){ try{ window.pendingPhotoTarget='journal'; cam?nat.capturePhoto():nat.pickPhoto(); return; }catch(e){} }
+    if(cam) file.setAttribute('capture','environment'); else file.removeAttribute('capture'); file.value=''; file.click(); }
+  $('jrAddPhoto').addEventListener('click',function(){ pick(false); });
+  $('jrCamPhoto').addEventListener('click',function(){ pick(true); });
+  file.addEventListener('change',function(){ var fs=[].slice.call(this.files||[]); fs.reduce(function(p,f){ return p.then(function(){ if(f.size>25*1024*1024){ toastN('That image is too large'); return; } return new Promise(function(res){ var rd=new FileReader(); rd.onload=function(){ jrAddPhotoData(rd.result).then(res,res); }; rd.onerror=res; rd.readAsDataURL(f); }); }); },Promise.resolve()); });
+  g.addEventListener('click',function(e){ var x=e.target.closest('[data-jrphdel]'); if(x&&jrEd&&jrEd.photos){ var id=x.getAttribute('data-jrphdel'); jrEd.photos=jrEd.photos.filter(function(p){ return p!==id; }); jrRenderEdPhotos(); } });
+  var rp=$('jrReadPhotos'); if(rp) rp.addEventListener('click',function(e){ var b=e.target.closest('[data-phview]'); if(b) phViewOpen(b.getAttribute('data-phview')); });
+  var pv=$('phView'); if(pv) pv.addEventListener('click',function(e){ if(e.target===pv||e.target.closest('#phViewX')) phViewClose(); });
+  var basePR=window.photoResult; window.photoResult=function(name){ if(window.pendingPhotoTarget==='journal'&&/^[A-Za-z0-9_.-]+$/.test(name)){ window.pendingPhotoTarget=''; try{ var b=nat&&nat.readPhoto?nat.readPhoto(name):''; if(nat&&nat.deletePhoto) nat.deletePhoto(name); if(b) jrAddPhotoData('data:image/jpeg;base64,'+b); }catch(e){} return; } return basePR?basePR.apply(this,arguments):undefined; };
+  var bo=openJr; openJr=function(){ var r=bo.apply(this,arguments); try{ if(jrEd){ jrEd.photos=(jrEd.photos||[]).slice(); } jrRenderEdPhotos(); }catch(e){} return r; };
+  var br=openJrRead; openJrRead=function(id){ var r=br.apply(this,arguments); try{ var e=jrFind(id); jrRenderReadPhotos(e); var bd=$('jrReadBody'); if(bd&&e&&e.photos&&e.photos.length&&!jrStrip(e.content||'')) bd.innerHTML=''; }catch(e2){} return r; };
+  var bj=renderJr; renderJr=function(){ var r=bj.apply(this,arguments); try{ jrHydrate(document.getElementById('pgJr')); }catch(e){} return r; };
+  var bg=jrGo; jrGo=function(){ var r=bg.apply(this,arguments); try{ jrHydrate(document.getElementById('pgJr')); }catch(e){} return r; };
+  setTimeout(jrPhotoCleanup,4000);
+})();
+/* ================= Journal photos ⇄ the user's Google Drive (Android) =================
+   Entries already sync through Cloud sync; this syncs the photo files themselves:
+   upload every referenced local photo missing on Drive, download every referenced photo missing on this device. */
+var DrivePhotos={
+  busy:false, waiters:{}, queued:false,
+  avail:function(){ return typeof nat!=='undefined' && !!nat && !!nat.driveConnect; },
+  on:function(){ try{ return this.avail() && nat.driveIsOn(); }catch(e){ return false; } },
+  refIds:function(){ var ids={}; (state.jr||[]).concat(state.trash&&state.trash.jr||[]).forEach(function(e){ (e&&e.photos||[]).forEach(function(p){ if(/^ph[a-z0-9]+$/.test(p)) ids[p]=1; }); }); return Object.keys(ids); },
+  status:function(t){ var el=$('driveStatus'); if(el) el.textContent=t; },
+  ui:function(){ var b=$('driveBtn'), r2=$('driveRow2'); if(!b) return;
+    if(!this.avail()){ b.style.display='none'; if(r2) r2.style.display='none'; this.status('Available in the Android app. Photos are still included in Journal backup and Backup (JSON).'); return; }
+    var on=this.on(); b.style.display=''; b.textContent=on?'Disconnect':'Connect'; b.classList.toggle('acc',!on); if(r2) r2.style.display=on?'':'none';
+    var l=$('driveLast'); if(l){ var t=state.set.driveLast; l.textContent=t?('Last synced '+new Date(t).toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+(state.set.driveCount!=null?' \u00b7 '+state.set.driveCount+' photo'+(state.set.driveCount===1?'':'s')+' on Drive':'')):'Not synced yet'; }
+    if(!this.busy) this.status(on?'Connected. New journal photos are backed up automatically.':'Automatically back up and sync journal photos to a private folder in your own Google Drive.'); },
+  wait:function(key){ var self=this; return new Promise(function(res){ self.waiters[key]=res; setTimeout(function(){ if(self.waiters[key]){ delete self.waiters[key]; res({ok:false,err:'timeout'}); } },120000); }); },
+  settle:function(key,val){ var w=this.waiters[key]; if(w){ delete this.waiters[key]; w(val); } },
+  syncNow:function(manual){
+    var self=this; if(!this.on()) return; if(this.busy){ this.queued=true; return; }
+    this.busy=true; this.status('Syncing photos\u2026');
+    var listP=this.wait('list'); try{ nat.driveList(); }catch(e){ this.settle('list',{ok:false,err:String(e)}); }
+    listP.then(function(r){
+      if(!r.ok) throw new Error(r.err||'list failed');
+      var remote={}; (r.files||[]).forEach(function(f){ var m=/^(ph[a-z0-9]+)\.jpg$/.exec(f.name||''); if(m) remote[m[1]]=f.id; });
+      var ref=self.refIds();
+      return PhotoDB.keys().then(function(keys){
+        var local={}; (keys||[]).forEach(function(k){ if(!/_t$/.test(k)) local[k]=1; });
+        var up=ref.filter(function(id){ return local[id] && !remote[id]; }), down=ref.filter(function(id){ return !local[id] && remote[id]; }), okU=0, okD=0, fail=0;
+        var chain=Promise.resolve();
+        up.forEach(function(id){ chain=chain.then(function(){ self.status('Uploading photos\u2026 '+(okU+1)+'/'+up.length); return PhotoDB.get(id).then(function(d){ if(!d) return; var w=self.wait('up:'+id+'.jpg'); nat.driveUpload(id+'.jpg', String(d).replace(/^data:image\/[a-z]+;base64,/,'')); return w.then(function(x){ if(x.ok){ okU++; remote[id]=1; } else fail++; }); }); }); });
+        down.forEach(function(id){ chain=chain.then(function(){ self.status('Downloading photos\u2026 '+(okD+1)+'/'+down.length); var w=self.wait('down:'+id+'.jpg'); nat.driveDownload(id+'.jpg', remote[id]);
+          return w.then(function(x){ if(!x.ok||!x.b64){ fail++; return; } var du='data:image/jpeg;base64,'+x.b64; return PhotoDB.put(id,du).then(function(){ return jrScale(du,360,.75); }).then(function(t){ return t?PhotoDB.put(id+'_t',t):null; }).then(function(){ okD++; }); }); }); });
+        return chain.then(function(){
+          state.set.driveLast=Date.now(); state.set.driveCount=Object.keys(remote).length; persist();
+          self.busy=false; self.ui();
+          self.status(fail?('Synced with '+fail+' problem'+(fail===1?'':'s')+' \u2014 will retry next time'):((okU||okD)?('Up to date \u00b7 '+okU+' uploaded, '+okD+' downloaded'):'Up to date'));
+          if(okD){ try{ jrHydrate(document); if($('pgJr')&&$('pgJr').classList.contains('on')) renderJr(); }catch(e){} }
+          if(manual) toastN(okU||okD?('Photos synced \u00b7 '+okU+' up, '+okD+' down'):'Photos are up to date');
+          if(self.queued){ self.queued=false; setTimeout(function(){ self.syncNow(false); },500); }
+        });
+      });
+    }).catch(function(e){ self.busy=false; self.ui(); self.status('Couldn\u2019t sync photos: '+(e&&e.message||e)); if(manual) toastN('Couldn\u2019t sync photos'); });
+  }
+};
+window.onDriveEvent=function(type,a,b){
+  var D=DrivePhotos;
+  if(type==='connected'){ toastN('Google Drive connected'); D.ui(); D.syncNow(true); return; }
+  if(type==='error'){ D.settle('list',{ok:false,err:a}); D.busy=false; D.ui(); D.status(a||'Google Drive error'); toastN(a||'Google Drive error'); return; }
+  if(type==='consent'){ D.settle('list',{ok:false,err:'Google Drive needs your permission again'}); D.busy=false; D.status('Tap Disconnect, then Connect to allow Google Drive again.'); return; }
+  if(type==='list'){ var files=[]; try{ files=JSON.parse(a)||[]; }catch(e){} D.settle('list',{ok:true,files:files}); return; }
+  if(type==='uploaded'){ D.settle('up:'+a,{ok:true}); return; }
+  if(type==='uploadFailed'){ D.settle('up:'+a,{ok:false,err:b}); return; }
+  if(type==='downloaded'){ D.settle('down:'+a,{ok:true,b64:b}); return; }
+  if(type==='downloadFailed'){ D.settle('down:'+a,{ok:false,err:b}); return; }
+};
+(function(){
+  var btn=$('driveBtn'), sb=$('driveSyncBtn');
+  if(btn) btn.addEventListener('click',function(){ if(!DrivePhotos.avail()) return; if(DrivePhotos.on()){ if(confirm('Disconnect Google Drive? Photos already on Drive stay there.')){ nat.driveDisconnect(); DrivePhotos.ui(); toastN('Google Drive disconnected'); } } else { DrivePhotos.status('Opening Google\u2026'); nat.driveConnect(); } });
+  if(sb) sb.addEventListener('click',function(){ DrivePhotos.syncNow(true); });
+  DrivePhotos.ui();
+  setTimeout(function(){ DrivePhotos.syncNow(false); },6000);
+  var r=window.onNativeResume; window.onNativeResume=function(){ var x=r?r.apply(this,arguments):undefined; try{ setTimeout(function(){ DrivePhotos.syncNow(false); },1500); }catch(e){} return x; };
+  var sj=saveJr; saveJr=function(){ var had=jrEd&&jrEd.photos&&jrEd.photos.length; var x=sj.apply(this,arguments); try{ if(had) setTimeout(function(){ DrivePhotos.syncNow(false); },2000); }catch(e){} return x; };
 })();
 function climb(el, root, attr){
   while(el && el !== root){
@@ -7321,16 +7461,14 @@ function init(){
   }
 
   $('btnBk').addEventListener('click', function(){
-    if(!nat){
-      toastN(webSave('habits-backup-' + today() + '.json', 'application/json', jsonB64()) ? 'Downloading backup\u2026' : 'Backup failed');
-      return;
-    }
-    try{ var p = nat.saveFile('habits-backup-' + today() + '.json', 'application/json', jsonB64());
-      toastN(p ? 'Saved to ' + p : 'Save failed'); }catch(e){ toastN('Backup failed'); }
+    fullBackupB64WithPhotos().then(function(r){
+      if(!nat){ toastN(webSave('habits-backup-' + today() + '.json', 'application/json', r.b64) ? ('Downloading backup'+r.label) : 'Backup failed'); return; }
+      try{ var p = nat.saveFile('habits-backup-' + today() + '.json', 'application/json', r.b64); toastN(p ? ('Saved to ' + p + r.label) : 'Save failed'); }catch(e){ toastN('Backup failed'); }
+    });
   });
   $('btnDrive').addEventListener('click', function(){
     if(!nat) return;
-    try{ nat.shareFile('habits-backup-' + today() + '.json', 'application/json', jsonB64()); }catch(e){ toastN('Share failed'); }
+    fullBackupB64WithPhotos().then(function(r){ try{ nat.shareFile('habits-backup-' + today() + '.json', 'application/json', r.b64); }catch(e){ toastN('Share failed'); } });
   });
   $('btnImport').addEventListener('click', function(){
     if(nat){ nat.pickImport(); return; }

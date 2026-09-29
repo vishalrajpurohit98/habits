@@ -1,1 +1,5 @@
 android-wrapper/build-apk.sh text eol=lf
+android-wrapper/gradlew text eol=lf
+*.gradle text eol=lf
+*.jar binary
+*.b64 text eol=lf

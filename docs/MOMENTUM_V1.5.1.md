@@ -60,3 +60,23 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
 - **Build 44:** full consistency audit — see `docs/MOMENTUM_CONSISTENCY_AUDIT_BUILD44.md`.
 - **Build 45:** card position / alignment / sequence audit — see `docs/MOMENTUM_LAYOUT_AUDIT_BUILD45.md`.
 - **Build 46:** seven feature phases — see `docs/MOMENTUM_FEATURES_BUILD46.md`.
+- **Build 47:**
+  - Create (+) button: the bottom bar was a scroll container (`overflow: hidden auto`) and clipped the raised
+    circle's top. The bar no longer clips, and the circle is its own round element (not a styled `<svg>`).
+  - Journal photos, free and on-device: add from gallery or camera (up to 8 per entry); each photo is compressed to
+    1600 px (plus a 360 px thumbnail) and stored in IndexedDB — the entry keeps only photo ids. Shown in the editor,
+    as a banner on timeline cards, in the reader, and in a full-screen viewer. Native originals are deleted after
+    import; unsaved photos are cleaned up after a day. Fixed during testing: the loader dropped the new `photos`
+    field on every reload; Android back closed the reader instead of the photo viewer; photo-only entries said
+    "(No content)".
+- **Build 48 — photos travel with backups:** "Journal backup", "Backup (JSON)" and "Back up to Google Drive" now embed
+  every journal photo (full size) inside the .json file; "Import journal" and "Import backup" write them back into
+  the device photo store and rebuild thumbnails. Photo-only entries are no longer skipped on journal import.
+  Re-importing the same file does not duplicate entries. The daily automatic backup stays photo-free to keep it small.
+- **Build 49 — journal photos on Google Drive + Gradle build:**
+  - Android build moved to Gradle (needed for Google's authorization library); `build-apk.sh` keeps the same interface,
+    so the GitHub workflow is unchanged. The old SDK-tools build is kept as `build-apk-legacy.sh`. Each build prints the
+    signing certificate SHA-1 for the Google Cloud setup.
+  - Settings › Cloud sync › "Journal photos on Google Drive": connect once; photos upload after saving an entry and
+    missing photos download on app start/resume, via the `drive.appdata` scope (hidden app folder in the user's Drive).
+    Setup: `docs/GOOGLE_DRIVE_PHOTOS_SETUP.md`.

@@ -1,0 +1,55 @@
+/* Momentum Android wrapper — Gradle build (needed for Google sign-in / Drive photo sync).
+   Sources stay where they were: src/ (Java), res/, AndroidManifest.xml; web assets are staged by build-apk.sh
+   into build/stage/assets. Gradle's own output goes to gbuild/ so it never collides with the staging folder. */
+plugins { id 'com.android.application' version '8.5.2' }
+
+layout.buildDirectory = file('gbuild')
+
+def vprops = new Properties()
+def vfile = file('version.properties'); if (vfile.exists()) vfile.withInputStream { vprops.load(it) }
+def envOr = { String k, String d -> (System.getenv(k) ?: d) }
+
+android {
+    namespace 'com.actionables.personaltracker.app'
+    compileSdk 34
+    buildToolsVersion '35.0.0'
+
+    defaultConfig {
+        applicationId 'com.actionables.personaltracker.app'
+        minSdk 24
+        targetSdk 34
+        versionCode Integer.parseInt(envOr('VERSION_CODE', vprops.getProperty('versionCode', '1')))
+        versionName envOr('VERSION_NAME', vprops.getProperty('versionName', '1.0'))
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile file(envOr('STAGED_MANIFEST', 'AndroidManifest.xml'))
+            java.srcDirs = ['src']
+            res.srcDirs = ['res']
+            assets.srcDirs = ['build/stage/assets']
+        }
+    }
+
+    signingConfigs {
+        release {
+            if (System.getenv('KEYSTORE')) {
+                storeFile file(System.getenv('KEYSTORE'))
+                storePassword System.getenv('KS_PASS')
+                keyAlias System.getenv('KEY_ALIAS')
+                keyPassword (System.getenv('KEY_PASS') ?: System.getenv('KS_PASS'))
+            }
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.release }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+    lint { abortOnError false; checkReleaseBuilds false }
+    aaptOptions { noCompress 'json', 'js', 'html', 'css', 'ttf' }
+}
+
+dependencies {
+    /* Google authorization (AuthorizationClient) for the Drive appDataFolder scope */
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
+}

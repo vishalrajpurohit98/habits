@@ -299,6 +299,8 @@ public class MainActivity extends Activity {
     }
 
     void js(String code) { if (web != null) web.post(() -> web.evaluateJavascript(code, null)); }
+    /* Drive events -> web layer: window.onDriveEvent(type, a, b). Values are quoted safely as JSON strings. */
+    final DriveSync.Emit driveEmit = (type, a, b) -> js("window.onDriveEvent&&window.onDriveEvent(" + org.json.JSONObject.quote(type) + "," + org.json.JSONObject.quote(a==null?"":a) + "," + org.json.JSONObject.quote(b==null?"":b) + ")");
 
     void importFile() { importFile("backup"); }
 
@@ -544,6 +546,7 @@ public class MainActivity extends Activity {
     }
 
     @Override protected void onActivityResult(int req, int result, Intent data) {
+        if (req == DriveSync.REQ_DRIVE) { DriveSync.onActivityResult(this, data, driveEmit); return; }
         super.onActivityResult(req,result,data);
         if (req == REQ_IMPORT) {
             if (fileChooserCallback != null) {
@@ -722,5 +725,12 @@ public class MainActivity extends Activity {
         }
         @JavascriptInterface public void shareFile(String name,String mime,String b64)throws Exception{MainActivity.this.shareFile(name,mime,b64);}
         @JavascriptInterface public float fontScale(){ try{ return getResources().getConfiguration().fontScale; }catch(Exception e){ return 1f; } }
+        /* Journal photos on the user's own Google Drive (drive.appdata scope) */
+        @JavascriptInterface public boolean driveIsOn(){ return DriveSync.isOn(MainActivity.this); }
+        @JavascriptInterface public void driveConnect(){ runOnUiThread(() -> DriveSync.connect(MainActivity.this, driveEmit)); }
+        @JavascriptInterface public void driveDisconnect(){ DriveSync.disconnect(MainActivity.this); }
+        @JavascriptInterface public void driveList(){ DriveSync.list(MainActivity.this, driveEmit); }
+        @JavascriptInterface public void driveUpload(String name, String b64){ if(name!=null&&name.matches("ph[a-z0-9]+\\.jpg")) DriveSync.upload(MainActivity.this, name, b64, driveEmit); }
+        @JavascriptInterface public void driveDownload(String name, String fileId){ if(name!=null&&name.matches("ph[a-z0-9]+\\.jpg")&&fileId!=null&&fileId.matches("[A-Za-z0-9_-]+")) DriveSync.download(MainActivity.this, name, fileId, driveEmit); }
     }
 }

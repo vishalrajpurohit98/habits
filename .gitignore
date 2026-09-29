@@ -2,3 +2,6 @@ android-wrapper/build/
 dist/
 *.jks
 *.keystore
+android-wrapper/gbuild/
+android-wrapper/.gradle/
+android-wrapper/local.properties
