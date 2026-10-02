@@ -300,6 +300,7 @@ public class MainActivity extends Activity {
 
     void js(String code) { if (web != null) web.post(() -> web.evaluateJavascript(code, null)); }
     /* Drive events -> web layer: window.onDriveEvent(type, a, b). Values are quoted safely as JSON strings. */
+    final VaultBio.Emit vaultEmit = (type, payload) -> js("window.vaultBioEvent&&window.vaultBioEvent(" + org.json.JSONObject.quote(type) + "," + org.json.JSONObject.quote(payload==null?"":payload) + ")");
     final DriveSync.Emit driveEmit = (type, a, b) -> js("window.onDriveEvent&&window.onDriveEvent(" + org.json.JSONObject.quote(type) + "," + org.json.JSONObject.quote(a==null?"":a) + "," + org.json.JSONObject.quote(b==null?"":b) + ")");
 
     void importFile() { importFile("backup"); }
@@ -728,6 +729,12 @@ public class MainActivity extends Activity {
         /* Journal photos on the user's own Google Drive (drive.appdata scope) */
         @JavascriptInterface public boolean driveIsOn(){ return DriveSync.isOn(MainActivity.this); }
         @JavascriptInterface public void driveConnect(){ runOnUiThread(() -> DriveSync.connect(MainActivity.this, driveEmit)); }
+        /* Vault fingerprint unlock (PIN sealed in the Android Keystore, released only after a fingerprint check) */
+        @JavascriptInterface public boolean vaultBioAvailable(){ return VaultBio.available(MainActivity.this); }
+        @JavascriptInterface public boolean vaultBioEnabled(){ return VaultBio.enabled(MainActivity.this); }
+        @JavascriptInterface public void vaultBioEnroll(String pin){ if(pin!=null&&pin.matches("[0-9]{4,12}")) runOnUiThread(() -> VaultBio.enroll(MainActivity.this, pin, vaultEmit)); }
+        @JavascriptInterface public void vaultBioUnlock(){ runOnUiThread(() -> VaultBio.unlock(MainActivity.this, vaultEmit)); }
+        @JavascriptInterface public void vaultBioDisable(){ VaultBio.disable(MainActivity.this); }
         @JavascriptInterface public void driveConnectAs(String email){ runOnUiThread(() -> DriveSync.connect(MainActivity.this, email, driveEmit)); }
         /* Continue with Google: native account picker -> Google ID token -> web layer signs in to Firebase */
         @JavascriptInterface public void googleSignIn(String webClientId){ runOnUiThread(() -> GoogleAuth.signIn(MainActivity.this, webClientId, (tok, email, err) ->

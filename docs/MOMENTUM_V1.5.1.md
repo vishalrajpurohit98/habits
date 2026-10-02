@@ -108,3 +108,13 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Google sign-in turns journal-photo sync on automatically for that Google account (no separate Connect); email
     accounts can tap Link Google. "Change sign-in email" is shown only for password accounts.
   - Fixed: "Switch / add profile" called a function that did not exist (row removed; profile menu now signs out safely).
+- **Build 55 — backups, downloads and Vault:**
+  - Settings › Data in three groups: **Back up** (full, Drive, journal-only, automatic), **Restore** (full restore
+    *replaces*, journal import *adds*, recently deleted), **Download for Excel / PDF**.
+  - **Everything (Excel)**: Habits, Log (with daily completion), Tasks, Money, Accounts, Budgets, Mood, Sleep, Workouts,
+    Journal, Summary. **Money workbook** now reachable (month picker). **Monthly PDF** for any month.
+  - All files named `momentum-…`. Journal import also restores photos from a full backup.
+  - Vault: number pad like the app lock, and **fingerprint unlock** (PIN sealed in the Android Keystore, released only
+    after a fingerprint check; resets automatically if fingerprints change).
+  - Fixed: changing the app PIN made the Vault undecryptable (it is now re-encrypted with the new PIN); removing the
+    PIN while the Vault has data is blocked. App lock shows a fingerprint icon and "Momentum is locked".

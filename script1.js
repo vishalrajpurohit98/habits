@@ -5212,7 +5212,7 @@ function expRows(){
 }
 function exportExpCsv(){
   var rows=expRows(), csv=rows.map(function(r){ return r.map(function(c){ var v=String(c).replace(/"/g,'""'); return /[",\n]/.test(v)?'"'+v+'"':v; }).join(','); }).join('\n');
-  var name='expenses-'+expY+'-'+pad(expM+1)+'.csv';
+  var name='momentum-money-'+expY+'-'+pad(expM+1)+'.csv';
   var b64=btoa(unescape(encodeURIComponent(csv)));
   if(nat&&nat.saveFile){ try{ nat.saveFile(name,'text/csv',b64); toastN('Saved'); return; }catch(e){} }
   webSave(name,'text/csv',b64); toastN('Downloading CSV\u2026');
@@ -5229,7 +5229,7 @@ function exportExpXlsx(){
   for(var i=0;i<state.accts.length;i++) acc.push([state.accts[i].name,state.accts[i].type,acctBalance(state.accts[i].id)]);
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(acc), 'Accounts');
   var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'});
-  var name='expenses-'+expY+'-'+pad(expM+1)+'.xlsx';
+  var name='momentum-money-'+expY+'-'+pad(expM+1)+'.xlsx';
   if(nat&&nat.saveFile){ try{ nat.saveFile(name,XMIME,out); toastN('Saved'); return; }catch(e){} }
   webSave(name,XMIME,out); toastN('Downloading Excel\u2026');
 }
@@ -5272,7 +5272,7 @@ function expRowsRange(from,to){
   for(var i=0;i<list.length;i++){var x=list[i],af=acctById(x.acct),at=acctById(x.to);rows.push([x.id,x.d,x.kind,x.payee||'',af?af.name:'',at?at.name:'',x.cat||'',x.sub||'',x.amt,x.method||'',x.note||'',x.tags||'',x.receipt||(x.receiptData?'Uploaded image':''),x.recurId||'',x.created?new Date(x.created).toISOString():'']);}return rows;
 }
 function openExpRangeExport(){var end=today(),start=fmt(addDays(toDate(end),-30));$('expExportFrom').value=start;$('expExportTo').value=end;openSheet('expExportSheet');}
-function exportExpRangeXlsx(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}if(typeof XLSX==='undefined'){ensureXlsx(function(){exportExpRangeXlsx();});return;}var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(expRowsRange(from,to)),'Expenses');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='expenses-'+from+'-to-'+to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);closeSheet();toastN('Saved Excel');return;}catch(e){}}if(webSave(name,XMIME,out)){closeSheet();toastN('Downloading Excel…');}else toastN('Export failed');}
+function exportExpRangeXlsx(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}if(typeof XLSX==='undefined'){ensureXlsx(function(){exportExpRangeXlsx();});return;}var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(expRowsRange(from,to)),'Expenses');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='momentum-money-'+from+'-to-'+to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);closeSheet();toastN('Saved Excel');return;}catch(e){}}if(webSave(name,XMIME,out)){closeSheet();toastN('Downloading Excel…');}else toastN('Export failed');}
 function exportExpRangePdf(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}var rows=expRowsRange(from,to),title='Expense Data — '+niceDate(from)+' to '+niceDate(to),th='',body='';for(var i=0;i<rows[0].length;i++)th+='<th>'+esc(rows[0][i])+'</th>';for(var r=1;r<rows.length;r++){body+='<tr>';for(var c=0;c<rows[r].length;c++)body+='<td>'+esc(rows[r][c])+'</td>';body+='</tr>';}var doc='<html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;padding:10px;color:#111;font-size:8px}h1{font-size:16px}table{width:100%;border-collapse:collapse;table-layout:auto}th,td{padding:4px 5px;border:1px solid #ddd;vertical-align:top;white-space:nowrap}th{background:#f3f3f3;font-weight:700}</style></head><body><h1>'+esc(title)+'</h1><table><thead><tr>'+th+'</tr></thead><tbody>'+body+'</tbody></table></body></html>';exportHtmlDoc(doc, 'expense-data');}
 function openRecurList(){ fToast('Recurring transactions have been removed from this build'); }
 function recurringStateInit(r){if(!r)return;r.status=r.active===false?'paused':(r.status||'active');if(!r.nextDate){var base=r.last||addDays(toDate(r.start||today()),-1),n=recurringNextDate(r,base),guard=0;while(fmt(n)<today()&&guard++<500)n=recurringNextDate(r,n);r.nextDate=fmt(n);}if(r.end&&(r.nextDate||r.start)>r.end)r.status='ended';if(r.skipNext===undefined)r.skipNext=false;}
@@ -5540,12 +5540,15 @@ function padKey(k){
       else { pinErr(); }
     } else if(lockMode==='new1'){ pinTmp = buf; showLock('new2'); }
     else if(lockMode==='new2'){
-      if(buf===pinTmp){ state.set.pin = pinHash(buf); persist(); hideLock(); renderSet(); toastN('PIN set'); }
+      if(buf===pinTmp){ var _oldPin=window._pinOld||''; window._pinOld=''; state.set.pin = pinHash(buf); persist(); hideLock(); renderSet(); toastN('PIN set');
+        try{ if(nat&&nat.vaultBioDisable) nat.vaultBioDisable(); state.set.vaultBioAsked=false; }catch(_e){}
+        if(state.vault && _oldPin){ vaultDecrypt(_oldPin, state.vault).then(function(dv){ return vaultEncrypt(buf, dv); }).then(function(blob){ state.vault=blob; persist(); toastN('PIN changed \u00b7 Vault re-secured with the new PIN'); }).catch(function(){ toastN('PIN changed, but the Vault could not be re-secured'); }); } }
       else { toastN('PINs didn\'t match'); showLock('new1'); }
     } else if(lockMode==='ver'){
-      if(pinHash(buf)===state.set.pin) showLock('new1');
+      if(pinHash(buf)===state.set.pin){ window._pinOld=buf; showLock('new1'); }
       else { pinErr(); }
     } else if(lockMode==='off'){
+      if(pinHash(buf)===state.set.pin && state.vault){ hideLock(); toastN('Your Vault is protected by this PIN. Empty the Vault before removing the PIN.'); return; }
       if(pinHash(buf)===state.set.pin){ state.set.pin=''; state.set.bio=false; persist(); hideLock(); renderSet(); toastN('PIN removed'); }
       else { pinErr(); }
     }
@@ -6052,7 +6055,7 @@ function journalBackupObj(){
 }
 function journalBackupB64(){ return btoa(unescape(encodeURIComponent(JSON.stringify(journalBackupObj())))); }
 function exportJournalBackup(){
-  var name='journal-backup-'+today()+'.json';
+  var name='momentum-journal-backup-'+today()+'.json';
   backupPhotos(state.jr).then(function(ph){
     var o=journalBackupObj(); if(Object.keys(ph).length) o.photos=ph; var b64=b64Json(o), lab=photoSizeLabel(ph);
     if(nat && nat.saveFile){ try{ var p=nat.saveFile(name,'application/json',b64); toastN((p?('Saved to '+p):'Saved')+lab); return; }catch(e){} }
@@ -6081,67 +6084,80 @@ window.importJournalBackup = function(b64){
   persist();
   if($('pgJr') && $('pgJr').classList.contains('on')) renderJr();
   var msg = added ? ('Imported '+added+' journal '+(added===1?'entry':'entries')) : 'No new entries to import';
-  if(o && !Array.isArray(o) && o.photos){ restoreBackupPhotos(o.photos).then(function(n){ toastN(msg+(n?(' \u00b7 '+n+' photo'+(n===1?'':'s')+' restored'):'')); }); }
+  if(o && !Array.isArray(o) && (o.photos||o._photos)){ restoreBackupPhotos(o.photos||o._photos).then(function(n){ toastN(msg+(n?(' \u00b7 '+n+' photo'+(n===1?'':'s')+' restored'):'')); }); }
   else toastN(msg);
 };
 var XMIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
 function buildXlsx(){
-  var wb = XLSX.utils.book_new(), now = new Date();
+  /* "Everything" workbook — one sheet per module */
+  var wb = XLSX.utils.book_new(), now = new Date(), y=now.getFullYear(), mo=now.getMonth();
+  function add(rows,name){ XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), name); }
+  /* Habits */
   var hRows = [['Name','Icon','Type','Target','Unit','Category','Time of day','Repeat','Start','End','Reminders','Current chain','Best chain','Total done','30-day %']];
-  for(var i=0;i<state.habits.length;i++){
-    var h = state.habits[i], r = habitRate(h, addDays(now,-29), now);
-    hRows.push([h.name, h.emoji, TYPELBL[h.type]||h.type, h.target, h.unit, h.cat, h.section,
-      h.sched.kind, h.start, h.end, h.rem.times.join(' '), streak(h), bestStreak(h), totalDone(h), Math.round(r.rate*100)]);
-  }
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(hRows), 'Habits');
-  var earliest = today();
-  for(var e=0;e<state.habits.length;e++) if(state.habits[e].created < earliest) earliest = state.habits[e].created;
-  var d0 = toDate(earliest);
-  if(dayDiff(earliest, today()) > 365) d0 = addDays(new Date(), -365);
-  var head = ['Date'];
-  for(var n=0;n<state.habits.length;n++) head.push(state.habits[n].name);
-  var log = [head], daily = [['Date','Scheduled','Done','%']];
-  var d = new Date(d0.getTime()), guard = 0;
-  while(fmt(d) <= today() && guard++ < 400){
-    var row = [fmt(d)], a = dayAgg(d);
-    for(var m=0;m<state.habits.length;m++){
-      var hb = state.habits[m], ds = fmt(d);
-      row.push(isFroz(hb,ds) ? 'frozen' : (val(hb,ds) || ''));
-    }
-    log.push(row);
-    daily.push([fmt(d), a.s, a.d, a.s ? Math.round(a.d/a.s*100) : '']);
-    d = addDays(d,1);
-  }
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(log), 'Log');
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(daily), 'Daily');
-  var mrows = [['Date','Mood','Score','Remark']], mkeys = [];
-  for(var mmk in state.mood) mkeys.push(mmk);
-  mkeys.sort();
-  for(var mq=0; mq<mkeys.length; mq++){
-    var mmi = state.mood[mkeys[mq]];
-    if(typeof mmi === 'number' && MOODS[mmi]) mrows.push([mkeys[mq], MOODS[mmi].l, MOODS[mmi].s, state.moodNotes[mkeys[mq]] || '']);
-  }
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(mrows), 'Mood');
-  var jrows = [['Date','Time','Title','Entry','Mood','Tags','Favorite']];
-  for(var jq=0; jq<state.jr.length; jq++){
-    var jen = state.jr[jq];
-    jrows.push([jen.date, jen.time||'', jen.title||'', (typeof jrStrip==='function'?jrStrip(jen.content):(jen.content||'')), jen.mood||'', jrTagsOf(jen).join(' '), jen.favorite?'yes':'']);
-  }
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(jrows), 'Journal');
-  if(state.tasks&&state.tasks.length){var trows=[['Task','Description','Due date','Due time','Priority','Status','Subtask progress','Comments']];state.tasks.forEach(function(t){var tsp=taskSubProgress(t);trows.push([t.title,t.description,t.dueDate,t.dueTime||'',t.priority.toUpperCase(),taskEffectiveStatus(t),tsp.done+'/'+tsp.total,(t.comments||[]).map(function(c){return c.text;}).join(' || ')]);});XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(trows),'Tasks');}
-  var p30 = periodStats(addDays(now,-29), now);
+  state.habits.forEach(function(h){ var r = habitRate(h, addDays(now,-29), now);
+    hRows.push([h.name, h.emoji, TYPELBL[h.type]||h.type, h.target, h.unit, h.cat, h.section, h.sched.kind, h.start, h.end, h.rem.times.join(' '), streak(h), bestStreak(h), totalDone(h), Math.round(r.rate*100)]); });
+  add(hRows,'Habits');
+  /* Log: one row per day, one column per habit, plus that day's completion */
+  var earliest = today(); state.habits.forEach(function(h){ if(h.created < earliest) earliest = h.created; });
+  var d0 = toDate(earliest); if(dayDiff(earliest, today()) > 365) d0 = addDays(new Date(), -365);
+  var head = ['Date']; state.habits.forEach(function(h){ head.push(h.name); }); head.push('Scheduled','Done','Completion %');
+  var log = [head], d = new Date(d0.getTime()), guard = 0;
+  while(fmt(d) <= today() && guard++ < 400){ var ds = fmt(d), row = [ds], a = dayAgg(d);
+    state.habits.forEach(function(hb){ row.push(isFroz(hb,ds) ? 'frozen' : (val(hb,ds) || '')); });
+    row.push(a.s, a.d, a.s ? Math.round(a.d/a.s*100) : ''); log.push(row); d = addDays(d,1); }
+  add(log,'Log');
+  /* Tasks */
+  var trows=[['Task','Description','Due date','Due time','Priority','Status','Subtask progress','Comments']];
+  (state.tasks||[]).filter(function(t){ return !t.virtualHabit; }).forEach(function(t){ var tsp=taskSubProgress(t); trows.push([t.title,t.description||'',t.dueDate||'',t.dueTime||'',String(t.priority||'').toUpperCase(),taskEffectiveStatus(t),tsp.done+'/'+tsp.total,(t.comments||[]).map(function(c){return c.text;}).join(' || ')]); });
+  add(trows,'Tasks');
+  /* Money (all transactions) */
+  var mrowsTx=[['Date','Type','Payee / Merchant','Account','To account','Category','Subcategory','Amount','Payment method','Note','Tags']];
+  (state.tx||[]).slice().sort(function(a,b){ return a.d<b.d?-1:a.d>b.d?1:0; }).forEach(function(x){ var af=acctById(x.acct), at=x.to?acctById(x.to):null;
+    mrowsTx.push([x.d, x.kind==='inc'?'Income':x.kind==='xfer'?'Transfer':'Expense', x.payee||'', af?af.name:'', at?at.name:'', x.cat||'', x.sub||'', x.amt, x.method||'', x.note||'', (x.tags||[]).join(' ')]); });
+  add(mrowsTx,'Money');
+  /* Accounts */
+  var acc=[['Account','Type','Opening balance','Current balance']];
+  (state.accts||[]).forEach(function(a){ acc.push([a.name,a.type,a.open||0,acctBalance(a.id)]); });
+  add(acc,'Accounts');
+  /* Budgets (this month) */
+  var ct=catTotals(y,mo), bud=[['Category','Monthly budget','Spent this month','Remaining','Used %']], B=state.budg||{};
+  Object.keys(B).filter(function(k){ return k!=='__total' && B[k]>0; }).forEach(function(c){ var sp=ct[c]||0; bud.push([c,B[c],sp,B[c]-sp,Math.round(sp/B[c]*100)]); });
+  if(B.__total>0){ var tot=monthTotals(y,mo).exp; bud.push(['All spending',B.__total,tot,B.__total-tot,Math.round(tot/B.__total*100)]); }
+  add(bud,'Budgets');
+  /* Mood */
+  var mrows=[['Date','Mood','Score','Remark']];
+  Object.keys(state.mood||{}).sort().forEach(function(k){ var mi=state.mood[k]; if(typeof mi==='number' && MOODS[mi]) mrows.push([k, MOODS[mi].l, MOODS[mi].s, (state.moodNotes||{})[k] || '']); });
+  add(mrows,'Mood');
+  /* Sleep */
+  var srows=[['Date','Bedtime','Wake-up','Hours','Note']];
+  (state.sleep||[]).slice().sort(function(a,b){ return a.d<b.d?-1:1; }).forEach(function(z){ srows.push([z.d, z.bed||'', z.wake||'', z.mins?Math.round(z.mins/6)/10:'', z.note||'']); });
+  add(srows,'Sleep');
+  /* Workouts */
+  var wrows=[['Date','Exercise','Value','Unit','Sets','Set breakdown','Goal','Goal met']];
+  (state.exs||[]).forEach(function(ex){ try{ exLogRows(ex).slice(1).forEach(function(r){ wrows.push([r[0],ex.name].concat(r.slice(1))); }); }catch(e){} });
+  wrows=[wrows[0]].concat(wrows.slice(1).sort(function(a,b){ return a[0]<b[0]?-1:a[0]>b[0]?1:0; }));
+  add(wrows,'Workouts');
+  /* Journal */
+  var jrows=[['Date','Time','Title','Entry','Mood','Tags','Favorite','Photos']];
+  (state.jr||[]).forEach(function(j){ jrows.push([j.date, j.time||'', j.title||'', (typeof jrStrip==='function'?jrStrip(j.content):(j.content||'')), j.mood||'', jrTagsOf(j).join(' '), j.favorite?'yes':'', (j.photos||[]).length||'']); });
+  add(jrows,'Journal');
+  /* Summary */
+  var p30 = periodStats(addDays(now,-29), now), mt=monthTotals(y,mo), sl=(state.sleep||[]).filter(function(z){ return z.d>=fmt(addDays(now,-29)) && z.mins; });
   var sum = [['Metric','Value'],
-    ['Average completion (30d)', Math.round(p30.rate*100)+'%'],
-    ['Productivity score', prodScore()],
-    ['Weekly consistency', Math.round(weeklyConsistency()*100)+'%'],
-    ['Monthly consistency', Math.round(monthlyConsistency()*100)+'%'],
-    ['Missed days (30d)', p30.missed],
-    ['Perfect weeks (12w)', perfectWeeks(12)],
-    ['Perfect months (12m)', perfectMonths(12)],
-    ['Exported', new Date().toString()]];
-  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(sum), 'Summary');
+    ['Exported', new Date().toLocaleString()],
+    ['Account', (typeof fbUser!=='undefined'&&fbUser&&fbUser.email)||''],
+    [],['HABITS',''],['Active habits', state.habits.filter(function(h){ return !h.arch; }).length],
+    ['Average completion (30d)', Math.round(p30.rate*100)+'%'],['Missed days (30d)', p30.missed],['Productivity score', prodScore()],
+    ['Weekly consistency', Math.round(weeklyConsistency()*100)+'%'],['Monthly consistency', Math.round(monthlyConsistency()*100)+'%'],
+    ['Perfect weeks (12w)', perfectWeeks(12)],['Perfect months (12m)', perfectMonths(12)],
+    [],['TASKS',''],['Open tasks', (state.tasks||[]).filter(function(t){ return !t.virtualHabit && t.status!=='completed'; }).length],['Completed tasks', (state.tasks||[]).filter(function(t){ return !t.virtualHabit && t.status==='completed'; }).length],
+    [],['MONEY (this month)',''],['Income', mt.inc],['Spending', mt.exp],['Net', mt.net],
+    [],['WELLNESS',''],['Mood entries', mrows.length-1],['Average sleep (30d, hours)', sl.length?Math.round(sl.reduce(function(a,z){ return a+z.mins; },0)/sl.length/6)/10:''],['Workout logs', wrows.length-1],
+    [],['JOURNAL',''],['Entries', (state.jr||[]).length],['Photos', (state.jr||[]).reduce(function(a,j){ return a+((j.photos||[]).length); },0)]];
+  add(sum,'Summary');
   return XLSX.write(wb, {bookType:'xlsx', type:'base64'});
 }
+
 window.importNative = function(b64){
   var txt;
   try{ txt = decodeURIComponent(escape(atob(b64))); }catch(e){ try{ txt = atob(b64); }catch(e2){ toastN('Could not read file'); return; } }
@@ -6154,13 +6170,13 @@ window.importNative = function(b64){
       persist(); applyTheme(); applyGrey(); renderToday(); renderSet();
       var _ph=o._photos; if(_ph){ restoreBackupPhotos(_ph).then(function(n){ toastN('Imported ' + state.habits.length + ' habits'+(n?(' \u00b7 '+n+' photo'+(n===1?'':'s')+' restored'):'')); }); }
       else toastN('Imported ' + state.habits.length + ' habits');
-    } else toastN('Not a Habits backup');
-  }catch(e4){ toastN('Not a Habits backup'); }
+    } else toastN('Not a Momentum backup');
+  }catch(e4){ toastN('Not a Momentum backup'); }
 };
 function autoBackupDaily(){
   if(!nat || state.set.lastAutoBk === today()) return;
   try{
-    var p = nat.autoBackup('habits-backup-' + today() + '.json', JSON.stringify(stateForStorage()));
+    var p = nat.autoBackup('momentum-backup-' + today() + '.json', JSON.stringify(stateForStorage()));
     state.set.lastAutoBk = today();
     if(p) state.set.lastBkPath = p;
     persist();
@@ -7034,6 +7050,33 @@ window.switchProfileFlushAndSignOut=function(){ return signOutKeepData(); };
   var _sm=syncMsg; syncMsg=function(t,err){ var r=_sm.apply(this,arguments); if(AUTH_GATE_ON) agMsg(t,err); return r; };
 })();
 
+/* ================= Month picker (PDF report, Money workbook) ================= */
+function dataMonths(){
+  var first=today();
+  (state.habits||[]).forEach(function(h){ if(h.created&&h.created<first) first=h.created; });
+  (state.tx||[]).forEach(function(x){ if(x.d&&x.d<first) first=x.d; });
+  Object.keys(state.mood||{}).forEach(function(k){ if(k<first) first=k; });
+  (state.jr||[]).forEach(function(j){ if(j.date&&j.date<first) first=j.date; });
+  var out=[], d=new Date(), stop=first.slice(0,7);
+  for(var i=0;i<60;i++){ var dt=new Date(d.getFullYear(),d.getMonth()-i,1), key=dt.getFullYear()+'-'+pad(dt.getMonth()+1); out.push({y:dt.getFullYear(),m:dt.getMonth(),key:key,label:dt.toLocaleDateString(undefined,{month:'long',year:'numeric'})}); if(key<=stop) break; }
+  return out;
+}
+function openMonthPicker(title, sub, action, cb){
+  var sh=$('monthPickSheet');
+  if(!sh){ sh=document.createElement('div'); sh.className='sheet'; sh.id='monthPickSheet'; document.body.appendChild(sh); }
+  var ms=dataMonths();
+  sh.innerHTML='<div class="grab"></div><h2>'+esc(title)+'</h2><div class="setS" style="margin:-4px 0 14px">'+esc(sub)+'</div>'
+    +'<div class="lbl">Month</div><select class="inp" id="mpSel" aria-label="Month">'+ms.map(function(x,i){ return '<option value="'+i+'">'+esc(x.label)+'</option>'; }).join('')+'</select>'
+    +'<button class="primary" id="mpGo" type="button" style="width:100%;margin-top:16px">'+esc(action)+'</button>';
+  openSheet('monthPickSheet');
+  sh.querySelector('#mpGo').onclick=function(){ var x=ms[+$('mpSel').value]; closeSheet(); setTimeout(function(){ cb(x.y,x.m); },250); };
+}
+
+/* Settings > Privacy & security: Vault fingerprint row */
+function renderVaultBioRow(){ var r=$('rowVaultBio'); if(!r) return; var av=false,on=false; try{ av=!!(nat&&nat.vaultBioAvailable&&nat.vaultBioAvailable()); on=av&&nat.vaultBioEnabled(); }catch(e){}
+  r.style.display=av?'':'none'; var st=$('vaultBioS'), b=$('btnVaultBioOff'); if(st) st.textContent=on?'On \u00b7 unlock the Vault with your fingerprint':'Turns on after you next unlock the Vault with your PIN'; if(b) b.style.display=on?'':'none'; }
+(function(){ var st=showTab; showTab=function(id){ var r=st.apply(this,arguments); try{ if(id==='pgVault' && window.vaultIsLocked && vaultIsLocked()){ vaultRefreshLocked(); setTimeout(function(){ if(vaultIsLocked()) vaultBioUnlock(); },350); } if(id==='pgSet') renderVaultBioRow(); }catch(e){} return r; }; })();
+document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#btnVaultBioOff')){ try{ nat.vaultBioDisable(); }catch(er){} state.set.vaultBioAsked=false; persist(); renderVaultBioRow(); toastN('Fingerprint unlock for the Vault is off'); } });
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;
@@ -7517,27 +7560,32 @@ function init(){
   $('btnXlsx').addEventListener('click', function(){
     if(typeof XLSX==='undefined'){ ensureXlsx(function(){ $('btnXlsx').click(); }); return; }
     if(!nat){
-      toastN(webSave('habits-' + today() + '.xlsx', XMIME, buildXlsx()) ? 'Downloading\u2026' : 'Export failed');
+      toastN(webSave('momentum-' + today() + '.xlsx', XMIME, buildXlsx()) ? 'Downloading\u2026' : 'Export failed');
       return;
     }
-    try{ var p = nat.saveFile('habits-' + today() + '.xlsx', XMIME, buildXlsx());
+    try{ var p = nat.saveFile('momentum-' + today() + '.xlsx', XMIME, buildXlsx());
       toastN(p ? 'Saved to ' + p : 'Save failed'); }catch(e){ toastN('Export failed'); }
   });
   $('btnXlsxShare').addEventListener('click', function(){
     if(!nat) return;
     if(typeof XLSX==='undefined'){ ensureXlsx(function(){ $('btnXlsxShare').click(); }); return; }
-    try{ nat.shareFile('habits-' + today() + '.xlsx', XMIME, buildXlsx()); }catch(e){ toastN('Export failed'); }
+    try{ nat.shareFile('momentum-' + today() + '.xlsx', XMIME, buildXlsx()); }catch(e){ toastN('Export failed'); }
   });
 
   // ---- PDF Monthly Report ----
   $('btnPdfReport').addEventListener('click', function(){
-    toastN('Generating report…');
-    setTimeout(function(){ generatePdfReport(); }, 100);
+    openMonthPicker('Monthly report (PDF)','Habits, mood, sleep and spending for one month.','Create PDF',function(yy,mm){ toastN('Generating report\u2026'); setTimeout(function(){ generatePdfReport(yy,mm); }, 100); });
   });
+  var _mx=$('btnMoneyXlsx'); if(_mx) _mx.addEventListener('click', function(){
+    openMonthPicker('Money workbook (Excel)','Transactions, spending by category and account balances.','Create Excel',function(yy,mm){ var oy=expY, om=expM; expY=yy; expM=mm; try{ exportExpXlsx(); } finally { expY=oy; expM=om; } });
+  });
+  /* Android-only rows: hidden on the web (kept in the page because other code updates them) */
+  [['rowDriveShare'],['rowAutoBk']].forEach(function(r){ var el=$(r[0]); if(el && !nat) el.style.display='none'; });
+  document.querySelectorAll('#pgSet .setCard').forEach(function(card){ var rows=[].filter.call(card.querySelectorAll(':scope > .setRow'),function(r){ return r.style.display!=='none'; }); rows.forEach(function(r,i){ r.classList.toggle('lastVis', i===rows.length-1); }); });
 
-  function generatePdfReport(){
-    var now = new Date(), y = now.getFullYear(), m = now.getMonth();
-    var monthName = now.toLocaleDateString(undefined,{month:'long',year:'numeric'});
+  function generatePdfReport(yy, mm){
+    var now = new Date(), y = (yy!=null?yy:now.getFullYear()), m = (mm!=null?mm:now.getMonth());
+    var monthName = new Date(y,m,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});
     var daysInMonth = new Date(y,m+1,0).getDate();
     var ms = fmt(new Date(y,m,1)), me = fmt(new Date(y,m,daysInMonth));
     var active = state.habits.filter(function(h){return !h.arch;});
@@ -7674,18 +7722,18 @@ function init(){
     h+='<div class="footer">Generated by Momentum · Developed by Vishal · For personal use only<br>'+new Date().toLocaleDateString()+'</div>';
     h+='</body></html>';
 
-    exportHtmlDoc(h, 'Momentum-report-'+monthName.replace(/[^a-z0-9]+/gi,'-').toLowerCase());
+    exportHtmlDoc(h, 'momentum-report-'+monthName.replace(/[^a-z0-9]+/gi,'-').toLowerCase());
   }
 
   $('btnBk').addEventListener('click', function(){
     fullBackupB64WithPhotos().then(function(r){
-      if(!nat){ toastN(webSave('habits-backup-' + today() + '.json', 'application/json', r.b64) ? ('Downloading backup'+r.label) : 'Backup failed'); return; }
-      try{ var p = nat.saveFile('habits-backup-' + today() + '.json', 'application/json', r.b64); toastN(p ? ('Saved to ' + p + r.label) : 'Save failed'); }catch(e){ toastN('Backup failed'); }
+      if(!nat){ toastN(webSave('momentum-backup-' + today() + '.json', 'application/json', r.b64) ? ('Downloading backup'+r.label) : 'Backup failed'); return; }
+      try{ var p = nat.saveFile('momentum-backup-' + today() + '.json', 'application/json', r.b64); toastN(p ? ('Saved to ' + p + r.label) : 'Save failed'); }catch(e){ toastN('Backup failed'); }
     });
   });
   $('btnDrive').addEventListener('click', function(){
     if(!nat) return;
-    fullBackupB64WithPhotos().then(function(r){ try{ nat.shareFile('habits-backup-' + today() + '.json', 'application/json', r.b64); }catch(e){ toastN('Share failed'); } });
+    fullBackupB64WithPhotos().then(function(r){ try{ nat.shareFile('momentum-backup-' + today() + '.json', 'application/json', r.b64); }catch(e){ toastN('Share failed'); } });
   });
   $('btnImport').addEventListener('click', function(){
     if(nat){ nat.pickImport(); return; }
@@ -7932,13 +7980,15 @@ function init(){
     showTab('pgVault'); setTimeout(function(){ if(pi) pi.focus(); },120);
   };
   function vShow(which){ ['vaultLocked','vaultHome','vaultPwForm','vaultNoteForm','vaultDetail'].forEach(function(id){ var el=$(id); if(el) el.style.display = (id===which)?'':'none'; }); var am=$('vaultAddMenu'); if(am) am.style.display='none'; }
-  function vaultUnlock(){
-    var pin=$('vaultPin').value.trim(); var hint=$('vaultPinHint');
-    if(pinHash(pin)!==state.set.pin){ if(hint){hint.textContent='Wrong PIN.';hint.style.display='';} return; }
+  function vaultUnlock(pinArg, viaBio){
+    var pin=String(pinArg==null?'':pinArg); var hint=$('vaultPinHint');
+    if(!state.set.pin){ if(hint){hint.textContent='Set an app PIN first: Settings \u203a Privacy & security.';hint.style.display='';} return; }
+    if(pinHash(pin)!==state.set.pin){ vaultPinErr(); if(viaBio){ try{ nat.vaultBioDisable(); }catch(e){} state.set.vaultBioAsked=false; } if(hint){hint.textContent=viaBio?'Fingerprint unlock was reset because your PIN changed. Enter your PIN.':'Wrong PIN.';hint.style.display='';} return; }
+    if(hint) hint.style.display='none';
     _vaultPin=pin;
     var blob=state.vault;
-    if(!blob){ _vaultData={pw:[],note:[]}; vHome(); return; }
-    vaultDecrypt(pin, blob).then(function(d){ _vaultData=normVaultData(d); vHome(); })
+    if(!blob){ _vaultData={pw:[],note:[]}; vHome(); if(!viaBio) vaultOfferBio(pin); return; }
+    vaultDecrypt(pin, blob).then(function(d){ _vaultData=normVaultData(d); vHome(); if(!viaBio) vaultOfferBio(pin); })
       .catch(function(){ if(hint){hint.textContent='Could not decrypt (PIN may differ from when saved).';hint.style.display='';} });
   }
   function saveVault(){ if(_vaultPin===null) return; vaultEncrypt(_vaultPin, _vaultData).then(function(blob){ state.vault=blob; persist(); }); }
@@ -8118,8 +8168,30 @@ function init(){
   }
   var _vSheet=$('pgVault');
   if(_vSheet){
-    var ub=$('vaultUnlockBtn'); if(ub) ub.addEventListener('click', vaultUnlock);
-    var vp=$('vaultPin'); if(vp) vp.addEventListener('keydown', function(e){ if(e.key==='Enter') vaultUnlock(); });
+    var _vBuf='';
+    function vaultDotsUpd(){ var d=$('vaultDots'); if(d) [].forEach.call(d.children,function(el,i){ el.classList.toggle('f', i<_vBuf.length); }); }
+    window.vaultPinErr=function(){ _vBuf=''; vaultDotsUpd(); var d=$('vaultDots'); if(!d) return; try{ buzz(40); }catch(e){} d.classList.add('err'); setTimeout(function(){ d.classList.remove('err'); },420); };
+    function vaultBioOn(){ try{ return !!(nat&&nat.vaultBioAvailable&&nat.vaultBioEnabled&&nat.vaultBioAvailable()&&nat.vaultBioEnabled()); }catch(e){ return false; } }
+    window.vaultBioUnlock=function(){ if(vaultBioOn()) try{ nat.vaultBioUnlock(); }catch(e){} };
+    window.vaultOfferBio=function(pin){ try{ if(!nat||!nat.vaultBioAvailable||!nat.vaultBioAvailable()||nat.vaultBioEnabled()||state.set.vaultBioAsked) return; state.set.vaultBioAsked=true; persist();
+      setTimeout(function(){ if(confirm('Unlock the Vault with your fingerprint next time?')) nat.vaultBioEnroll(pin); },400); }catch(e){} };
+    window.vaultRefreshLocked=function(){ var bk=$('vaultBioKey'), sub=$('vaultUnlockSub'), pad=$('vaultPad'), dots=$('vaultDots'), on=vaultBioOn();
+      if(bk) bk.style.visibility=on?'visible':'hidden';
+      if(!state.set.pin){ if(sub) sub.textContent='Set an app PIN to use the Vault: Settings \u203a Privacy & security.'; if(pad) pad.style.display='none'; if(dots) dots.style.display='none'; }
+      else { if(sub) sub.textContent=on?'Use your fingerprint or enter your app PIN':'Enter your app PIN'; if(pad) pad.style.display=''; if(dots) dots.style.display=''; }
+      _vBuf=''; vaultDotsUpd(); };
+    window.vaultIsLocked=function(){ return _vaultPin===null; };
+    var _vpad=$('vaultPad'); if(_vpad) _vpad.addEventListener('click', function(e){ var b=e.target.closest('[data-vk]'); if(!b) return; var k=b.getAttribute('data-vk');
+      if(k==='bio'){ vaultBioUnlock(); return; } if(k==='del'){ _vBuf=_vBuf.slice(0,-1); vaultDotsUpd(); return; }
+      if(_vBuf.length>=4) return; _vBuf+=k; vaultDotsUpd(); try{ buzz(8); }catch(er){}
+      if(_vBuf.length===4){ var p=_vBuf; setTimeout(function(){ _vBuf=''; vaultDotsUpd(); vaultUnlock(p,false); },140); } });
+    window.vaultBioEvent=function(type,payload){
+      if(type==='pin'){ vaultUnlock(payload,true); return; }
+      if(type==='enrolled'){ toastN('Fingerprint unlock is on for the Vault'); vaultRefreshLocked(); renderVaultBioRow(); return; }
+      if(type==='invalidated'){ state.set.vaultBioAsked=false; persist(); toastN('Your fingerprints changed. Enter your PIN to turn fingerprint unlock back on.'); vaultRefreshLocked(); renderVaultBioRow(); return; }
+      if(type==='off'){ vaultRefreshLocked(); renderVaultBioRow(); return; }
+      if(type==='error' && payload) toastN(payload);
+    };
     var vsearch=$('vaultSearch'); if(vsearch) vsearch.addEventListener('input', function(){ _vaultQuery=this.value.trim(); renderVault(); });
     var vsort=$('vaultSort'); if(vsort) vsort.addEventListener('change', function(){ _vaultSort=this.value; renderVault(); });
     var vlock=$('vaultLockBtn'); if(vlock) vlock.addEventListener('click', function(){ _vaultPin=null; _vaultData={pw:[],note:[]}; showTab('pgSet'); toastN('Vault locked'); });
