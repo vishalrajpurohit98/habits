@@ -368,9 +368,9 @@ function normState(s){
 }
 function load(){
   try{
-    var r = localStorage.getItem(KEY);
+    var r = uStore.getItem(KEY);
     if(r) return normState(JSON.parse(r));
-    var o = localStorage.getItem(OLDKEY);
+    var o = uStore.getItem(OLDKEY);
     if(o){ var v1 = JSON.parse(o); return normState({habits:(v1.habits||[])}); }
   }catch(e){}
   return normState({});
@@ -400,7 +400,7 @@ function _persistHeavy(){
     try{ fp = json.length + ':' + json.replace(/"mtime":\d+/, ''); }catch(e){ fp = json; }
     if(fp === window._lastHeavyFP){ return; }   /* nothing meaningful changed -> skip ALL heavy work */
     window._lastHeavyFP = fp;
-    if(nat){try{nat.saveState(json);}catch(e){}}
+    if(nat){try{natSaveState(json);}catch(e){}}
   }
   pushAlarms();
   if(typeof queueChangedSyncRecords==='function'){try{queueChangedSyncRecords();}catch(e){}}
@@ -421,7 +421,7 @@ function _persistFast(){
   if(_fastTO){clearTimeout(_fastTO);_fastTO=0;}
   var json=stateJson();
   if(json){
-    try{localStorage.setItem(KEY,json);}catch(e){}
+    try{uStore.setItem(KEY,json);}catch(e){}
     if(window._widgetFlowArmed){window._widgetFlowArmed=false;setTimeout(function(){try{nat&&nat.widgetDone&&nat.widgetDone();}catch(e){}},300);}
   }
 }
@@ -1262,14 +1262,14 @@ function renderAI(){
 }
 function renderProactiveInsights(){
   var box=$('uaiInsights'); if(!box) return;
-  var dismissed=''; try{ dismissed=localStorage.getItem('uai_insights_dismissed_'+today())||''; }catch(e){}
+  var dismissed=''; try{ dismissed=uStore.getItem('uai_insights_dismissed_'+today())||''; }catch(e){}
   if(dismissed==='1'){ box.style.display='none'; return; }
   var ins=[]; try{ ins=proactiveInsights(); }catch(e){}
   if(!ins.length){ box.style.display='none'; return; }
   box.style.display='';
   box.innerHTML='<div class="uaiInsHead"><span class="bIc">'+ICON('ai')+'</span>For you<button class="uaiInsX" id="uaiInsX" aria-label="Dismiss">'+ICON('close')+'</button></div>'
     + ins.map(function(t){ return '<div class="uaiInsItem">'+esc(t)+'</div>'; }).join('');
-  var x=$('uaiInsX'); if(x) x.addEventListener('click', function(){ try{ localStorage.setItem('uai_insights_dismissed_'+today(),'1'); }catch(e){} box.style.display='none'; });
+  var x=$('uaiInsX'); if(x) x.addEventListener('click', function(){ try{ uStore.setItem('uai_insights_dismissed_'+today(),'1'); }catch(e){} box.style.display='none'; });
 }
 function populateModels(provId){
   var prov=AI_PROVIDERS[provId]; if(!prov) return;
@@ -1388,9 +1388,9 @@ function openAIListModels(url, key){
     .then(function(d){return (d.data||[]).map(function(m){return{id:m.id,label:m.id};}).slice(0,30);});
 }
 
-function getAiProvider(){ return localStorage.getItem('ai_provider')||'gemini'; }
-function getAiModel(){ return localStorage.getItem('ai_model')||AI_PROVIDERS[getAiProvider()].models[0].id; }
-function getAiKey(){ return localStorage.getItem('ai_key')||''; }
+function getAiProvider(){ return uStore.getItem('ai_provider')||'gemini'; }
+function getAiModel(){ return uStore.getItem('ai_model')||AI_PROVIDERS[getAiProvider()].models[0].id; }
+function getAiKey(){ return uStore.getItem('ai_key')||''; }
 /* Widget AI parity: mirror the AI config into native prefs so the home-screen
    AI widget can call the exact same provider/model with the same key. */
 function syncAiCfgToNative(){
@@ -1398,10 +1398,10 @@ function syncAiCfgToNative(){
   try{ nat.setAiConfig(JSON.stringify({provider:getAiProvider(),model:getAiModel(),key:getAiKey()})); }catch(e){}
 }
 // backward compat: migrate old gem_api_key
-if(!localStorage.getItem('ai_key')&&localStorage.getItem('gem_api_key')){
-  localStorage.setItem('ai_key',localStorage.getItem('gem_api_key'));
-  localStorage.setItem('ai_provider','gemini');
-  localStorage.setItem('ai_model',localStorage.getItem('gem_model')||'gemini-2.5-flash');
+if(!uStore.getItem('ai_key')&&uStore.getItem('gem_api_key')){
+  uStore.setItem('ai_key',uStore.getItem('gem_api_key'));
+  uStore.setItem('ai_provider','gemini');
+  uStore.setItem('ai_model',uStore.getItem('gem_model')||'gemini-2.5-flash');
 }
 
 function getGemKey(){ return getAiKey(); }
@@ -1495,8 +1495,8 @@ function buildDataContext(query){
   return lines.join('\n');
 }
 var AI_PREF_KEY='ai_user_preferences_v1';
-function getAiPreferences(){try{return JSON.parse(localStorage.getItem(AI_PREF_KEY)||'{}')||{};}catch(e){return{};}}
-function saveAiPreferences(p){try{localStorage.setItem(AI_PREF_KEY,JSON.stringify(p||{}));}catch(e){} try{ renderAiPrefs(); }catch(e){}}
+function getAiPreferences(){try{return JSON.parse(uStore.getItem(AI_PREF_KEY)||'{}')||{};}catch(e){return{};}}
+function saveAiPreferences(p){try{uStore.setItem(AI_PREF_KEY,JSON.stringify(p||{}));}catch(e){} try{ renderAiPrefs(); }catch(e){}}
 function renderAiPrefs(){
   var box=document.getElementById('aiPrefsList'); if(!box) return;
   var p=getAiPreferences(), items=[];
@@ -1594,7 +1594,7 @@ function uaiPrompt(text,conversationContext){
   +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep the message concise and conversational, usually 1-3 sentences.\n'
   +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n'
   +'CONVERSATION RULES: Understand natural language and scenarios, not only explicit commands. Infer likely intent, but NEVER execute a create/update action while a required field is missing. The assistant must behave like a conversational form: collect required details over multiple turns, one focused question at a time, and carry every previously supplied detail forward. IMPORTANT REQUIRED-FIELD RULES: For add_habit, require the habit name AND an explicit meaningful frequency/schedule (daily, weekdays, selected days, X times, or quota); if frequency is missing, return clarify and DO NOT create the habit. For add_task, require the task title AND ask when it should be due/scheduled; if the user says no due date, that is an explicit answer and may be used. If a task is intended to repeat, also collect the recurrence/frequency; never invent a deadline or recurrence. For set_mood, require the mood before saving; if the user only says \"log my mood\" or similar, ask which mood and do not default to Neutral. For set_sleep, require both bedtime and wake time before saving; if either is missing, ask for the missing time and do not silently use 23:00/06:00. For log_workout, require the exercise and workout values/sets before saving; ask for whichever is missing. For add_journal, require meaningful title/body content before saving. For add_expense, require amount and a reliable category; ask for category when it cannot be reliably inferred rather than defaulting to Other. Account may use the explicit/default account rule already defined. Keep follow-up questions focused: normally ask ONE smallest missing detail, not a long questionnaire. Preserve context across follow-up turns. Treat scenario/problem statements as opportunities to identify the user’s likely goal. If the scenario clearly implies a useful tracker action, propose the action or ask one focused question rather than merely giving generic advice; once the user authorizes it, collect required details and execute. Do not mutate data solely from an uncertain inference. Explicit preference statements such as \"remember that...\" should be reflected in PERSISTENT USER PREFERENCES; casual temporary comments should not. If the user asks to remember or forget a preference, handle that explicitly.\n\n'
-  +'RECENT CONVERSATION (active chat context):\n'+(conversationContext||'None')+'\n\nPENDING ACTION FROM PREVIOUS TURN (if any):\n'+(function(){try{var p=JSON.parse(localStorage.getItem('uai_pending_action_v1')||'null');return p?(p.action+' '+JSON.stringify(p.params||{})):'None';}catch(e){return 'None';}})()+'\n\nFOLLOW-UP RULES: If the latest user message is short (for example a category, account, amount, date, habit name, task name, yes/no answer, or correction), treat it as a continuation of the immediately preceding request/clarification. Do NOT discard the earlier request. Carry forward all already supplied fields and fill only the missing/corrected field. Never restart an expense, task, habit, or other action from scratch unless the user explicitly starts a new request. For destructive actions, use the exact named record from the conversation or APP DATA; never substitute the first/most familiar record. If a name is ambiguous, ask the user to choose instead of guessing.\n'+'CHAT RESPONSE RULES: Write for a normal text chat. Never expose internal IDs, database fields, JSON, params, action names, or implementation details unless the user explicitly asks about technical implementation. For lists and progress, use names and meaningful numbers, not raw records. When asking a follow-up, ask only the smallest missing detail. If a pending action exists, merge the user’s latest answer into that action instead of starting over. Never invent missing frequency, priority, dates, times, amounts, categories, or other required fields. Keep answers concise but useful.\n\nUser: '+text;
+  +'RECENT CONVERSATION (active chat context):\n'+(conversationContext||'None')+'\n\nPENDING ACTION FROM PREVIOUS TURN (if any):\n'+(function(){try{var p=JSON.parse(uStore.getItem('uai_pending_action_v1')||'null');return p?(p.action+' '+JSON.stringify(p.params||{})):'None';}catch(e){return 'None';}})()+'\n\nFOLLOW-UP RULES: If the latest user message is short (for example a category, account, amount, date, habit name, task name, yes/no answer, or correction), treat it as a continuation of the immediately preceding request/clarification. Do NOT discard the earlier request. Carry forward all already supplied fields and fill only the missing/corrected field. Never restart an expense, task, habit, or other action from scratch unless the user explicitly starts a new request. For destructive actions, use the exact named record from the conversation or APP DATA; never substitute the first/most familiar record. If a name is ambiguous, ask the user to choose instead of guessing.\n'+'CHAT RESPONSE RULES: Write for a normal text chat. Never expose internal IDs, database fields, JSON, params, action names, or implementation details unless the user explicitly asks about technical implementation. For lists and progress, use names and meaningful numbers, not raw records. When asking a follow-up, ask only the smallest missing detail. If a pending action exists, merge the user’s latest answer into that action instead of starting over. Never invent missing frequency, priority, dates, times, amounts, categories, or other required fields. Keep answers concise but useful.\n\nUser: '+text;
 }
 function validateAIActionCompleteness(a,p){
   a=String(a||''); p=p||{};
@@ -1758,9 +1758,9 @@ function executeAction(r){
     return{ok:0,msg:'Unsupported AI action.'};
   }catch(e){return{ok:0,msg:'Could not complete that action: '+e.message};}
 }
-try{localStorage.removeItem('ai_recent');}catch(e){} // Recent feature removed (v5.4)
-function uaiChatHistory(){try{return JSON.parse(localStorage.getItem('uai_chat_history_v1')||'[]');}catch(e){return[];}}
-function saveUaiChatTurn(who,text){try{var h=uaiChatHistory();h.push({who:who,text:String(text||'').slice(0,1200),ts:Date.now()});if(h.length>20)h=h.slice(-20);localStorage.setItem('uai_chat_history_v1',JSON.stringify(h));}catch(e){} try{ if(who==='assistant' && window.uaiReadAloud && text){ jrSpeak(String(text).replace(/<[^>]+>/g,'').replace(/[#*_`|]/g,'')); } }catch(e){}}
+try{uStore.removeItem('ai_recent');}catch(e){} // Recent feature removed (v5.4)
+function uaiChatHistory(){try{return JSON.parse(uStore.getItem('uai_chat_history_v1')||'[]');}catch(e){return[];}}
+function saveUaiChatTurn(who,text){try{var h=uaiChatHistory();h.push({who:who,text:String(text||'').slice(0,1200),ts:Date.now()});if(h.length>20)h=h.slice(-20);uStore.setItem('uai_chat_history_v1',JSON.stringify(h));}catch(e){} try{ if(who==='assistant' && window.uaiReadAloud && text){ jrSpeak(String(text).replace(/<[^>]+>/g,'').replace(/[#*_`|]/g,'')); } }catch(e){}}
 function uaiChatContext(){return uaiChatHistory().slice(-12).map(function(x){return (x.who==='user'?'User':'Assistant')+': '+x.text;}).join('\n');}
 function uaiCollapse(innerHtml, rawText){
   /* Wrap long answers in a Read more/less collapser to save space. */
@@ -1824,7 +1824,7 @@ function uaiSend(text){
   if(prefMsg){log.innerHTML+='<div class="uaiMsg bot">'+esc(prefMsg)+'</div>';saveUaiChatTurn('assistant',prefMsg);return;}
   log.innerHTML+='<div class="uaiMsg bot" id="uaiTyping" style="opacity:.5">Thinking…</div>';log.scrollTop=log.scrollHeight;
   var context=uaiChatContext();
-  try{var _jpf=localStorage.getItem('uai_prefill_context');if(_jpf){context=_jpf+'\n\n'+context;localStorage.removeItem('uai_prefill_context');}}catch(e){}
+  try{var _jpf=uStore.getItem('uai_prefill_context');if(_jpf){context=_jpf+'\n\n'+context;uStore.removeItem('uai_prefill_context');}}catch(e){}
   gemCall(uaiPrompt(text,context),500).then(function(raw){
     var el=$('uaiTyping');if(el)el.remove();
     var clean=raw.replace(/```json|```/g,'').trim(),result;
@@ -1869,11 +1869,11 @@ function uaiSend(text){
     }
     var completeness=validateAIActionCompleteness(result.action,result.params||{});
     if(completeness){
-      try{localStorage.setItem('uai_pending_action_v1',JSON.stringify({action:result.action,params:result.params||{},missing:completeness.msg,ts:Date.now()}));}catch(e){}
+      try{uStore.setItem('uai_pending_action_v1',JSON.stringify({action:result.action,params:result.params||{},missing:completeness.msg,ts:Date.now()}));}catch(e){}
       result=completeness;result.isClarify=true;
     } else {
       if(result && result.action && result.action!=='clarify' && result.action!=='query'){
-        try{localStorage.removeItem('uai_pending_action_v1');}catch(e){}
+        try{uStore.removeItem('uai_pending_action_v1');}catch(e){}
       }
       /* Execute the model's action to normalize it into {ok,isQuery,msg,...}.
          (clarify stays as-is: show its message.) */
@@ -1911,10 +1911,10 @@ function genWeeklyNarrative(){
   var ctx=buildDataContext(text);
   var prompt='You are a supportive Momentum AI. Write a 2-3 sentence weekly summary for the user based on this data. Be specific, mention actual habit names and numbers. Be encouraging but honest. No generic advice.\n\nDATA:\n'+ctx;
   gemCall(prompt,200).then(function(r){
-    localStorage.setItem('ai_weekly_narr',r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
-    localStorage.setItem('ai_weekly_narr_day',today());
+    uStore.setItem('ai_weekly_narr',r.replace(/</g,'&lt;').replace(/>/g,'&gt;'));
+    uStore.setItem('ai_weekly_narr_day',today());
     renderInsights();
-  }).catch(function(){ localStorage.removeItem('ai_weekly_narr'); renderInsights(); });
+  }).catch(function(){ uStore.removeItem('ai_weekly_narr'); renderInsights(); });
 }
 
 // ---- Habit coaching (on streak break) ----
@@ -2181,6 +2181,7 @@ window.handleAndroidBack=function(){
     /* 4. journal sub-view not timeline -> go back to timeline */
     if(document.getElementById('pgJr') && document.getElementById('pgJr').classList.contains('on') && typeof jrView!=='undefined' && jrView && jrView!=='timeline'){ if(typeof jrGo==='function'){ jrGo('timeline'); return true; } }
     /* 4b. full-screen overlays: milestone moment, workout module, pro dialogs, drafts */
+    if(document.documentElement.classList.contains('authGate')) return false; /* sign-in gate: back leaves the app */
     var mo=document.getElementById('momentOverlay'); if(mo){ mo.remove(); return true; }
     var wss=document.getElementById('wkSession'); if(wss && wss.classList.contains('on')){ wsClose(); return true; }
     var wk=document.getElementById('wkModule'); if(wk && wk.classList.contains('on')){ wk.classList.remove('on'); return true; }
@@ -3765,7 +3766,7 @@ function openJrDaySummary(id, force){
   if(!text && !title){ if(body) body.innerHTML='<div class="jrSumEmpty">This entry is empty \u2014 nothing to summarize yet.</div>'; return; }
   // cached?
   var ck=_jrSumCacheKey(e), cached=null;
-  try{ cached=localStorage.getItem(ck); }catch(err){}
+  try{ cached=uStore.getItem(ck); }catch(err){}
   if(cached && !force){ if(body) body.innerHTML='<div class="jrSumText">'+esc(cached)+'</div>'; return; }
   if(!getAiKey()){ if(body) body.innerHTML='<div class="jrSumEmpty">Add an AI API key in Settings to get day summaries.</div>'; return; }
   if(body) body.innerHTML='<div class="jrSumLoading"><span class="jrSumDots"><i></i><i></i><i></i></span>Reading your day\u2026</div>';
@@ -3775,7 +3776,7 @@ function openJrDaySummary(id, force){
     r=String(r||'').trim();
     if(_jrSumId!==id) return; /* user moved on */
     if(!r){ if(body) body.innerHTML='<div class="jrSumEmpty">Couldn\u2019t generate a summary. Try again.</div>'; return; }
-    try{ localStorage.setItem(ck, r); }catch(err){}
+    try{ uStore.setItem(ck, r); }catch(err){}
     if(body) body.innerHTML='<div class="jrSumText">'+esc(r)+'</div>';
   }).catch(function(err){
     if(_jrSumId!==id) return;
@@ -3988,7 +3989,7 @@ function jrEntryAi(kind){
   if(!body && !title){ jrAiShow('jrEntryAiOut', kind, 'Write something first, then I can help.'); return; }
   if(kind==='Ask AI About This'){
     /* hand the entry to the existing AI Chat */
-    try{ localStorage.setItem('uai_prefill_context', 'JOURNAL ENTRY ('+jrEd.date+'):\n'+(title?title+'\n':'')+body); }catch(e){}
+    try{ uStore.setItem('uai_prefill_context', 'JOURNAL ENTRY ('+jrEd.date+'):\n'+(title?title+'\n':'')+body); }catch(e){}
     closeSheet(); showTab('pgAI');
     var inp=$('uaiInput'); if(inp){ inp.value='About my journal entry from '+jrEd.date+': '; inp.focus(); }
     toastN('Opened in AI Chat with this entry as context');
@@ -4120,9 +4121,9 @@ function jrJournalContext(query){
   chosen.forEach(function(e){lines.push('- '+(e.date||'')+' '+(e.time||'')+(e.mood?' ['+e.mood+']':'')+(e.location?' @'+e.location:'')+' "'+String(e.title||'').replace(/"/g,'')+'": '+plain(e.content).slice(0,320));});
   return lines.join('\n');
 }
-function jrChatHistory(){ try{ return JSON.parse(localStorage.getItem('jr_chat_history_v1')||'[]'); }catch(e){ return []; } }
-function jrSaveChatTurn(who,text){ try{ var h=jrChatHistory(); h.push({who:who,text:String(text||'').slice(0,1500)}); if(h.length>16) h=h.slice(-16); localStorage.setItem('jr_chat_history_v1',JSON.stringify(h)); }catch(e){} }
-function jrClearChat(){ try{ localStorage.removeItem('jr_chat_history_v1'); }catch(e){} jrRenderChat(); }
+function jrChatHistory(){ try{ return JSON.parse(uStore.getItem('jr_chat_history_v1')||'[]'); }catch(e){ return []; } }
+function jrSaveChatTurn(who,text){ try{ var h=jrChatHistory(); h.push({who:who,text:String(text||'').slice(0,1500)}); if(h.length>16) h=h.slice(-16); uStore.setItem('jr_chat_history_v1',JSON.stringify(h)); }catch(e){} }
+function jrClearChat(){ try{ uStore.removeItem('jr_chat_history_v1'); }catch(e){} jrRenderChat(); }
 function jrRenderChat(){
   var log=$('jrChatLog'); if(!log) return;
   var h=jrChatHistory();
@@ -5740,15 +5741,15 @@ var GOOGLE_WEB_CLIENT_ID = '34132591511-es8v9jhe2ch57rdbot13sjgjpf1s16ob.apps.go
 var RTDB_SDK_URL = 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database-compat.js';
 var fbApp=null, fbAuth=null, fbDB=null, fbRef=null, fbUser=null, fbUnsub=null, syncMetaDoc=null;
 var syncBusy=false, syncApplying=false, syncPushT=null, syncLastAt=0, syncLastDevice='', syncLastState='', syncCfg=null, syncState='', syncLegacyMode=false, syncInitialHydration=true;
-var deviceId = (function(){ try{ var k='hb_device_id'; var v=localStorage.getItem(k); if(v) return v; v='d_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); localStorage.setItem(k,v); return v; }catch(e){ return 'd_'+Date.now(); } })();
+var deviceId = (function(){ try{ var k='hb_device_id'; var v=uStore.getItem(k); if(v) return v; v='d_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8); uStore.setItem(k,v); return v; }catch(e){ return 'd_'+Date.now(); } })();
 
 function loadSyncCfg(){
-  try{ var r=localStorage.getItem(SYNC_CFG_KEY); return r?JSON.parse(r):null; }catch(e){ return null; }
+  try{ var r=uStore.getItem(SYNC_CFG_KEY); return r?JSON.parse(r):null; }catch(e){ return null; }
 }
-function saveSyncCfg(cfg){ try{ localStorage.setItem(SYNC_CFG_KEY, JSON.stringify(cfg)); }catch(e){} }
-function clearSyncCfg(){ try{ localStorage.removeItem(SYNC_CFG_KEY); }catch(e){} }
-function loadSyncHistory(){ try{ return JSON.parse(localStorage.getItem(SYNC_HISTORY_KEY)||'[]'); }catch(e){ return []; } }
-function saveSyncHistory(a){ try{ localStorage.setItem(SYNC_HISTORY_KEY, JSON.stringify(a.slice(0,10))); }catch(e){} }
+function saveSyncCfg(cfg){ try{ uStore.setItem(SYNC_CFG_KEY, JSON.stringify(cfg)); }catch(e){} }
+function clearSyncCfg(){ try{ uStore.removeItem(SYNC_CFG_KEY); }catch(e){} }
+function loadSyncHistory(){ try{ return JSON.parse(uStore.getItem(SYNC_HISTORY_KEY)||'[]'); }catch(e){ return []; } }
+function saveSyncHistory(a){ try{ uStore.setItem(SYNC_HISTORY_KEY, JSON.stringify(a.slice(0,10))); }catch(e){} }
 function snapshotLocal(reason){
   try{
     var a=loadSyncHistory();
@@ -5810,6 +5811,7 @@ function ensureFirebaseReady(){
       fbDB=firebase.database();
       try{ fbAuth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); }catch(e){}
       fbAuth.onAuthStateChanged(function(u){
+        if(typeof authGateOnUser==='function' && authGateOnUser(u)==='reload') return;
         fbUser=u;
         if(u) attachFirestoreSync(u); else detachFirestoreSync();
         renderSyncUI();
@@ -5834,8 +5836,8 @@ function writeSyncMeta(status){var ref=syncMetaRef();if(!ref||!fbUser)return Pro
 
 function syncRecordEntries(){var out={};function addArray(d,a,idf){(a||[]).forEach(function(v){var k=v&&(idf?v[idf]:v.id);if(v&&k)out[d+':'+k]=v;});}function addMap(d,o){if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(k){out[d+':'+k]={key:k,value:o[k]};});}addArray('habit',state.habits);addArray('tx',state.tx);addArray('acct',state.accts);addArray('exercise',state.exs);addArray('workout',state.wlog);addArray('sleep',state.sleep,'d');addArray('journal',state.jr);addArray('jrtpl',state.jrTpl);addArray('goal',state.goals);addArray('task',state.tasks);addMap('mood',state.mood);addMap('moodNote',state.moodNotes);addMap('hlog',state.hlog);addMap('closed',state.closed);addMap('budg',state.budg);addMap('budgets',state.budgets);addMap('cats',state.cats);addMap('fxRates',state.fxRates);out['set:all']=state.set;out['incCats:all']=state.incCats;if(state.vault)out['vault:all']={key:'all',value:state.vault};if(state.vaultCats&&state.vaultCats.length)out['vaultCats:all']={key:'all',value:state.vaultCats};if(state.jrDrafts&&state.jrDrafts.length)out['jrDrafts:all']={key:'all',value:state.jrDrafts};if(state.trash&&state.trash.length)out['trash:all']={key:'all',value:state.trash};return out;}
 var syncRecordShadow={};var syncPendingRecords={};
-try{syncRecordShadow=JSON.parse(localStorage.getItem('hb_sync_record_shadow')||'{}')||{};}catch(e){}
-try{syncPendingRecords=JSON.parse(localStorage.getItem('hb_sync_pending')||'{}')||{};}catch(e){}
+try{syncRecordShadow=JSON.parse(uStore.getItem('hb_sync_record_shadow')||'{}')||{};}catch(e){}
+try{syncPendingRecords=JSON.parse(uStore.getItem('hb_sync_pending')||'{}')||{};}catch(e){}
 /* perf: the shadow used to store each record's FULL JSON as its "hash", so the shadow was as large as the
    whole dataset and was re-stringified (with double escaping) + re-written to localStorage on every save.
    It now stores a compact 53-bit digest + length. Legacy full-JSON entries are migrated in place the first
@@ -5864,7 +5866,7 @@ function queueChangedSyncRecords(){
     Object.keys(meta).forEach(function(k){if(!isContent(k)&&!cur[k]&&!meta[k].deleted){meta[k]={hash:'__deleted__',at:now,deleted:true};syncPendingRecords[k]={data:null,at:now,deleted:true};}});
   }
   syncRecordShadow=meta;
-  try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(meta));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
+  try{uStore.setItem('hb_sync_record_shadow',JSON.stringify(meta));uStore.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
 }
 function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){if(!Array.isArray(a))return;var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){var si=state.sleep.findIndex(function(x){return x&&x.d===id;});if(deleted){if(si>=0)state.sleep.splice(si,1);}else if(si>=0)state.sleep[si]=value;else state.sleep.push(value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='jrtpl'){state.jrTpl=state.jrTpl||[];arrSet(state.jrTpl,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='vault'&&id==='all'){if(!deleted)state.vault=(value&&value.value!==undefined?value.value:value);return;}if(d==='vaultCats'&&id==='all'){if(!deleted)state.vaultCats=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='jrDrafts'&&id==='all'){if(!deleted)state.jrDrafts=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='trash'&&id==='all'){if(!deleted)state.trash=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
 function pushRecordSync(force){
@@ -5885,7 +5887,7 @@ function pushRecordSync(force){
     /* One atomic multi-path update per batch (RTDB). deleted -> null removes the node. */
     return ref.update(payload).then(function(){
       slice.forEach(function(k){ delete syncPendingRecords[k]; });
-      try{localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
+      try{uStore.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
       doneCount+=slice.length; window._syncProgressAt=Date.now();
       if(total>BATCH){ try{ syncMsg('Syncing… '+Math.min(doneCount,total)+'/'+total,false); }catch(e){} }
       return pushFrom(i+BATCH);
@@ -5904,15 +5906,15 @@ function applyRemoteRecords(snapVal, force){
     syncRecordShadow[key]={hash:syncHash(v.data),at:Math.max(at,lat),deleted:false};
     changed=true;
   });
-  try{localStorage.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
-  if(changed){window._syncProgressAt=Date.now();state=normState(state);var json=stateJson();if(json){try{localStorage.setItem(KEY,json);}catch(e){}if(nat){try{nat.saveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}
+  try{uStore.setItem('hb_sync_record_shadow',JSON.stringify(syncRecordShadow));uStore.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
+  if(changed){window._syncProgressAt=Date.now();state=normState(state);var json=stateJson();if(json){try{uStore.setItem(KEY,json);}catch(e){}if(nat){try{natSaveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}
   return changed;
 }
 var syncAccountChanged=false;
 function attachFirestoreSync(u){
   fbUser=u; if(!fbDB) return;
   /* which account was this device last synced with? (the sync shadow is per device, not per account) */
-  try{ var _prev=localStorage.getItem('hb_sync_uid'); syncAccountChanged = !!(_prev && u && _prev!==u.uid); if(u) localStorage.setItem('hb_sync_uid',u.uid); }catch(_e){ syncAccountChanged=false; }
+  try{ var _prev=uStore.getItem('hb_sync_uid'); syncAccountChanged = !!(_prev && u && _prev!==u.uid); if(u) uStore.setItem('hb_sync_uid',u.uid); }catch(_e){ syncAccountChanged=false; }
   fbRef=recordsRef();
   syncInitialHydration=true;
   setSyncState('syncing');
@@ -5931,7 +5933,7 @@ function syncReconcile(){
   return ref.once('value').then(function(snap){
     var val=snap.val();
     /* switched to a NEW, empty account: upload everything this device has, not only recent changes */
-    if(syncAccountChanged && !val){ try{ syncRecordShadow={}; localStorage.setItem('hb_sync_record_shadow','{}'); }catch(_e){} }
+    if(syncAccountChanged && !val){ try{ syncRecordShadow={}; uStore.setItem('hb_sync_record_shadow','{}'); }catch(_e){} }
     syncAccountChanged=false;
     if(val){
       var freshRestore = !hasMeaningfulData(state);
@@ -5993,6 +5995,7 @@ function renderSyncUI(){
   if(fbUser){
     show('syncSetup',false);show('syncAuth',false);show('syncOn',true);
     $('syncWho').textContent=fbUser.email||'signed in';
+    try{ var ce=$('syncChangeEmail'), hasPw=!!(fbUser.providerData||[]).some(function(p){ return p&&p.providerId==='password'; }); if(ce&&ce.closest('.setRow')) ce.closest('.setRow').style.display=hasPw?'':'none'; }catch(_e){}
     try{ var gl=googleLinked(), gb=$('syncGoogleLink'), gs=$('syncGoogleS'); if(gb){ gb.style.display=gl?'none':''; } if(gs) gs.textContent=gl?('Linked \u00b7 sign in with one tap on any device'):'Link Google to sign in with one tap and sync journal photos'; }catch(_e){}
     var label=syncState==='syncing'?'Syncing…':syncState==='cached'||offline?'Offline (cached)':syncState==='error'?'Sync error':'Synced';
     $('syncOn').querySelector('.setT').textContent=label;
@@ -6147,7 +6150,7 @@ window.importNative = function(b64){
     if(o && o.habits && o.habits.length !== undefined){
       state = normState(o);
       state.mtime = Date.now();
-      try{ localStorage.setItem(KEY, JSON.stringify(stateForStorage())); }catch(e3){}
+      try{ uStore.setItem(KEY, JSON.stringify(stateForStorage())); }catch(e3){}
       persist(); applyTheme(); applyGrey(); renderToday(); renderSet();
       var _ph=o._photos; if(_ph){ restoreBackupPhotos(_ph).then(function(n){ toastN('Imported ' + state.habits.length + ' habits'+(n?(' \u00b7 '+n+' photo'+(n===1?'':'s')+' restored'):'')); }); }
       else toastN('Imported ' + state.habits.length + ' habits');
@@ -6273,20 +6276,24 @@ function pushAlarms(){
   if(j !== lastAlarmsJson){ lastAlarmsJson = j; try{ nat.setAlarms(j); }catch(e){} }
   try{ pushPinnedTasksNotif(); }catch(e){}
 }
+function natSaveState(json){ try{ json=String(json); if(json.charAt(0)==='{') json='{"_owner":'+JSON.stringify(AUTH_UID)+(json.length>2?',':'')+json.slice(1); nat.saveState(json); }catch(e){} }
 function syncFromNative(){
   if(!nat) return false;
   try{
     var s = nat.getState();
     if(!s) return false;
     var o = JSON.parse(s);
+    /* the native copy belongs to whoever saved it; never import another account's data */
+    var own = (o && o._owner!==undefined) ? o._owner : (LEGACY_OWNER||AUTH_UID);
+    if(own!==AUTH_UID){ natSaveState(JSON.stringify(stateForStorage())); return false; }
     var nativeHasData=hasMeaningfulData(o), localHasData=hasMeaningfulData(state);
     if(nativeHasData && (!localHasData || (o.mtime||0) > (state.mtime||0))){
       state = normState(o);
-      try{ localStorage.setItem(KEY, JSON.stringify(stateForStorage())); }catch(e){}
+      try{ uStore.setItem(KEY, JSON.stringify(stateForStorage())); }catch(e){}
       return true;
     }
     if((o.mtime||0) < (state.mtime||0) && localHasData){
-      nat.saveState(JSON.stringify(stateForStorage()));
+      natSaveState(JSON.stringify(stateForStorage()));
     }
   }catch(e){}
   return false;
@@ -6643,8 +6650,8 @@ function renderMoodYear(host){
 }
 /* ================= Active workout session ================= */
 var WS=null, WS_KEY='wk_session_v1', wsTick=null;
-function wsSave(){ try{ if(WS) localStorage.setItem(WS_KEY, JSON.stringify(WS)); else localStorage.removeItem(WS_KEY); }catch(e){} }
-function wsLoad(){ try{ var j=localStorage.getItem(WS_KEY); WS=j?JSON.parse(j):null; }catch(e){ WS=null; } }
+function wsSave(){ try{ if(WS) uStore.setItem(WS_KEY, JSON.stringify(WS)); else uStore.removeItem(WS_KEY); }catch(e){} }
+function wsLoad(){ try{ var j=uStore.getItem(WS_KEY); WS=j?JSON.parse(j):null; }catch(e){ WS=null; } }
 function wsElapsed(){ if(!WS) return 0; return WS.acc + (WS.paused?0:(Date.now()-WS.runFrom)); }
 function wsFmt(ms){ var t=Math.floor(ms/1000), h=Math.floor(t/3600), m=Math.floor(t%3600/60), sec=t%60; return (h?h+':':'')+(m<10&&h?'0':'')+(h||m>=10?m:('0'+m).slice(-2))+':'+('0'+sec).slice(-2); }
 function startWorkoutSession(){
@@ -6719,7 +6726,7 @@ function paneMark(){
 /* ================= Journal photos — stored free, on the device (IndexedDB) ================= */
 var PhotoDB=(function(){
   var dbp=null;
-  function db(){ if(dbp) return dbp; dbp=new Promise(function(res,rej){ try{ var r=indexedDB.open('momentum_photos',1); r.onupgradeneeded=function(){ r.result.createObjectStore('p'); }; r.onsuccess=function(){ res(r.result); }; r.onerror=function(){ rej(r.error); }; }catch(e){ rej(e); } }); return dbp; }
+  function db(){ if(dbp) return dbp; dbp=new Promise(function(res,rej){ try{ var r=indexedDB.open(nsName('momentum_photos'),1); r.onupgradeneeded=function(){ r.result.createObjectStore('p'); }; r.onsuccess=function(){ res(r.result); }; r.onerror=function(){ rej(r.error); }; }catch(e){ rej(e); } }); return dbp; }
   function run(mode,fn){ return db().then(function(d){ return new Promise(function(res,rej){ var t=d.transaction('p',mode), rq=fn(t.objectStore('p')); t.oncomplete=function(){ res(rq?rq.result:undefined); }; t.onerror=function(){ rej(t.error); }; }); }); }
   return { put:function(k,v){ return run('readwrite',function(st){ return st.put(v,k); }); }, get:function(k){ return run('readonly',function(st){ return st.get(k); }); },
            del:function(k){ return run('readwrite',function(st){ return st.delete(k); }); }, keys:function(){ return run('readonly',function(st){ return st.getAllKeys(); }); } };
@@ -6774,14 +6781,16 @@ var DrivePhotos={
   refIds:function(){ var ids={}; (state.jr||[]).concat(state.trash&&state.trash.jr||[]).forEach(function(e){ (e&&e.photos||[]).forEach(function(p){ if(/^ph[a-z0-9]+$/.test(p)) ids[p]=1; }); }); return Object.keys(ids); },
   status:function(t){ var el=$('driveStatus'); if(el) el.textContent=t; },
   ui:function(){ var b=$('driveBtn'), r2=$('driveRow2'); if(!b) return;
-    if(!this.avail()){ b.style.display='none'; if(r2) r2.style.display='none'; this.status(isNativeApp()?'Update the Android app to use Google Drive photo sync.':(!webOriginOk()?'Open Momentum from its website (https) to sync photos with Google Drive. Photos are still included in Journal backup and Backup (JSON).':'Google Drive needs one setup step: add your Google Web client ID (see the Google sign-in setup guide).')); return; }
-    var on=this.on(); b.style.display=''; b.textContent=on?'Disconnect':'Connect'; b.classList.toggle('acc',!on); if(r2) r2.style.display=on?'':'none';
+    var linked=googleLinked(), gm=state.set.googleEmail||(fbUser&&fbUser.email)||'';
+    if(!linked){ b.style.display=''; b.textContent='Link Google'; b.classList.add('acc'); if(r2) r2.style.display='none';
+      this.status('Journal photos back up to Google Drive when you sign in with Google. Link Google to turn it on.'); return; }
+    b.style.display='none'; if(r2) r2.style.display='';
     var l=$('driveLast'); if(l){ var t=state.set.driveLast; l.textContent=t?('Last synced '+new Date(t).toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+(state.set.driveCount!=null?' \u00b7 '+state.set.driveCount+' photo'+(state.set.driveCount===1?'':'s')+' on Drive':'')):'Not synced yet'; }
-    if(!this.busy) this.status(on?'Connected. New journal photos are backed up automatically.':'Automatically back up and sync journal photos to a private folder in your own Google Drive.'); },
+    if(!this.busy) this.status(!this.avail()?(isNativeApp()?'Update the Android app to sync photos.':(!webOriginOk()?'Open Momentum from its website (https) to sync photos.':'Photo sync needs the Google Web client ID.')):('Backed up automatically to '+(gm||'your Google account')+'\u2019s Google Drive.')); },
   wait:function(key){ var self=this; return new Promise(function(res){ self.waiters[key]=res; setTimeout(function(){ if(self.waiters[key]){ delete self.waiters[key]; res({ok:false,err:'timeout'}); } },120000); }); },
   settle:function(key,val){ var w=this.waiters[key]; if(w){ delete this.waiters[key]; w(val); } },
   syncNow:function(manual){
-    var self=this; if(!this.on()) return; if(this.busy){ this.queued=true; return; }
+    var self=this; if(!this.on()){ if(manual && this.avail() && googleLinked()){ this.status('Opening Google\u2026'); DriveApi.connect(state.set.googleEmail||(fbUser&&fbUser.email)||''); } return; } if(this.busy){ this.queued=true; return; }
     this.busy=true; this.status('Syncing photos\u2026');
     var listP=this.wait('list'); try{ DriveApi.list(manual); }catch(e){ this.settle('list',{ok:false,err:String(e)}); }
     listP.then(function(r){
@@ -6820,7 +6829,7 @@ window.onDriveEvent=function(type,a,b){
 };
 (function(){
   var btn=$('driveBtn'), sb=$('driveSyncBtn');
-  if(btn) btn.addEventListener('click',function(){ if(!DrivePhotos.avail()) return; if(DrivePhotos.on()){ if(confirm('Disconnect Google Drive? Photos already on Drive stay there.')){ DriveApi.disconnect(); DrivePhotos.ui(); toastN('Google Drive disconnected'); } } else { DrivePhotos.status('Opening Google\u2026'); DriveApi.connect(state.set.googleEmail||(fbUser&&fbUser.email)||''); } });
+  if(btn) btn.addEventListener('click',function(){ continueWithGoogle(); });   /* shown only when Google isn't linked */
   if(sb) sb.addEventListener('click',function(){ DrivePhotos.syncNow(true); });
   setTimeout(function(){ try{ DrivePhotos.ui(); }catch(e){} },0); /* after the whole script (DriveApi/WebDrive) has loaded */
   setTimeout(function(){ DrivePhotos.syncNow(false); },6000);
@@ -6884,6 +6893,8 @@ function googleErr(e){
 function afterGoogle(user, accessToken, email){
   syncMsg('',false);
   try{ rememberProfile(user.email||email, (state.set&&state.set.name)||String(user.email||email||'').split('@')[0]); renderProfiles&&renderProfiles(); }catch(e){}
+  savePostLogin({google:true,email:user.email||email||'',token:accessToken||''});
+  if(window.__reloading) return;   /* the account-switch reload will finish this */
   state.set.googleEmail=user.email||email||''; persist();
   toastN('Signed in with Google'+(user.email?' \u00b7 '+user.email:''));
   if(accessToken) WebDrive.setToken(accessToken,3300);
@@ -6904,6 +6915,7 @@ function continueWithGoogle(){
 window.onGoogleIdToken=function(idToken,email,err){
   if(err){ googleErr({message:err}); return; }
   if(!idToken){ syncMsg('',false); return; }
+  window.__postLogin={google:true,email:email||''};
   ensureFirebaseReady().then(function(){
     var cred=firebase.auth.GoogleAuthProvider.credential(idToken), cur=fbAuth.currentUser;
     return (cur ? cur.linkWithCredential(cred) : fbAuth.signInWithCredential(cred)).then(function(r){ afterGoogle(r.user,null,email); });
@@ -6931,7 +6943,7 @@ var WebDrive={
   call:function(method,url,body,type,interactive,retried){ var self=this;
     return this.token(interactive).then(function(t){ var h={Authorization:'Bearer '+t}; if(type) h['Content-Type']=type;
       return fetch(url,{method:method,headers:h,body:body||undefined}); })
-      .then(function(r){ if(r.status===401 && !retried){ self.tok=null; return self.call(method,url,body,type,interactive,true); } if(!r.ok) throw new Error('Drive error '+r.status); return r; }); },
+      .then(function(r){ if(r.status===401 && !retried){ self.tok=null; return self.call(method,url,body,type,interactive,true); } if(r.status===401||r.status===403){ self.tok=null; throw new Error('not granted'); } if(!r.ok) throw new Error('Drive error '+r.status); return r; }); },
   list:function(interactive){ var self=this, all=[];
     function page(tk){ return self.call('GET','https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&pageSize=1000&fields=nextPageToken,files(id,name,size)'+(tk?'&pageToken='+encodeURIComponent(tk):''),null,null,interactive)
       .then(function(r){ return r.json(); }).then(function(o){ (o.files||[]).forEach(function(f){ all.push(f); }); return o.nextPageToken?page(o.nextPageToken):all; }); }
@@ -6962,6 +6974,65 @@ var DriveApi={
   upload:function(n,b){ if(this.native()) nat.driveUpload(n,b); else WebDrive.upload(n,b); },
   download:function(n,id){ if(this.native()) nat.driveDownload(n,id); else WebDrive.download(n,id); }
 };
+
+/* ================= Sign-in gate + per-account switching ================= */
+function agMsg(t,err){ var m=$('agMsg'); if(m){ m.textContent=t||''; m.classList.toggle('err',!!err); } }
+function showAuthGate(on){ document.documentElement.classList.toggle('authGate',!!on); AUTH_GATE_ON=!!on; if(!on && window.__onbPending){ window.__onbPending=false; setTimeout(function(){ try{ initOnboarding(); }catch(e){} },4000); } }
+function postLoginInfo(){ try{ return JSON.parse(sessionStorage.getItem('hb_post_login')||'null'); }catch(e){ return null; } }
+function savePostLogin(o){ try{ var cur=postLoginInfo()||{}; for(var k in o) if(o[k]!=null&&o[k]!=='') cur[k]=o[k]; sessionStorage.setItem('hb_post_login',JSON.stringify(cur)); }catch(e){} }
+/* called on every Firebase auth change, before sync attaches */
+function authGateOnUser(u){
+  if(window.__noAuthGate) return '';
+  if(!u){ showAuthGate(true); return ''; }
+  if(u.uid===AUTH_UID){
+    showAuthGate(false);
+    var info=postLoginInfo(); if(info){ try{ sessionStorage.removeItem('hb_post_login'); }catch(e){} setTimeout(function(){ runPostLogin(info,u); },600); }
+    return '';
+  }
+  /* a different account signed in: switch this device to that account's own storage */
+  var owner=LEGACY_OWNER||u.uid, before=nsPrefix(AUTH_UID,LEGACY_OWNER), after=nsPrefix(u.uid,owner);
+  try{ window.localStorage.setItem('hb_auth_uid',u.uid); if(!LEGACY_OWNER) window.localStorage.setItem('hb_legacy_owner',owner); }catch(e){}
+  savePostLogin(window.__postLogin||{}); savePostLogin({email:u.email||''});
+  if(before!==after){ window.__reloading=true; setTimeout(function(){ location.reload(); },700); return 'reload'; }
+  AUTH_UID=u.uid; LEGACY_OWNER=owner; showAuthGate(false);
+  var info2=postLoginInfo(); try{ sessionStorage.removeItem('hb_post_login'); }catch(e){} setTimeout(function(){ runPostLogin(info2||{},u); },600);
+  return '';
+}
+function runPostLogin(info,u){
+  var email=(info&&info.email)||(u&&u.email)||'';
+  toastN('Welcome'+(email?' \u00b7 '+email:''));
+  if(info&&info.google){ state.set.googleEmail=email; persist();
+    if(info.token) WebDrive.setToken(info.token,3300);
+    try{ if(DrivePhotos.avail() && !DrivePhotos.on()) DriveApi.connect(email); }catch(e){} }
+  try{ DrivePhotos.ui(); }catch(e){}
+}
+/* sign out: this account's data stays on the device (its own namespace) and in the cloud */
+function signOutKeepData(){
+  if(!confirm('Sign out? Your data stays saved in this account. Sign in again any time to see it.')) return Promise.resolve();
+  toastN('Signing out\u2026');
+  var flush=(fbUser&&fbDB&&typeof pushRecordSync==='function') ? Promise.race([pushRecordSync(true).catch(function(){}), new Promise(function(r){ setTimeout(r,6000); })]) : Promise.resolve();
+  return flush.then(function(){ try{ persist({now:true}); }catch(e){} try{ DriveApi.disconnect(); }catch(e){}
+      try{ window.localStorage.removeItem('hb_auth_uid'); }catch(e){} return fbAuth?fbAuth.signOut():null; })
+    .then(function(){ location.reload(); },function(){ location.reload(); });
+}
+window.switchProfileFlushAndSignOut=function(){ return signOutKeepData(); };
+(function(){
+  var g=$('agGoogle'); if(!g) return;
+  function ready(){ if(!navigator.onLine){ agMsg('You\u2019re offline. Connect to the internet to sign in.',true); return null; } agMsg('',false); return ensureFirebaseReady(); }
+  function creds(){ var e=($('agEmail').value||'').trim(), p=$('agPw').value||''; if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ agMsg('Enter a valid email address.',true); return null; } if(p.length<6){ agMsg('Password needs at least 6 characters.',true); return null; } return {e:e,p:p}; }
+  function busy(b){ ['agGoogle','agSignin','agCreate','agForgot'].forEach(function(id){ var x=$(id); if(x) x.disabled=b; }); }
+  function fail(e){ busy(false); agMsg(typeof prettyAuthErr==='function'?prettyAuthErr(e):String(e&&e.message||e),true); }
+  g.addEventListener('click',function(){ var r=ready(); if(!r) return; window.__postLogin={google:true}; continueWithGoogle(); });
+  $('agSignin').addEventListener('click',function(){ var c=creds(); if(!c) return; var r=ready(); if(!r) return; busy(true); agMsg('Signing in\u2026',false); window.__postLogin={email:c.e};
+    r.then(function(){ return fbAuth.signInWithEmailAndPassword(c.e,c.p); }).then(function(){ try{ rememberProfile(c.e,c.e.split('@')[0]); }catch(e){} }).catch(fail); });
+  $('agCreate').addEventListener('click',function(){ var c=creds(); if(!c) return; var r=ready(); if(!r) return; busy(true); agMsg('Creating your account\u2026',false); window.__postLogin={email:c.e,created:true};
+    r.then(function(){ return fbAuth.createUserWithEmailAndPassword(c.e,c.p); }).then(function(){ try{ rememberProfile(c.e,c.e.split('@')[0]); }catch(e){} }).catch(fail); });
+  $('agForgot').addEventListener('click',function(){ var e=($('agEmail').value||'').trim(); if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)){ agMsg('Enter your email above, then tap Forgot password.',true); return; } var r=ready(); if(!r) return; busy(true);
+    r.then(function(){ return fbAuth.sendPasswordResetEmail(e); }).then(function(){ busy(false); agMsg('Password reset link sent to '+e+'.',false); }).catch(fail); });
+  $('agPw').addEventListener('keydown',function(ev){ if(ev.key==='Enter') $('agSignin').click(); });
+  /* Google errors and progress also show on the gate */
+  var _sm=syncMsg; syncMsg=function(t,err){ var r=_sm.apply(this,arguments); if(AUTH_GATE_ON) agMsg(t,err); return r; };
+})();
 
 function climb(el, root, attr){
   while(el && el !== root){
@@ -8256,11 +8327,11 @@ function init(){
   /* ===== AI read-aloud toggle ===== */
   (function(){
     var tog=$('uaiReadTog'); if(!tog) return;
-    var on=false; try{ on=localStorage.getItem('uai_read_aloud')==='1'; }catch(e){}
+    var on=false; try{ on=uStore.getItem('uai_read_aloud')==='1'; }catch(e){}
     window.uaiReadAloud=on; tog.classList.toggle('on', on);
     tog.addEventListener('click', function(){
       window.uaiReadAloud=!window.uaiReadAloud;
-      try{ localStorage.setItem('uai_read_aloud', window.uaiReadAloud?'1':'0'); }catch(e){}
+      try{ uStore.setItem('uai_read_aloud', window.uaiReadAloud?'1':'0'); }catch(e){}
       tog.classList.toggle('on', window.uaiReadAloud);
       if(window.uaiReadAloud){ toastN('Answers will be read aloud'); jrSpeak('Read aloud is on'); }
       else { jrStopSpeak(); toastN('Read aloud off'); }
@@ -8595,30 +8666,30 @@ function init(){
   // ---- AI provider management ----
   $('aiProvider').addEventListener('change', function(){
     var prov=this.value;
-    localStorage.setItem('ai_provider',prov);
+    uStore.setItem('ai_provider',prov);
     syncAiCfgToNative();
     populateModels(prov);
     $('aiKeyHint').textContent='Get key at '+AI_PROVIDERS[prov].url;
     $('aiStatus').innerHTML='Provider switched to '+AI_PROVIDERS[prov].name;
   });
   $('aiModel').addEventListener('change', function(){
-    localStorage.setItem('ai_model',this.value);
+    uStore.setItem('ai_model',this.value);
     syncAiCfgToNative();
     if(getAiKey()) $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Model: '+this.value+'</span>';
   });
   $('btnAiSave').addEventListener('click', function(){
     var k=$('aiApiKey').value.trim();
     if(!k){$('aiStatus').textContent='Enter a key first.';return;}
-    localStorage.setItem('ai_key',k);
-    localStorage.setItem('ai_provider',$('aiProvider').value);
-    localStorage.setItem('ai_model',$('aiModel').value);
+    uStore.setItem('ai_key',k);
+    uStore.setItem('ai_provider',$('aiProvider').value);
+    uStore.setItem('ai_model',$('aiModel').value);
     syncAiCfgToNative();
     $('aiApiKey').value='';
     $('aiStatus').innerHTML='<span style="color:var(--sGreen)">✓ Saved · '+AI_PROVIDERS[$('aiProvider').value].name+' · '+$('aiModel').value+'</span>';
     renderInsights();
   });
   $('btnAiClear').addEventListener('click', function(){
-    localStorage.removeItem('ai_key'); localStorage.removeItem('ai_weekly_narr'); localStorage.removeItem('ai_weekly_narr_day');
+    uStore.removeItem('ai_key'); uStore.removeItem('ai_weekly_narr'); uStore.removeItem('ai_weekly_narr_day');
     syncAiCfgToNative();
     $('aiStatus').innerHTML='Key removed.';
     renderInsights();
@@ -8656,7 +8727,7 @@ function init(){
     ask.innerHTML='Clear this conversation?<div class="uaiBtns" style="margin-top:8px"><button data-cc="no">Cancel</button><button data-cc="yes">'+(window.ICON?ICON('trash'):'')+'Clear</button></div>';
     ask.addEventListener('click', function(e){
       var b=e.target.closest('button'); if(!b) return;
-      if(b.getAttribute('data-cc')==='yes'){ log.innerHTML=''; try{localStorage.removeItem('uai_chat_history_v1');localStorage.removeItem('uai_pending_action_v1');}catch(e){} if($('uaiWelcome'))$('uaiWelcome').style.display=''; $('uaiInput').value=''; $('uaiInput').focus(); }
+      if(b.getAttribute('data-cc')==='yes'){ log.innerHTML=''; try{uStore.removeItem('uai_chat_history_v1');uStore.removeItem('uai_pending_action_v1');}catch(e){} if($('uaiWelcome'))$('uaiWelcome').style.display=''; $('uaiInput').value=''; $('uaiInput').focus(); }
       else ask.remove();
     });
     log.appendChild(ask); log.scrollTop=log.scrollHeight;
@@ -8728,7 +8799,7 @@ function init(){
   });
   $('syncSignin').addEventListener('click', function(){ doSyncSignin(false); });
   $('syncSignup').addEventListener('click', function(){ doSyncSignin(true); });
-  $('syncSignout').addEventListener('click', function(){ if(fbAuth){ try{ fbAuth.signOut(); toastN('Signed out'); }catch(e){} } });
+  $('syncSignout').addEventListener('click', function(){ signOutKeepData(); });
   /* ===== Profiles UI ===== */
   window.renderProfiles=function(){
     var box=$('profileList'); if(!box) return;
@@ -8798,7 +8869,7 @@ function init(){
     if(!isOnline()){ toastN('You are offline — connect and try again'); return; }
     if(!confirm('Re-pull all data from the cloud onto this device? Cloud data is the source of truth.')) return;
     toastN('Restoring from cloud…'); setSyncState('syncing');
-    try{ Object.keys(syncPendingRecords).forEach(function(k){ if(syncPendingRecords[k]&&syncPendingRecords[k].deleted) delete syncPendingRecords[k]; }); localStorage.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords)); }catch(e){}
+    try{ Object.keys(syncPendingRecords).forEach(function(k){ if(syncPendingRecords[k]&&syncPendingRecords[k].deleted) delete syncPendingRecords[k]; }); uStore.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords)); }catch(e){}
     var ref=recordsRef();
     if(ref){
       ref.once('value').then(function(snap){
@@ -9022,7 +9093,7 @@ function init(){
   autoBackupDaily();
   // Do not persist an empty startup state before Firebase has had a chance to hydrate a fresh install.
   // This prevents a blank WebView from being treated as newer local data and overwriting cloud data.
-  if(hasMeaningfulData(state)) { var _bj=stateJson(); if(_bj){ try{ localStorage.setItem(KEY, _bj); }catch(e){} } }
+  if(hasMeaningfulData(state)) { var _bj=stateJson(); if(_bj){ try{ uStore.setItem(KEY, _bj); }catch(e){} } }
   /* perf: let the first frame paint before the Firebase SDKs load and parse */
   if(typeof initSync==='function') setTimeout(initSync, 400);
   if(state.set.pin) showLock('unlock');
@@ -9032,6 +9103,8 @@ function init(){
 }
 /* ===== Onboarding (first run) ===== */
 function initOnboarding(){
+  if(document.documentElement.classList.contains('authGate')){ window.__onbPending=true; return; }
+  try{ if(sessionStorage.getItem('hb_post_login') && !window.__onbWaited){ window.__onbWaited=true; setTimeout(function(){ try{ initOnboarding(); }catch(e){} },5000); return; } }catch(e){}
   if(state.set && state.set.onboarded) return;
   /* Skip onboarding if the user already has data (existing user upgrading) */
   if(hasMeaningfulData(state)){ state.set.onboarded=true; persist(); return; }

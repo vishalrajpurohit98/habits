@@ -97,3 +97,14 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Fixed: a stray "\n" was visible in the Cloud sync panel (builds 50–51).
   - Setup: `docs/GOOGLE_SETUP.md`.
 - **Build 53:** Google Web client ID set (`GOOGLE_WEB_CLIENT_ID`), so Continue with Google and web photo sync are enabled for every device.
+- **privacy.html:** public privacy policy (for the Google OAuth consent screen), served at `/habits/privacy.html`.
+- **Build 54 — sign-in required, one account = one private space:**
+  - Fresh installs open on a sign-in screen (Continue with Google, or email + password with Create account and
+    Forgot password). The app opens only after sign-in and stays signed in, offline too.
+  - Each account has its own data on the device as well as in the cloud: signing out keeps it, another account starts
+    with its own data, and switching back restores yours. Data created before this update belongs to the first account
+    that signs in on that device. The Android copy used by widgets/notifications is tagged with its owner and is never
+    imported into another account.
+  - Google sign-in turns journal-photo sync on automatically for that Google account (no separate Connect); email
+    accounts can tap Link Google. "Change sign-in email" is shown only for password accounts.
+  - Fixed: "Switch / add profile" called a function that did not exist (row removed; profile menu now signs out safely).
