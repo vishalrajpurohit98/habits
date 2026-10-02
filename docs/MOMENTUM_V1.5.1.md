@@ -80,3 +80,10 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Settings › Cloud sync › "Journal photos on Google Drive": connect once; photos upload after saving an entry and
     missing photos download on app start/resume, via the `drive.appdata` scope (hidden app folder in the user's Drive).
     Setup: `docs/GOOGLE_DRIVE_PHOTOS_SETUP.md`.
+- **Build 50 — sync account email:**
+  - Settings › Cloud sync › "Change sign-in email": re-confirms the password, Firebase emails a verification link to
+    the new address; after confirming, sign in with the new email and the same password. Same account, so every
+    synced record stays in place on every phone.
+  - Fixed: signing in to a different, empty sync account uploaded only recent changes (the device's sync state was not
+    tied to an account). The device now remembers which account it synced with and uploads everything to a new empty
+    account. Switching to an account that already has data behaves as before.

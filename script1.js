@@ -5905,8 +5905,11 @@ function applyRemoteRecords(snapVal, force){
   if(changed){window._syncProgressAt=Date.now();state=normState(state);var json=stateJson();if(json){try{localStorage.setItem(KEY,json);}catch(e){}if(nat){try{nat.saveState(json);}catch(e){}}}applyTheme();applyGrey();reRenderCurrent();}
   return changed;
 }
+var syncAccountChanged=false;
 function attachFirestoreSync(u){
   fbUser=u; if(!fbDB) return;
+  /* which account was this device last synced with? (the sync shadow is per device, not per account) */
+  try{ var _prev=localStorage.getItem('hb_sync_uid'); syncAccountChanged = !!(_prev && u && _prev!==u.uid); if(u) localStorage.setItem('hb_sync_uid',u.uid); }catch(_e){ syncAccountChanged=false; }
   fbRef=recordsRef();
   syncInitialHydration=true;
   setSyncState('syncing');
@@ -5924,6 +5927,9 @@ function syncReconcile(){
   /* Read the whole records tree once, apply remote, then push local pending. */
   return ref.once('value').then(function(snap){
     var val=snap.val();
+    /* switched to a NEW, empty account: upload everything this device has, not only recent changes */
+    if(syncAccountChanged && !val){ try{ syncRecordShadow={}; localStorage.setItem('hb_sync_record_shadow','{}'); }catch(_e){} }
+    syncAccountChanged=false;
     if(val){
       var freshRestore = !hasMeaningfulData(state);
       if(freshRestore){ try{ Object.keys(syncPendingRecords).forEach(function(k){ if(syncPendingRecords[k]&&syncPendingRecords[k].deleted) delete syncPendingRecords[k]; }); }catch(e){} }
@@ -6817,6 +6823,40 @@ window.onDriveEvent=function(type,a,b){
   var r=window.onNativeResume; window.onNativeResume=function(){ var x=r?r.apply(this,arguments):undefined; try{ setTimeout(function(){ DrivePhotos.syncNow(false); },1500); }catch(e){} return x; };
   var sj=saveJr; saveJr=function(){ var had=jrEd&&jrEd.photos&&jrEd.photos.length; var x=sj.apply(this,arguments); try{ if(had) setTimeout(function(){ DrivePhotos.syncNow(false); },2000); }catch(e){} return x; };
 })();
+/* ================= Change the sign-in email of the existing sync account =================
+   Same Firebase account (same uid) => every synced record stays where it is; only the login email changes. */
+function openChangeEmail(){
+  if(!fbUser||!fbAuth){ toastN('Sign in to Cloud sync first'); return; }
+  var o=$('emailChangeSheet');
+  if(!o){ o=document.createElement('div'); o.className='sheet'; o.id='emailChangeSheet';
+    o.innerHTML='<div class="grab"></div><h2>Change sign-in email</h2>'
+      +'<div class="setS" style="margin:-4px 0 12px">Your synced data stays in the same account. Only the email you sign in with changes.</div>'
+      +'<div class="lbl">Current email</div><div class="setT" id="ecCurrent" style="margin:0 0 12px"></div>'
+      +'<div class="lbl">New email</div><input class="inp" id="ecNew" type="email" autocomplete="email" placeholder="name@example.com">'
+      +'<div class="lbl" style="margin-top:12px">Current password</div><input class="inp" id="ecPw" type="password" autocomplete="current-password" placeholder="Confirm it is you">'
+      +'<div class="setS" id="ecMsg" style="margin:10px 2px 0;min-height:18px"></div>'
+      +'<button class="primary" id="ecSend" type="button" style="width:100%;margin-top:12px">Send verification link</button>';
+    document.body.appendChild(o);
+    o.querySelector('#ecSend').addEventListener('click',function(){
+      var ne=$('ecNew').value.trim(), pw=$('ecPw').value, msg=$('ecMsg'), u=fbAuth.currentUser;
+      function say(t,err){ msg.textContent=t; msg.style.color=err?'var(--coral)':'var(--mut)'; }
+      if(!u){ say('You are signed out. Sign in again first.',true); return; }
+      if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(ne)){ say('Enter a valid new email address.',true); return; }
+      if(ne.toLowerCase()===String(u.email||'').toLowerCase()){ say('That is already your sign-in email.',true); return; }
+      if(!pw){ say('Enter your current password.',true); return; }
+      say('Checking\u2026',false); this.disabled=true; var btn=this;
+      u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,pw))
+        .then(function(){ return u.verifyBeforeUpdateEmail(ne); })
+        .then(function(){ say('Link sent to '+ne+'. Open it to confirm. Then sign in here with '+ne+' and your same password. All your data will be there.',false); btn.textContent='Done'; btn.disabled=false; btn.onclick=function(){ closeSheet(); }; })
+        .catch(function(e){ btn.disabled=false; var c=e&&e.code||'';
+          say(c==='auth/wrong-password'||c==='auth/invalid-credential'||c==='auth/invalid-login-credentials'?'That password is not correct.':c==='auth/email-already-in-use'?'That email already has a Momentum sync account. Sign in to it instead, or use another email.':c==='auth/too-many-requests'?'Too many attempts. Try again in a few minutes.':c==='auth/operation-not-allowed'?'Email change is disabled in Firebase (Authentication > Settings > User actions).':prettyAuthErr(e),true); });
+    });
+  }
+  $('ecCurrent').textContent=fbUser.email||''; $('ecNew').value=''; $('ecPw').value=''; $('ecMsg').textContent='';
+  var b=$('ecSend'); b.textContent='Send verification link'; b.disabled=false; b.onclick=null;
+  openSheet('emailChangeSheet');
+}
+document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#syncChangeEmail')) openChangeEmail(); });
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;
