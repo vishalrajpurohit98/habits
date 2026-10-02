@@ -96,3 +96,4 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     Google account used to sign in.
   - Fixed: a stray "\n" was visible in the Cloud sync panel (builds 50–51).
   - Setup: `docs/GOOGLE_SETUP.md`.
+- **Build 53:** Google Web client ID set (`GOOGLE_WEB_CLIENT_ID`), so Continue with Google and web photo sync are enabled for every device.
