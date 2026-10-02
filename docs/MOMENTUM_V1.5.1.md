@@ -79,7 +79,7 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     signing certificate SHA-1 for the Google Cloud setup.
   - Settings › Cloud sync › "Journal photos on Google Drive": connect once; photos upload after saving an entry and
     missing photos download on app start/resume, via the `drive.appdata` scope (hidden app folder in the user's Drive).
-    Setup: `docs/GOOGLE_DRIVE_PHOTOS_SETUP.md`.
+    Setup: `docs/GOOGLE_SETUP.md`.
 - **Build 50 — sync account email:**
   - Settings › Cloud sync › "Change sign-in email": re-confirms the password, Firebase emails a verification link to
     the new address; after confirming, sign in with the new email and the same password. Same account, so every
@@ -87,3 +87,12 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Fixed: signing in to a different, empty sync account uploaded only recent changes (the device's sync state was not
     tied to an account). The device now remembers which account it synced with and uploads everything to a new empty
     account. Switching to an account that already has data behaves as before.
+- **Build 51:** buttons the app hides (web Drive "Connect", "Remove PIN" without a PIN, notification buttons on web, expanded "More" buttons) were forced visible by an `!important` display rule in the button system; fixed.
+- **Build 52 — one Google account for everything:**
+  - Settings › Cloud sync › **Continue with Google** (signed out) or **Link Google** (signed in, keeps the same
+    account and data). Android uses Credential Manager natively; browsers use Firebase's Google pop-up.
+  - Journal photo sync now also works in the **web browser** (hosted on https) through Google Identity Services and
+    the Drive REST API — same hidden folder, so phone and web share photos. Drive connects automatically with the
+    Google account used to sign in.
+  - Fixed: a stray "\n" was visible in the Cloud sync panel (builds 50–51).
+  - Setup: `docs/GOOGLE_SETUP.md`.

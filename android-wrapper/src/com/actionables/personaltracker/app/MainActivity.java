@@ -728,6 +728,10 @@ public class MainActivity extends Activity {
         /* Journal photos on the user's own Google Drive (drive.appdata scope) */
         @JavascriptInterface public boolean driveIsOn(){ return DriveSync.isOn(MainActivity.this); }
         @JavascriptInterface public void driveConnect(){ runOnUiThread(() -> DriveSync.connect(MainActivity.this, driveEmit)); }
+        @JavascriptInterface public void driveConnectAs(String email){ runOnUiThread(() -> DriveSync.connect(MainActivity.this, email, driveEmit)); }
+        /* Continue with Google: native account picker -> Google ID token -> web layer signs in to Firebase */
+        @JavascriptInterface public void googleSignIn(String webClientId){ runOnUiThread(() -> GoogleAuth.signIn(MainActivity.this, webClientId, (tok, email, err) ->
+            js("window.onGoogleIdToken&&window.onGoogleIdToken(" + org.json.JSONObject.quote(tok==null?"":tok) + "," + org.json.JSONObject.quote(email==null?"":email) + "," + org.json.JSONObject.quote(err==null?"":err) + ")"))); }
         @JavascriptInterface public void driveDisconnect(){ DriveSync.disconnect(MainActivity.this); }
         @JavascriptInterface public void driveList(){ DriveSync.list(MainActivity.this, driveEmit); }
         @JavascriptInterface public void driveUpload(String name, String b64){ if(name!=null&&name.matches("ph[a-z0-9]+\\.jpg")) DriveSync.upload(MainActivity.this, name, b64, driveEmit); }

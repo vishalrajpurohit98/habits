@@ -41,14 +41,20 @@ public class DriveSync {
     static SharedPreferences prefs(Context c) { return c.getSharedPreferences(PREFS, Context.MODE_PRIVATE); }
     static boolean isOn(Context c) { return prefs(c).getBoolean("on", false); }
 
-    static AuthorizationRequest request() {
-        return AuthorizationRequest.builder().setRequestedScopes(Collections.singletonList(new Scope(SCOPE))).build();
+    static AuthorizationRequest request() { return request(null); }
+    /** With an email, Drive uses that same Google account (the one used for Continue with Google). */
+    static AuthorizationRequest request(String email) {
+        AuthorizationRequest.Builder b = AuthorizationRequest.builder().setRequestedScopes(Collections.singletonList(new Scope(SCOPE)));
+        if (email != null && email.contains("@")) b.setAccount(new android.accounts.Account(email, "com.google"));
+        return b.build();
     }
 
     /** Interactive connect: shows Google's account picker / consent screen when needed. */
-    static void connect(final Activity a, final Emit emit) {
+    static void connect(final Activity a, final Emit emit) { connect(a, null, emit); }
+    static void connect(final Activity a, final String email, final Emit emit) {
+        if (email != null && email.contains("@")) prefs(a).edit().putString("email", email).apply();
         AuthorizationClient client = Identity.getAuthorizationClient(a);
-        client.authorize(request())
+        client.authorize(request(email))
             .addOnSuccessListener(res -> {
                 if (res.hasResolution() && res.getPendingIntent() != null) {
                     try { a.startIntentSenderForResult(res.getPendingIntent().getIntentSender(), REQ_DRIVE, null, 0, 0, 0, null); }
@@ -73,7 +79,7 @@ public class DriveSync {
     /** Background thread only: a valid access token, refreshed silently; null if the user must consent again. */
     private static String ensureToken(Activity a, boolean forceRefresh) throws Exception {
         if (token != null && !forceRefresh) return token;
-        AuthorizationResult r = Tasks.await(Identity.getAuthorizationClient(a).authorize(request()), 30, TimeUnit.SECONDS);
+        AuthorizationResult r = Tasks.await(Identity.getAuthorizationClient(a).authorize(request(prefs(a).getString("email", null))), 30, TimeUnit.SECONDS);
         if (r.hasResolution()) return null;
         token = r.getAccessToken();
         return token;

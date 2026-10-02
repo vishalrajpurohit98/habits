@@ -1915,7 +1915,7 @@ body{font-size:15px;line-height:1.5}
 /* ---------- BUTTONS (one system) ----------
    .btnP primary · .btnS secondary.  Text that performs an action is always one of these. */
 .btnP,.btnS,.textBtn,.todaySyncBtn,#jrAskDayBtn,.selBar .selToggle,.addT,.miniLink,.uaiClear,#pgTasks .taskHeadBtn,.setBackBtn,.moreBtn{
-  display:inline-flex!important;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 14px!important;border-radius:var(--r-md)!important;
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 14px!important;border-radius:var(--r-md)!important;
   font-size:14px!important;font-weight:600!important;letter-spacing:0;line-height:1;text-decoration:none;cursor:pointer;white-space:nowrap;
   background:var(--card3)!important;color:var(--ink)!important;border:var(--bw) solid var(--line)!important;box-shadow:none!important}
 .btnP,#pgTasks .taskAddBtn{background:var(--amber)!important;color:var(--onAccent)!important;border-color:transparent!important}
@@ -2088,7 +2088,7 @@ html.light .expHero2{background:radial-gradient(130% 110% at 100% 0%,rgba(222,13
 /* chips & filters */
 .chip,.taskPill,.uaiCategory,.tpl,.heroAcctChip,.pickGrid button,.uaiHint,.chipAdd{min-height:40px;padding:0 14px!important;border-radius:999px!important;font-size:14px!important;font-weight:500!important;line-height:1.2;gap:6px}
 /* secondary buttons: legacy .sbtn joins the button system */
-.sbtn{display:inline-flex!important;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 14px!important;border-radius:var(--r-md)!important;font-size:14px!important;font-weight:600!important;background:var(--card3)!important;color:var(--ink)!important;border:var(--bw) solid var(--line)!important;box-shadow:none!important}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:40px;padding:0 14px!important;border-radius:var(--r-md)!important;font-size:14px!important;font-weight:600!important;background:var(--card3)!important;color:var(--ink)!important;border:var(--bw) solid var(--line)!important;box-shadow:none!important}
 .sbtn.acc{color:var(--amber)!important}
 .uaiClear{min-height:40px!important}
 /* primary buttons */
@@ -2245,6 +2245,12 @@ html.bigText .segX{display:grid!important;grid-template-columns:repeat(2,minmax(
 .phViewX{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;background:rgba(255,255,255,.12)!important;color:#fff!important}
 .phViewX .ic{color:#fff!important}
 .driveNote{padding:0 2px 4px;margin-top:6px;color:var(--mut2)!important}
+/* Continue with Google (Google sign-in branding: white button, multicolour G, dark text) */
+.gBtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:48px;border-radius:var(--r-md);border:1px solid #DADCE0;background:#FFFFFF;color:#1F1F1F;font-size:15px;font-weight:600;margin:4px 0 2px}
+.gBtn:active{background:#F1F3F4}
+.gLogo{width:20px;height:20px;flex-shrink:0}
+.orRule{display:flex;align-items:center;gap:10px;margin:14px 0 12px;color:var(--mut2);font-size:12px}
+.orRule::before,.orRule::after{content:'';flex:1;height:1px;background:var(--line)}
 /* active workout session */
 #wkSession{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;padding:calc(10px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
 #wkSession.on{display:flex;animation:simpleTabFade 100ms ease-out}
@@ -3363,7 +3369,9 @@ html,body{overflow-x:hidden}
       <!-- state 2: configured, signed out -->
       <div id="syncAuth" style="display:none">
         <div id="profileList" class="profileList"></div>
-        <div class="setS" style="margin-bottom:10px">Sign in on each device with the same email to sync. Each profile keeps its own private cloud data.</div>
+        <div class="setS" style="margin-bottom:10px">Sign in on each device with the same account to sync. Each profile keeps its own private cloud data.</div>
+        <button class="gBtn" id="syncGoogle" type="button"><svg class="gLogo" viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg><span>Continue with Google</span></button>
+        <div class="orRule"><span>or use email</span></div>
         <input id="syncEmail" class="inp" type="email" autocomplete="email" placeholder="Email" style="margin-bottom:8px">
         <input id="syncPw" class="inp" type="password" autocomplete="current-password" placeholder="Password (6+ characters)" style="margin-bottom:10px">
         <div style="display:flex;gap:8px"><button class="sbtn" id="syncSignup">Create account</button><button class="sbtn acc" id="syncSignin">Sign in</button></div>
@@ -3375,7 +3383,9 @@ html,body{overflow-x:hidden}
         <div class="setRow"><div class="setInfo"><div class="setT">Synced</div><div class="setS" id="syncWho"></div></div><span class="syncDot" id="syncDot"></span></div>
         <div class="setRow"><div class="setInfo"><div class="setT">Last synced</div><div class="setS" id="syncLast">—</div></div><button class="sbtn acc" id="syncNow">Sync now</button></div>
         <div class="setRow"><div class="setInfo"><div class="setT">Restore from cloud</div><div class="setS">Re-pull everything from the cloud onto this device</div></div><button class="sbtn" id="syncRestore">Restore</button></div>
-        <div class="setRow"><div class="setInfo"><div class="setT">Change sign-in email</div><div class="setS">Keep all synced data and sign in with a different email</div></div><button class="sbtn" id="syncChangeEmail">Change</button></div>\n        <div class="setRow"><div class="setInfo"><div class="setT">Switch / add profile</div><div class="setS">Sign out and switch to another person's account</div></div><button class="sbtn acc" id="syncSwitch">Switch</button></div>
+        <div class="setRow" id="syncGoogleRow"><div class="setInfo"><div class="setT">Google account</div><div class="setS" id="syncGoogleS">Link Google to sign in with one tap and sync journal photos</div></div><button class="sbtn acc" id="syncGoogleLink">Link Google</button></div>
+        <div class="setRow"><div class="setInfo"><div class="setT">Change sign-in email</div><div class="setS">Keep all synced data and sign in with a different email</div></div><button class="sbtn" id="syncChangeEmail">Change</button></div>
+        <div class="setRow"><div class="setInfo"><div class="setT">Switch / add profile</div><div class="setS">Sign out and switch to another person's account</div></div><button class="sbtn acc" id="syncSwitch">Switch</button></div>
         <div class="setRow"><div class="setInfo"><div class="setT" style="color:var(--coral)">Sign out</div><div class="setS">Stops syncing on this device</div></div><button class="sbtn" id="syncSignout">Sign out</button></div>
       </div>
       <div class="setS" id="syncOffline" style="display:none;color:var(--mut)">You're offline — sync will resume when you're back online.</div>
@@ -9801,6 +9811,9 @@ var DEFAULT_SYNC_CFG = {
   messagingSenderId: '34132591511',
   appId: '1:34132591511:web:6646118b60e4710cb13ad2'
 };
+/* Google sign-in + web Drive: the "Web client ID" from Firebase > Authentication > Sign-in method > Google
+   (Web SDK configuration). It can also be added to the sync config JSON as "googleClientId". */
+var GOOGLE_WEB_CLIENT_ID = '';
 var RTDB_SDK_URL = 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database-compat.js';
 var fbApp=null, fbAuth=null, fbDB=null, fbRef=null, fbUser=null, fbUnsub=null, syncMetaDoc=null;
 var syncBusy=false, syncApplying=false, syncPushT=null, syncLastAt=0, syncLastDevice='', syncLastState='', syncCfg=null, syncState='', syncLegacyMode=false, syncInitialHydration=true;
@@ -10057,6 +10070,7 @@ function renderSyncUI(){
   if(fbUser){
     show('syncSetup',false);show('syncAuth',false);show('syncOn',true);
     $('syncWho').textContent=fbUser.email||'signed in';
+    try{ var gl=googleLinked(), gb=$('syncGoogleLink'), gs=$('syncGoogleS'); if(gb){ gb.style.display=gl?'none':''; } if(gs) gs.textContent=gl?('Linked \u00b7 sign in with one tap on any device'):'Link Google to sign in with one tap and sync journal photos'; }catch(_e){}
     var label=syncState==='syncing'?'Syncing…':syncState==='cached'||offline?'Offline (cached)':syncState==='error'?'Sync error':'Synced';
     $('syncOn').querySelector('.setT').textContent=label;
     $('syncLast').textContent=syncLastAt?('at '+new Date(syncLastAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})):'waiting…';
@@ -10832,12 +10846,12 @@ function jrPhotoCleanup(){ try{ var txt=JSON.stringify(state)+' '+Object.keys(lo
    upload every referenced local photo missing on Drive, download every referenced photo missing on this device. */
 var DrivePhotos={
   busy:false, waiters:{}, queued:false,
-  avail:function(){ return typeof nat!=='undefined' && !!nat && !!nat.driveConnect; },
-  on:function(){ try{ return this.avail() && nat.driveIsOn(); }catch(e){ return false; } },
+  avail:function(){ return DriveApi.native() || WebDrive.avail(); },
+  on:function(){ try{ return this.avail() && DriveApi.isOn(); }catch(e){ return false; } },
   refIds:function(){ var ids={}; (state.jr||[]).concat(state.trash&&state.trash.jr||[]).forEach(function(e){ (e&&e.photos||[]).forEach(function(p){ if(/^ph[a-z0-9]+$/.test(p)) ids[p]=1; }); }); return Object.keys(ids); },
   status:function(t){ var el=$('driveStatus'); if(el) el.textContent=t; },
   ui:function(){ var b=$('driveBtn'), r2=$('driveRow2'); if(!b) return;
-    if(!this.avail()){ b.style.display='none'; if(r2) r2.style.display='none'; this.status('Available in the Android app. Photos are still included in Journal backup and Backup (JSON).'); return; }
+    if(!this.avail()){ b.style.display='none'; if(r2) r2.style.display='none'; this.status(isNativeApp()?'Update the Android app to use Google Drive photo sync.':(!webOriginOk()?'Open Momentum from its website (https) to sync photos with Google Drive. Photos are still included in Journal backup and Backup (JSON).':'Google Drive needs one setup step: add your Google Web client ID (see the Google sign-in setup guide).')); return; }
     var on=this.on(); b.style.display=''; b.textContent=on?'Disconnect':'Connect'; b.classList.toggle('acc',!on); if(r2) r2.style.display=on?'':'none';
     var l=$('driveLast'); if(l){ var t=state.set.driveLast; l.textContent=t?('Last synced '+new Date(t).toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+(state.set.driveCount!=null?' \u00b7 '+state.set.driveCount+' photo'+(state.set.driveCount===1?'':'s')+' on Drive':'')):'Not synced yet'; }
     if(!this.busy) this.status(on?'Connected. New journal photos are backed up automatically.':'Automatically back up and sync journal photos to a private folder in your own Google Drive.'); },
@@ -10846,7 +10860,7 @@ var DrivePhotos={
   syncNow:function(manual){
     var self=this; if(!this.on()) return; if(this.busy){ this.queued=true; return; }
     this.busy=true; this.status('Syncing photos\u2026');
-    var listP=this.wait('list'); try{ nat.driveList(); }catch(e){ this.settle('list',{ok:false,err:String(e)}); }
+    var listP=this.wait('list'); try{ DriveApi.list(manual); }catch(e){ this.settle('list',{ok:false,err:String(e)}); }
     listP.then(function(r){
       if(!r.ok) throw new Error(r.err||'list failed');
       var remote={}; (r.files||[]).forEach(function(f){ var m=/^(ph[a-z0-9]+)\.jpg$/.exec(f.name||''); if(m) remote[m[1]]=f.id; });
@@ -10855,8 +10869,8 @@ var DrivePhotos={
         var local={}; (keys||[]).forEach(function(k){ if(!/_t$/.test(k)) local[k]=1; });
         var up=ref.filter(function(id){ return local[id] && !remote[id]; }), down=ref.filter(function(id){ return !local[id] && remote[id]; }), okU=0, okD=0, fail=0;
         var chain=Promise.resolve();
-        up.forEach(function(id){ chain=chain.then(function(){ self.status('Uploading photos\u2026 '+(okU+1)+'/'+up.length); return PhotoDB.get(id).then(function(d){ if(!d) return; var w=self.wait('up:'+id+'.jpg'); nat.driveUpload(id+'.jpg', String(d).replace(/^data:image\/[a-z]+;base64,/,'')); return w.then(function(x){ if(x.ok){ okU++; remote[id]=1; } else fail++; }); }); }); });
-        down.forEach(function(id){ chain=chain.then(function(){ self.status('Downloading photos\u2026 '+(okD+1)+'/'+down.length); var w=self.wait('down:'+id+'.jpg'); nat.driveDownload(id+'.jpg', remote[id]);
+        up.forEach(function(id){ chain=chain.then(function(){ self.status('Uploading photos\u2026 '+(okU+1)+'/'+up.length); return PhotoDB.get(id).then(function(d){ if(!d) return; var w=self.wait('up:'+id+'.jpg'); DriveApi.upload(id+'.jpg', String(d).replace(/^data:image\/[a-z]+;base64,/,'')); return w.then(function(x){ if(x.ok){ okU++; remote[id]=1; } else fail++; }); }); }); });
+        down.forEach(function(id){ chain=chain.then(function(){ self.status('Downloading photos\u2026 '+(okD+1)+'/'+down.length); var w=self.wait('down:'+id+'.jpg'); DriveApi.download(id+'.jpg', remote[id]);
           return w.then(function(x){ if(!x.ok||!x.b64){ fail++; return; } var du='data:image/jpeg;base64,'+x.b64; return PhotoDB.put(id,du).then(function(){ return jrScale(du,360,.75); }).then(function(t){ return t?PhotoDB.put(id+'_t',t):null; }).then(function(){ okD++; }); }); }); });
         return chain.then(function(){
           state.set.driveLast=Date.now(); state.set.driveCount=Object.keys(remote).length; persist();
@@ -10874,7 +10888,7 @@ window.onDriveEvent=function(type,a,b){
   var D=DrivePhotos;
   if(type==='connected'){ toastN('Google Drive connected'); D.ui(); D.syncNow(true); return; }
   if(type==='error'){ D.settle('list',{ok:false,err:a}); D.busy=false; D.ui(); D.status(a||'Google Drive error'); toastN(a||'Google Drive error'); return; }
-  if(type==='consent'){ D.settle('list',{ok:false,err:'Google Drive needs your permission again'}); D.busy=false; D.status('Tap Disconnect, then Connect to allow Google Drive again.'); return; }
+  if(type==='consent'){ D.settle('list',{ok:false,err:'Google Drive needs your permission again'}); D.busy=false; D.status(DriveApi.native()?'Tap Disconnect, then Connect to allow Google Drive again.':'Tap Sync to refresh Google Drive access.'); return; }
   if(type==='list'){ var files=[]; try{ files=JSON.parse(a)||[]; }catch(e){} D.settle('list',{ok:true,files:files}); return; }
   if(type==='uploaded'){ D.settle('up:'+a,{ok:true}); return; }
   if(type==='uploadFailed'){ D.settle('up:'+a,{ok:false,err:b}); return; }
@@ -10883,9 +10897,9 @@ window.onDriveEvent=function(type,a,b){
 };
 (function(){
   var btn=$('driveBtn'), sb=$('driveSyncBtn');
-  if(btn) btn.addEventListener('click',function(){ if(!DrivePhotos.avail()) return; if(DrivePhotos.on()){ if(confirm('Disconnect Google Drive? Photos already on Drive stay there.')){ nat.driveDisconnect(); DrivePhotos.ui(); toastN('Google Drive disconnected'); } } else { DrivePhotos.status('Opening Google\u2026'); nat.driveConnect(); } });
+  if(btn) btn.addEventListener('click',function(){ if(!DrivePhotos.avail()) return; if(DrivePhotos.on()){ if(confirm('Disconnect Google Drive? Photos already on Drive stay there.')){ DriveApi.disconnect(); DrivePhotos.ui(); toastN('Google Drive disconnected'); } } else { DrivePhotos.status('Opening Google\u2026'); DriveApi.connect(state.set.googleEmail||(fbUser&&fbUser.email)||''); } });
   if(sb) sb.addEventListener('click',function(){ DrivePhotos.syncNow(true); });
-  DrivePhotos.ui();
+  setTimeout(function(){ try{ DrivePhotos.ui(); }catch(e){} },0); /* after the whole script (DriveApi/WebDrive) has loaded */
   setTimeout(function(){ DrivePhotos.syncNow(false); },6000);
   var r=window.onNativeResume; window.onNativeResume=function(){ var x=r?r.apply(this,arguments):undefined; try{ setTimeout(function(){ DrivePhotos.syncNow(false); },1500); }catch(e){} return x; };
   var sj=saveJr; saveJr=function(){ var had=jrEd&&jrEd.photos&&jrEd.photos.length; var x=sj.apply(this,arguments); try{ if(had) setTimeout(function(){ DrivePhotos.syncNow(false); },2000); }catch(e){} return x; };
@@ -10924,6 +10938,108 @@ function openChangeEmail(){
   openSheet('emailChangeSheet');
 }
 document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#syncChangeEmail')) openChangeEmail(); });
+/* ================= Continue with Google (Cloud sync) ================= */
+var DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata';
+function googleClientId(){ try{ return String((syncCfg&&syncCfg.googleClientId)||GOOGLE_WEB_CLIENT_ID||'').trim(); }catch(e){ return ''; } }
+function isNativeApp(){ return typeof nat!=='undefined' && !!nat; }
+function webOriginOk(){ return location.protocol==='https:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname); }
+function googleLinked(u){ u=u||fbUser; return !!(u&&u.providerData&&u.providerData.some(function(p){ return p&&p.providerId==='google.com'; })); }
+function googleSetupMsg(){ return 'Google sign-in needs one setup step: add your Google Web client ID (see the Google sign-in setup guide).'; }
+function googleErr(e){
+  var c=(e&&e.code)||'', m;
+  if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request'||c==='cancelled') m='';
+  else if(c==='auth/popup-blocked') m='Your browser blocked the Google window. Allow pop-ups for this site and try again.';
+  else if(c==='auth/unauthorized-domain') m='Add this website to Firebase > Authentication > Settings > Authorized domains.';
+  else if(c==='auth/operation-not-allowed') m='Turn on Google in Firebase > Authentication > Sign-in method.';
+  else if(c==='auth/account-exists-with-different-credential') m='This email already has a password sign-in. Sign in with your email and password once, then tap Link Google.';
+  else if(c==='auth/credential-already-in-use') m='This Google account is already linked to a different Momentum account. Sign out and use Continue with Google to open that account.';
+  else if(c==='auth/provider-already-linked') m='Google is already linked to this account.';
+  else m=(e&&e.message)?e.message:'Google sign-in failed';
+  if(m) syncMsg(m,true); else syncMsg('',false);
+  try{ renderSyncUI(); }catch(_){}
+}
+function afterGoogle(user, accessToken, email){
+  syncMsg('',false);
+  try{ rememberProfile(user.email||email, (state.set&&state.set.name)||String(user.email||email||'').split('@')[0]); renderProfiles&&renderProfiles(); }catch(e){}
+  state.set.googleEmail=user.email||email||''; persist();
+  toastN('Signed in with Google'+(user.email?' \u00b7 '+user.email:''));
+  if(accessToken) WebDrive.setToken(accessToken,3300);
+  setTimeout(function(){ try{ if(DrivePhotos.avail() && !DrivePhotos.on()) DriveApi.connect(state.set.googleEmail); renderSyncUI(); }catch(e){} },500);
+}
+function continueWithGoogle(){
+  if(!googleClientId()){ syncMsg(googleSetupMsg(),true); return; }
+  if(!isNativeApp() && !webOriginOk()){ syncMsg('Open Momentum from its website (https) to use Google sign-in in a browser.',true); return; }
+  syncMsg('Opening Google\u2026',false);
+  ensureFirebaseReady().then(function(){
+    if(isNativeApp() && nat.googleSignIn){ nat.googleSignIn(googleClientId()); return; }
+    var p=new firebase.auth.GoogleAuthProvider(); p.addScope(DRIVE_SCOPE); p.setCustomParameters({prompt:'select_account'});
+    var cur=fbAuth.currentUser;
+    return (cur ? cur.linkWithPopup(p) : fbAuth.signInWithPopup(p)).then(function(res){ afterGoogle(res.user, res.credential&&res.credential.accessToken); });
+  }).catch(googleErr);
+}
+/* native Android: Credential Manager returned a Google ID token */
+window.onGoogleIdToken=function(idToken,email,err){
+  if(err){ googleErr({message:err}); return; }
+  if(!idToken){ syncMsg('',false); return; }
+  ensureFirebaseReady().then(function(){
+    var cred=firebase.auth.GoogleAuthProvider.credential(idToken), cur=fbAuth.currentUser;
+    return (cur ? cur.linkWithCredential(cred) : fbAuth.signInWithCredential(cred)).then(function(r){ afterGoogle(r.user,null,email); });
+  }).catch(googleErr);
+};
+document.addEventListener('click',function(e){ var t=e.target&&e.target.closest&&e.target.closest('#syncGoogle,#syncGoogleLink'); if(t) continueWithGoogle(); });
+
+/* ================= Web Drive engine (browser): same hidden folder, same events as the Android bridge ================= */
+var WebDrive={
+  tok:null, exp:0, gisP:null,
+  avail:function(){ return !isNativeApp() && webOriginOk() && !!googleClientId(); },
+  setToken:function(t,secs){ this.tok=t; this.exp=Date.now()+(secs||3300)*1000; },
+  loadGis:function(){ var self=this; if(this.gisP) return this.gisP;
+    this.gisP=new Promise(function(res,rej){ if(window.google&&google.accounts&&google.accounts.oauth2) return res();
+      var sc=document.createElement('script'); sc.src='https://accounts.google.com/gsi/client'; sc.async=true; sc.onload=function(){ res(); }; sc.onerror=function(){ self.gisP=null; rej(new Error('Could not load Google sign-in')); }; document.head.appendChild(sc); });
+    return this.gisP; },
+  token:function(interactive){ var self=this;
+    if(this.tok && Date.now()<this.exp-60000) return Promise.resolve(this.tok);
+    return this.loadGis().then(function(){ return new Promise(function(res,rej){
+      var c=google.accounts.oauth2.initTokenClient({ client_id:googleClientId(), scope:DRIVE_SCOPE, hint:(state.set.googleEmail||(fbUser&&fbUser.email)||''),
+        callback:function(r){ if(r&&r.access_token){ self.setToken(r.access_token, +r.expires_in||3300); res(r.access_token); } else rej(new Error((r&&r.error)||'not granted')); },
+        error_callback:function(er){ rej(new Error(er&&er.type||'popup_closed')); } });
+      c.requestAccessToken({prompt: interactive ? '' : 'none'}); }); }); },
+  emit:function(t,a,b){ try{ window.onDriveEvent&&window.onDriveEvent(t,a||'',b||''); }catch(e){} },
+  call:function(method,url,body,type,interactive,retried){ var self=this;
+    return this.token(interactive).then(function(t){ var h={Authorization:'Bearer '+t}; if(type) h['Content-Type']=type;
+      return fetch(url,{method:method,headers:h,body:body||undefined}); })
+      .then(function(r){ if(r.status===401 && !retried){ self.tok=null; return self.call(method,url,body,type,interactive,true); } if(!r.ok) throw new Error('Drive error '+r.status); return r; }); },
+  list:function(interactive){ var self=this, all=[];
+    function page(tk){ return self.call('GET','https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&pageSize=1000&fields=nextPageToken,files(id,name,size)'+(tk?'&pageToken='+encodeURIComponent(tk):''),null,null,interactive)
+      .then(function(r){ return r.json(); }).then(function(o){ (o.files||[]).forEach(function(f){ all.push(f); }); return o.nextPageToken?page(o.nextPageToken):all; }); }
+    page(null).then(function(a){ self.emit('list',JSON.stringify(a)); }).catch(function(e){ var m=String(e&&e.message||e);
+      if(/interaction_required|consent_required|login_required|popup_failed|popup_closed|not granted|access_denied/i.test(m)) self.emit('consent'); else self.emit('error',/Failed to fetch|NetworkError/i.test(m)?'No internet connection':m); }); },
+  upload:function(name,b64){ var self=this, bin=atob(b64), u8=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+    var bd='mmtm'+Date.now(), meta=JSON.stringify({name:name,parents:['appDataFolder']});
+    var body=new Blob(['--'+bd+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n--'+bd+'\r\nContent-Type: image/jpeg\r\n\r\n',u8,'\r\n--'+bd+'--']);
+    this.call('POST','https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',body,'multipart/related; boundary='+bd,false)
+      .then(function(){ self.emit('uploaded',name); }).catch(function(e){ self.emit('uploadFailed',name,String(e&&e.message||e)); }); },
+  download:function(name,id){ var self=this;
+    this.call('GET','https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(id)+'?alt=media',null,null,false).then(function(r){ return r.arrayBuffer(); })
+      .then(function(ab){ var u8=new Uint8Array(ab), str='', CH=0x8000; for(var i=0;i<u8.length;i+=CH) str+=String.fromCharCode.apply(null,u8.subarray(i,i+CH)); self.emit('downloaded',name,btoa(str)); })
+      .catch(function(e){ self.emit('downloadFailed',name,String(e&&e.message||e)); }); }
+};
+/* one Drive API for photo sync, whichever platform this is */
+var DriveApi={
+  native:function(){ return isNativeApp() && !!nat.driveConnect; },
+  isOn:function(){ try{ return this.native() ? !!nat.driveIsOn() : (WebDrive.avail() && state.set.driveWebOn===true); }catch(e){ return false; } },
+  connect:function(email){
+    if(this.native()){ try{ if(email && nat.driveConnectAs) nat.driveConnectAs(email); else nat.driveConnect(); }catch(e){} return; }
+    WebDrive.token(true).then(function(){ state.set.driveWebOn=true; persist(); WebDrive.emit('connected'); })
+      .catch(function(e){ WebDrive.emit('error',/popup_closed|access_denied|not granted/i.test(String(e&&e.message))?'Google Drive access was not granted':String(e&&e.message||e)); }); },
+  disconnect:function(){ if(this.native()){ try{ nat.driveDisconnect(); }catch(e){} return; }
+    try{ if(WebDrive.tok&&window.google&&google.accounts&&google.accounts.oauth2) google.accounts.oauth2.revoke(WebDrive.tok,function(){}); }catch(e){}
+    WebDrive.tok=null; state.set.driveWebOn=false; persist(); },
+  list:function(interactive){ if(this.native()) nat.driveList(); else WebDrive.list(!!interactive); },
+  upload:function(n,b){ if(this.native()) nat.driveUpload(n,b); else WebDrive.upload(n,b); },
+  download:function(n,id){ if(this.native()) nat.driveDownload(n,id); else WebDrive.download(n,id); }
+};
+
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;

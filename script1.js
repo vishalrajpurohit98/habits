@@ -5734,6 +5734,9 @@ var DEFAULT_SYNC_CFG = {
   messagingSenderId: '34132591511',
   appId: '1:34132591511:web:6646118b60e4710cb13ad2'
 };
+/* Google sign-in + web Drive: the "Web client ID" from Firebase > Authentication > Sign-in method > Google
+   (Web SDK configuration). It can also be added to the sync config JSON as "googleClientId". */
+var GOOGLE_WEB_CLIENT_ID = '';
 var RTDB_SDK_URL = 'https://www.gstatic.com/firebasejs/12.1.0/firebase-database-compat.js';
 var fbApp=null, fbAuth=null, fbDB=null, fbRef=null, fbUser=null, fbUnsub=null, syncMetaDoc=null;
 var syncBusy=false, syncApplying=false, syncPushT=null, syncLastAt=0, syncLastDevice='', syncLastState='', syncCfg=null, syncState='', syncLegacyMode=false, syncInitialHydration=true;
@@ -5990,6 +5993,7 @@ function renderSyncUI(){
   if(fbUser){
     show('syncSetup',false);show('syncAuth',false);show('syncOn',true);
     $('syncWho').textContent=fbUser.email||'signed in';
+    try{ var gl=googleLinked(), gb=$('syncGoogleLink'), gs=$('syncGoogleS'); if(gb){ gb.style.display=gl?'none':''; } if(gs) gs.textContent=gl?('Linked \u00b7 sign in with one tap on any device'):'Link Google to sign in with one tap and sync journal photos'; }catch(_e){}
     var label=syncState==='syncing'?'Syncing…':syncState==='cached'||offline?'Offline (cached)':syncState==='error'?'Sync error':'Synced';
     $('syncOn').querySelector('.setT').textContent=label;
     $('syncLast').textContent=syncLastAt?('at '+new Date(syncLastAt).toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'})):'waiting…';
@@ -6765,12 +6769,12 @@ function jrPhotoCleanup(){ try{ var txt=JSON.stringify(state)+' '+Object.keys(lo
    upload every referenced local photo missing on Drive, download every referenced photo missing on this device. */
 var DrivePhotos={
   busy:false, waiters:{}, queued:false,
-  avail:function(){ return typeof nat!=='undefined' && !!nat && !!nat.driveConnect; },
-  on:function(){ try{ return this.avail() && nat.driveIsOn(); }catch(e){ return false; } },
+  avail:function(){ return DriveApi.native() || WebDrive.avail(); },
+  on:function(){ try{ return this.avail() && DriveApi.isOn(); }catch(e){ return false; } },
   refIds:function(){ var ids={}; (state.jr||[]).concat(state.trash&&state.trash.jr||[]).forEach(function(e){ (e&&e.photos||[]).forEach(function(p){ if(/^ph[a-z0-9]+$/.test(p)) ids[p]=1; }); }); return Object.keys(ids); },
   status:function(t){ var el=$('driveStatus'); if(el) el.textContent=t; },
   ui:function(){ var b=$('driveBtn'), r2=$('driveRow2'); if(!b) return;
-    if(!this.avail()){ b.style.display='none'; if(r2) r2.style.display='none'; this.status('Available in the Android app. Photos are still included in Journal backup and Backup (JSON).'); return; }
+    if(!this.avail()){ b.style.display='none'; if(r2) r2.style.display='none'; this.status(isNativeApp()?'Update the Android app to use Google Drive photo sync.':(!webOriginOk()?'Open Momentum from its website (https) to sync photos with Google Drive. Photos are still included in Journal backup and Backup (JSON).':'Google Drive needs one setup step: add your Google Web client ID (see the Google sign-in setup guide).')); return; }
     var on=this.on(); b.style.display=''; b.textContent=on?'Disconnect':'Connect'; b.classList.toggle('acc',!on); if(r2) r2.style.display=on?'':'none';
     var l=$('driveLast'); if(l){ var t=state.set.driveLast; l.textContent=t?('Last synced '+new Date(t).toLocaleString(undefined,{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})+(state.set.driveCount!=null?' \u00b7 '+state.set.driveCount+' photo'+(state.set.driveCount===1?'':'s')+' on Drive':'')):'Not synced yet'; }
     if(!this.busy) this.status(on?'Connected. New journal photos are backed up automatically.':'Automatically back up and sync journal photos to a private folder in your own Google Drive.'); },
@@ -6779,7 +6783,7 @@ var DrivePhotos={
   syncNow:function(manual){
     var self=this; if(!this.on()) return; if(this.busy){ this.queued=true; return; }
     this.busy=true; this.status('Syncing photos\u2026');
-    var listP=this.wait('list'); try{ nat.driveList(); }catch(e){ this.settle('list',{ok:false,err:String(e)}); }
+    var listP=this.wait('list'); try{ DriveApi.list(manual); }catch(e){ this.settle('list',{ok:false,err:String(e)}); }
     listP.then(function(r){
       if(!r.ok) throw new Error(r.err||'list failed');
       var remote={}; (r.files||[]).forEach(function(f){ var m=/^(ph[a-z0-9]+)\.jpg$/.exec(f.name||''); if(m) remote[m[1]]=f.id; });
@@ -6788,8 +6792,8 @@ var DrivePhotos={
         var local={}; (keys||[]).forEach(function(k){ if(!/_t$/.test(k)) local[k]=1; });
         var up=ref.filter(function(id){ return local[id] && !remote[id]; }), down=ref.filter(function(id){ return !local[id] && remote[id]; }), okU=0, okD=0, fail=0;
         var chain=Promise.resolve();
-        up.forEach(function(id){ chain=chain.then(function(){ self.status('Uploading photos\u2026 '+(okU+1)+'/'+up.length); return PhotoDB.get(id).then(function(d){ if(!d) return; var w=self.wait('up:'+id+'.jpg'); nat.driveUpload(id+'.jpg', String(d).replace(/^data:image\/[a-z]+;base64,/,'')); return w.then(function(x){ if(x.ok){ okU++; remote[id]=1; } else fail++; }); }); }); });
-        down.forEach(function(id){ chain=chain.then(function(){ self.status('Downloading photos\u2026 '+(okD+1)+'/'+down.length); var w=self.wait('down:'+id+'.jpg'); nat.driveDownload(id+'.jpg', remote[id]);
+        up.forEach(function(id){ chain=chain.then(function(){ self.status('Uploading photos\u2026 '+(okU+1)+'/'+up.length); return PhotoDB.get(id).then(function(d){ if(!d) return; var w=self.wait('up:'+id+'.jpg'); DriveApi.upload(id+'.jpg', String(d).replace(/^data:image\/[a-z]+;base64,/,'')); return w.then(function(x){ if(x.ok){ okU++; remote[id]=1; } else fail++; }); }); }); });
+        down.forEach(function(id){ chain=chain.then(function(){ self.status('Downloading photos\u2026 '+(okD+1)+'/'+down.length); var w=self.wait('down:'+id+'.jpg'); DriveApi.download(id+'.jpg', remote[id]);
           return w.then(function(x){ if(!x.ok||!x.b64){ fail++; return; } var du='data:image/jpeg;base64,'+x.b64; return PhotoDB.put(id,du).then(function(){ return jrScale(du,360,.75); }).then(function(t){ return t?PhotoDB.put(id+'_t',t):null; }).then(function(){ okD++; }); }); }); });
         return chain.then(function(){
           state.set.driveLast=Date.now(); state.set.driveCount=Object.keys(remote).length; persist();
@@ -6807,7 +6811,7 @@ window.onDriveEvent=function(type,a,b){
   var D=DrivePhotos;
   if(type==='connected'){ toastN('Google Drive connected'); D.ui(); D.syncNow(true); return; }
   if(type==='error'){ D.settle('list',{ok:false,err:a}); D.busy=false; D.ui(); D.status(a||'Google Drive error'); toastN(a||'Google Drive error'); return; }
-  if(type==='consent'){ D.settle('list',{ok:false,err:'Google Drive needs your permission again'}); D.busy=false; D.status('Tap Disconnect, then Connect to allow Google Drive again.'); return; }
+  if(type==='consent'){ D.settle('list',{ok:false,err:'Google Drive needs your permission again'}); D.busy=false; D.status(DriveApi.native()?'Tap Disconnect, then Connect to allow Google Drive again.':'Tap Sync to refresh Google Drive access.'); return; }
   if(type==='list'){ var files=[]; try{ files=JSON.parse(a)||[]; }catch(e){} D.settle('list',{ok:true,files:files}); return; }
   if(type==='uploaded'){ D.settle('up:'+a,{ok:true}); return; }
   if(type==='uploadFailed'){ D.settle('up:'+a,{ok:false,err:b}); return; }
@@ -6816,9 +6820,9 @@ window.onDriveEvent=function(type,a,b){
 };
 (function(){
   var btn=$('driveBtn'), sb=$('driveSyncBtn');
-  if(btn) btn.addEventListener('click',function(){ if(!DrivePhotos.avail()) return; if(DrivePhotos.on()){ if(confirm('Disconnect Google Drive? Photos already on Drive stay there.')){ nat.driveDisconnect(); DrivePhotos.ui(); toastN('Google Drive disconnected'); } } else { DrivePhotos.status('Opening Google\u2026'); nat.driveConnect(); } });
+  if(btn) btn.addEventListener('click',function(){ if(!DrivePhotos.avail()) return; if(DrivePhotos.on()){ if(confirm('Disconnect Google Drive? Photos already on Drive stay there.')){ DriveApi.disconnect(); DrivePhotos.ui(); toastN('Google Drive disconnected'); } } else { DrivePhotos.status('Opening Google\u2026'); DriveApi.connect(state.set.googleEmail||(fbUser&&fbUser.email)||''); } });
   if(sb) sb.addEventListener('click',function(){ DrivePhotos.syncNow(true); });
-  DrivePhotos.ui();
+  setTimeout(function(){ try{ DrivePhotos.ui(); }catch(e){} },0); /* after the whole script (DriveApi/WebDrive) has loaded */
   setTimeout(function(){ DrivePhotos.syncNow(false); },6000);
   var r=window.onNativeResume; window.onNativeResume=function(){ var x=r?r.apply(this,arguments):undefined; try{ setTimeout(function(){ DrivePhotos.syncNow(false); },1500); }catch(e){} return x; };
   var sj=saveJr; saveJr=function(){ var had=jrEd&&jrEd.photos&&jrEd.photos.length; var x=sj.apply(this,arguments); try{ if(had) setTimeout(function(){ DrivePhotos.syncNow(false); },2000); }catch(e){} return x; };
@@ -6857,6 +6861,108 @@ function openChangeEmail(){
   openSheet('emailChangeSheet');
 }
 document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#syncChangeEmail')) openChangeEmail(); });
+/* ================= Continue with Google (Cloud sync) ================= */
+var DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata';
+function googleClientId(){ try{ return String((syncCfg&&syncCfg.googleClientId)||GOOGLE_WEB_CLIENT_ID||'').trim(); }catch(e){ return ''; } }
+function isNativeApp(){ return typeof nat!=='undefined' && !!nat; }
+function webOriginOk(){ return location.protocol==='https:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname); }
+function googleLinked(u){ u=u||fbUser; return !!(u&&u.providerData&&u.providerData.some(function(p){ return p&&p.providerId==='google.com'; })); }
+function googleSetupMsg(){ return 'Google sign-in needs one setup step: add your Google Web client ID (see the Google sign-in setup guide).'; }
+function googleErr(e){
+  var c=(e&&e.code)||'', m;
+  if(c==='auth/popup-closed-by-user'||c==='auth/cancelled-popup-request'||c==='cancelled') m='';
+  else if(c==='auth/popup-blocked') m='Your browser blocked the Google window. Allow pop-ups for this site and try again.';
+  else if(c==='auth/unauthorized-domain') m='Add this website to Firebase > Authentication > Settings > Authorized domains.';
+  else if(c==='auth/operation-not-allowed') m='Turn on Google in Firebase > Authentication > Sign-in method.';
+  else if(c==='auth/account-exists-with-different-credential') m='This email already has a password sign-in. Sign in with your email and password once, then tap Link Google.';
+  else if(c==='auth/credential-already-in-use') m='This Google account is already linked to a different Momentum account. Sign out and use Continue with Google to open that account.';
+  else if(c==='auth/provider-already-linked') m='Google is already linked to this account.';
+  else m=(e&&e.message)?e.message:'Google sign-in failed';
+  if(m) syncMsg(m,true); else syncMsg('',false);
+  try{ renderSyncUI(); }catch(_){}
+}
+function afterGoogle(user, accessToken, email){
+  syncMsg('',false);
+  try{ rememberProfile(user.email||email, (state.set&&state.set.name)||String(user.email||email||'').split('@')[0]); renderProfiles&&renderProfiles(); }catch(e){}
+  state.set.googleEmail=user.email||email||''; persist();
+  toastN('Signed in with Google'+(user.email?' \u00b7 '+user.email:''));
+  if(accessToken) WebDrive.setToken(accessToken,3300);
+  setTimeout(function(){ try{ if(DrivePhotos.avail() && !DrivePhotos.on()) DriveApi.connect(state.set.googleEmail); renderSyncUI(); }catch(e){} },500);
+}
+function continueWithGoogle(){
+  if(!googleClientId()){ syncMsg(googleSetupMsg(),true); return; }
+  if(!isNativeApp() && !webOriginOk()){ syncMsg('Open Momentum from its website (https) to use Google sign-in in a browser.',true); return; }
+  syncMsg('Opening Google\u2026',false);
+  ensureFirebaseReady().then(function(){
+    if(isNativeApp() && nat.googleSignIn){ nat.googleSignIn(googleClientId()); return; }
+    var p=new firebase.auth.GoogleAuthProvider(); p.addScope(DRIVE_SCOPE); p.setCustomParameters({prompt:'select_account'});
+    var cur=fbAuth.currentUser;
+    return (cur ? cur.linkWithPopup(p) : fbAuth.signInWithPopup(p)).then(function(res){ afterGoogle(res.user, res.credential&&res.credential.accessToken); });
+  }).catch(googleErr);
+}
+/* native Android: Credential Manager returned a Google ID token */
+window.onGoogleIdToken=function(idToken,email,err){
+  if(err){ googleErr({message:err}); return; }
+  if(!idToken){ syncMsg('',false); return; }
+  ensureFirebaseReady().then(function(){
+    var cred=firebase.auth.GoogleAuthProvider.credential(idToken), cur=fbAuth.currentUser;
+    return (cur ? cur.linkWithCredential(cred) : fbAuth.signInWithCredential(cred)).then(function(r){ afterGoogle(r.user,null,email); });
+  }).catch(googleErr);
+};
+document.addEventListener('click',function(e){ var t=e.target&&e.target.closest&&e.target.closest('#syncGoogle,#syncGoogleLink'); if(t) continueWithGoogle(); });
+
+/* ================= Web Drive engine (browser): same hidden folder, same events as the Android bridge ================= */
+var WebDrive={
+  tok:null, exp:0, gisP:null,
+  avail:function(){ return !isNativeApp() && webOriginOk() && !!googleClientId(); },
+  setToken:function(t,secs){ this.tok=t; this.exp=Date.now()+(secs||3300)*1000; },
+  loadGis:function(){ var self=this; if(this.gisP) return this.gisP;
+    this.gisP=new Promise(function(res,rej){ if(window.google&&google.accounts&&google.accounts.oauth2) return res();
+      var sc=document.createElement('script'); sc.src='https://accounts.google.com/gsi/client'; sc.async=true; sc.onload=function(){ res(); }; sc.onerror=function(){ self.gisP=null; rej(new Error('Could not load Google sign-in')); }; document.head.appendChild(sc); });
+    return this.gisP; },
+  token:function(interactive){ var self=this;
+    if(this.tok && Date.now()<this.exp-60000) return Promise.resolve(this.tok);
+    return this.loadGis().then(function(){ return new Promise(function(res,rej){
+      var c=google.accounts.oauth2.initTokenClient({ client_id:googleClientId(), scope:DRIVE_SCOPE, hint:(state.set.googleEmail||(fbUser&&fbUser.email)||''),
+        callback:function(r){ if(r&&r.access_token){ self.setToken(r.access_token, +r.expires_in||3300); res(r.access_token); } else rej(new Error((r&&r.error)||'not granted')); },
+        error_callback:function(er){ rej(new Error(er&&er.type||'popup_closed')); } });
+      c.requestAccessToken({prompt: interactive ? '' : 'none'}); }); }); },
+  emit:function(t,a,b){ try{ window.onDriveEvent&&window.onDriveEvent(t,a||'',b||''); }catch(e){} },
+  call:function(method,url,body,type,interactive,retried){ var self=this;
+    return this.token(interactive).then(function(t){ var h={Authorization:'Bearer '+t}; if(type) h['Content-Type']=type;
+      return fetch(url,{method:method,headers:h,body:body||undefined}); })
+      .then(function(r){ if(r.status===401 && !retried){ self.tok=null; return self.call(method,url,body,type,interactive,true); } if(!r.ok) throw new Error('Drive error '+r.status); return r; }); },
+  list:function(interactive){ var self=this, all=[];
+    function page(tk){ return self.call('GET','https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&pageSize=1000&fields=nextPageToken,files(id,name,size)'+(tk?'&pageToken='+encodeURIComponent(tk):''),null,null,interactive)
+      .then(function(r){ return r.json(); }).then(function(o){ (o.files||[]).forEach(function(f){ all.push(f); }); return o.nextPageToken?page(o.nextPageToken):all; }); }
+    page(null).then(function(a){ self.emit('list',JSON.stringify(a)); }).catch(function(e){ var m=String(e&&e.message||e);
+      if(/interaction_required|consent_required|login_required|popup_failed|popup_closed|not granted|access_denied/i.test(m)) self.emit('consent'); else self.emit('error',/Failed to fetch|NetworkError/i.test(m)?'No internet connection':m); }); },
+  upload:function(name,b64){ var self=this, bin=atob(b64), u8=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) u8[i]=bin.charCodeAt(i);
+    var bd='mmtm'+Date.now(), meta=JSON.stringify({name:name,parents:['appDataFolder']});
+    var body=new Blob(['--'+bd+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n--'+bd+'\r\nContent-Type: image/jpeg\r\n\r\n',u8,'\r\n--'+bd+'--']);
+    this.call('POST','https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',body,'multipart/related; boundary='+bd,false)
+      .then(function(){ self.emit('uploaded',name); }).catch(function(e){ self.emit('uploadFailed',name,String(e&&e.message||e)); }); },
+  download:function(name,id){ var self=this;
+    this.call('GET','https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(id)+'?alt=media',null,null,false).then(function(r){ return r.arrayBuffer(); })
+      .then(function(ab){ var u8=new Uint8Array(ab), str='', CH=0x8000; for(var i=0;i<u8.length;i+=CH) str+=String.fromCharCode.apply(null,u8.subarray(i,i+CH)); self.emit('downloaded',name,btoa(str)); })
+      .catch(function(e){ self.emit('downloadFailed',name,String(e&&e.message||e)); }); }
+};
+/* one Drive API for photo sync, whichever platform this is */
+var DriveApi={
+  native:function(){ return isNativeApp() && !!nat.driveConnect; },
+  isOn:function(){ try{ return this.native() ? !!nat.driveIsOn() : (WebDrive.avail() && state.set.driveWebOn===true); }catch(e){ return false; } },
+  connect:function(email){
+    if(this.native()){ try{ if(email && nat.driveConnectAs) nat.driveConnectAs(email); else nat.driveConnect(); }catch(e){} return; }
+    WebDrive.token(true).then(function(){ state.set.driveWebOn=true; persist(); WebDrive.emit('connected'); })
+      .catch(function(e){ WebDrive.emit('error',/popup_closed|access_denied|not granted/i.test(String(e&&e.message))?'Google Drive access was not granted':String(e&&e.message||e)); }); },
+  disconnect:function(){ if(this.native()){ try{ nat.driveDisconnect(); }catch(e){} return; }
+    try{ if(WebDrive.tok&&window.google&&google.accounts&&google.accounts.oauth2) google.accounts.oauth2.revoke(WebDrive.tok,function(){}); }catch(e){}
+    WebDrive.tok=null; state.set.driveWebOn=false; persist(); },
+  list:function(interactive){ if(this.native()) nat.driveList(); else WebDrive.list(!!interactive); },
+  upload:function(n,b){ if(this.native()) nat.driveUpload(n,b); else WebDrive.upload(n,b); },
+  download:function(n,id){ if(this.native()) nat.driveDownload(n,id); else WebDrive.download(n,id); }
+};
+
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;
