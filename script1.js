@@ -1301,11 +1301,14 @@ var AI_PROVIDERS = {
       {id:'gemini-2.5-flash-lite',label:'Gemini 2.5 Flash-Lite · free'},
       {id:'gemini-2.5-pro',label:'Gemini 2.5 Pro · limited free'}
     ],
-    call: function(key, model, prompt, max){
-      var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent';
+    call: function(key, model, prompt, max, opts){
+      var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent'; var gc={maxOutputTokens:max||300};
+      if(/gemini-2\.5-flash/.test(model)) gc.thinkingConfig={thinkingBudget:0};        /* thinking tokens would count against the reply limit */
+      else if(/gemini-(2\.5-pro|3)/.test(model)) gc.maxOutputTokens=(max||300)+2048; /* these always think: leave room for the answer */
+      if(opts&&opts.json) gc.responseMimeType='application/json';
       return aiFetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
-        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:max||300}})},25000).then(function(r){if(!r.ok) throw new Error('API '+r.status);return r.json();})
-        .then(function(d){try{return d.candidates[0].content.parts[0].text;}catch(e){throw new Error('Empty response');}});
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gc})},45000).then(function(r){if(!r.ok) throw new Error('API '+r.status);return r.json();})
+        .then(function(d){try{ var t=d.candidates[0].content.parts.filter(function(p){ return !p.thought; }).map(function(p){ return p.text||''; }).join(''); if(!t) throw 0; return t; }catch(e){throw new Error('Empty response');}});
     },
     listModels: function(key){
       return fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+key)
@@ -1405,12 +1408,12 @@ if(!uStore.getItem('ai_key')&&uStore.getItem('gem_api_key')){
 
 function getGemKey(){ return getAiKey(); }
 
-function gemCall(prompt, maxTokens){
+function gemCall(prompt, maxTokens, opts){
   var key=getAiKey(); if(!key) return Promise.reject(new Error('No API key'));
   var prov=AI_PROVIDERS[getAiProvider()];
   if(!prov) return Promise.reject(new Error('Unknown provider'));
   var model=getAiModel();
-  return prov.call(key, model, prompt, maxTokens);
+  return prov.call(key, model, prompt, maxTokens, opts);
 }
 
 /* ============ UNIVERSAL AI ACTION ENGINE ============ */
@@ -1824,12 +1827,12 @@ function uaiSend(text){
   log.innerHTML+='<div class="uaiMsg bot" id="uaiTyping" style="opacity:.5">Thinking…</div>';log.scrollTop=log.scrollHeight;
   var context=uaiChatContext();
   try{var _jpf=uStore.getItem('uai_prefill_context');if(_jpf){context=_jpf+'\n\n'+context;uStore.removeItem('uai_prefill_context');}}catch(e){}
-  gemCall(uaiPrompt(text,context),500).then(function(raw){
+  gemCall(uaiPrompt(text,context),1500,{json:true}).then(function(raw){
     var el=$('uaiTyping');if(el)el.remove();
-    var clean=raw.replace(/```json|```/g,'').trim(),result;
-    try{result=JSON.parse(clean);}catch(e){
-      var fallback=raw.replace(/<[^>]*>/g,'').replace(/\*\*(.*?)\*\*/g,'$1').trim();
-      log.innerHTML+='<div class="uaiMsg bot">'+fallback.replace(/</g,'&lt;')+'</div>';saveUaiChatTurn('assistant',fallback);log.scrollTop=log.scrollHeight;return;
+    var result=aiExtractJson(raw);
+    if(!result){
+      var fallback=aiPlainText(raw);
+      log.innerHTML+='<div class="uaiMsg bot" data-md="1">'+aiMd(fallback)+'</div>';saveUaiChatTurn('assistant',fallback);log.scrollTop=log.scrollHeight;return;
     }
     /* ===== Multi-step / batch actions ===== */
     var _batch = Array.isArray(result && result.actions) ? result.actions : null;
@@ -3939,7 +3942,7 @@ function jrAiBox(target,label){
 }
 function jrAiShow(target,label,text,sources){
   var el=$(target); if(!el) return;
-  var safe=String(text||'').replace(/</g,'&lt;').replace(/&lt;br&gt;/g,'<br>').replace(/\*\*(.*?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+  var safe=aiMd(aiPlainText(text));
   var src='';
   if(sources && sources.length){
     src='<div class="jrSrc"><div class="sh">Based on '+sources.length+' journal '+(sources.length===1?'entry':'entries')+' \u00B7 Sources</div>'
@@ -7158,7 +7161,9 @@ function aiComposerPlace(){
   var wide=window.matchMedia&&window.matchMedia('(min-width:1000px)').matches;
   if(wide||!pg.classList.contains('on')){ c.classList.remove('fixed'); pg.style.paddingBottom=''; return; }
   c.classList.add('fixed');
-  var nr=nav?nav.getBoundingClientRect():null, gap=(nr&&nr.height)?Math.max(0,window.innerHeight-nr.top)+10:24;
+  var nr=nav?nav.getBoundingClientRect():null, fab=nav?nav.querySelector('.navFab'):null, top=nr?nr.top:window.innerHeight;
+  if(fab){ var fr=fab.getBoundingClientRect(); if(fr.height) top=Math.min(top,fr.top); }   /* the + button rises above the bar */
+  var gap=(nr&&nr.height)?Math.max(0,window.innerHeight-top)+10:24;
   c.style.bottom=gap+'px'; pg.style.paddingBottom=(c.offsetHeight+gap+12)+'px';
   var log=$('uaiLog'); if(log&&log.lastElementChild&&c.__lastN!==log.children.length){ c.__lastN=log.children.length; }
 }
@@ -7547,6 +7552,8 @@ function colorizeText(root){
     var c=t.status==='completed'?'':(t.priority==='high'?'coral':t.priority==='low'?'blue':'amber'); card.style.setProperty('--tc',c?'var('+TXC[c]+')':'var(--mut)'); });
   /* money: payee in its category colour */
   root.querySelectorAll('.txRow').forEach(function(r){ var ts=r.querySelector('.ts'), cat=ts?ts.textContent.split('\u00b7')[0].trim().toLowerCase():''; var c=CAT_COLOR[cat]||txcHash(cat); r.style.setProperty('--pc','var('+TXC[c]+')'); });
+  /* AI quick actions: one colour each */
+  root.querySelectorAll('#aiComposer .uaiHint').forEach(function(h){ var t=h.textContent.trim().toLowerCase(), c=/habit/.test(t)?'amber':/task/.test(t)?'blue':/expense|money|spend/.test(t)?'green':/overdue/.test(t)?'coral':/weekly/.test(t)?'teal':/month/.test(t)?'purple':'indigo'; h.style.setProperty('--hc','var('+TXC[c]+')'); });
   /* AI starter tiles: one colour each */
   root.querySelectorAll('#pgAI .uaiCategory').forEach(function(b,i){ b.style.setProperty('--txc','var('+TXC[['amber','green','orange','blue','purple','teal'][i%6]]+')'); });
 }
@@ -7558,6 +7565,119 @@ function colorizeText(root){
   var sg=document.getElementById('setCardGrid'); if(sg&&window.MutationObserver) new MutationObserver(schedule).observe(sg,{childList:true,subtree:true});
   setTimeout(run,0);
 })();
+
+/* ================= AI replies: never show raw JSON or code ================= */
+function aiExtractJson(raw){
+  var t=String(raw||'').trim().replace(/^```(?:json|javascript|js)?\s*/i,'').replace(/```\s*$/,'').trim();
+  try{ var o=JSON.parse(t); if(o&&typeof o==='object') return o; }catch(e){}
+  var a=t.indexOf('{'); if(a<0) return null;
+  var depth=0,inS=false,es=false;
+  for(var i=a;i<t.length;i++){ var c=t[i];
+    if(inS){ if(es) es=false; else if(c==='\\') es=true; else if(c==='"') inS=false; continue; }
+    if(c==='"') inS=true; else if(c==='{') depth++; else if(c==='}'){ depth--; if(depth===0){ try{ return JSON.parse(t.slice(a,i+1)); }catch(e){ break; } } } }
+  /* cut off mid-reply: recover the readable message */
+  var m=/"message"\s*:\s*"((?:[^"\\]|\\.)*)/.exec(t);
+  if(m){ var txt=m[1].replace(/\\$/,''); try{ txt=JSON.parse('"'+txt+'"'); }catch(e){ txt=txt.replace(/\\n/g,'\n').replace(/\\"/g,'"').replace(/\\\\/g,'\\'); }
+    var closed=/^"\s*[,}]/.test(t.slice(m.index+m[0].length)); var act=(/"action"\s*:\s*"([a-z_]+)"/.exec(t)||[])[1];
+    return {action:(act==='query'||!act)?'query':'clarify', message:txt+(closed?'':'\u2026'), _salvaged:true}; }
+  return null;
+}
+function aiPlainText(raw){ var t=String(raw||'').replace(/```[a-z]*\n?|```/gi,'').trim(); var j=aiExtractJson(t); if(j&&j.message) return String(j.message); return t.replace(/<[^>]*>/g,'').trim(); }
+function aiMd(text){ return doMdToHtml(String(text||'').replace(/<br\s*\/?>/gi,'\n')); }
+/* safety net: any plain-text bot message in the chat is cleaned and formatted */
+(function(){ var log=$('uaiLog'); if(!log||!window.MutationObserver) return;
+  function fix(el){ if(!el||!el.classList||!el.classList.contains('uaiMsg')||el.classList.contains('user')||el.getAttribute('data-md')) return;
+    if(el.querySelector('button,input,.uaiAction,.uaiBatch,a,img,b,i,ul,ol,p')) { el.setAttribute('data-md','1'); return; }
+    var txt=el.innerText||''; if(!txt.trim()) return; el.setAttribute('data-md','1');
+    if(/^\s*[{[]/.test(txt)||/"(action|message)"\s*:/.test(txt)) txt=aiPlainText(txt);
+    if(/[*_`#>\-]|\n/.test(txt)) el.innerHTML=aiMd(txt); else el.textContent=txt; }
+  new MutationObserver(function(muts){ muts.forEach(function(m){ [].forEach.call(m.addedNodes,function(n){ if(n.nodeType===1){ fix(n); if(n.querySelectorAll) [].forEach.call(n.querySelectorAll('.uaiMsg'),fix); } }); }); }).observe(log,{childList:true});
+})();
+
+/* ================= Journal header: writing prompt, journey tiles, entries bar ================= */
+var JR_SVG={
+  trophy:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 01-8 0V4z"/><path d="M8 6H5.5a2.5 2.5 0 002.5 4M16 6h2.5a2.5 2.5 0 01-2.5 4"/><path d="M12 13v3.5M9 20h6M10 16.5h4V20h-4z"/></svg>',
+  book:'<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 5.5A2.5 2.5 0 017.5 3H19v14H7.5A2.5 2.5 0 005 19.5z"/><path d="M5 19.5A1.5 1.5 0 006.5 21H19"/><path d="M9 7.5h6M9 11h4"/></svg>' };
+function jrHeadRefresh(){
+  var t=today(), n=jrBookList().filter(function(e){ return e.date===t; }).length, sub=$('jrNewSub');
+  if(sub){ var d=new Date(); sub.textContent = n ? (n+' entr'+(n===1?'y':'ies')+' today \u00b7 add another') : (d.toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'})+' \u00b7 tap to start'); }
+  var m=$('jrStatSubline'); if(m){ var mc=+jrMonthCount()||0; m.textContent = mc ? (mc+' this month') : ''; }
+}
+(function(){
+  var nb=$('jrNewBtn');
+  if(nb){ nb.innerHTML='<span class="jnIc">'+ICON('edit')+'</span><span class="jnTx"><b>How was your day?</b><small id="jrNewSub"></small></span><span class="jnGo">Write'+ICON('chev')+'</span>'; nb.setAttribute('aria-label','Write a journal entry'); }
+  var row=document.querySelector('#pgJr .jrStatRow4');
+  if(row){
+    var spec=[['jrStatStreak',ICON('flame'),'orange','Day streak'],['jrStatBest',JR_SVG.trophy,'amber','Best streak'],['jrStatTotal',JR_SVG.book,'coral','Entries'],['jrStatAllDays',ICON('calendar'),'teal','Days written']];
+    var html=spec.map(function(s){ return '<div class="jrStat4 jrTile" style="--tc:var(--tx-'+s[2]+')"><span class="jtIc">'+s[1]+'</span><b data-slot="'+s[0]+'"></b><small>'+s[3]+'</small></div>'; }).join('');
+    var nums=spec.map(function(s){ return $(s[0]); });
+    row.innerHTML=html;
+    spec.forEach(function(s,i){ var slot=row.querySelector('[data-slot="'+s[0]+'"]'); if(slot&&nums[i]) slot.appendChild(nums[i]); });
+  }
+  var title=document.querySelector('#pgJr .jrStatCardTitle'); if(title&&!$('jrStatSubline')) title.insertAdjacentHTML('afterend','<span class="jrStatSub" id="jrStatSubline"></span>');
+  var bar=$('jrSelBar'); if(bar&&!bar.querySelector('.jrSelLbl')){ bar.insertAdjacentHTML('afterbegin','<span class="jrSelLbl">Entries</span>');
+    var cnt=$('jrSelCount'); if(cnt&&window.MutationObserver) new MutationObserver(function(){ bar.classList.toggle('selecting',!!cnt.textContent.trim()); }).observe(cnt,{childList:true,characterData:true,subtree:true}); }
+  var rj=renderJr; renderJr=function(){ var r=rj.apply(this,arguments); try{ jrHeadRefresh(); }catch(e){} return r; };
+  setTimeout(function(){ try{ jrHeadRefresh(); }catch(e){} },0);
+})();
+
+/* ================= Journal editor layout (build 66) ================= */
+JR_SVG.image='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg>';
+JR_SVG.layout='<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M3.5 9h17M9.5 9v11.5"/></svg>';
+(function(){
+  var sheet=$('jrTitle')&&$('jrTitle').closest('.sheet'); if(!sheet) return;
+  sheet.classList.add('jrEdSheet');
+  var t=$('jrTitle'); t.setAttribute('placeholder','Title');
+  var block=sheet.querySelector('.jrDetailsBlock'); if(!block) return;
+  function row(ic,color,label,content){ var r=document.createElement('div'); r.className='jrDRow'; r.style.setProperty('--dc','var(--tx-'+color+')');
+    r.innerHTML='<span class="jrDIc">'+ic+'</span><span class="jrDLbl">'+label+'</span><div class="jrDCtl"></div>'; content.forEach(function(n){ if(n) r.querySelector('.jrDCtl').appendChild(n); }); return r; }
+  function sec(label){ var d=document.createElement('div'); d.className='jrSecLbl'; d.textContent=label; return d; }
+  var photos=$('jrPhotos'), bookSel=$('jrBookSel'), bookPick=sheet.querySelector('.jrBookPick'), meta=sheet.querySelector('.jrMetaRow'), date=$('jrDate'), time=$('jrTime'), loc=$('jrLocation'), mood=$('jrMoodRow'), tplBtn=$('jrTplPickBtn'), tplMenu=$('jrTplPick'), fav=$('jrFavRow'), aiBtn=$('jrAiMenuBtn');
+  /* photos: dashed tiles */
+  var ap=$('jrAddPhoto'), cp=$('jrCamPhoto');
+  if(ap) ap.innerHTML=JR_SVG.image+'<span>Add photos</span>'; if(cp) cp.innerHTML=ICON('camera')+'<span>Camera</span>';
+  /* details card: notebook / when / where */
+  var card=document.createElement('div'); card.className='jrDCard';
+  card.appendChild(row(JR_SVG.book,'coral','Notebook',[bookSel]));
+  card.appendChild(row(ICON('calendar'),'blue','When',[date,time]));
+  card.appendChild(row(ICON('pin'),'green','Place',[loc]));
+  if(loc){ loc.style.marginTop=''; loc.setAttribute('placeholder','Add a place'); }
+  if(bookPick) bookPick.remove(); if(meta) meta.remove();
+  /* tools: template + AI side by side */
+  var tools=document.createElement('div'); tools.className='jrToolsRow';
+  if(tplBtn){ tplBtn.removeAttribute('style'); tplBtn.innerHTML=JR_SVG.layout+'<span>Template</span>'; tools.appendChild(tplBtn); }
+  if(aiBtn){ aiBtn.innerHTML=ICON('ai')+'<span>AI actions</span>'; tools.appendChild(aiBtn); }
+  if(fav){ var sp=fav.querySelector('span'); if(sp&&!fav.querySelector('.jrFavIc')) sp.insertAdjacentHTML('beforebegin','<span class="jrFavIc">'+ICON('star')+'</span>'); }
+  /* rebuild the block in order */
+  var order=[sec('Photos'),photos,sec('Details'),card,sec('Mood'),mood,tools,tplMenu,$('jrAiMenu'),$('jrEntryAiOut'),fav];
+  order.forEach(function(n){ if(n) block.appendChild(n); });
+  var mc={great:'green',good:'teal',okay:'amber',low:'blue',diff:'coral'};
+  if(mood) [].forEach.call(mood.querySelectorAll('[data-jm]'),function(o){ o.style.setProperty('--mc','var(--tx-'+(mc[o.getAttribute('data-jm')]||'amber')+')'); o.setAttribute('role','button'); o.setAttribute('tabindex','0'); });
+})();
+/* journal: pick several photos at once on Android too */
+window.photoResultsMulti=function(names){
+  if(!Array.isArray(names)||!names.length) return;
+  var room=JR_MAX_PHOTOS-((jrEd&&jrEd.photos)||[]).length, take=names.slice(0,Math.max(0,room)), skipped=names.length-take.length;
+  take.reduce(function(p,name){ return p.then(function(){ if(!/^[A-Za-z0-9_.-]+$/.test(name)) return;
+      var b=''; try{ b=nat&&nat.readPhoto?nat.readPhoto(name):''; if(nat&&nat.deletePhoto) nat.deletePhoto(name); }catch(e){}
+      return b?jrAddPhotoData('data:image/jpeg;base64,'+b):null; }); },Promise.resolve())
+  .then(function(){ names.slice(take.length).forEach(function(n){ try{ if(nat&&nat.deletePhoto) nat.deletePhoto(n); }catch(e){} });
+    if(skipped>0) toastN('Up to '+JR_MAX_PHOTOS+' photos per entry \u00b7 '+skipped+' not added'); else if(take.length>1) toastN(take.length+' photos added'); });
+};
+(function(){ var ap=$('jrAddPhoto'); if(!ap) return;
+  ap.addEventListener('click',function(ev){ if(typeof nat!=='undefined'&&nat&&nat.pickPhotos){ ev.stopImmediatePropagation(); var room=JR_MAX_PHOTOS-((jrEd&&jrEd.photos)||[]).length; if(room<=0){ toastN('This entry already has '+JR_MAX_PHOTOS+' photos'); return; } try{ nat.pickPhotos(room); }catch(e){} } },true);
+})();
+/* ================= Tasks header (build 66) ================= */
+function taskTilesDecorate(){
+  var map={over:['clock','overdue'],today:['sun','today'],up:['calendar','upcoming'],done:['check','completed']};
+  document.querySelectorAll('#taskSummary .tscv').forEach(function(t){ if(t.querySelector('.tsIc')) return; var k=Object.keys(map).find(function(c){ return t.classList.contains(c); }); if(!k) return;
+    t.insertAdjacentHTML('afterbegin','<span class="tsIc">'+ICON(map[k][0])+'</span>'); t.setAttribute('role','button'); t.setAttribute('tabindex','0'); t.setAttribute('data-tsf',map[k][1]);
+    t.setAttribute('aria-label','Show '+(t.querySelector('.tscvL')||t).textContent.trim().toLowerCase()+' tasks'); });
+}
+(function(){ var sum=$('taskSummary'); if(!sum) return;
+  sum.addEventListener('click',function(e){ var t=e.target.closest('[data-tsf]'); if(!t) return; var pill=document.querySelector('#taskFilters [data-tf="'+t.getAttribute('data-tsf')+'"]'); if(pill) pill.click(); });
+  sum.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ var t=e.target.closest('[data-tsf]'); if(t){ e.preventDefault(); t.click(); } } });
+  if(window.MutationObserver) new MutationObserver(taskTilesDecorate).observe(sum,{childList:true,subtree:true}); taskTilesDecorate(); })();
 
 function climb(el, root, attr){
   while(el && el !== root){

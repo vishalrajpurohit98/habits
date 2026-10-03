@@ -29,6 +29,7 @@ public class MainActivity extends Activity {
     static final int REQ_EXACT = 402;
     static final int REQ_IMPORT = 403;
     static final int REQ_PHOTO = 404;
+    static final int REQ_PHOTOS = 405;   // journal: several photos at once
     static final int REQ_CAMERA = 406;
     static final int REQ_SPEECH = 407;
     static final int REQ_MIC_PERM = 408;
@@ -345,6 +346,21 @@ public class MainActivity extends Activity {
         try { startActivityForResult(i, REQ_PHOTO); } catch (Exception e) { toast("Photo picker unavailable"); }
     }
 
+    /** Journal: choose several photos. Android 13+ uses the system Photo Picker; older versions a multi-select document picker. */
+    void pickPhotos(int max) {
+        Intent i;
+        if (Build.VERSION.SDK_INT >= 33) {
+            i = new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES);
+            int lim = Math.min(Math.max(max, 1), android.provider.MediaStore.getPickImagesMaxLimit());
+            if (lim > 1) i.putExtra(android.provider.MediaStore.EXTRA_PICK_IMAGES_MAX, lim);
+        } else {
+            i = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+            i.addCategory(Intent.CATEGORY_OPENABLE); i.setType("image/*");
+            i.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        }
+        try { startActivityForResult(i, REQ_PHOTOS); } catch (Exception e) { pickPhoto(); }
+    }
+
     void capturePhoto() {
         if (Build.VERSION.SDK_INT >= 23 && checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             pendingCameraPermission = true;
@@ -583,6 +599,21 @@ public class MainActivity extends Activity {
                 try { getContentResolver().delete(pendingCameraUri,null,null); } catch(Exception ignored) {}
             }
             pendingCameraUri=null;
+        } else if (req == REQ_PHOTOS && result == RESULT_OK && data != null) {
+            java.util.List<Uri> uris = new java.util.ArrayList<>();
+            if (data.getClipData() != null) { for (int k = 0; k < data.getClipData().getItemCount(); k++) uris.add(data.getClipData().getItemAt(k).getUri()); }
+            else if (data.getData() != null) uris.add(data.getData());
+            org.json.JSONArray names = new org.json.JSONArray();
+            File dir = new File(getFilesDir(), pendingPhotoDir); if (!dir.exists()) dir.mkdirs();
+            for (int k = 0; k < uris.size(); k++) {
+                String name = "photo_" + System.currentTimeMillis() + "_" + k + ".jpg";
+                try (InputStream in = getContentResolver().openInputStream(uris.get(k)); OutputStream out = new FileOutputStream(new File(dir, name))) {
+                    byte[] buf = new byte[8192]; int n; while ((n = in.read(buf)) > 0) out.write(buf, 0, n);
+                    names.put(name);
+                } catch (Exception e) { /* skip unreadable item */ }
+            }
+            if (names.length() > 0) js("window.photoResultsMulti&&window.photoResultsMulti(" + names.toString() + ")");
+            else toast("Could not read those photos");
         } else if (req == REQ_PHOTO && result == RESULT_OK && data != null && data.getData()!=null) {
             try {
                 String name = "photo_"+System.currentTimeMillis()+".jpg";
@@ -713,6 +744,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface public void pickImport(){MainActivity.this.importFile("backup");}
         @JavascriptInterface public void pickImport(String mode){MainActivity.this.importFile(mode);}
         @JavascriptInterface public void pickPhoto(){MainActivity.this.pickPhoto();}
+        @JavascriptInterface public void pickPhotos(int max){MainActivity.this.pickPhotos(max);}
         @JavascriptInterface public void capturePhoto(){MainActivity.this.capturePhoto();}
         @JavascriptInterface public boolean speechAvailable(){try{return new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).resolveActivity(getPackageManager())!=null;}catch(Exception e){return false;}}
         @JavascriptInterface public void startSpeech(String id){MainActivity.this.runOnUiThread(()->MainActivity.this.startSpeech(id,""));}

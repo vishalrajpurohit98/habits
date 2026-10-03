@@ -183,3 +183,36 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     At-a-glance values follow their icons; stat numbers in a rotating palette; chart titles teal; Settings group
     headings and row titles match their icons; AI headings and starter tiles coloured; the active tab takes its
     area colour; Journal Cards titles use the notebook colour.
+- **Build 63 — clear active tabs, clean AI replies:**
+  - Every switcher (Journal tabs, Money tabs, Insights tabs, chart ranges, task filters, account and vault chips,
+    Appearance options) shows the selected option as a solid pill in the screen's colour with bold text; inactive
+    options are muted. Active-vs-background contrast went from ~1.1:1 to 5–11:1.
+  - AI: Gemini 2.5 Flash no longer spends the reply budget on "thinking" (thinkingBudget 0; Pro/3.x get extra room),
+    the assistant asks for JSON output and has 1,500 tokens; replies are read robustly (code fences, text around the
+    JSON, cut-off replies are recovered) and shown as formatted text — raw JSON/code is never displayed. Journal AI
+    output uses the same formatting.
+- **Build 64 — AI message box:**
+  - Quick actions are outlined pills, each in its own colour (+ Habit amber, + Task blue, + Expense green, Overdue
+    coral, reviews teal/purple) — they were the same colour as the box and read as loose text.
+  - Read-aloud and microphone are light icon buttons; the input is outlined (purple when focused); send is purple
+    like the AI page.
+  - The box now sits 10 px above the floating + button (it used to sit above the tab bar only, so the + button
+    tucked under it).
+- **Build 65 — Journal header redesign:**
+  - Writing prompt: coral pen icon, "How was your day?", a live subtitle (today's date, or "N entries today · add
+    another") and a coral Write button.
+  - Your journey: "N this month" beside the title; four tiles with their own colour and icon — Day streak (flame,
+    orange), Best streak (trophy, amber), Entries (book, coral), Days written (calendar, teal); one-line labels so
+    numbers align; 2×2 on phones, 4 across on wider screens.
+  - Entries bar: "Entries" heading with a compact Select pill on the right; Select mode shows the usual controls.
+- **Build 66 — entry editor, Tasks header, pop-up sizes, multi-photo on Android:**
+  - Journal editor: large borderless title; formatting toolbar as one pill (coral mic); sections Photos / Details /
+    Mood; dashed "Add photos" and "Camera" tiles; a details card with coloured icon rows (Notebook, When, Place);
+    compact mood pills that light up in their own colour; Template and AI actions side by side; favourite row with a
+    star; coral Save.
+  - Android: "Add photos" opens the system Photo Picker (Android 13+) or a multi-select picker, so several photos
+    can be added at once (up to the 8-per-entry limit). Receipt scanning keeps the single-photo picker.
+  - Tasks header: Export (outline) and + Task (blue) at 44 px; four coloured tiles with icons (Overdue, Today,
+    Upcoming, Done) that filter the list when tapped; search field with an icon and 48 px view buttons.
+  - Pop-up size system for every sheet and dialog: 48 px main buttons, fields and dropdowns; 44 px secondary
+    buttons; 40 px inline buttons and chips.
