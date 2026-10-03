@@ -138,3 +138,10 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - AI page: read-aloud, microphone and send are round 44 px buttons matching the input.
   - Android: Quick log widget uses line icons instead of emoji; its Journal button opens a **quick journal note**
     dialog that saves without opening the app.
+- **Build 58 — modules and the daily sleep check-in:**
+  - Settings › **Modules**: turn Money, Tasks and Workouts on or off. A turned-off module disappears from the tab bar
+    (Journal takes Money's place on phones), Home, Create, Insights, Settings and the AI shortcuts, and can't be
+    opened; its data is kept and returns when switched back on. Habits, Journal, Mood, Sleep and Vault are always on.
+  - **Daily sleep check-in**: the first time the app is opened each day (from 4 am, after sign-in and the PIN lock)
+    a full-screen check-in asks for bedtime and wake-up before anything else; times are pre-filled from the previous
+    night. It replaces the sleep card on the Habits page.

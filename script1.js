@@ -2181,6 +2181,7 @@ window.handleAndroidBack=function(){
     if(document.getElementById('pgJr') && document.getElementById('pgJr').classList.contains('on') && typeof jrView!=='undefined' && jrView && jrView!=='timeline'){ if(typeof jrGo==='function'){ jrGo('timeline'); return true; } }
     /* 4b. full-screen overlays: milestone moment, workout module, pro dialogs, drafts */
     if(document.documentElement.classList.contains('authGate')) return false; /* sign-in gate: back leaves the app */
+    if(document.documentElement.classList.contains('sleepGateOn')) return false; /* daily sleep check-in can't be dismissed */
     var mo=document.getElementById('momentOverlay'); if(mo){ mo.remove(); return true; }
     var wss=document.getElementById('wkSession'); if(wss && wss.classList.contains('on')){ wsClose(); return true; }
     var wk=document.getElementById('wkModule'); if(wk && wk.classList.contains('on')){ wk.classList.remove('on'); return true; }
@@ -6470,7 +6471,7 @@ function renderHome(){
    ;
   /* ---- adaptive Home: the first card after Spaces depends on the time of day ---- */
   var moment=homeMoment(now), feat='';
-  if(moment==='morning'){
+  if(moment==='morning' && modOn('tasks')){
     var pr={high:0,medium:1,low:2};
     var top=state.tasks.filter(function(k){ if(k.virtualHabit||k.status==='completed') return false; var st=taskEffectiveStatus(k); return st==='overdue'||k.dueDate===t; })
       .sort(function(a,b){ var oa=taskEffectiveStatus(a)==='overdue'?0:1, ob=taskEffectiveStatus(b)==='overdue'?0:1; if(oa!==ob) return oa-ob; var pa=pr[a.priority]==null?1:pr[a.priority], pb=pr[b.priority]==null?1:pr[b.priority]; if(pa!==pb) return pa-pb; return String(a.dueTime||'99').localeCompare(String(b.dueTime||'99')); }).slice(0,3);
@@ -6480,7 +6481,7 @@ function renderHome(){
       +'</section>';
   } else if(moment==='evening'){
     var leftH=habits.filter(function(h){ return dueOn(h, now) && !isDone(h,t); });
-    var leftT=state.tasks.filter(function(k){ return !k.virtualHabit && k.status!=='completed' && (k.dueDate===t || taskEffectiveStatus(k)==='overdue'); });
+    var leftT=!modOn('tasks')?[]:state.tasks.filter(function(k){ return !k.virtualHabit && k.status!=='completed' && (k.dueDate===t || taskEffectiveStatus(k)==='overdue'); });
     var items=leftH.slice(0,3).map(function(h){ return '<button class="hmNextRow" data-hm-go="habit:'+esc(h.id)+'"><span class="hmNextIc tIc t-amber">'+ICON('habit')+'</span><span class="hmNextTime">Habit</span><span class="hmNextTitle">'+esc(h.name)+'</span></button>'; })
       .concat(leftT.slice(0,Math.max(0,3-leftH.length)).map(function(k){ return '<button class="hmNextRow" data-hm-go="task:'+esc(k.id)+'"><span class="hmNextIc tIc t-blue">'+ICON('task')+'</span><span class="hmNextTime">Task</span><span class="hmNextTitle">'+esc(k.title)+'</span></button>'; })).join('');
     feat='<section class="hmSec hmFeature" data-sec="wrap"><div class="sectLbl">'+ICON('sleep')+'Evening wrap-up</div>'
@@ -6644,8 +6645,8 @@ function weeklyRecapHTML(now){
   var pct=due?Math.round(done/due*100):0;
   return '<section class="hmSec" data-sec="recap"><div class="sectRow"><div class="sectLbl">'+ICON('calendar')+'Your week</div><button class="iconBtn hmRecapX" type="button" aria-label="Hide weekly recap">'+ICON('close')+'</button></div>'
     +'<div class="statGrid hmRecapGrid">'
-    +'<div class="sc"><b>'+pct+'%</b><span>habits done</span></div><div class="sc"><b>'+tasksDone+'</b><span>tasks completed</span></div>'
-    +'<div class="sc"><b>'+_hmCurrency(spent)+'</b><span>spent</span></div><div class="sc"><b>'+(mood||'\u2014')+'</b><span>average mood</span></div></div>'
+    +'<div class="sc"><b>'+pct+'%</b><span>habits done</span></div>'+(modOn('tasks')?'<div class="sc"><b>'+tasksDone+'</b><span>tasks completed</span></div>':'')
+    +(modOn('money')?'<div class="sc"><b>'+_hmCurrency(spent)+'</b><span>spent</span></div>':'')+'<div class="sc"><b>'+(mood||'\u2014')+'</b><span>average mood</span></div></div>'
     +(best?'<div class="hmRecapBest">'+ICON('star')+'Best habit: <b>'+esc(best.name)+'</b> · '+Math.round(bestRate*100)+'%</div>':'')
     +(jr?'<div class="hmRecapBest">'+ICON('note')+'<b>'+jr+'</b> journal entr'+(jr===1?'y':'ies')+' this week</div>':'')
     +'<button class="btnS" type="button" data-hm-go="tab:pgStats">'+ICON('stats')+'See insights</button></section>';
@@ -7195,6 +7196,88 @@ setTimeout(function(){ try{ jrUpgradePreviews(); }catch(e){} },3000);
   seg.addEventListener('click',function(e){ var b=e.target.closest('[data-q]'); if(!b) return; state.set.photoQuality=b.getAttribute('data-q'); persist(); sync(); toastN(b.getAttribute('data-q')==='original'?'New photos will be kept in original quality':'New photos will be saved in high quality'); });
   grid.addEventListener('click',function(e){ var b=e.target.closest('[data-ps]'); if(!b) return; state.set.jrPhotoStyle=b.getAttribute('data-ps'); persist(); sync(); try{ renderJr(); var rs=$('jrReadSheet'); if(rs&&rs.classList.contains('open')&&window.__jrReadId) jrRenderReadPhotos(jrFind(window.__jrReadId)); }catch(er){} });
   sync();
+})();
+
+/* ================= Modules: Money, Tasks, Workouts can be turned off (data is kept) ================= */
+var MODS=['money','tasks','workouts'];
+function modOn(k){ var m=state&&state.set&&state.set.modules; return !m || m[k]!==false; }
+function modSweep(root){
+  root=root||document;
+  var off={money:!modOn('money'),tasks:!modOn('tasks'),workouts:!modOn('workouts')};
+  function hide(el,on){ if(!el) return; if(on){ el.classList.add('modHidden'); } else el.classList.remove('modHidden'); }
+  root.querySelectorAll('[data-hm-go]').forEach(function(b){ var g=b.getAttribute('data-hm-go')||'';
+    var row=b.closest('.hmGlRow')||b; hide(row,(off.money&&g==='tab:pgExp')||(off.tasks&&(g==='tab:pgTasks'||g==='new:task'||g.indexOf('task:')===0))); });
+  root.querySelectorAll('[data-hm-qa="workout"],.qaTile[data-qa="workout"]').forEach(function(b){ hide(b,off.workouts); });
+  /* a Home section left with no rows (e.g. Next with only tasks) disappears */
+  root.querySelectorAll('.hmSec').forEach(function(sec){ var rows=sec.querySelectorAll('.hmNextRow,.hmGlRow'); if(!rows.length) return; var vis=[].some.call(rows,function(r){ return !r.classList.contains('modHidden'); }); sec.classList.toggle('modHidden',!vis); });
+  root.querySelectorAll('.uaiHint').forEach(function(h){ var t=h.textContent.trim().toLowerCase(); hide(h,(off.tasks&&(t==='+ task'||t==='overdue'))||(off.money&&t==='+ expense')); });
+  var mx=$('btnMoneyXlsx'); if(mx) hide(mx.closest('.setRow'),off.money);
+  document.querySelectorAll('#setCardGrid .setCard2').forEach(function(c){ if(/Money\s*&\s*currency/.test(c.textContent)) hide(c,off.money); });
+  var er=[].find.call(document.querySelectorAll('#pgSet .setT'),function(t){ return t.textContent.trim()==='Expense reminder'; }); if(er) hide(er.closest('.setRow'),off.money);
+}
+function applyModules(){
+  var root=document.documentElement;
+  MODS.forEach(function(k){ root.classList.toggle('mod-off-'+k, !modOn(k)); });
+  modSweep(document);
+  ['modMoney','modTasks','modWorkouts'].forEach(function(id,i){ var t=$(id); if(t){ var on=modOn(MODS[i]); t.classList.toggle('on',on); t.setAttribute('aria-checked',on?'true':'false'); } });
+}
+(function(){
+  /* switches */
+  [['modMoney','money'],['modTasks','tasks'],['modWorkouts','workouts']].forEach(function(p){ var t=$(p[0]); if(!t) return;
+    t.setAttribute('role','switch'); t.setAttribute('tabindex','0');
+    var flip=function(){ state.set.modules=state.set.modules||{}; state.set.modules[p[1]]=!modOn(p[1]); persist(); applyModules();
+      try{ renderHome(); renderToday(); }catch(e){} toastN((p[1]==='money'?'Money':p[1]==='tasks'?'Tasks':'Workouts')+(modOn(p[1])?' turned on':' turned off \u00b7 your data is kept')); };
+    t.addEventListener('click',flip); t.addEventListener('keydown',function(e){ if(e.key===' '||e.key==='Enter'){ e.preventDefault(); flip(); } }); });
+  /* a turned-off module can't be opened */
+  var st=showTab; showTab=function(id){
+    if((id==='pgExp'&&!modOn('money'))||(id==='pgTasks'&&!modOn('tasks'))){ toastN((id==='pgExp'?'Money':'Tasks')+' is turned off in Settings \u203a Modules'); id='pgToday'; arguments[0]=id; }
+    var r=st.apply(this,arguments); try{ modSweep(document); }catch(e){} return r; };
+  if(typeof openWkModule==='function'){ var ow=openWkModule; openWkModule=function(){ if(!modOn('workouts')){ toastN('Workouts is turned off in Settings \u203a Modules'); return; } return ow.apply(this,arguments); }; }
+  var rh=renderHome; renderHome=function(){ var r=rh.apply(this,arguments); try{ modSweep($('homeOverview')||document); }catch(e){} return r; };
+  setTimeout(applyModules,0);
+})();
+
+/* ================= Daily sleep check-in: the first open of each day starts with last night's sleep ================= */
+function sleepGateNeeded(){
+  if(window.__noSleepGate) return false;
+  if(document.documentElement.classList.contains('authGate')) return false;
+  if(!state.set||!state.set.onboarded) return false;
+  var lk=$('lock'); if(lk&&lk.classList.contains('on')) return false;
+  if(new Date().getHours()<4) return false;              /* still last night */
+  return !sleepOn(today());
+}
+function sleepGateDefaults(){
+  var last=(state.sleep||[]).filter(function(x){ return x.bed&&x.wake; }).sort(function(a,b){ return a.d<b.d?1:-1; })[0];
+  return {bed:last?last.bed:'23:00', wake:last?last.wake:'07:00'};
+}
+function sleepGateUpd(){ var b=$('sgBed').value, w=$('sgWake').value, m=(b&&w)?sleepMins(b,w):0, o=$('sgDur');
+  if(o) o.textContent=m>0?fmtDur(m):'\u2014'; return m; }
+function showSleepGate(){
+  var g=$('sleepGate'); if(!g||!g.hidden) return;
+  var d=sleepGateDefaults(); $('sgBed').value=d.bed; $('sgWake').value=d.wake; $('sgMsg').textContent='';
+  var h=new Date().getHours(); $('sgHello').textContent=h<12?'Good morning':(h<17?'Good afternoon':'Good evening');
+  g.hidden=false; document.documentElement.classList.add('sleepGateOn'); sleepGateUpd();
+}
+function checkSleepGate(){ try{ if(sleepGateNeeded()) showSleepGate(); }catch(e){} }
+(function(){
+  var g=$('sleepGate'); if(!g) return;
+  ['sgBed','sgWake'].forEach(function(id){ $(id).addEventListener('input',sleepGateUpd); });
+  $('sgSave').addEventListener('click',function(){
+    var bed=$('sgBed').value, wake=$('sgWake').value, m=sleepGateUpd();
+    if(!bed||!wake){ $('sgMsg').textContent='Set both bedtime and wake-up time.'; return; }
+    if(!(m>0)||m>16*60){ $('sgMsg').textContent='That doesn\u2019t look right \u2014 check the times.'; return; }
+    var t=today(), ex=sleepOn(t), rec=ex||{d:t}; rec.bed=bed; rec.wake=wake; rec.mins=m; if(rec.note==null) rec.note='';
+    if(!ex) state.sleep.push(rec); persist();
+    g.hidden=true; document.documentElement.classList.remove('sleepGateOn');
+    try{ renderToday(); renderHome(); }catch(e){} toastN('Slept '+fmtDur(m)+' \u00b7 have a good day');
+  });
+  /* when to check: start-up, after unlocking, after sign-in, and when the app comes back (e.g. next morning) */
+  setTimeout(checkSleepGate,1200);
+  if(typeof hideLock==='function'){ var hl=hideLock; hideLock=function(){ var r=hl.apply(this,arguments); setTimeout(checkSleepGate,250); return r; }; }
+  var sg=showAuthGate; showAuthGate=function(on){ var r=sg.apply(this,arguments); if(!on) setTimeout(checkSleepGate,800); return r; };
+  document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') setTimeout(checkSleepGate,400); });
+  var nr=window.onNativeResume; window.onNativeResume=function(){ var r=nr?nr.apply(this,arguments):undefined; setTimeout(checkSleepGate,600); return r; };
+  setInterval(checkSleepGate,60000);
 })();
 
 function climb(el, root, attr){
@@ -8378,7 +8461,7 @@ function init(){
     if(groups.length<2) return;
     /* icon + subtitle per section (by label text) */
     var META={
-      'Profile':{ic:'user',sub:'Name & greeting'},
+      'Profile':{ic:'user',sub:'Name & greeting'}, 'Modules':{ic:'grid',sub:'Money, Tasks, Workouts on or off'},
       'Appearance':{ic:'palette',sub:'Theme, font, app icon'},
       'Money & currency':{ic:'money',sub:'Currency & rates'},
       'Reminders':{ic:'bell',sub:'Nudges & strict reminders'},
@@ -8406,7 +8489,7 @@ function init(){
       try{ var app=$('app'); if(app) app.scrollTop=0; }catch(e){}
     }
     /* Standard grouped list rows (Account · App · Data · Security · Other) instead of a tile grid */
-    var GROUP_OF={'Profile':'Account','Appearance':'App','Reminders':'App','Money & currency':'App','Cloud sync':'Data','Data':'Data','Privacy & security':'Security','Pause':'Other'};
+    var GROUP_OF={'Profile':'Account','Appearance':'App','Modules':'App','Reminders':'App','Money & currency':'App','Cloud sync':'Data','Data':'Data','Privacy & security':'Security','Pause':'Other'};
     var ORDER=['Account','App','AI','Security','Data','Other','About'], byGroup={};
     groups.forEach(function(g,i){ var lb=labelOf(g), gr=GROUP_OF[lb]||'Other'; (byGroup[gr]=byGroup[gr]||[]).push({i:i,lb:lb}); });
     byGroup.AI=byGroup.AI||[]; byGroup.About=byGroup.About||[];
