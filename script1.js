@@ -3504,7 +3504,7 @@ function jrCard(e){
   var snip=jrClean(jrStrip(e.content).replace(/#[A-Za-z0-9_]+/g,''));
   /* if the body starts by repeating the title (common in imported entries), drop that dupe */
   if(title && snip){ var t2=title.toLowerCase(); if(snip.toLowerCase().indexOf(t2)===0) snip=snip.slice(title.length).replace(/^[\s:–—-]+/,''); }
-  var _ph=(e.photos&&e.photos.length)?'<div class="jrCardPh"><img data-ph="'+esc(e.photos[0])+'_t" alt="">'+(e.photos.length>1?'<span class="jrCardPhN">'+ICON('camera')+e.photos.length+'</span>':'')+'</div>':'';
+  var _ph=jrCollageHTML(e.photos,false);
   return '<div class="jrCard" data-jid="'+e.id+'">'+_ph
     + '<div class="jrTop"><span class="jrTime">'+esc(e.time||'')+'</span>'
     + (e.mood?'<span class="jrMood">'+(JR_MOODS[e.mood]||'')+'</span>':'')
@@ -3585,11 +3585,12 @@ function animNum(el, to, dur, fmt){
 
 function jrGo(v){
   jrView=v;
-  ['timeline','calendar','write','memories','insights','search'].forEach(function(x){
+  ['timeline','calendar','write','memories','photos','insights','search'].forEach(function(x){
     var vw=$('jrView-'+x); if(vw) vw.style.display = (x===v)?'':'none';
   });
   var nav=$('jrNav'); if(nav){ Array.prototype.forEach.call(nav.children,function(n){ n.classList.toggle('on', n.getAttribute('data-jv')===v); }); }
   if(v==='calendar') jrRenderCal();
+  if(v==='photos') jrGalleryRender();
   if(v==='insights'){
     var all=(state.jr||[]).map(function(e){return e.date;}).filter(Boolean).sort();
     if(all.length && $('jrInsFrom') && !$('jrInsFrom').value){ $('jrInsFrom').value=all[0]; $('jrInsTo').value=all[all.length-1]; }
@@ -6762,10 +6763,10 @@ function jrRenderEdPhotos(){ var g=$('jrPhotoGrid'); if(!g) return; var ph=(jrEd
   g.innerHTML=ph.map(function(id){ return '<div class="jrPh"><img data-ph="'+esc(id)+'_t" alt="Photo"><button class="jrPhX" type="button" data-jrphdel="'+esc(id)+'" aria-label="Remove photo">'+ICON('close')+'</button></div>'; }).join('');
   g.style.display=ph.length?'':'none'; jrHydrate(g); }
 function jrRenderReadPhotos(e){ var box=$('jrReadPhotos'); if(!box) return; var ph=(e&&e.photos)||[];
-  box.innerHTML=ph.map(function(id){ return '<button class="jrReadPh" type="button" data-phview="'+esc(id)+'" aria-label="Open photo"><img data-ph="'+esc(id)+'_t" alt="Photo"></button>'; }).join('');
+  box.innerHTML='<div class="jrReadGrid n'+Math.min(ph.length,4)+'">'+ph.map(function(id,i){ return '<button class="jrReadPh'+(i===0?' first':'')+'" type="button" data-phview="'+esc(id)+'" aria-label="Open photo '+(i+1)+' of '+ph.length+'"><img data-ph="'+esc(id)+'_t" alt="Photo"></button>'; }).join('')+'</div>';
   box.style.display=ph.length?'':'none'; jrHydrate(box); }
-function phViewOpen(id){ var v=$('phView'), im=$('phViewImg'); if(!v||!/^ph[a-z0-9]+$/.test(id)) return; im.removeAttribute('src'); v.hidden=false; PhotoDB.get(id).then(function(d){ if(d) im.src=d; }); }
-function phViewClose(){ var v=$('phView'); if(v&&!v.hidden){ v.hidden=true; return true; } return false; }
+function phViewOpen(id){ var v=$('phView'); if(!v||!/^ph[a-z0-9]+$/.test(id)) return; if(!PHV.list.length||PHV.list.indexOf(id)<0){ PHV.list=[id]; PHV.i=0; } v.hidden=false; phViewShow(); }
+function phViewClose(){ var v=$('phView'); if(v&&!v.hidden){ v.hidden=true; PHV.list=[]; return true; } return false; }
 /* photos added to an entry that was never saved are removed after a day */
 function jrPhotoCleanup(){ try{ var txt=JSON.stringify(state)+' '+Object.keys(localStorage).map(function(k){ try{ return localStorage.getItem(k)||''; }catch(e){ return ''; } }).join(' ');
   PhotoDB.keys().then(function(keys){ var day=Date.now()-864e5; (keys||[]).forEach(function(k){ var base=String(k).replace(/_t$/,''); if(txt.indexOf(base)>=0) return; var ts=parseInt(base.slice(2,10),36); if(ts&&ts<day) PhotoDB.del(k); }); }).catch(function(){}); }catch(e){} }
@@ -6778,7 +6779,7 @@ function jrPhotoCleanup(){ try{ var txt=JSON.stringify(state)+' '+Object.keys(lo
   $('jrCamPhoto').addEventListener('click',function(){ pick(true); });
   file.addEventListener('change',function(){ var fs=[].slice.call(this.files||[]); fs.reduce(function(p,f){ return p.then(function(){ if(f.size>25*1024*1024){ toastN('That image is too large'); return; } return new Promise(function(res){ var rd=new FileReader(); rd.onload=function(){ jrAddPhotoData(rd.result).then(res,res); }; rd.onerror=res; rd.readAsDataURL(f); }); }); },Promise.resolve()); });
   g.addEventListener('click',function(e){ var x=e.target.closest('[data-jrphdel]'); if(x&&jrEd&&jrEd.photos){ var id=x.getAttribute('data-jrphdel'); jrEd.photos=jrEd.photos.filter(function(p){ return p!==id; }); jrRenderEdPhotos(); } });
-  var rp=$('jrReadPhotos'); if(rp) rp.addEventListener('click',function(e){ var b=e.target.closest('[data-phview]'); if(b) phViewOpen(b.getAttribute('data-phview')); });
+  var rp=$('jrReadPhotos'); if(rp) rp.addEventListener('click',function(e){ var b=e.target.closest('[data-phview]'); if(!b) return; var all=[].map.call(rp.querySelectorAll('[data-phview]'),function(x){ return x.getAttribute('data-phview'); }); PHV.list=all; PHV.i=Math.max(0,all.indexOf(b.getAttribute('data-phview'))); phViewOpen(b.getAttribute('data-phview')); });
   var pv=$('phView'); if(pv) pv.addEventListener('click',function(e){ if(e.target===pv||e.target.closest('#phViewX')) phViewClose(); });
   var basePR=window.photoResult; window.photoResult=function(name){ if(window.pendingPhotoTarget==='journal'&&/^[A-Za-z0-9_.-]+$/.test(name)){ window.pendingPhotoTarget=''; try{ var b=nat&&nat.readPhoto?nat.readPhoto(name):''; if(nat&&nat.deletePhoto) nat.deletePhoto(name); if(b) jrAddPhotoData('data:image/jpeg;base64,'+b); }catch(e){} return; } return basePR?basePR.apply(this,arguments):undefined; };
   var bo=openJr; openJr=function(){ var r=bo.apply(this,arguments); try{ if(jrEd){ jrEd.photos=(jrEd.photos||[]).slice(); } jrRenderEdPhotos(); }catch(e){} return r; };
@@ -7077,6 +7078,81 @@ function renderVaultBioRow(){ var r=$('rowVaultBio'); if(!r) return; var av=fals
   r.style.display=av?'':'none'; var st=$('vaultBioS'), b=$('btnVaultBioOff'); if(st) st.textContent=on?'On \u00b7 unlock the Vault with your fingerprint':'Turns on after you next unlock the Vault with your PIN'; if(b) b.style.display=on?'':'none'; }
 (function(){ var st=showTab; showTab=function(id){ var r=st.apply(this,arguments); try{ if(id==='pgVault' && window.vaultIsLocked && vaultIsLocked()){ vaultRefreshLocked(); setTimeout(function(){ if(vaultIsLocked()) vaultBioUnlock(); },350); } if(id==='pgSet') renderVaultBioRow(); }catch(e){} return r; }; })();
 document.addEventListener('click',function(e){ if(e.target&&e.target.closest&&e.target.closest('#btnVaultBioOff')){ try{ nat.vaultBioDisable(); }catch(er){} state.set.vaultBioAsked=false; persist(); renderVaultBioRow(); toastN('Fingerprint unlock for the Vault is off'); } });
+/* ================= Sheets always above the dim backdrop =================
+   A sheet placed inside #app (its own stacking layer) can never rise above the backdrop, so taps hit the backdrop. */
+document.querySelectorAll('#app .sheet').forEach(function(el){ document.body.appendChild(el); });
+
+/* ================= Journal photos: collage, gallery, viewer ================= */
+function jrCollageHTML(photos, big){
+  var ph=(photos||[]).filter(function(p){ return /^ph[a-z0-9]+$/.test(p); }); if(!ph.length) return '';
+  var n=Math.min(ph.length,4), more=ph.length-4;
+  var tiles=ph.slice(0,n).map(function(id,i){ return '<span class="jcT"><img data-ph="'+esc(id)+(big?'':'_t')+'" alt="">'+(i===3&&more>0?'<b class="jcMore">+'+more+'</b>':'')+'</span>'; }).join('');
+  return '<div class="jrCollage n'+n+(big?' big':'')+'" data-photos="'+ph.length+'">'+tiles+'</div>';
+}
+function jrGalleryRender(){
+  var box=$('jrGallery'); if(!box) return;
+  var items=[]; (state.jr||[]).forEach(function(e){ (e.photos||[]).forEach(function(p,i){ if(/^ph[a-z0-9]+$/.test(p)) items.push({p:p,e:e,i:i}); }); });
+  items.sort(function(a,b){ var x=(b.e.date+(b.e.time||'')), y=(a.e.date+(a.e.time||'')); return x<y?-1:x>y?1:a.i-b.i; });
+  if(!items.length){ box.innerHTML='<div class="empty"><div class="emptyIc">'+ICON('camera')+'</div><div class="t">No photos yet</div><div class="s">Add photos to a journal entry and they appear here.</div><button class="emptyCtaBtn" type="button" id="jrGalNew">Write an entry</button></div>'; return; }
+  var entries={}; items.forEach(function(x){ entries[x.e.id]=1; });
+  var html='<div class="jrGalSum">'+items.length+' photo'+(items.length===1?'':'s')+' \u00b7 '+Object.keys(entries).length+' entr'+(Object.keys(entries).length===1?'y':'ies')+'</div>', cur='';
+  items.forEach(function(x){ var mk=String(x.e.date||'').slice(0,7);
+    if(mk!==cur){ if(cur) html+='</div>'; cur=mk; var dt=new Date(mk+'-01T00:00:00'); html+='<div class="jrGalMonth">'+dt.toLocaleDateString(undefined,{month:'long',year:'numeric'})+'</div><div class="jrGalGrid">'; }
+    html+='<button class="jrGalItem" type="button" data-jgal="'+esc(x.e.id)+'" data-jgalp="'+esc(x.p)+'" aria-label="Open the journal entry from '+esc(niceDate(x.e.date))+'"><img data-ph="'+esc(x.p)+'_t" alt=""></button>'; });
+  html+='</div>'; box.innerHTML=html; jrHydrate(box);
+}
+/* photo viewer: swipe / arrows through an entry's photos */
+var PHV={list:[],i:0};
+function phViewShow(){ var im=$('phViewImg'), c=$('phViewCount'), id=PHV.list[PHV.i]; if(!im||!id) return; im.removeAttribute('src'); PhotoDB.get(id).then(function(d){ if(d&&PHV.list[PHV.i]===id) im.src=d; });
+  if(c) c.textContent=PHV.list.length>1?(PHV.i+1)+' / '+PHV.list.length:''; ['phPrev','phNext'].forEach(function(b){ var el=$(b); if(el) el.style.display=PHV.list.length>1?'':'none'; }); }
+function phViewStep(d){ if(PHV.list.length<2) return; PHV.i=(PHV.i+d+PHV.list.length)%PHV.list.length; phViewShow(); }
+(function(){
+  var v=$('phView'); if(v && !$('phPrev')){
+    v.insertAdjacentHTML('beforeend','<button class="iconBtn phNav" id="phPrev" type="button" aria-label="Previous photo">'+ICON('chevL')+'</button><button class="iconBtn phNav" id="phNext" type="button" aria-label="Next photo">'+ICON('chev')+'</button><div class="phCount" id="phViewCount"></div>');
+    $('phPrev').addEventListener('click',function(e){ e.stopPropagation(); phViewStep(-1); });
+    $('phNext').addEventListener('click',function(e){ e.stopPropagation(); phViewStep(1); });
+    var sx=null; v.addEventListener('touchstart',function(e){ sx=e.touches[0].clientX; },{passive:true});
+    v.addEventListener('touchend',function(e){ if(sx==null) return; var dx=e.changedTouches[0].clientX-sx; sx=null; if(Math.abs(dx)>50) phViewStep(dx<0?1:-1); },{passive:true});
+    document.addEventListener('keydown',function(e){ if(v.hidden) return; if(e.key==='ArrowLeft') phViewStep(-1); if(e.key==='ArrowRight') phViewStep(1); if(e.key==='Escape') phViewClose(); });
+  }
+  var g=$('jrView-photos'); if(g) g.addEventListener('click',function(e){ var it=e.target.closest('[data-jgal]'); if(it){ openJrRead(it.getAttribute('data-jgal')); return; } if(e.target.closest('#jrGalNew')) openJr(null); });
+})();
+
+/* ================= AI page layout ================= */
+(function(){
+  var pg=$('pgAI'), box=pg&&pg.querySelector('.uaiBox'); if(!box) return;
+  var ins=$('uaiInsights'), row=box.querySelector('.uaiInputRow'), hints=box.querySelector('.uaiHints'), cfg=$('aiCfg');
+  /* setup card first when there is no AI key */
+  var setup=document.createElement('div'); setup.className='aiSetup'; setup.id='aiSetup';
+  setup.innerHTML='<div class="aiSetupIc">'+ICON('ai')+'</div><div class="aiSetupTx"><b>Set up your AI assistant</b><span>Add a free Google Gemini API key (or another provider) to ask questions about your habits, money and journal.</span></div><button class="btnP" type="button" id="aiSetupBtn">Set up</button>';
+  box.parentNode.insertBefore(setup, box);
+  if(ins) box.parentNode.insertBefore(ins, box);          /* "For you" becomes its own card */
+  var comp=document.createElement('div'); comp.className='aiComposer'; comp.id='aiComposer';
+  if(hints) comp.appendChild(hints); if(row) comp.appendChild(row);
+  pg.insertBefore(comp, cfg||null);                         /* message box sits at the bottom of the conversation */
+  var ICN={'plan my day':'calendar','review my habits':'habit','analyze my spending':'money','analyse my spending':'money','prepare tomorrow':'sun','show my progress':'stats'};
+  box.querySelectorAll('.uaiCategory').forEach(function(b){ var k=b.textContent.trim().toLowerCase(); if(!b.querySelector('.ic')) b.insertAdjacentHTML('afterbegin',ICON(ICN[k]||'ai')); });
+  $('aiSetupBtn').addEventListener('click',function(){ var c=$('aiCfg'); if(c&&!c.classList.contains('open')){ var h=$('aiCfgHead'); if(h) h.click(); } if(c) c.scrollIntoView({behavior:'smooth',block:'start'}); });
+})();
+function aiPageRefresh(){ var st=$('aiSetup'); if(st){ var has=false; try{ has=!!getAiKey(); }catch(e){} st.style.display=has?'none':''; }
+  var log=$('uaiLog'), clr=$('uaiClear'), wl=$('uaiWelcome'), n=log?log.children.length:0;
+  if(clr) clr.style.visibility=n?'visible':'hidden';
+  if(wl) wl.style.display=n?'none':'';          /* starters only while the conversation is empty */
+  aiComposerPlace(); }
+/* the message box sits fixed just above the floating tab bar (phones/tablets); the page leaves room for it */
+function aiComposerPlace(){
+  var c=$('aiComposer'), pg=$('pgAI'), nav=$('tabbar'); if(!c||!pg) return;
+  var wide=window.matchMedia&&window.matchMedia('(min-width:1000px)').matches;
+  if(wide||!pg.classList.contains('on')){ c.classList.remove('fixed'); pg.style.paddingBottom=''; return; }
+  c.classList.add('fixed');
+  var nr=nav?nav.getBoundingClientRect():null, gap=(nr&&nr.height)?Math.max(0,window.innerHeight-nr.top)+10:24;
+  c.style.bottom=gap+'px'; pg.style.paddingBottom=(c.offsetHeight+gap+12)+'px';
+  var log=$('uaiLog'); if(log&&log.lastElementChild&&c.__lastN!==log.children.length){ c.__lastN=log.children.length; }
+}
+window.addEventListener('resize',function(){ try{ aiComposerPlace(); }catch(e){} },{passive:true});
+(function(){ var st=showTab; showTab=function(id){ var r=st.apply(this,arguments); try{ if(id==='pgAI') aiPageRefresh(); if(id==='pgJr'&&typeof jrView!=='undefined'&&jrView==='photos') jrGalleryRender(); }catch(e){} return r; }; })();
+(function(){ var lg=$('uaiLog'); if(lg&&window.MutationObserver) new MutationObserver(function(){ try{ aiPageRefresh(); }catch(e){} }).observe(lg,{childList:true}); })();
+
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;

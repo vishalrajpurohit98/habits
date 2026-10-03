@@ -118,3 +118,12 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     after a fingerprint check; resets automatically if fingerprints change).
   - Fixed: changing the app PIN made the Vault undecryptable (it is now re-encrypted with the new PIN); removing the
     PIN while the Vault has data is blocked. App lock shows a fingerprint icon and "Momentum is locked".
+- **Build 56 — journal photos, AI page, sheet fix:**
+  - Fixed: "Recently deleted" (Settings › Data) and Tasks › Export could not be tapped — both sheets sat inside the app
+    container's stacking layer, below the dim backdrop. Every sheet now lives at the top level.
+  - Fixed: the photo viewer's close button was never pinned to the corner (`.iconBtn{position:static!important}`).
+  - Journal › **Photos** tab: every journal photo, newest first, grouped by month; tap a photo to open its entry.
+  - Timeline cards show a collage (1 wide · 2 side by side · 3 one large + two · 4+ grid with "+N"); the reader shows a
+    large first photo and a grid; the viewer has previous/next, swipe and a "2 / 6" counter.
+  - AI page: setup card when no key is set, "For you" as its own card, starter tiles with icons (hidden once a
+    conversation starts), chat bubbles, and the message box fixed above the tab bar with one scrolling row of quick actions.
