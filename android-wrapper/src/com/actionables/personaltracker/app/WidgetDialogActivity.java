@@ -53,6 +53,7 @@ public class WidgetDialogActivity extends Activity {
     public static final String A_PICK_ACCOUNT = "PICK_ACCOUNT";
     public static final String A_ADD_HABIT = "ADD_HABIT";
     public static final String A_LOG_SLEEP = "LOG_SLEEP";
+    public static final String A_JOURNAL = "JOURNAL";
     public static final String A_MOOD_DETAIL = "MOOD_DETAIL";
     public static final String A_AI = "AI_COMMAND";
 
@@ -98,6 +99,7 @@ public class WidgetDialogActivity extends Activity {
             case A_EDIT_HABIT: uiHabitEdit(s("habitId")); break;
             case A_PICK_ACCOUNT: uiPickAccount(); break;
             case A_ADD_HABIT: uiHabit(); break;
+            case A_JOURNAL: uiJournal(); break;
             case A_LOG_SLEEP: {
                 org.json.JSONObject cur = st.sleepOn(WidgetStore.today());
                 uiSleep(cur == null ? "" : cur.optString("bed"), cur == null ? "" : cur.optString("wake"));
@@ -431,6 +433,29 @@ public class WidgetDialogActivity extends Activity {
                     st.setMood(t, sel[0], note.getText().toString().trim());
                     if (st.commit()) { toast("Mood logged: " + WidgetStore.MOOD_LABEL[sel[0]]); finish(); }
                     else toast("Unable to save mood");
+                })));
+    }
+
+    /* =============================================================
+       QUICK JOURNAL NOTE: write today's entry straight from the home screen
+       ============================================================= */
+    void uiJournal() {
+        title("Quick journal note", "Saved to today\u2019s journal");
+        EditText ttl = field("Title (optional)", "");
+        EditText body = input("What\u2019s on your mind?", "");
+        body.setSingleLine(false);
+        body.setMinLines(5);
+        body.setGravity(android.view.Gravity.TOP | android.view.Gravity.START);
+        body.setInputType(android.text.InputType.TYPE_CLASS_TEXT | android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE | android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
+        root.addView(body, rowLp());
+        body.requestFocus();
+        root.addView(btnRow(mkBtn("Cancel", false, v -> finish()),
+                mkBtn("Save", true, v -> {
+                    String t = ttl.getText().toString().trim(), b = body.getText().toString().trim();
+                    if (t.isEmpty() && b.isEmpty()) { toast("Write something first"); return; }
+                    st.addJournal(t, b);
+                    if (st.commit()) { toast("Saved to your journal"); finish(); }
+                    else toast("Unable to save the note");
                 })));
     }
 

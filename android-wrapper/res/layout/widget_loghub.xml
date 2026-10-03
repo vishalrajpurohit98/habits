@@ -7,13 +7,31 @@
         android:text="Momentum — Quick log" android:textColor="#FAFAFA"
         android:textSize="13sp" android:textStyle="bold" android:layout_marginBottom="8dp"/>
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal" android:weightSum="3">
-        <TextView android:id="@+id/lh_habit" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="⚡\nHabit" android:textColor="#FAFAFA" android:textSize="12sp" android:background="@drawable/widget_cell"/>
-        <TextView android:id="@+id/lh_task" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:gravity="center" android:text="✓\nTask" android:textColor="#FAFAFA" android:textSize="12sp" android:background="@drawable/widget_cell"/>
-        <TextView android:id="@+id/lh_mood" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:gravity="center" android:text="🙂\nMood" android:textColor="#FAFAFA" android:textSize="12sp" android:background="@drawable/widget_cell"/>
+        <LinearLayout android:id="@+id/lh_habit" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:background="@drawable/widget_cell" android:contentDescription="Habit">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_w_habit" android:importantForAccessibility="no"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Habit" android:textColor="#FAFAFA" android:textSize="12sp"/>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/lh_task" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/widget_cell" android:contentDescription="Task">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_w_task" android:importantForAccessibility="no"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Task" android:textColor="#FAFAFA" android:textSize="12sp"/>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/lh_mood" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/widget_cell" android:contentDescription="Mood">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_w_mood" android:importantForAccessibility="no"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Mood" android:textColor="#FAFAFA" android:textSize="12sp"/>
+        </LinearLayout>
     </LinearLayout>
     <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="6dp" android:orientation="horizontal" android:weightSum="3">
-        <TextView android:id="@+id/lh_sleep" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:gravity="center" android:text="😴\nSleep" android:textColor="#FAFAFA" android:textSize="12sp" android:background="@drawable/widget_cell"/>
-        <TextView android:id="@+id/lh_journal" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:gravity="center" android:text="📓\nJournal" android:textColor="#FAFAFA" android:textSize="12sp" android:background="@drawable/widget_cell"/>
-        <TextView android:id="@+id/lh_ai" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:gravity="center" android:text="✦\nAI" android:textColor="#171310" android:textSize="12sp" android:background="@drawable/widget_cell_accent"/>
+        <LinearLayout android:id="@+id/lh_sleep" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:orientation="vertical" android:gravity="center" android:background="@drawable/widget_cell" android:contentDescription="Sleep">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_w_sleep" android:importantForAccessibility="no"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Sleep" android:textColor="#FAFAFA" android:textSize="12sp"/>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/lh_journal" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/widget_cell" android:contentDescription="Journal">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_w_journal" android:importantForAccessibility="no"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="Journal" android:textColor="#FAFAFA" android:textSize="12sp"/>
+        </LinearLayout>
+        <LinearLayout android:id="@+id/lh_ai" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginLeft="6dp" android:orientation="vertical" android:gravity="center" android:background="@drawable/widget_cell" android:contentDescription="AI">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp" android:src="@drawable/ic_w_ai" android:importantForAccessibility="no"/>
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:text="AI" android:textColor="#FAFAFA" android:textSize="12sp"/>
+        </LinearLayout>
     </LinearLayout>
 </LinearLayout>

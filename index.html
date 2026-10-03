@@ -2343,6 +2343,46 @@ html.authGate #tabbar,html.authGate #onb,html.authGate .onbWrap{display:none!imp
 .aiComposer .uaiHint{flex:0 0 auto;margin:0!important;min-height:34px!important;font-size:13px!important;padding:0 12px!important}
 .aiComposer .uaiInputRow{display:flex;gap:8px;align-items:center;margin:0!important;padding:0!important;border:0!important}
 .aiComposer .uaiInp{flex:1;min-width:0;border-radius:999px!important}
+/* AI page: round voice / read-aloud / send buttons, same height as the input */
+#pgAI .uaiInputRow{gap:8px!important}
+#pgAI .uaiInputRow .uaiMic{flex:0 0 44px!important;width:44px!important;height:44px!important;min-width:44px!important;min-height:44px!important;padding:0!important;border-radius:50%!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;background:var(--card3)!important;border:0!important;color:var(--ink2)!important}
+#pgAI .uaiInputRow .uaiMic svg,#pgAI .uaiInputRow .uaiMic .ic{width:20px!important;height:20px!important}
+#pgAI .uaiInputRow .uaiMic.on,#pgAI .uaiInputRow .uaiMic[aria-pressed="true"],#pgAI .uaiInputRow .uaiMic.rec{background:var(--amberSoft)!important;color:var(--amber)!important}
+#pgAI .uaiInputRow .uaiSend{flex:0 0 44px!important;width:44px!important;height:44px!important;min-width:44px!important;padding:0!important;border-radius:50%!important;display:inline-flex!important;align-items:center;justify-content:center}
+#pgAI .uaiInputRow .uaiInp{height:44px!important;min-height:44px!important}
+/* journal photo styles: cards */
+.jrCover{position:relative;height:210px;margin:-16px -16px 12px;border-radius:var(--r-lg) var(--r-lg) 0 0;overflow:hidden;background:var(--card3)}
+.jrCover img{width:100%;height:100%;object-fit:cover;display:block}
+.jrCnt{position:absolute;right:10px;bottom:10px;display:inline-flex;align-items:center;gap:5px;padding:4px 9px;border-radius:999px;background:rgba(0,0,0,.6);color:#fff;font-size:12px;font-weight:600}.jrCnt .ic{width:13px;height:13px;color:#fff}
+.jrStrip{display:flex;gap:6px;overflow-x:auto;margin:-4px -16px 12px;padding:0 16px;scrollbar-width:none;scroll-snap-type:x proximity}.jrStrip::-webkit-scrollbar{display:none}
+.jrStrip .jsT{flex:0 0 96px;height:96px;border-radius:12px;overflow:hidden;background:var(--card3);scroll-snap-align:start}.jrStrip img{width:100%;height:100%;object-fit:cover;display:block}
+.jrCard.sideTh{position:relative;padding-right:104px!important;min-height:112px}
+.jrSideTh{position:absolute;right:14px;top:50%;transform:translateY(-50%);width:78px;height:78px;border-radius:14px;overflow:hidden;background:var(--card3)}
+.jrSideTh img{width:100%;height:100%;object-fit:cover;display:block}
+.jrSideTh b{position:absolute;right:4px;bottom:4px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center}
+/* journal photo styles: reader */
+.jrReadStack{display:flex;flex-direction:column;gap:8px}.jrReadStack .jrReadPh{width:100%;aspect-ratio:4 / 3;border-radius:var(--r-md);overflow:hidden;padding:0;border:0;background:var(--card3)}
+.jrReadStrip{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;margin:0 -4px;padding:0 4px}.jrReadStrip::-webkit-scrollbar{display:none}
+.jrReadStrip .jrReadPh{flex:0 0 86%;aspect-ratio:4 / 3;border-radius:var(--r-md);overflow:hidden;padding:0;border:0;background:var(--card3);scroll-snap-align:center}
+.jrReadSquares{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}.jrReadSquares .jrReadPh{aspect-ratio:1;border-radius:10px;overflow:hidden;padding:0;border:0;background:var(--card3)}
+.jrReadStack img,.jrReadStrip img,.jrReadSquares img{width:100%;height:100%;object-fit:cover;display:block}
+/* journal: Memories below the calendar */
+.jrMemHead{font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--mut2);margin:24px 4px 10px}
+/* settings: photo quality + layout picker */
+.phqSeg{margin:2px 0 6px}
+.phStyleHead{border-top:var(--bw) solid var(--line);margin-top:10px}
+.phStyleGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:6px 0 4px}
+.phStyle{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px;border-radius:var(--r-md);background:var(--card2);border:1.5px solid var(--line);text-align:left;color:var(--ink);cursor:pointer}
+.phStyle.on{border-color:var(--amber);box-shadow:0 0 0 1px var(--amber) inset}
+.phStyle b{font-size:14px;margin-top:6px}.phStyle small{font-size:12px;color:var(--mut);line-height:1.35}
+.psPrev{display:grid;width:100%;height:64px;gap:2px;border-radius:10px;overflow:hidden;background:var(--card3)}
+.psPrev i{display:block;min-height:0;background:linear-gradient(135deg,#E8915B,#C9673A)}
+.psPrev i:nth-of-type(2){background:linear-gradient(135deg,#4E9BE5,#2F6FB8)}.psPrev i:nth-of-type(3){background:linear-gradient(135deg,#5DBB7C,#3A8D57)}.psPrev i:nth-of-type(4){background:linear-gradient(135deg,#B07CE8,#7D4FC0)}
+.psPrev u{display:block;height:6px;border-radius:3px;background:var(--line2);text-decoration:none}
+.ps-collage{grid-template-columns:2fr 1fr;grid-template-rows:1fr 1fr}.ps-collage i:first-child{grid-row:1 / 3}
+.ps-cover{grid-template-rows:1fr auto auto;gap:5px;padding-bottom:6px}.ps-cover u{margin:0 8px}.ps-cover u:last-child{width:55%}
+.ps-strip{grid-template-columns:repeat(4,1fr);grid-template-rows:1fr auto auto;gap:4px;padding:6px 6px 6px}.ps-strip i{border-radius:5px}.ps-strip u{grid-column:1 / -1}.ps-strip u:last-child{width:60%}
+.ps-compact{grid-template-columns:1fr 34px;grid-template-rows:repeat(3,auto);align-content:center;gap:6px 8px;padding:8px}.ps-compact i{grid-column:2;grid-row:1 / 4;height:42px;border-radius:7px}.ps-compact u:nth-of-type(3){width:60%}
 /* active workout session */
 #wkSession{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;padding:calc(10px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
 #wkSession.on{display:flex;animation:simpleTabFade 100ms ease-out}
@@ -3030,8 +3070,7 @@ html,body{overflow-x:hidden}
       <div class="jrNavItem on" data-jv="timeline"><span class="lb">Timeline</span></div>
       <div class="jrNavItem" data-jv="calendar"><span class="lb">Calendar</span></div>
       <div class="jrNavItem" data-jv="write"><span class="lb">Write</span></div>
-      <div class="jrNavItem" data-jv="memories"><span class="lb">Memories</span></div>
-      <div class="jrNavItem" data-jv="photos"><span class="lb">Photos</span></div>
+            <div class="jrNavItem" data-jv="photos"><span class="lb">Photos</span></div>
       <div class="jrNavItem" data-jv="insights"><span class="lb">AI</span></div>
     </div>
 
@@ -3100,7 +3139,7 @@ html,body{overflow-x:hidden}
     </div>
 
     <!-- MEMORIES -->
-    <div id="jrView-memories" style="display:none">
+    <div id="jrView-memories" style="display:none"><div class="jrMemHead">Memories</div>
       <div class="setCard" style="padding:16px">
         <div class="lbl" id="jrOtdHead" style="margin:0 0 8px">On this day</div>
         <div id="jrOtd"></div>
@@ -3411,6 +3450,17 @@ html,body{overflow-x:hidden}
       <div class="setRow"><div class="setInfo"><div class="setT">Greyscale mode</div><div class="setS">Calmer, distraction-free colors</div></div><div class="tog" id="greyTog"></div></div>
     </div>
 
+    <div class="setCard" id="jrPhotoSettings">
+      <div class="setRow"><div class="setInfo"><div class="setT">Journal photo quality</div><div class="setS" id="phqS">High: sharp photos up to 2560 px.</div></div></div>
+      <div class="tuneSeg phqSeg" id="phqSeg" role="group" aria-label="Journal photo quality"><button type="button" data-q="high">High</button><button type="button" data-q="original">Original</button></div>
+      <div class="setRow phStyleHead"><div class="setInfo"><div class="setT">Journal photo layout</div><div class="setS">How photos look on entries in the timeline and when you open an entry</div></div></div>
+      <div class="phStyleGrid" id="phStyleGrid" role="group" aria-label="Journal photo layout">
+        <button type="button" class="phStyle" data-ps="collage"><span class="psPrev ps-collage"><i></i><i></i><i></i></span><b>Collage</b><small>Large and small photos together</small></button>
+        <button type="button" class="phStyle" data-ps="cover"><span class="psPrev ps-cover"><i></i><u></u><u></u></span><b>Cover</b><small>One large photo on top</small></button>
+        <button type="button" class="phStyle" data-ps="strip"><span class="psPrev ps-strip"><i></i><i></i><i></i><i></i><u></u><u></u></span><b>Filmstrip</b><small>A row you can swipe</small></button>
+        <button type="button" class="phStyle" data-ps="compact"><span class="psPrev ps-compact"><u></u><u></u><u></u><i></i></span><b>Compact</b><small>Small photo beside the text</small></button>
+      </div>
+    </div>
     <div class="lbl"><i class="lic" style="--lc:var(--sGreen)"></i>Money &amp; currency</div>
     <div class="setCard">
       <div class="setRow"><div class="setInfo"><div class="setT">Currency settings</div><div class="setS" id="stCurrency">Base currency and exchange rates</div></div><button class="sbtn acc" id="btnCurrency">Open</button></div>
@@ -4252,8 +4302,7 @@ var TEMPLATES = [
  {n:'Sleep by 11', e:'\uD83D\uDCA4', ty:'check', sec:'evening'},
  {n:'No smoking', e:'\uD83D\uDEAD', ty:'neg'},
  {n:'No junk food', e:'\uD83C\uDF4E', ty:'neg'},
- {n:'Save money', e:'\uD83D\uDCB0', ty:'money', t:100, cat:'Finance'},
- {n:'Journal', e:'\u270D\uFE0F', ty:'check', sec:'evening', cat:'Mind'}
+ {n:'Save money', e:'\uD83D\uDCB0', ty:'money', t:100, cat:'Finance'}
 ];
 var MOODS = [
  {l:'Excellent', e:'\uD83E\uDD29', c:'#FFAE1F', s:7},
@@ -7702,8 +7751,8 @@ function jrCard(e){
   var snip=jrClean(jrStrip(e.content).replace(/#[A-Za-z0-9_]+/g,''));
   /* if the body starts by repeating the title (common in imported entries), drop that dupe */
   if(title && snip){ var t2=title.toLowerCase(); if(snip.toLowerCase().indexOf(t2)===0) snip=snip.slice(title.length).replace(/^[\s:–—-]+/,''); }
-  var _ph=jrCollageHTML(e.photos,false);
-  return '<div class="jrCard" data-jid="'+e.id+'">'+_ph
+  var _pm=jrPhotoStyle(), _ph=jrCardPhotosHTML(e.photos,_pm);
+  return '<div class="jrCard'+(_pm==='compact'&&_ph?' sideTh':'')+(_pm==='strip'&&_ph?' hasStrip':'')+'" data-jid="'+e.id+'">'+_ph
     + '<div class="jrTop"><span class="jrTime">'+esc(e.time||'')+'</span>'
     + (e.mood?'<span class="jrMood">'+(JR_MOODS[e.mood]||'')+'</span>':'')
     + (e.favorite?'<span class="jrFav" title="Favourite" aria-label="Favourite">'+ICON('star')+'</span>':'')
@@ -7782,12 +7831,13 @@ function animNum(el, to, dur, fmt){
 }
 
 function jrGo(v){
+  if(v==='memories') v='calendar';   /* Memories now live under Calendar */
   jrView=v;
   ['timeline','calendar','write','memories','photos','insights','search'].forEach(function(x){
-    var vw=$('jrView-'+x); if(vw) vw.style.display = (x===v)?'':'none';
+    var vw=$('jrView-'+x); if(vw) vw.style.display = (x===v || (v==='calendar'&&x==='memories'))?'':'none';
   });
   var nav=$('jrNav'); if(nav){ Array.prototype.forEach.call(nav.children,function(n){ n.classList.toggle('on', n.getAttribute('data-jv')===v); }); }
-  if(v==='calendar') jrRenderCal();
+  if(v==='calendar'){ jrRenderCal(); try{ jrRenderMemories(); }catch(e){} }
   if(v==='photos') jrGalleryRender();
   if(v==='insights'){
     var all=(state.jr||[]).map(function(e){return e.date;}).filter(Boolean).sort();
@@ -10241,7 +10291,7 @@ function backupPhotos(entries){
 function restoreBackupPhotos(map){
   if(!map||typeof map!=='object'||typeof PhotoDB==='undefined') return Promise.resolve(0);
   var ids=Object.keys(map).filter(function(id){ return /^ph[a-z0-9]+$/.test(id) && typeof map[id]==='string' && /^data:image\//.test(map[id]); });
-  return ids.reduce(function(p,id){ return p.then(function(n){ return PhotoDB.put(id,map[id]).then(function(){ return jrScale(map[id],360,.75); }).then(function(t){ return t?PhotoDB.put(id+'_t',t):null; }).then(function(){ return n+1; },function(){ return n; }); }); },Promise.resolve(0))
+  return ids.reduce(function(p,id){ return p.then(function(n){ return PhotoDB.put(id,map[id]).then(function(){ return jrMakePreviews(id,map[id]); }).then(function(){ return n+1; },function(){ return n; }); }); },Promise.resolve(0))
     .then(function(n){ try{ if($('pgJr')&&$('pgJr').classList.contains('on')) renderJr(); jrHydrate(document); }catch(e){} return n; });
 }
 function b64Json(o){ return btoa(unescape(encodeURIComponent(JSON.stringify(o)))); }
@@ -10947,27 +10997,32 @@ var PhotoDB=(function(){
            del:function(k){ return run('readwrite',function(st){ return st.delete(k); }); }, keys:function(){ return run('readonly',function(st){ return st.getAllKeys(); }); } };
 })();
 var JR_MAX_PHOTOS=8;
-function jrScale(src,max,q){ return new Promise(function(res){ var im=new Image(); im.onload=function(){ var k=Math.min(1,max/Math.max(im.width,im.height)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.width*k)); c.height=Math.max(1,Math.round(im.height*k)); c.getContext('2d').drawImage(im,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',q)); }; im.onerror=function(){ res(null); }; im.src=src; }); }
+function jrScale(src,max,q){ return new Promise(function(res){ var im=new Image(); im.onload=function(){ var k=Math.min(1,max/Math.max(im.width,im.height)), c=document.createElement('canvas'); c.width=Math.max(1,Math.round(im.width*k)); c.height=Math.max(1,Math.round(im.height*k)); var cx=c.getContext('2d'); cx.fillStyle='#FFFFFF'; cx.fillRect(0,0,c.width,c.height); /* transparent areas become white, not black */ cx.drawImage(im,0,0,c.width,c.height); res(c.toDataURL('image/jpeg',q)); }; im.onerror=function(){ res(null); }; im.src=src; }); }
 function jrAddPhotoData(dataUrl){
   if(!jrEd) return Promise.resolve();
   jrEd.photos=jrEd.photos||[]; if(jrEd.photos.length>=JR_MAX_PHOTOS){ toastN('Up to '+JR_MAX_PHOTOS+' photos per entry'); return Promise.resolve(); }
   var id='ph'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
-  return Promise.all([jrScale(dataUrl,1600,.82),jrScale(dataUrl,360,.75)]).then(function(r){ if(!r[0]){ toastN('Couldn\u2019t read that image'); return; }
-    return Promise.all([PhotoDB.put(id,r[0]),PhotoDB.put(id+'_t',r[1]||r[0])]).then(function(){ jrEd.photos.push(id); jrRenderEdPhotos(); }); })
+  var q=photoQuality(), fullP=(q==='original' && /^data:image\/jpeg/.test(dataUrl)) ? Promise.resolve(dataUrl) : jrScale(dataUrl, q==='original'?4096:2560, q==='original'?.95:.9);
+  return Promise.all([fullP,jrScale(dataUrl,1200,.85),jrScale(dataUrl,480,.82)]).then(function(r){ if(!r[0]){ toastN('Couldn\u2019t read that image'); return; }
+    return Promise.all([PhotoDB.put(id,r[0]),PhotoDB.put(id+'_p',r[1]||r[0]),PhotoDB.put(id+'_t',r[2]||r[0])]).then(function(){ jrEd.photos.push(id); jrRenderEdPhotos(); }); })
     .catch(function(){ toastN('Couldn\u2019t save the photo on this device'); });
 }
-function jrHydrate(root){ (root||document).querySelectorAll('img[data-ph]:not([src])').forEach(function(im){ var k=im.getAttribute('data-ph'); if(!/^ph[a-z0-9]+(_t)?$/.test(k)) return; PhotoDB.get(k).then(function(v){ if(v) im.src=v; else im.closest('.jrPh,.jrCardPh,.jrReadPh')&&im.closest('.jrPh,.jrCardPh,.jrReadPh').classList.add('phMissing'); }).catch(function(){}); }); }
+function jrHydrate(root){ (root||document).querySelectorAll('img[data-ph]:not([src])').forEach(function(im){ var k=im.getAttribute('data-ph'); if(!/^ph[a-z0-9]+(_t|_p)?$/.test(k)) return; var base=k.replace(/_(t|p)$/,''), tries=/_p$/.test(k)?[k,base+'_t',base]:(/_t$/.test(k)?[k,base]:[k]);
+    (function tryNext(){ var key=tries.shift(); if(!key){ var c=im.closest('.jrPh,.jrReadPh'); if(c) c.classList.add('phMissing'); return; } PhotoDB.get(key).then(function(v){ if(v) im.src=v; else tryNext(); }).catch(function(){}); })(); }); }
 function jrRenderEdPhotos(){ var g=$('jrPhotoGrid'); if(!g) return; var ph=(jrEd&&jrEd.photos)||[];
   g.innerHTML=ph.map(function(id){ return '<div class="jrPh"><img data-ph="'+esc(id)+'_t" alt="Photo"><button class="jrPhX" type="button" data-jrphdel="'+esc(id)+'" aria-label="Remove photo">'+ICON('close')+'</button></div>'; }).join('');
   g.style.display=ph.length?'':'none'; jrHydrate(g); }
 function jrRenderReadPhotos(e){ var box=$('jrReadPhotos'); if(!box) return; var ph=(e&&e.photos)||[];
-  box.innerHTML='<div class="jrReadGrid n'+Math.min(ph.length,4)+'">'+ph.map(function(id,i){ return '<button class="jrReadPh'+(i===0?' first':'')+'" type="button" data-phview="'+esc(id)+'" aria-label="Open photo '+(i+1)+' of '+ph.length+'"><img data-ph="'+esc(id)+'_t" alt="Photo"></button>'; }).join('')+'</div>';
+  var mode=jrPhotoStyle(), wrap=({collage:'jrReadGrid n'+Math.min(ph.length,4),cover:'jrReadStack',strip:'jrReadStrip',compact:'jrReadSquares'})[mode];
+  window.__jrReadId=e&&e.id;
+  box.innerHTML='<div class="'+wrap+'">'+ph.map(function(id,i){ var sz=(mode==='cover'||mode==='strip'||(mode==='collage'&&i===0)||(mode==='collage'&&ph.length===2))?'_p':'_t';
+    return '<button class="jrReadPh'+(i===0?' first':'')+'" type="button" data-phview="'+esc(id)+'" aria-label="Open photo '+(i+1)+' of '+ph.length+'"><img data-ph="'+esc(id)+sz+'" alt="Photo"></button>'; }).join('')+'</div>';
   box.style.display=ph.length?'':'none'; jrHydrate(box); }
 function phViewOpen(id){ var v=$('phView'); if(!v||!/^ph[a-z0-9]+$/.test(id)) return; if(!PHV.list.length||PHV.list.indexOf(id)<0){ PHV.list=[id]; PHV.i=0; } v.hidden=false; phViewShow(); }
 function phViewClose(){ var v=$('phView'); if(v&&!v.hidden){ v.hidden=true; PHV.list=[]; return true; } return false; }
 /* photos added to an entry that was never saved are removed after a day */
 function jrPhotoCleanup(){ try{ var txt=JSON.stringify(state)+' '+Object.keys(localStorage).map(function(k){ try{ return localStorage.getItem(k)||''; }catch(e){ return ''; } }).join(' ');
-  PhotoDB.keys().then(function(keys){ var day=Date.now()-864e5; (keys||[]).forEach(function(k){ var base=String(k).replace(/_t$/,''); if(txt.indexOf(base)>=0) return; var ts=parseInt(base.slice(2,10),36); if(ts&&ts<day) PhotoDB.del(k); }); }).catch(function(){}); }catch(e){} }
+  PhotoDB.keys().then(function(keys){ var day=Date.now()-864e5; (keys||[]).forEach(function(k){ var base=String(k).replace(/_(t|p)$/,''); if(txt.indexOf(base)>=0) return; var ts=parseInt(base.slice(2,10),36); if(ts&&ts<day) PhotoDB.del(k); }); }).catch(function(){}); }catch(e){} }
 (function(){
   var g=$('jrPhotos'); if(!g) return;
   var file=$('jrPhotoFile');
@@ -11013,12 +11068,12 @@ var DrivePhotos={
       var remote={}; (r.files||[]).forEach(function(f){ var m=/^(ph[a-z0-9]+)\.jpg$/.exec(f.name||''); if(m) remote[m[1]]=f.id; });
       var ref=self.refIds();
       return PhotoDB.keys().then(function(keys){
-        var local={}; (keys||[]).forEach(function(k){ if(!/_t$/.test(k)) local[k]=1; });
+        var local={}; (keys||[]).forEach(function(k){ if(!/_(t|p)$/.test(k)) local[k]=1; });
         var up=ref.filter(function(id){ return local[id] && !remote[id]; }), down=ref.filter(function(id){ return !local[id] && remote[id]; }), okU=0, okD=0, fail=0;
         var chain=Promise.resolve();
         up.forEach(function(id){ chain=chain.then(function(){ self.status('Uploading photos\u2026 '+(okU+1)+'/'+up.length); return PhotoDB.get(id).then(function(d){ if(!d) return; var w=self.wait('up:'+id+'.jpg'); DriveApi.upload(id+'.jpg', String(d).replace(/^data:image\/[a-z]+;base64,/,'')); return w.then(function(x){ if(x.ok){ okU++; remote[id]=1; } else fail++; }); }); }); });
         down.forEach(function(id){ chain=chain.then(function(){ self.status('Downloading photos\u2026 '+(okD+1)+'/'+down.length); var w=self.wait('down:'+id+'.jpg'); DriveApi.download(id+'.jpg', remote[id]);
-          return w.then(function(x){ if(!x.ok||!x.b64){ fail++; return; } var du='data:image/jpeg;base64,'+x.b64; return PhotoDB.put(id,du).then(function(){ return jrScale(du,360,.75); }).then(function(t){ return t?PhotoDB.put(id+'_t',t):null; }).then(function(){ okD++; }); }); }); });
+          return w.then(function(x){ if(!x.ok||!x.b64){ fail++; return; } var du='data:image/jpeg;base64,'+x.b64; return PhotoDB.put(id,du).then(function(){ return jrMakePreviews(id,du); }).then(function(){ okD++; }); }); }); });
         return chain.then(function(){
           state.set.driveLast=Date.now(); state.set.driveCount=Object.keys(remote).length; persist();
           self.busy=false; self.ui();
@@ -11350,6 +11405,45 @@ function aiComposerPlace(){
 window.addEventListener('resize',function(){ try{ aiComposerPlace(); }catch(e){} },{passive:true});
 (function(){ var st=showTab; showTab=function(id){ var r=st.apply(this,arguments); try{ if(id==='pgAI') aiPageRefresh(); if(id==='pgJr'&&typeof jrView!=='undefined'&&jrView==='photos') jrGalleryRender(); }catch(e){} return r; }; })();
 (function(){ var lg=$('uaiLog'); if(lg&&window.MutationObserver) new MutationObserver(function(){ try{ aiPageRefresh(); }catch(e){} }).observe(lg,{childList:true}); })();
+
+/* ================= Journal photos: quality, previews and layout styles ================= */
+function photoQuality(){ return (state.set&&state.set.photoQuality)==='original'?'original':'high'; }
+function jrPhotoStyle(){ var v=state.set&&state.set.jrPhotoStyle; return ({collage:1,cover:1,strip:1,compact:1})[v]?v:'collage'; }
+/* screen-sized previews: _p (1200 px) for large tiles, _t (480 px) for small tiles */
+function jrMakePreviews(id, full){
+  return Promise.all([jrScale(full,1200,.85), jrScale(full,480,.82)]).then(function(r){
+    return Promise.all([r[0]?PhotoDB.put(id+'_p',r[0]):null, r[1]?PhotoDB.put(id+'_t',r[1]):null]); }); }
+function jrCardPhotosHTML(photos, mode){
+  var ph=(photos||[]).filter(function(p){ return /^ph[a-z0-9]+$/.test(p); }); if(!ph.length) return '';
+  var n=ph.length, img=function(id,sz){ return '<img data-ph="'+esc(id)+sz+'" alt="">'; };
+  if(mode==='cover') return '<div class="jrCover">'+img(ph[0],'_p')+(n>1?'<b class="jrCnt">'+ICON('camera')+n+'</b>':'')+'</div>';
+  if(mode==='strip') return '<div class="jrStrip">'+ph.map(function(id){ return '<span class="jsT">'+img(id,'_t')+'</span>'; }).join('')+'</div>';
+  if(mode==='compact') return '<div class="jrSideTh">'+img(ph[0],'_t')+(n>1?'<b>'+n+'</b>':'')+'</div>';
+  var k=Math.min(n,4), more=n-4;
+  return '<div class="jrCollage n'+k+'">'+ph.slice(0,k).map(function(id,i){ var big=(k<=2)||(k===3&&i===0);
+    return '<span class="jcT">'+img(id,big?'_p':'_t')+(i===3&&more>0?'<b class="jcMore">+'+more+'</b>':'')+'</span>'; }).join('')+'</div>';
+}
+/* upgrade previews of photos added before build 57 (their originals are gone; the 1600 px copy is the source) */
+function jrUpgradePreviews(){
+  if(uStore.getItem('ph_prev_v2')) return;
+  PhotoDB.keys().then(function(keys){
+    var full=(keys||[]).filter(function(k){ return /^ph[a-z0-9]+$/.test(k); }), i=0, done=0;
+    function next(){ if(i>=full.length){ uStore.setItem('ph_prev_v2','1'); if(done){ try{ if($('pgJr')&&$('pgJr').classList.contains('on')) renderJr(); }catch(e){} } return; }
+      var id=full[i++]; PhotoDB.get(id).then(function(d){ return d?jrMakePreviews(id,d).then(function(){ done++; }):null; }).catch(function(){}).then(function(){ setTimeout(next,40); }); }
+    next(); }).catch(function(){});
+}
+setTimeout(function(){ try{ jrUpgradePreviews(); }catch(e){} },3000);
+/* Settings > Appearance: journal photo quality + layout */
+(function(){
+  var seg=$('phqSeg'), grid=$('phStyleGrid'); if(!seg||!grid) return;
+  function sync(){ var q=photoQuality(), st=jrPhotoStyle();
+    [].forEach.call(seg.children,function(b){ b.classList.toggle('on',b.getAttribute('data-q')===q); });
+    [].forEach.call(grid.children,function(b){ var on=b.getAttribute('data-ps')===st; b.classList.toggle('on',on); b.setAttribute('aria-pressed',on?'true':'false'); });
+    var s=$('phqS'); if(s) s.textContent=q==='original'?'Original: photos are kept exactly as taken. Uses the most space on this device, in Google Drive and in backups.':'High: sharp photos up to 2560 px, about 0.5–1.5 MB each. Recommended.'; }
+  seg.addEventListener('click',function(e){ var b=e.target.closest('[data-q]'); if(!b) return; state.set.photoQuality=b.getAttribute('data-q'); persist(); sync(); toastN(b.getAttribute('data-q')==='original'?'New photos will be kept in original quality':'New photos will be saved in high quality'); });
+  grid.addEventListener('click',function(e){ var b=e.target.closest('[data-ps]'); if(!b) return; state.set.jrPhotoStyle=b.getAttribute('data-ps'); persist(); sync(); try{ renderJr(); var rs=$('jrReadSheet'); if(rs&&rs.classList.contains('open')&&window.__jrReadId) jrRenderReadPhotos(jrFind(window.__jrReadId)); }catch(er){} });
+  sync();
+})();
 
 function climb(el, root, attr){
   while(el && el !== root){

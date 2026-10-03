@@ -114,6 +114,37 @@ public class WidgetStore {
         return prefix + Long.toString(System.currentTimeMillis(), 36) + rand(randLen);
     }
 
+    /** Quick journal note from the widget, in the same shape the app's journal uses (jrMigrateEntry). */
+    public void addJournal(String title, String text) {
+        try {
+            Calendar c = Calendar.getInstance();
+            long now = System.currentTimeMillis();
+            JSONObject e = new JSONObject();
+            e.put("id", newId("j", 5));
+            e.put("date", today());
+            e.put("time", String.format(java.util.Locale.US, "%02d:%02d", c.get(Calendar.HOUR_OF_DAY), c.get(Calendar.MINUTE)));
+            e.put("title", title.length() > 120 ? title.substring(0, 120) : title);
+            e.put("content", noteHtml(text));
+            e.put("mood", ""); e.put("tags", noteTags(text)); e.put("favorite", false);
+            e.put("template", ""); e.put("location", ""); e.put("photos", new JSONArray());
+            e.put("createdAt", now); e.put("updatedAt", now);
+            arr("jr").put(e);
+        } catch (JSONException ignored) {}
+    }
+    static String noteHtml(String t) {
+        String esc = t.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
+        StringBuilder out = new StringBuilder();
+        for (String para : esc.split("\\n\\s*\\n")) { String p = para.trim(); if (!p.isEmpty()) out.append("<p>").append(p.replace("\n", "<br>")).append("</p>"); }
+        return out.toString();
+    }
+    static JSONArray noteTags(String t) {
+        JSONArray a = new JSONArray(); java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("#([A-Za-z0-9_]{1,30})").matcher(t);
+        while (m.find()) seen.add(m.group(1).toLowerCase(java.util.Locale.US));
+        for (String s : seen) a.put(s);
+        return a;
+    }
+
     JSONArray arr(String k) {
         JSONArray a = state.optJSONArray(k);
         if (a == null) { a = new JSONArray(); try { state.put(k, a); } catch (JSONException ignored) {} }

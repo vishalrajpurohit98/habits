@@ -127,3 +127,14 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     large first photo and a grid; the viewer has previous/next, swipe and a "2 / 6" counter.
   - AI page: setup card when no key is set, "For you" as its own card, starter tiles with icons (hidden once a
     conversation starts), chat bubbles, and the message box fixed above the tab bar with one scrolling row of quick actions.
+- **Build 57 — photo quality and layouts, widgets, Journal tabs:**
+  - Photo quality (Settings › Appearance): **High** (default; full 2560 px at 90%) or **Original** (JPEGs kept byte for
+    byte). Screen-sized previews: 1200 px for large tiles, 480 px for small ones (was a single 360 px thumbnail).
+    Photos added earlier get new previews built once per device. Transparent images get a white background.
+  - Journal photo layout (Settings › Appearance): **Collage, Cover, Filmstrip, Compact** — applies to timeline cards
+    and to the entry view.
+  - Journal: **Calendar and Memories merged** (Memories below the calendar); tabs are Timeline, Calendar, Write, Photos, AI.
+  - Add habit: "Journal" removed from the suggested habits.
+  - AI page: read-aloud, microphone and send are round 44 px buttons matching the input.
+  - Android: Quick log widget uses line icons instead of emoji; its Journal button opens a **quick journal note**
+    dialog that saves without opening the app.
