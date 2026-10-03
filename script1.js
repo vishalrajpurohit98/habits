@@ -1973,7 +1973,7 @@ function renderStrictReminders(){
     else if(!jrLogged) items.push({t:'📓 Journal entry pending', s:'Mood\u2019s logged — take a minute to write.', a:'journal'});
   }
   /* Sleep: until noon, remind until last night's sleep logged (default on) */
-  if(rc.strictSleep!==false && hr<12){
+  if(false && rc.strictSleep!==false && hr<12){ /* replaced by the daily sleep check-in */
     var sleepLogged=(state.sleep||[]).some(function(x){return x.d===ts;});
     if(!sleepLogged) items.push({t:'😴 Sleep not logged', s:'Log last night\u2019s sleep before noon.', a:'sleep'});
   }
@@ -2167,6 +2167,9 @@ window.handleAndroidExit=function(){
   }catch(e){ return false; }
 };
 window.handleAndroidBack=function(){
+    /* full-screen gates come first: back leaves the app, never past them */
+    if(document.documentElement.classList.contains('authGate')) return false;
+    if(document.documentElement.classList.contains('sleepGateOn')) return false;
     /* topmost layers first: the photo viewer sits above sheets */
     if(typeof phViewClose==='function' && phViewClose()) return true;
   try{
@@ -2180,8 +2183,6 @@ window.handleAndroidBack=function(){
     /* 4. journal sub-view not timeline -> go back to timeline */
     if(document.getElementById('pgJr') && document.getElementById('pgJr').classList.contains('on') && typeof jrView!=='undefined' && jrView && jrView!=='timeline'){ if(typeof jrGo==='function'){ jrGo('timeline'); return true; } }
     /* 4b. full-screen overlays: milestone moment, workout module, pro dialogs, drafts */
-    if(document.documentElement.classList.contains('authGate')) return false; /* sign-in gate: back leaves the app */
-    if(document.documentElement.classList.contains('sleepGateOn')) return false; /* daily sleep check-in can't be dismissed */
     var mo=document.getElementById('momentOverlay'); if(mo){ mo.remove(); return true; }
     var wss=document.getElementById('wkSession'); if(wss && wss.classList.contains('on')){ wsClose(); return true; }
     var wk=document.getElementById('wkModule'); if(wk && wk.classList.contains('on')){ wk.classList.remove('on'); return true; }
@@ -3204,10 +3205,10 @@ window._speechResult = function(id, text, err){
    ============================================================ */
 
 /* ---- all-time stats ---- */
-function jrTotalEntries(){ return (state.jr||[]).length; }
-function jrTotalDays(){ var s={}; (state.jr||[]).forEach(function(e){ if(e.date) s[e.date]=1; }); return Object.keys(s).length; }
+function jrTotalEntries(){ return (jrBookList()||[]).length; }
+function jrTotalDays(){ var s={}; (jrBookList()||[]).forEach(function(e){ if(e.date) s[e.date]=1; }); return Object.keys(s).length; }
 function jrLongestStreak(){
-  var days=Object.keys((function(){var s={};(state.jr||[]).forEach(function(e){if(e.date)s[e.date]=1;});return s;})()).sort();
+  var days=Object.keys((function(){var s={};(jrBookList()||[]).forEach(function(e){if(e.date)s[e.date]=1;});return s;})()).sort();
   if(!days.length) return 0;
   var best=1, cur=1;
   for(var i=1;i<days.length;i++){
@@ -3447,7 +3448,7 @@ var jrEd = null, jrQ = '', jrTag = 'all', jrView = 'timeline', jrCalY = 0, jrCal
 
 /* ---- helpers ---- */
 function jrToday(){ return today(); }
-function jrStrip(h){ var d=document.createElement('div'); d.innerHTML=String(h||''); return (d.textContent||'').replace(/\s+/g,' ').trim(); }
+function jrStrip(h){ var d=document.createElement('div'); d.innerHTML=String(h||'').replace(/<br\s*\/?>|<\/(p|div|li|h[1-6]|blockquote|pre|tr)>/gi,' $&'); return (d.textContent||'').replace(/\s+/g,' ').trim(); }   /* a space where each line or block ended */
 function jrText(e){ return (e.title?e.title+' ':'') + jrStrip(e.content); }
 function jrTagsOf(e){
   var m = ((e.title||'')+' '+jrStrip(e.content)).match(/#[A-Za-z0-9_]+/g) || [];
@@ -3479,14 +3480,14 @@ function jrPromptText(){
   return JR_PROMPTS[jrPromptIx%JR_PROMPTS.length];
 }
 function jrStreak(){
-  var days={}; state.jr.forEach(function(e){ days[e.date]=1; });
+  var days={}; jrBookList().forEach(function(e){ days[e.date]=1; });
   var n=0, d=new Date();
   if(!days[fmt(d)]) d=addDays(d,-1); /* today optional */
   while(days[fmt(d)]){ n++; d=addDays(d,-1); }
   return n;
 }
 function jrMonthCount(){
-  var p=jrToday().slice(0,7), n=0; state.jr.forEach(function(e){ if((e.date||'').slice(0,7)===p) n++; }); return n;
+  var p=jrToday().slice(0,7), n=0; jrBookList().forEach(function(e){ if((e.date||'').slice(0,7)===p) n++; }); return n;
 }
 function jrDaysJournaled(){
   var p=jrToday().slice(0,7), s={}; state.jr.forEach(function(e){ if((e.date||'').slice(0,7)===p) s[e.date]=1; }); return Object.keys(s).length;
@@ -3505,7 +3506,7 @@ function jrCard(e){
   /* if the body starts by repeating the title (common in imported entries), drop that dupe */
   if(title && snip){ var t2=title.toLowerCase(); if(snip.toLowerCase().indexOf(t2)===0) snip=snip.slice(title.length).replace(/^[\s:–—-]+/,''); }
   var _pm=jrPhotoStyle(), _ph=jrCardPhotosHTML(e.photos,_pm);
-  return '<div class="jrCard'+(_pm==='compact'&&_ph?' sideTh':'')+(_pm==='strip'&&_ph?' hasStrip':'')+'" data-jid="'+e.id+'">'+_ph
+  return '<div class="jrCard'+(_pm==='compact'&&_ph?' sideTh':'')+(_pm==='strip'&&_ph?' hasStrip':'')+'" data-jid="'+e.id+'" style="--bk:'+esc(jrBookOf(e).color)+'">'+_ph
     + '<div class="jrTop"><span class="jrTime">'+esc(e.time||'')+'</span>'
     + (e.mood?'<span class="jrMood">'+(JR_MOODS[e.mood]||'')+'</span>':'')
     + (e.favorite?'<span class="jrFav" title="Favourite" aria-label="Favourite">'+ICON('star')+'</span>':'')
@@ -3606,17 +3607,21 @@ var _jrTimelineFlat=[], _jrTimelineShown=0, _jrTimelineIO=null;
 var JR_PAGE=25;
 function jrRenderTimeline(){
   jrSort();
-  /* Build a flat render list: day headers + entries, so we can page through it. */
+  var src=jrBookList(), listMode=jrListStyle()==='list';
+  /* Build a flat render list (headers + entries) so we can page through it. */
   var byDay={},order=[];
-  state.jr.forEach(function(e){ if(!byDay[e.date]){byDay[e.date]=[];order.push(e.date);} byDay[e.date].push(e); });
-  _jrTimelineFlat=[];
+  src.forEach(function(e){ if(!byDay[e.date]){byDay[e.date]=[];order.push(e.date);} byDay[e.date].push(e); });
+  _jrTimelineFlat=[]; var lastMonth='';
   order.forEach(function(d){
+    if(listMode){
+      var mk=String(d).slice(0,7); if(mk!==lastMonth){ lastMonth=mk; var md=new Date(mk+'-01T00:00:00'); _jrTimelineFlat.push({head:1, html:'<div class="jrMonthHead">'+esc(isNaN(md)?mk:md.toLocaleDateString(undefined,{month:'long',year:'numeric'}))+'</div>'}); }
+      byDay[d].forEach(function(e,ix){ _jrTimelineFlat.push({head:0, e:e, first:ix===0}); }); return; }
     _jrTimelineFlat.push({head:1, html:'<div class="jrDayHead"><span>'+esc(jrNiceDay(d))+'</span><span>'+byDay[d].length+' '+(byDay[d].length===1?'entry':'entries')+'</span></div>'});
     byDay[d].forEach(function(e){ _jrTimelineFlat.push({head:0, e:e}); });
   });
   var list=$('jrList'); if(!list) return;
-  list.classList.add('jrTimeline');
-  var emp=$('jrEmpty'); if(emp) emp.hidden = state.jr.length>0;
+  list.classList.toggle('jrTimeline',!listMode); list.classList.toggle('jrListMode',listMode);
+  var emp=$('jrEmpty'); if(emp) emp.hidden = src.length>0;
   _jrTimelineShown=0;
   list.innerHTML='';
   if(_jrTimelineIO){ try{_jrTimelineIO.disconnect();}catch(e){} _jrTimelineIO=null; }
@@ -3626,7 +3631,7 @@ function jrTimelineMore(){
   var list=$('jrList'); if(!list) return;
   var end=Math.min(_jrTimelineShown+JR_PAGE, _jrTimelineFlat.length);
   var html='';
-  for(var i=_jrTimelineShown;i<end;i++){ var it=_jrTimelineFlat[i]; html+= it.head? it.html : jrCard(it.e); }
+  for(var i=_jrTimelineShown;i<end;i++){ var it=_jrTimelineFlat[i]; html+= it.head? it.html : (jrListStyle()==='list'? jrRow(it.e,it.first) : jrCard(it.e)); }
   /* remove old sentinel if present */
   var oldS=list.querySelector('.jrTLsentinel'); if(oldS) oldS.remove();
   list.insertAdjacentHTML('beforeend', html);
@@ -3685,7 +3690,7 @@ function jrRelDay(fromISO, toISO){
 function jrRenderMemories(){
   var todayISO=jrToday(), td=new Date(todayISO+'T00:00'), rows=[], heading='On this day';
   /* 1) Exact month+day match in earlier years */
-  state.jr.forEach(function(e){
+  jrBookList().forEach(function(e){
     if(!e.date || e.date===todayISO) return;
     var d=new Date(e.date+'T00:00');
     if(d.getDate()===td.getDate() && d.getMonth()===td.getMonth() && d.getFullYear()<td.getFullYear()){
@@ -3695,7 +3700,7 @@ function jrRenderMemories(){
   });
   /* 2) Fallback: if no exact match, surface the nearest PAST entries so history shows now */
   if(!rows.length){
-    var past=state.jr.filter(function(e){ return e.date && e.date<todayISO; })
+    var past=jrBookList().filter(function(e){ return e.date && e.date<todayISO; })
       .sort(function(a,b){ return b.date.localeCompare(a.date); });  /* most recent past first */
     if(past.length){
       heading='Looking back';
@@ -3711,7 +3716,7 @@ function jrRenderMemories(){
   if(otd) otd.innerHTML=rows.length
     ? rows.map(function(o){return '<div class="jrOtdRow" data-jid="'+o[0].id+'"><span class="oy">'+esc(o[1])+'</span><span class="ot">'+esc(o[0].title||jrStrip(o[0].content).slice(0,50)||'Untitled')+'</span></div>';}).join('')
     : '<div class="jrMut" style="padding:6px">Your memories will appear here as your journal grows.</div>';
-  var f=state.jr.filter(function(e){return e.favorite;});
+  var f=jrBookList().filter(function(e){return e.favorite;});
   var fav=$('jrFavList'); if(fav) fav.innerHTML=f.length?f.map(jrCard).join(''):'<div class="jrMut" style="padding:6px">Turn on “Mark as favorite” on an entry to keep it here.</div>';
 }
 function jrRenderTags(){
@@ -3736,7 +3741,7 @@ function jrRenderCal(){
   if(!jrCalY){ var n=new Date(); jrCalY=n.getFullYear(); jrCalM=n.getMonth(); }
   setText('jrCalTitle', new Date(jrCalY,jrCalM,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}));
   var start=(new Date(jrCalY,jrCalM,1).getDay()+6)%7, days=new Date(jrCalY,jrCalM+1,0).getDate();
-  var has={}; state.jr.forEach(function(e){ var d=new Date(e.date+'T00:00'); if(d.getFullYear()===jrCalY&&d.getMonth()===jrCalM) has[d.getDate()]=1; });
+  var has={}; jrBookList().forEach(function(e){ var d=new Date(e.date+'T00:00'); if(d.getFullYear()===jrCalY&&d.getMonth()===jrCalM) has[d.getDate()]=1; });
   var h=['Mo','Tu','We','Th','Fr','Sa','Su'].map(function(d){return'<div class="jrCalDow">'+d+'</div>';}).join('');
   for(var i=0;i<start;i++) h+='<div class="jrCalCell mut"></div>';
   for(var d=1;d<=days;d++){
@@ -4198,13 +4203,14 @@ function jrMigrateEntry(je){
   out.date = /^\d{4}-\d{2}-\d{2}$/.test(je.date||je.d||'') ? (je.date||je.d) : today();
   out.time = /^\d{2}:\d{2}$/.test(je.time||'') ? je.time : (je.created?new Date(je.created).toTimeString().slice(0,5):'');
   out.title = String(je.title!==undefined?je.title:(je.t||'')).slice(0,120);
-  out.content = String(je.content!==undefined?je.content:(je.b||'')).slice(0,20000);
+  out.content = String(je.content!==undefined?je.content:(je.b||'')).slice(0,100000);
   var m=je.mood; out.mood = (m && JR_MOODS[m])?m:'';
   out.tags = Array.isArray(je.tags)?je.tags.map(function(x){return String(x).toLowerCase();}).slice(0,30):[];
   out.favorite = !!(je.favorite);
   out.template = String(je.template||'').slice(0,40);
   out.location = String(je.location||'').slice(0,80);
-  out.photos = Array.isArray(je.photos) ? je.photos.filter(function(p){ return typeof p==='string' && /^ph[a-z0-9]+$/.test(p); }).slice(0,8) : []; /* on-device photo ids (IndexedDB) */
+  out.book = (typeof je.book==='string' && /^[A-Za-z0-9_-]{1,40}$/.test(je.book)) ? je.book : '';   /* notebook ('' = Journal) */
+  out.photos = Array.isArray(je.photos) ? je.photos.filter(function(p){ return typeof p==='string' && /^ph[a-z0-9]+$/.test(p); }).slice(0,30) : []; /* on-device photo ids (IndexedDB) */
   out.createdAt = +je.createdAt || +je.created || Date.now();
   out.updatedAt = +je.updatedAt || out.createdAt;
   return out;
@@ -5274,7 +5280,7 @@ function expRowsRange(from,to){
   for(var i=0;i<list.length;i++){var x=list[i],af=acctById(x.acct),at=acctById(x.to);rows.push([x.id,x.d,x.kind,x.payee||'',af?af.name:'',at?at.name:'',x.cat||'',x.sub||'',x.amt,x.method||'',x.note||'',x.tags||'',x.receipt||(x.receiptData?'Uploaded image':''),x.recurId||'',x.created?new Date(x.created).toISOString():'']);}return rows;
 }
 function openExpRangeExport(){var end=today(),start=fmt(addDays(toDate(end),-30));$('expExportFrom').value=start;$('expExportTo').value=end;openSheet('expExportSheet');}
-function exportExpRangeXlsx(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}if(typeof XLSX==='undefined'){ensureXlsx(function(){exportExpRangeXlsx();});return;}var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(expRowsRange(from,to)),'Expenses');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='momentum-money-'+from+'-to-'+to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);closeSheet();toastN('Saved Excel');return;}catch(e){}}if(webSave(name,XMIME,out)){closeSheet();toastN('Downloading Excel…');}else toastN('Export failed');}
+function exportExpRangeXlsx(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}if(typeof XLSX==='undefined'){ensureXlsx(function(){exportExpRangeXlsx();});return;}var wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(expRowsRange(from,to)),'Transactions');var inc=0,ex=0,ct={};(state.tx||[]).forEach(function(x){if(x.d<from||x.d>to)return;if(x.kind==='inc')inc+=x.amt;else if(x.kind==='exp'){ex+=x.amt;ct[x.cat||'Other']=(ct[x.cat||'Other']||0)+x.amt;}});var sm=[['From',from],['To',to],['Income',inc],['Spending',ex],['Net',inc-ex],[],['Category','Spent']];Object.keys(ct).sort(function(a,b){return ct[b]-ct[a];}).forEach(function(c){sm.push([c,ct[c]]);});XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(sm),'Summary');var ac=[['Account','Type','Balance today']];(state.accts||[]).forEach(function(a){ac.push([a.name,a.type,acctBalance(a.id)]);});XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(ac),'Accounts');var out=XLSX.write(wb,{bookType:'xlsx',type:'base64'}),name='momentum-money-'+from+'-to-'+to+'.xlsx';if(nat&&nat.saveFile){try{nat.saveFile(name,XMIME,out);closeSheet();toastN('Saved Excel');return;}catch(e){}}if(webSave(name,XMIME,out)){closeSheet();toastN('Downloading Excel…');}else toastN('Export failed');}
 function exportExpRangePdf(){var from=$('expExportFrom').value,to=$('expExportTo').value;if(!from||!to||from>to){toastN('Select a valid date range');return;}var rows=expRowsRange(from,to),title='Expense Data — '+niceDate(from)+' to '+niceDate(to),th='',body='';for(var i=0;i<rows[0].length;i++)th+='<th>'+esc(rows[0][i])+'</th>';for(var r=1;r<rows.length;r++){body+='<tr>';for(var c=0;c<rows[r].length;c++)body+='<td>'+esc(rows[r][c])+'</td>';body+='</tr>';}var doc='<html><head><meta charset="utf-8"><title>'+esc(title)+'</title><style>@page{size:landscape;margin:10mm}body{font-family:Arial,sans-serif;padding:10px;color:#111;font-size:8px}h1{font-size:16px}table{width:100%;border-collapse:collapse;table-layout:auto}th,td{padding:4px 5px;border:1px solid #ddd;vertical-align:top;white-space:nowrap}th{background:#f3f3f3;font-weight:700}</style></head><body><h1>'+esc(title)+'</h1><table><thead><tr>'+th+'</tr></thead><tbody>'+body+'</tbody></table></body></html>';exportHtmlDoc(doc, 'expense-data');}
 function openRecurList(){ fToast('Recurring transactions have been removed from this build'); }
 function recurringStateInit(r){if(!r)return;r.status=r.active===false?'paused':(r.status||'active');if(!r.nextDate){var base=r.last||addDays(toDate(r.start||today()),-1),n=recurringNextDate(r,base),guard=0;while(fmt(n)<today()&&guard++<500)n=recurringNextDate(r,n);r.nextDate=fmt(n);}if(r.end&&(r.nextDate||r.start)>r.end)r.status='ended';if(r.skipNext===undefined)r.skipNext=false;}
@@ -6176,6 +6182,7 @@ window.importNative = function(b64){
   }catch(e4){ toastN('Not a Momentum backup'); }
 };
 function autoBackupDaily(){
+  return; /* automatic daily file backup removed: cloud sync + Google Drive cover it */
   if(!nat || state.set.lastAutoBk === today()) return;
   try{
     var p = nat.autoBackup('momentum-backup-' + today() + '.json', JSON.stringify(stateForStorage()));
@@ -7097,7 +7104,7 @@ function jrCollageHTML(photos, big){
 }
 function jrGalleryRender(){
   var box=$('jrGallery'); if(!box) return;
-  var items=[]; (state.jr||[]).forEach(function(e){ (e.photos||[]).forEach(function(p,i){ if(/^ph[a-z0-9]+$/.test(p)) items.push({p:p,e:e,i:i}); }); });
+  var items=[]; (jrBookList()||[]).forEach(function(e){ (e.photos||[]).forEach(function(p,i){ if(/^ph[a-z0-9]+$/.test(p)) items.push({p:p,e:e,i:i}); }); });
   items.sort(function(a,b){ var x=(b.e.date+(b.e.time||'')), y=(a.e.date+(a.e.time||'')); return x<y?-1:x>y?1:a.i-b.i; });
   if(!items.length){ box.innerHTML='<div class="empty"><div class="emptyIc">'+ICON('camera')+'</div><div class="t">No photos yet</div><div class="s">Add photos to a journal entry and they appear here.</div><button class="emptyCtaBtn" type="button" id="jrGalNew">Write an entry</button></div>'; return; }
   var entries={}; items.forEach(function(x){ entries[x.e.id]=1; });
@@ -7278,6 +7285,278 @@ function checkSleepGate(){ try{ if(sleepGateNeeded()) showSleepGate(); }catch(e)
   document.addEventListener('visibilitychange',function(){ if(document.visibilityState==='visible') setTimeout(checkSleepGate,400); });
   var nr=window.onNativeResume; window.onNativeResume=function(){ var r=nr?nr.apply(this,arguments):undefined; setTimeout(checkSleepGate,600); return r; };
   setInterval(checkSleepGate,60000);
+})();
+
+/* ================= Duplicates removed (build 59) ================= */
+(function(){
+  /* Home: the sync bar only appears when sync needs attention */
+  var rts=renderTodaySyncUI; renderTodaySyncUI=function(){ var r=rts.apply(this,arguments); try{ var bar=$('todaySyncBar'); if(bar){ var bad=(typeof syncState!=='undefined'&&syncState==='error'); bar.classList.toggle('syncProblem',!!bad); } }catch(e){} return r; };
+  /* Journal: "Summarize / Reflect on my day" live on the AI tab next to "Talk or write about my day" */
+  var menu=$('jrAskDayMenu'), out=$('jrDayAiOut'), talk=$('jrTalkBtnAi')||$('jrTalkBtn');
+  if(menu&&talk){ var tk=$('jrAskTalk'); if(tk) tk.remove(); menu.classList.add('jrDayActions'); talk.parentNode.insertBefore(menu, talk.nextSibling); if(out) menu.parentNode.insertBefore(out, menu.nextSibling); }
+  var ad=$('jrAskDayBtn'); if(ad) ad.remove();
+  /* Journal questions go to the one AI chat, with the relevant journal entries attached */
+  if(typeof jrAskJournal==='function'){ jrAskJournal=function(q){ q=String(q||'').trim(); if(!q) return;
+    try{ uStore.setItem('uai_prefill_context','The user asked about their journal. Relevant journal entries (date, time, mood, title, text):\n'+jrJournalContext(q)); }catch(e){}
+    showTab('pgAI'); setTimeout(function(){ try{ uaiSend(q); }catch(e){} },250); }; }
+  /* Settings: Smart nudges + Adaptive timing are one journal reminder */
+  var stog=$('remSmartTog'); if(stog) stog.addEventListener('click',function(){ setTimeout(function(){ try{ var r=state.set.reminders; r.adaptive=(r.smart!==false); saveRem(); }catch(e){} },0); });   /* after the switch's own handler has flipped it */
+  /* Quick-add notification is replaced by the Quick log widget: switch it off if it was on */
+  try{ var rc=state.set.reminders||{}; if(rc.quickAdd){ rc.quickAdd=false; persist(); if(nat&&nat.hideQuickAdd) nat.hideQuickAdd(); } }catch(e){}
+  /* Data: one Money export (any date range, Excel or PDF) */
+  var mx=$('btnMoneyXlsx'); if(mx){ var nb=mx.cloneNode(true); mx.parentNode.replaceChild(nb,mx); nb.addEventListener('click',function(){ openExpRangeExport(); }); }
+})();
+
+/* ================= Import from Day One (JSON export .zip) =================
+   Reads the ZIP piece by piece (File.slice), so multi-GB exports never load into memory at once.
+   Day One export: <Journal>.json files + photos/<md5>.<type>; photos are referenced in text as ![](dayone-moment://<identifier>). */
+function zipOpen(file){
+  var len=file.size, tail=Math.min(len,65557+20);
+  function readCD(off,size,count){ return file.slice(off,off+size).arrayBuffer().then(function(b){
+    var d=new DataView(b), map=new Map(), p=0, dec=new TextDecoder();
+    for(var n=0;n<count && p+46<=b.byteLength;n++){
+      if(d.getUint32(p,true)!==0x02014b50) break;
+      var method=d.getUint16(p+10,true), csize=d.getUint32(p+20,true), usize=d.getUint32(p+24,true), nl=d.getUint16(p+28,true), el=d.getUint16(p+30,true), cl=d.getUint16(p+32,true), loff=d.getUint32(p+42,true);
+      var name=dec.decode(new Uint8Array(b,p+46,nl)), e=p+46+nl, eEnd=e+el;
+      while(e+4<=eEnd){ var id=d.getUint16(e,true), sz=d.getUint16(e+2,true); if(id===0x0001){ var q=e+4;
+          if(usize===0xFFFFFFFF){ usize=Number(d.getBigUint64(q,true)); q+=8; } if(csize===0xFFFFFFFF){ csize=Number(d.getBigUint64(q,true)); q+=8; } if(loff===0xFFFFFFFF){ loff=Number(d.getBigUint64(q,true)); q+=8; } }
+        e+=4+sz; }
+      map.set(name,{method:method,csize:csize,usize:usize,loff:loff}); p=eEnd+cl; }
+    return { names:Array.from(map.keys()), get:function(n){ return map.get(n); },
+      read:function(n){ var en=map.get(n); if(!en) return Promise.reject(new Error('missing '+n));
+        return file.slice(en.loff,en.loff+30).arrayBuffer().then(function(h){ var hd=new DataView(h); if(hd.getUint32(0,true)!==0x04034b50) throw new Error('bad zip entry');
+          var st=en.loff+30+hd.getUint16(26,true)+hd.getUint16(28,true), blob=file.slice(st,st+en.csize);
+          if(en.method===0) return blob;
+          if(en.method===8) return new Response(blob.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+          throw new Error('unsupported compression'); }); } }; }); }
+  return file.slice(len-tail).arrayBuffer().then(function(buf){
+    var dv=new DataView(buf), eo=-1; for(var i=buf.byteLength-22;i>=0;i--){ if(dv.getUint32(i,true)===0x06054b50){ eo=i; break; } }
+    if(eo<0) throw new Error('This file is not a ZIP');
+    var cnt=dv.getUint16(eo+10,true), size=dv.getUint32(eo+12,true), off=dv.getUint32(eo+16,true);
+    if(eo>=20 && dv.getUint32(eo-20,true)===0x07064b50){ var z=Number(dv.getBigUint64(eo-20+8,true));
+      return file.slice(z,z+56).arrayBuffer().then(function(b2){ var d2=new DataView(b2); if(d2.getUint32(0,true)!==0x06064b50) throw new Error('bad zip64');
+        return readCD(Number(d2.getBigUint64(48,true)),Number(d2.getBigUint64(40,true)),Number(d2.getBigUint64(32,true))); }); }
+    return readCD(off,size,cnt); });
+}
+/* Day One Markdown -> the journal's HTML */
+function doMdToHtml(md){
+  var ESC=[]; md=String(md||'').replace(/\r\n?/g,'\n').replace(/\\([\\`*_{}\[\]()#+\-.!>~|])/g,function(_,c){ ESC.push(c); return '\uE000'+(ESC.length-1)+'\uE001'; });
+  var e=function(t){ return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  var inl=function(t){ t=e(t);
+    t=t.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/__([^_]+)__/g,'<b>$1</b>')
+       .replace(/(^|[^*])\*([^*\n]+)\*/g,'$1<i>$2</i>').replace(/(^|[^_\w])_([^_\n]+)_/g,'$1<i>$2</i>').replace(/~~([^~]+)~~/g,'<s>$1</s>')
+       .replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g,'<a href="$2" target="_blank" rel="noopener">$1</a>');
+    return t; };
+  var out=[], para=[], list=null;
+  function flushP(){ if(para.length){ out.push('<p>'+para.map(inl).join('<br>')+'</p>'); para=[]; } }
+  function flushL(){ if(list){ out.push('<'+list.t+'>'+list.items.map(function(x){ return '<li>'+x+'</li>'; }).join('')+'</'+list.t+'>'); list=null; } }
+  md.split('\n').forEach(function(line){
+    var m;
+    if(!line.trim()){ flushP(); flushL(); return; }
+    if((m=/^\s*#{1,6}\s+(.*)$/.exec(line))){ flushP(); flushL(); out.push('<h3>'+inl(m[1])+'</h3>'); return; }
+    if((m=/^\s*>\s?(.*)$/.exec(line))){ flushP(); flushL(); out.push('<blockquote>'+inl(m[1])+'</blockquote>'); return; }
+    if((m=/^\s*[-*+]\s+\[( |x|X)\]\s+(.*)$/.exec(line))){ flushP(); if(!list||list.t!=='ul'){ flushL(); list={t:'ul',items:[]}; } list.items.push((m[1]===' '?'\u2610 ':'\u2611 ')+inl(m[2])); return; }
+    if((m=/^\s*[-*+]\s+(.*)$/.exec(line))){ flushP(); if(!list||list.t!=='ul'){ flushL(); list={t:'ul',items:[]}; } list.items.push(inl(m[1])); return; }
+    if((m=/^\s*\d+[.)]\s+(.*)$/.exec(line))){ flushP(); if(!list||list.t!=='ol'){ flushL(); list={t:'ol',items:[]}; } list.items.push(inl(m[1])); return; }
+    flushL(); para.push(line); });
+  flushP(); flushL();
+  return out.join('').replace(/\uE000(\d+)\uE001/g,function(_,i){ return e(ESC[+i]); });
+}
+function doLocalParts(iso, tz){
+  var d=new Date(iso); if(isNaN(d)) return null;
+  try{ var f=new Intl.DateTimeFormat('en-CA',{timeZone:tz||undefined,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(d), g={};
+    f.forEach(function(p){ g[p.type]=p.value; }); return {date:g.year+'-'+g.month+'-'+g.day, time:(g.hour==='24'?'00':g.hour)+':'+g.minute}; }
+  catch(e){ return {date:fmt(d), time:('0'+d.getHours()).slice(-2)+':'+('0'+d.getMinutes()).slice(-2)}; }
+}
+function doBlobToDataUrl(b){ return new Promise(function(res){ var r=new FileReader(); r.onload=function(){ res(r.result); }; r.onerror=function(){ res(null); }; r.readAsDataURL(b); }); }
+/* store one Day One photo in this account's photo store, in the chosen quality */
+function doStorePhoto(blob, type){
+  var q=photoQuality(), id='ph'+Date.now().toString(36)+Math.random().toString(36).slice(2,6), url=URL.createObjectURL(blob), isJpeg=/^jpe?g$/i.test(type||'');
+  var fullP = (q==='original' && isJpeg) ? doBlobToDataUrl(blob.slice(0,blob.size,'image/jpeg')) : jrScale(url, q==='original'?4096:2560, q==='original'?.95:.9);
+  return Promise.all([fullP, jrScale(url,1200,.85), jrScale(url,480,.82)]).then(function(r){ URL.revokeObjectURL(url);
+    if(!r[1]) return null;   /* the browser can't decode it (e.g. HEIC) */
+    return Promise.all([PhotoDB.put(id,r[0]||r[1]),PhotoDB.put(id+'_p',r[1]),PhotoDB.put(id+'_t',r[2]||r[1])]).then(function(){ return id; }); },
+    function(){ URL.revokeObjectURL(url); return null; });
+}
+var DOI={stop:false};
+function doUi(state_){ var sh=$('doImportSheet');
+  if(!sh){ sh=document.createElement('div'); sh.className='sheet'; sh.id='doImportSheet'; document.body.appendChild(sh); }
+  sh.innerHTML='<div class="grab"></div><h2>Import from Day One</h2><div class="setS" id="doStage" style="margin:-4px 0 14px"></div>'
+    +'<div class="doBar"><i id="doBarFill"></i></div><div class="doCounts" id="doCounts"></div><div class="setS" id="doNote" style="margin-top:10px">Keep Momentum open until the import finishes.</div>'
+    +'<button class="btnS" id="doStop" type="button" style="width:100%;margin-top:16px">Stop</button>';
+  sh.querySelector('#doStop').onclick=function(){ if(DOI.done){ closeSheet(); return; } DOI.stop=true; this.textContent='Stopping\u2026'; };
+  openSheet('doImportSheet'); }
+function doProgress(stage, done, total, c){ var st=$('doStage'), f=$('doBarFill'), ct=$('doCounts'); if(st) st.textContent=stage; if(f) f.style.width=(total?Math.round(done/total*100):0)+'%';
+  if(ct) ct.innerHTML='<span><b>'+c.entries+'</b> entries</span><span><b>'+c.photos+'</b> photos</span><span><b>'+c.dupes+'</b> already here</span>'; }
+function importDayOne(file){
+  DOI={stop:false,done:false}; var c={entries:0,photos:0,dupes:0,media:0,unsupported:0,missing:0};
+  doUi(); doProgress('Reading the export\u2026',0,0,c);
+  var isZip=/\.zip$/i.test(file.name)||/zip/.test(file.type||'');
+  var journalsP = isZip ? zipOpen(file).then(function(z){
+      var jsons=z.names.filter(function(n){ return /\.json$/i.test(n) && n.indexOf('__MACOSX')<0 && !/\/\._/.test(n); });
+      if(!jsons.length) throw new Error('No Day One journal (.json) found in this ZIP');
+      return Promise.all(jsons.map(function(n){ return z.read(n).then(function(b){ return b.text(); }).then(function(t){ return {name:n.split('/').pop().replace(/\.json$/i,''), data:JSON.parse(t)}; }); })).then(function(js){ return {zip:z, journals:js}; }); })
+    : file.text().then(function(t){ return {zip:null, journals:[{name:file.name.replace(/\.json$/i,''), data:JSON.parse(t)}]}; });
+  return journalsP.then(function(src){
+    var multi=src.journals.length>1, all=[];
+    src.journals.forEach(function(j){ (j.data&&j.data.entries||[]).forEach(function(en){ all.push({en:en, journal:j.name}); }); });
+    if(!all.length) throw new Error('The export has no entries');
+    all.sort(function(a,b){ return String(a.en.creationDate||'')<String(b.en.creationDate||'')?-1:1; });
+    var photoPath={}; if(src.zip) src.zip.names.forEach(function(n){ var m=/(?:^|\/)photos\/([0-9a-f]{32})\.([a-z0-9]+)$/i.exec(n); if(m) photoPath[m[1].toLowerCase()]={path:n,type:m[2]}; });
+    var have={}, i=0; (state.jr||[]).forEach(function(e){ have[e.id]=1; });
+    function next(){
+      if(DOI.stop||i>=all.length) return Promise.resolve();
+      var it=all[i++], en=it.en, id='do_'+String(en.uuid||'').replace(/[^A-Za-z0-9]/g,'').slice(0,40);
+      if(i%5===0) doProgress('Importing '+i+' of '+all.length+'\u2026',i,all.length,c);
+      if(!en.uuid||have[id]){ c.dupes++; return next(); }
+      var text=String(en.text||''), when=doLocalParts(en.creationDate,en.timeZone)||{date:today(),time:''};
+      var order=[]; text.replace(/!\[\]\(dayone-moment:\/\/([^)\/]+)\)/g,function(_,ident){ order.push(ident); return _; });
+      c.media+=((en.videos||[]).length+(en.audios||[]).length+(en.pdfAttachments||[]).length);
+      text=text.replace(/!\[\]\(dayone-moment:\/[^)]*\)/g,'').replace(/\n{3,}/g,'\n\n').trim();
+      var title='', lines=text.split('\n'), first=lines.findIndex(function(l){ return l.trim(); });
+      if(first>=0 && /^\s*#{1,6}\s+/.test(lines[first])){ title=lines[first].replace(/^\s*#{1,6}\s+/,'').replace(/\\(.)/g,'$1').trim(); lines.splice(first,1); text=lines.join('\n').trim(); }
+      var ph=(en.photos||[]).slice().sort(function(a,b){ var ia=order.indexOf(a.identifier), ib=order.indexOf(b.identifier); return (ia<0?999:ia)-(ib<0?999:ib); }).slice(0,30);
+      var ids=[], k=0;
+      function nextPhoto(){ if(k>=ph.length||DOI.stop) return Promise.resolve();
+        var p=ph[k++], f=photoPath[String(p.md5||'').toLowerCase()]; if(!f){ c.missing++; return nextPhoto(); }
+        return src.zip.read(f.path).then(function(b){ return doStorePhoto(b,f.type||p.type); }).then(function(pid){ if(pid){ ids.push(pid); c.photos++; } else c.unsupported++; }, function(){ c.missing++; }).then(nextPhoto); }
+      return nextPhoto().then(function(){
+        var loc=en.location?[en.location.placeName,en.location.localityName,en.location.country].filter(function(x,ix,arr){ return x&&arr.indexOf(x)===ix; }).join(', '):'';
+        var tags=(en.tags||[]).map(function(t){ return String(t).toLowerCase().replace(/\s+/g,'-'); }), bookId=doBookFor(it.journal);
+        var e=jrMigrateEntry({id:id,book:(bookId===JB_MAIN?'':bookId),date:when.date,time:when.time,title:title,content:doMdToHtml(text),tags:tags,favorite:!!en.starred,location:loc,photos:ids,
+          createdAt:Date.parse(en.creationDate)||Date.now(),updatedAt:Date.parse(en.modifiedDate)||Date.parse(en.creationDate)||Date.now()});
+        state.jr.push(e); have[id]=1; c.entries++;
+        if(c.entries%25===0) persist();
+        return next(); });
+    }
+    return next().then(function(){ return {c:c,total:all.length}; });
+  }).then(function(r){
+    persist({now:true}); try{ renderJr(); }catch(e){}
+    try{ if(DrivePhotos.on()) setTimeout(function(){ DrivePhotos.syncNow(false); },1500); }catch(e){}
+    DOI.done=true; doProgress(DOI.stop?'Stopped':'Done',r.total,r.total,r.c);
+    var skipped=[]; if(r.c.dupes) skipped.push(r.c.dupes+' already in Momentum'); if(r.c.unsupported) skipped.push(r.c.unsupported+' photo'+(r.c.unsupported===1?'':'s')+' in a format this device can\u2019t read (e.g. HEIC)'); if(r.c.missing) skipped.push(r.c.missing+' photo'+(r.c.missing===1?'':'s')+' missing from the ZIP'); if(r.c.media) skipped.push(r.c.media+' video, audio or PDF attachment'+(r.c.media===1?'':'s'));
+    var nt=$('doNote'); if(nt) nt.textContent=(DOI.stop?'Import stopped. ':'')+'Imported '+r.c.entries+' entr'+(r.c.entries===1?'y':'ies')+' with '+r.c.photos+' photo'+(r.c.photos===1?'':'s')+'.'+(skipped.length?' Skipped: '+skipped.join(', ')+'.':'')+' Run it again any time \u2014 nothing is imported twice.';
+    var b=$('doStop'); if(b) b.textContent='Done';
+    toastN('Day One import: '+r.c.entries+' entries, '+r.c.photos+' photos');
+  }).catch(function(err){ DOI.done=true; var nt=$('doNote'); if(nt) nt.textContent='Couldn\u2019t import: '+(err&&err.message||err)+'. Use the ZIP from Day One \u203a Export \u203a JSON.'; var b=$('doStop'); if(b) b.textContent='Close'; var st=$('doStage'); if(st) st.textContent='Import failed'; });
+}
+(function(){ var b=$('btnDayOne'), f=$('doFile'); if(!b||!f) return;
+  b.addEventListener('click',function(){ f.value=''; f.click(); });
+  f.addEventListener('change',function(){ if(this.files&&this.files[0]) importDayOne(this.files[0]); }); })();
+
+/* ================= Journal notebooks + Day One-style list ================= */
+var JB_MAIN='jb_main', JB_COLORS=['#E8674A','#4A90E2','#3FB37F','#9B6BDF','#E55B9A','#F2994A','#2BB3B1','#8A8F98'];
+function jrBooks(){ state.set=state.set||{}; if(!Array.isArray(state.set.jrBooks)||!state.set.jrBooks.length) state.set.jrBooks=[{id:JB_MAIN,name:'Journal',color:JB_COLORS[0]}];
+  if(!state.set.jrBooks.some(function(b){ return b.id===JB_MAIN; })) state.set.jrBooks.unshift({id:JB_MAIN,name:'Journal',color:JB_COLORS[0]}); return state.set.jrBooks; }
+function jrBookById(id){ var bs=jrBooks(); for(var i=0;i<bs.length;i++) if(bs[i].id===id) return bs[i]; return null; }
+function jrBookOf(e){ return jrBookById(e&&e.book||JB_MAIN)||jrBookById(JB_MAIN); }
+function jrSelBook(){ var b=state.set&&state.set.jrBook; return (b&&jrBookById(b))?b:''; }
+function jrBookList(){ var b=jrSelBook(); if(!b) return state.jr; return state.jr.filter(function(e){ return (e.book||JB_MAIN)===b; }); }
+function jrBookCount(id){ return state.jr.filter(function(e){ return (e.book||JB_MAIN)===id; }).length; }
+function jrListStyle(){ return (state.set&&state.set.jrListStyle)==='cards'?'cards':'list'; }
+function jrRowThumbs(photos){ var ph=(photos||[]).filter(function(p){ return /^ph[a-z0-9]+$/.test(p); }); if(!ph.length) return '';
+  var n=ph.length, k=Math.min(n,4), more=n-4;
+  return '<div class="jrRowTh n'+k+'">'+ph.slice(0,k).map(function(id,i){ return '<span><img data-ph="'+esc(id)+'_t" alt="">'+(i===3&&more>0?'<b>+'+more+'</b>':'')+'</span>'; }).join('')+'</div>'; }
+function jrRow(e, first){
+  var bk=jrBookOf(e), title=jrClean(e.title), snip=jrClean(jrStrip(e.content).replace(/#[A-Za-z0-9_]+/g,''));
+  if(title && snip && snip.toLowerCase().indexOf(title.toLowerCase())===0) snip=snip.slice(title.length).replace(/^[\s:\u2013\u2014-]+/,'');
+  var d=new Date(String(e.date)+'T00:00:00'), ok=!isNaN(d), wd=ok?d.toLocaleDateString(undefined,{weekday:'short'}).toUpperCase():'', dn=ok?d.getDate():'';
+  return '<div class="jrCard jrRow" data-jid="'+esc(e.id)+'" style="--bk:'+esc(bk.color)+'">'
+    +'<div class="jrRowDate" aria-hidden="'+(first?'false':'true')+'">'+(first?'<span>'+esc(wd)+'</span><b>'+dn+'</b>':'')+'</div>'
+    +'<div class="jrRowMain">'+(title?'<div class="jrRowTitle">'+esc(title)+'</div>':'')+(snip?'<div class="jrRowSnip'+(title?'':' long')+'">'+esc(snip)+'</div>':'')
+    +'<div class="jrRowMeta"><span>'+esc(e.time?timeFmt(e.time):'')+'</span>'+(e.favorite?'<span class="jrFav" aria-label="Favourite">'+ICON('star')+'</span>':'')+(e.mood&&JR_MOODS[e.mood]?'<span class="jrMood">'+(JR_MOODS[e.mood]||'')+'</span>':'')
+    +'<button class="jrSumBtn" data-jr-summary="'+esc(e.id)+'" title="AI summary of this day" aria-label="AI summary">'+ICON('ai')+'</button></div></div>'
+    +jrRowThumbs(e.photos)+'</div>'; }
+function renderJrBookBtn(){ var b=jrSelBook(), bk=b?jrBookById(b):null, n=$('jrBookName'), d=$('jrBookDot');
+  if(n) n.textContent=bk?bk.name:'All notebooks'; if(d){ d.classList.toggle('all',!bk); d.style.background=bk?bk.color:''; } }
+function openJrBooks(){
+  var sh=$('jrBooksSheet'); if(!sh){ sh=document.createElement('div'); sh.className='sheet'; sh.id='jrBooksSheet'; document.body.appendChild(sh);
+    sh.addEventListener('click',function(ev){ var ed=ev.target.closest('[data-jbedit]'); if(ed){ openJrBookEdit(ed.getAttribute('data-jbedit')); return; }
+      var pick=ev.target.closest('[data-jb]'); if(pick){ state.set.jrBook=pick.getAttribute('data-jb'); persist(); closeSheet(); renderJrBookBtn(); try{ renderJr(); if(jrView==='photos') jrGalleryRender(); }catch(er){} return; }
+      if(ev.target.closest('#jbNew')) openJrBookEdit(null); }); }
+  var sel=jrSelBook();
+  sh.innerHTML='<div class="grab"></div><h2>Notebooks</h2>'
+    +'<button class="jbRow'+(sel?'':' on')+'" type="button" data-jb=""><i class="jrBookDot all"></i><span>All notebooks</span><em>'+state.jr.length+'</em></button>'
+    +jrBooks().map(function(b){ return '<div class="jbLine"><button class="jbRow'+(sel===b.id?' on':'')+'" type="button" data-jb="'+esc(b.id)+'"><i class="jrBookDot" style="background:'+esc(b.color)+'"></i><span>'+esc(b.name)+'</span><em>'+jrBookCount(b.id)+'</em></button><button class="iconBtn" type="button" data-jbedit="'+esc(b.id)+'" aria-label="Edit '+esc(b.name)+'">'+ICON('edit')+'</button></div>'; }).join('')
+    +'<button class="btnS" id="jbNew" type="button" style="width:100%;margin-top:12px">'+ICON('plus')+'New notebook</button>';
+  openSheet('jrBooksSheet'); }
+function openJrBookEdit(id){
+  var bk=id?jrBookById(id):null, color=bk?bk.color:JB_COLORS[jrBooks().length%JB_COLORS.length];
+  var sh=$('jrBookEditSheet'); if(!sh){ sh=document.createElement('div'); sh.className='sheet'; sh.id='jrBookEditSheet'; document.body.appendChild(sh); }
+  sh.innerHTML='<div class="grab"></div><h2>'+(bk?'Edit notebook':'New notebook')+'</h2>'
+    +'<div class="lbl">Name</div><input class="inp" id="jbName" maxlength="30" placeholder="e.g. Travel" value="'+esc(bk?bk.name:'')+'">'
+    +'<div class="lbl" style="margin-top:14px">Colour</div><div class="jbSwatches" id="jbSw" role="radiogroup" aria-label="Colour">'+JB_COLORS.map(function(c){ return '<button type="button" role="radio" aria-checked="'+(c===color)+'" aria-label="Colour '+c+'" data-c="'+c+'" class="'+(c===color?'on':'')+'" style="background:'+c+'"></button>'; }).join('')+'</div>'
+    +'<div class="setS" id="jbMsg" style="color:var(--coral);min-height:18px;margin-top:8px"></div>'
+    +'<button class="primary" id="jbSave" type="button" style="width:100%;margin-top:8px">'+(bk?'Save':'Create notebook')+'</button>'
+    +(bk&&bk.id!==JB_MAIN?'<button class="btnS" id="jbDel" type="button" style="width:100%;margin-top:10px;color:var(--coral)">Delete notebook</button>':'');
+  sh.querySelector('#jbSw').onclick=function(ev){ var b=ev.target.closest('[data-c]'); if(!b) return; color=b.getAttribute('data-c'); [].forEach.call(this.children,function(x){ var on=x===b; x.classList.toggle('on',on); x.setAttribute('aria-checked',on?'true':'false'); }); };
+  sh.querySelector('#jbSave').onclick=function(){ var nm=$('jbName').value.trim(); if(!nm){ $('jbMsg').textContent='Give the notebook a name.'; return; }
+    if(jrBooks().some(function(b){ return b.name.toLowerCase()===nm.toLowerCase() && (!bk||b.id!==bk.id); })){ $('jbMsg').textContent='You already have a notebook with that name.'; return; }
+    if(bk){ bk.name=nm; bk.color=color; } else jrBooks().push({id:'jb_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm,color:color});
+    persist(); renderJrBookBtn(); try{ renderJr(); }catch(e){} closeSheet(); setTimeout(openJrBooks,260); };
+  var del=sh.querySelector('#jbDel'); if(del) del.onclick=function(){ var n=jrBookCount(bk.id);
+    if(!confirm('Delete the notebook \u201c'+bk.name+'\u201d?'+(n?' Its '+n+' entr'+(n===1?'y moves':'ies move')+' to Journal; nothing is deleted.':''))) return;
+    state.jr.forEach(function(e){ if(e.book===bk.id) e.book=''; }); state.set.jrBooks=jrBooks().filter(function(b){ return b.id!==bk.id; }); if(state.set.jrBook===bk.id) state.set.jrBook='';
+    persist(); renderJrBookBtn(); try{ renderJr(); }catch(e){} closeSheet(); setTimeout(openJrBooks,260); toastN('Notebook deleted'); };
+  if(sheetOpen) closeSheet(); setTimeout(function(){ openSheet('jrBookEditSheet'); setTimeout(function(){ try{ $('jbName').focus(); }catch(e){} },150); },sheetOpen?260:0); }
+/* Day One import: one notebook per Day One journal */
+function doBookFor(name){ var nm=String(name||'Journal').trim()||'Journal', bs=jrBooks();
+  for(var i=0;i<bs.length;i++) if(bs[i].name.toLowerCase()===nm.toLowerCase()) return bs[i].id;
+  var b={id:'jb_'+Date.now().toString(36)+Math.random().toString(36).slice(2,5),name:nm.slice(0,30),color:JB_COLORS[bs.length%JB_COLORS.length]}; bs.push(b); return b.id; }
+(function(){
+  var btn=$('jrBookBtn'); if(btn) btn.addEventListener('click',openJrBooks);
+  /* entry editor: notebook picker */
+  var sel=$('jrBookSel');
+  function fillSel(v){ if(!sel) return; sel.innerHTML=jrBooks().map(function(b){ return '<option value="'+esc(b.id)+'">'+esc(b.name)+'</option>'; }).join(''); sel.value=v||JB_MAIN; }
+  if(sel) sel.addEventListener('change',function(){ if(jrEd) jrEd.book=this.value; });
+  var oj=openJr; openJr=function(){ var r=oj.apply(this,arguments); try{ fillSel((jrEd&&jrEd.book)||jrSelBook()||JB_MAIN); if(jrEd) jrEd.book=sel?sel.value:(jrEd.book||''); }catch(e){} return r; };
+  var sj=saveJr; saveJr=function(){ try{ if(jrEd&&sel) jrEd.book=sel.value===JB_MAIN?'':sel.value; }catch(e){} return sj.apply(this,arguments); };
+  /* reader: title in the notebook colour, notebook name under the date */
+  var orr=openJrRead; openJrRead=function(id){ var r=orr.apply(this,arguments); try{ var e=jrFind(id), bk=jrBookOf(e), t=$('jrReadTitle'); if(t) t.style.color=bk.color;
+      var lb=$('jrReadBook'); if(!lb){ var dt=$('jrReadDate'); if(dt){ lb=document.createElement('div'); lb.id='jrReadBook'; lb.className='jrReadBook'; dt.parentNode.insertBefore(lb,dt.nextSibling); } }
+      if(lb){ lb.innerHTML='<i class="jrBookDot" style="background:'+esc(bk.color)+'"></i>'+esc(bk.name); lb.style.display=jrBooks().length>1?'':'none'; } }catch(e){} return r; };
+  /* settings: timeline style */
+  var ls=$('jrListSeg'); function syncLs(){ if(!ls) return; var v=jrListStyle(); [].forEach.call(ls.children,function(b){ b.classList.toggle('on',b.getAttribute('data-ls')===v); }); }
+  if(ls) ls.addEventListener('click',function(ev){ var b=ev.target.closest('[data-ls]'); if(!b) return; state.set.jrListStyle=b.getAttribute('data-ls'); persist(); syncLs(); try{ renderJr(); }catch(e){} });
+  syncLs(); jrBooks(); setTimeout(renderJrBookBtn,0);
+})();
+
+/* ================= Colourful text: every label, title and name takes a meaningful colour ================= */
+var TXC={ amber:'--tx-amber', coral:'--tx-coral', blue:'--tx-blue', green:'--tx-green', purple:'--tx-purple', teal:'--tx-teal', pink:'--tx-pink', orange:'--tx-orange', indigo:'--tx-indigo' };
+var TXC_LIST=['amber','coral','blue','green','purple','teal','pink','orange','indigo'];
+var LABEL_COLOR={ 'today':'amber','spaces':'amber','anytime':'teal','morning':'orange','afternoon':'amber','evening':'purple','night':'indigo',
+  'next':'blue','at a glance':'orange','one insight':'purple','top 3 today':'coral','evening wrap-up':'indigo','your week':'teal',
+  'overdue':'coral','upcoming':'blue','completed':'green','done':'green','no date':'teal',
+  'insight':'amber','your progress':'green','trend':'blue','achievements':'teal','habit performance':'amber','patterns detected':'orange',
+  'fitness':'coral','personal records':'orange','calendar':'blue','mood':'purple','year in pixels':'teal','this month':'green',
+  'account':'blue','app':'purple','ai':'pink','security':'indigo','data':'green','other':'orange','about':'teal',
+  'back up':'green','restore':'blue','download for excel / pdf':'orange','memories':'pink','favorites':'pink','favourites':'pink','for you':'purple',
+  'templates':'teal','sleep':'indigo','suggestions':'purple','looking back':'teal','on this day':'pink' };
+var CAT_COLOR={ food:'orange', groceries:'green', transport:'blue', travel:'teal', shopping:'pink', bills:'purple', utilities:'purple', rent:'indigo', housing:'indigo',
+  health:'green', fitness:'coral', entertainment:'purple', education:'indigo', gifts:'pink', personal:'pink', subscriptions:'blue', salary:'green', income:'green', investment:'teal', transfer:'teal', other:'amber' };
+function txcHash(t){ var h=0; t=String(t||''); for(var i=0;i<t.length;i++) h=(h*31+t.charCodeAt(i))|0; return TXC_LIST[Math.abs(h)%TXC_LIST.length]; }
+function txcFor(text){ var k=String(text||'').replace(/\s+\d+\s+(task|tasks|entry|entries)$/i,'').trim().toLowerCase(); return LABEL_COLOR[k]||txcHash(k); }
+function colorizeText(root){
+  root=root||document;
+  /* section headings everywhere: a stable colour per heading, icon included */
+  root.querySelectorAll('.sectLbl,.secH,.taskSectionTitle,#pgStats .lbl,.setGroupLbl,.dataGroupLbl,#pgAI .lbl,#jrView-memories .lbl,.jrMemHead').forEach(function(el){
+    var t=(el.childNodes.length?[].map.call(el.childNodes,function(n){ return n.nodeType===3?n.textContent:(n.classList&&(n.classList.contains('ic')||n.classList.contains('bIc')||n.tagName==='I')?'':n.textContent); }).join(''):el.textContent).trim();
+    var k=t.split(/\s{2,}|\d+\s+tasks?$/)[0].trim(); var c=txcFor(k); if(el.getAttribute('data-txc')!==c){ el.setAttribute('data-txc',c); el.style.setProperty('--txc','var('+TXC[c]+')'); } });
+  /* tasks: title in the priority colour */
+  root.querySelectorAll('#pgTasks .taskCard[data-task-id]').forEach(function(card){ var t=(state.tasks||[]).find(function(x){ return x.id===card.getAttribute('data-task-id'); }); if(!t) return;
+    var c=t.status==='completed'?'':(t.priority==='high'?'coral':t.priority==='low'?'blue':'amber'); card.style.setProperty('--tc',c?'var('+TXC[c]+')':'var(--mut)'); });
+  /* money: payee in its category colour */
+  root.querySelectorAll('.txRow').forEach(function(r){ var ts=r.querySelector('.ts'), cat=ts?ts.textContent.split('\u00b7')[0].trim().toLowerCase():''; var c=CAT_COLOR[cat]||txcHash(cat); r.style.setProperty('--pc','var('+TXC[c]+')'); });
+  /* AI starter tiles: one colour each */
+  root.querySelectorAll('#pgAI .uaiCategory').forEach(function(b,i){ b.style.setProperty('--txc','var('+TXC[['amber','green','orange','blue','purple','teal'][i%6]]+')'); });
+}
+(function(){
+  var pending=false, app=document.getElementById('app')||document.body;
+  function run(){ pending=false; try{ colorizeText(document); }catch(e){} }
+  function schedule(){ if(pending) return; pending=true; (window.requestAnimationFrame||setTimeout)(run); }
+  if(window.MutationObserver) new MutationObserver(schedule).observe(app,{childList:true,subtree:true});
+  var sg=document.getElementById('setCardGrid'); if(sg&&window.MutationObserver) new MutationObserver(schedule).observe(sg,{childList:true,subtree:true});
+  setTimeout(run,0);
 })();
 
 function climb(el, root, attr){
@@ -7783,7 +8062,7 @@ function init(){
     openMonthPicker('Money workbook (Excel)','Transactions, spending by category and account balances.','Create Excel',function(yy,mm){ var oy=expY, om=expM; expY=yy; expM=mm; try{ exportExpXlsx(); } finally { expY=oy; expM=om; } });
   });
   /* Android-only rows: hidden on the web (kept in the page because other code updates them) */
-  [['rowDriveShare'],['rowAutoBk']].forEach(function(r){ var el=$(r[0]); if(el && !nat) el.style.display='none'; });
+  var _dv=$('btnDrive'); if(_dv && !nat) _dv.style.display='none';   /* Share to Drive: Android share sheet */
   document.querySelectorAll('#pgSet .setCard').forEach(function(card){ var rows=[].filter.call(card.querySelectorAll(':scope > .setRow'),function(r){ return r.style.display!=='none'; }); rows.forEach(function(r,i){ r.classList.toggle('lastVis', i===rows.length-1); }); });
 
   function generatePdfReport(yy, mm){

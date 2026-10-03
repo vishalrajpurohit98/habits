@@ -145,3 +145,41 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - **Daily sleep check-in**: the first time the app is opened each day (from 4 am, after sign-in and the PIN lock)
     a full-screen check-in asks for bedtime and wake-up before anything else; times are pre-filled from the previous
     night. It replaces the sleep card on the Habits page.
+- **Build 59 — duplicates removed:**
+  - Removed: Home sync bar (shown only when sync fails), Home avatar switcher and saved-profiles list, Reconfigure
+    (Firebase settings), Strict sleep (the daily check-in covers it), Quick-add notification (the Quick log widget
+    covers it), Insights › Money tab, Journal-only backup, automatic daily file backup, "Ask about my day" and the
+    Write-tab copy of "Talk or write about my day", Create › Sleep, Habits page search.
+  - Merged: one Money export (any date range, Excel with Transactions/Summary/Accounts, or PDF); Full backup has
+    Save and Share (Drive); Summarize/Reflect on my day moved to Journal › AI; journal questions answered in the main
+    AI chat with the relevant entries attached; Smart nudges + Adaptive timing = "Smart journal reminder".
+  - "Offline & private" reworded to "Private by design".
+  - Fixed: Android back now checks the sign-in and sleep screens before anything else.
+- **Build 60 — Import from Day One:**
+  - Settings › Data › Restore › **Import from Day One**: reads the ZIP from Day One › Export › JSON (also a bare .json).
+    The ZIP is read piece by piece (File.slice + DecompressionStream), so multi-GB exports work; stored, deflated and
+    ZIP64 archives supported.
+  - Maps creation date in the entry's own time zone, a leading `# heading` as the title, Markdown (bold, italic,
+    strike, links, headings, lists, checklists, quotes, Day One backslash escapes), photos in text order and in the
+    chosen photo quality, tags, starred → favourite, place; with several journals the journal name is added as a tag.
+  - Re-importing never duplicates (entries keyed by Day One UUID). Skipped and reported: videos, audio and PDFs;
+    photos the device cannot decode (e.g. HEIC); photos missing from the ZIP.
+  - Journal limits raised for imports: 100,000 characters and 30 photos per entry.
+  - Fixed: entry previews ran words together across lines, paragraphs and list items.
+- **Build 61 — notebooks and the Day One-style timeline:**
+  - Journal **notebooks**: a switcher under the Journal title (All notebooks or one notebook) filters the timeline,
+    calendar, memories, photos and journey stats. Create, rename, recolour (8 colours) or delete notebooks; deleting
+    moves entries to Journal. Existing entries live in the default "Journal" notebook. The entry editor has a
+    notebook picker; the reader shows the notebook and colours the title. Notebooks sync with settings.
+  - **Day One-style timeline** (default): month headings, a date column (weekday + day number), the title in the
+    notebook colour, grey preview, time, and a photo mosaic (1 photo, or 2x2 with "+N"). Settings › Appearance ›
+    Journal timeline: List or Cards.
+  - Day One import: each Day One journal becomes a notebook (instead of a tag).
+- **Build 62 — colourful text across the app:**
+  - One text palette (amber, coral, blue, green, purple, teal, pink, orange, indigo) with bright shades on dark and
+    deeper shades on light; WCAG AA contrast verified in both themes.
+  - Page titles per area; every section heading coloured (with its icon); habit names in each habit's colour; task
+    titles by priority; money payees by category and day headings green; Home Spaces labels, Next titles and
+    At-a-glance values follow their icons; stat numbers in a rotating palette; chart titles teal; Settings group
+    headings and row titles match their icons; AI headings and starter tiles coloured; the active tab takes its
+    area colour; Journal Cards titles use the notebook colour.
