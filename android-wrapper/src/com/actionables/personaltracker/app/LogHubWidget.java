@@ -16,7 +16,7 @@ public class LogHubWidget extends BaseWidget {
         v.setOnClickPendingIntent(R.id.lh_task,    WidgetHub.openAppDeep(ctx, "addTask", "1"));
         v.setOnClickPendingIntent(R.id.lh_mood,    WidgetHub.openAppDeep(ctx, "addMood", "1"));
         v.setOnClickPendingIntent(R.id.lh_sleep,   WidgetHub.openAppDeep(ctx, "addSleep", "1"));
-        v.setOnClickPendingIntent(R.id.lh_journal, WidgetHub.popup(ctx, WidgetDialogActivity.A_JOURNAL, id));   // quick note without opening the app
+        v.setOnClickPendingIntent(R.id.lh_journal, WidgetHub.openAppDeep(ctx, "addJournal", "1"));   // opens the app on a new journal entry
         v.setOnClickPendingIntent(R.id.lh_ai,      WidgetHub.openAppDeep(ctx, "tab", "pgAI"));
         return v;
     }

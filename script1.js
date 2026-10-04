@@ -122,7 +122,7 @@ function niceDate(iso){
   catch(e){ m=toDate(iso).toLocaleDateString(undefined,{day:'numeric',month:'short',year:'numeric'}); }
   if(++_niceMemoN>4000){ _niceMemo={}; _niceMemoN=0; } _niceMemo[iso]=m; return m;
 }
-function toastN(m){
+function toastN(m){ if(m==null||String(m).trim()==='') return;   /* never show an empty or "null" message */ 
   if(nat){ try{ nat.toast(m); return; }catch(e){} }
   try{
     var old=document.getElementById('webToast');
@@ -365,16 +365,42 @@ function normState(s){
   s.mtime = s.mtime || 0;
   return s;
 }
+function salvageState(raw){
+  /* keep every record that can be read; drop only the ones that cannot */
+  var out={}; for(var k in raw){ if(!Object.prototype.hasOwnProperty.call(raw,k)) continue;
+    if(Array.isArray(raw[k])) out[k]=raw[k].filter(function(it){ try{ var t={}; t[k]=[it]; normState(t); return true; }catch(e){ return false; } });
+    else out[k]=raw[k]; }
+  try{ normState(out); return out; }catch(e){ var o2={}; for(var k2 in out) if(Array.isArray(out[k2])) o2[k2]=out[k2]; return o2; }
+}
 function load(){
+  var r=null;
   try{
-    var r = uStore.getItem(KEY);
+    r = uStore.getItem(KEY);
     if(r) return normState(JSON.parse(r));
     var o = uStore.getItem(OLDKEY);
     if(o){ var v1 = JSON.parse(o); return normState({habits:(v1.habits||[])}); }
-  }catch(e){}
+  }catch(e){
+    /* Never start from a blank account when saved data exists: keep an untouched copy, rescue what can be read,
+       and try the full data again once the app has finished starting (see recoverState below). */
+    window.__loadFailed=String(e&&e.message||e);
+    if(r){
+      try{ uStore.setItem(KEY+'_rescue', r); }catch(e1){}
+      try{ return normState(salvageState(JSON.parse(r))); }catch(e2){}
+    }
+  }
   return normState({});
 }
 var state = load();
+/* if loading failed, retry the untouched copy after every script has loaded */
+setTimeout(function recoverState(){
+  if(!window.__loadFailed) return;
+  var raw=null; try{ raw=uStore.getItem(KEY+'_rescue'); }catch(e){}
+  if(!raw) return;
+  try{ var full=normState(JSON.parse(raw)); Object.keys(full).forEach(function(k){ state[k]=full[k]; }); persist({now:true});
+    try{ uStore.removeItem(KEY+'_rescue'); }catch(e){} window.__loadFailed='';
+    try{ renderAll?renderAll():(renderToday(),renderHome(),renderJr()); }catch(e){} try{ toastN('Your data was recovered'); }catch(e){}
+  }catch(e){ try{ toastN('Some saved data could not be read \u2014 a copy was kept safely'); }catch(e2){} }
+},0);
 var lastAlarmsJson = '';
 function stateForStorage(){
   var out; try{out=JSON.parse(JSON.stringify(state));}catch(e){out=state;}
@@ -1307,7 +1333,7 @@ var AI_PROVIDERS = {
       else if(/gemini-(2\.5-pro|3)/.test(model)) gc.maxOutputTokens=(max||300)+2048; /* these always think: leave room for the answer */
       if(opts&&opts.json) gc.responseMimeType='application/json';
       return aiFetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
-        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gc})},45000).then(function(r){if(!r.ok) throw new Error('API '+r.status);return r.json();})
+        body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gc})},45000).then(function(r){if(!r.ok) return aiHttpError(r);return r.json();})
         .then(function(d){try{ var t=d.candidates[0].content.parts.filter(function(p){ return !p.thought; }).map(function(p){ return p.text||''; }).join(''); if(!t) throw 0; return t; }catch(e){throw new Error('Empty response');}});
     },
     listModels: function(key){
@@ -1381,7 +1407,7 @@ var AI_PROVIDERS = {
 function openAICall(url, key, model, prompt, max){
   return aiFetch(url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
     body:JSON.stringify({model:model,messages:[{role:'user',content:prompt}],max_tokens:max||300})
-  },25000).then(function(r){if(!r.ok) throw new Error('API '+r.status);return r.json();})
+  },25000).then(function(r){if(!r.ok) return aiHttpError(r);return r.json();})
     .then(function(d){try{return d.choices[0].message.content;}catch(e){throw new Error('Empty response');}});
 }
 function openAIListModels(url, key){
@@ -1902,7 +1928,7 @@ function uaiSend(text){
     html+='</div>';log.innerHTML+=html;log.scrollTop=log.scrollHeight;
     var assistantText=String(result.msg||'').replace(/<[^>]+>/g,'').trim();if(assistantText)saveUaiChatTurn('assistant',assistantText);
     reRenderCurrent();
-  }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();var raw=(e&&e.message)||'AI request failed.';var msg=raw;var isKey=/no api key|api key|unknown provider/i.test(raw);if(isKey){msg='⚠ The AI isn\'t set up yet. Add a free API key in AI settings to enable answers about your journal, habits, and more.';}log.innerHTML+='<div class="uaiMsg err">'+esc(msg)+'</div>';saveUaiChatTurn('assistant',msg);if(isKey){log.innerHTML+='<div style="margin:8px 0"><button class="sbtn acc" id="uaiOpenCfg">Open AI settings</button></div>';var ob=$('uaiOpenCfg');if(ob)ob.addEventListener('click',function(){var c=$('aiCfg');if(c){c.classList.add('open');c.scrollIntoView({behavior:'smooth',block:'center'});}});}log.scrollTop=log.scrollHeight;});
+  }).catch(function(e){var el=$('uaiTyping');if(el)el.remove();var raw=(e&&e.message)||'AI request failed.';var msg=raw;var isKey=/no api key|unknown provider/i.test(raw);if(isKey){msg='⚠ The AI isn\'t set up yet. Add a free API key in AI settings to enable answers about your journal, habits, and more.';}log.innerHTML+='<div class="uaiMsg err">'+esc(msg)+'</div>';saveUaiChatTurn('assistant',msg);if(!isKey){ log.innerHTML+='<div class="uaiErrAct"><button class="sbtn" type="button" onclick="(function(){var c=document.getElementById(\'aiCfg\');if(c&&!c.classList.contains(\'open\')){var h=document.getElementById(\'aiCfgHead\');if(h)h.click();}if(c)c.scrollIntoView({behavior:\'smooth\',block:\'start\'});})()">Check AI settings</button></div>'; }if(isKey){log.innerHTML+='<div style="margin:8px 0"><button class="sbtn acc" id="uaiOpenCfg">Open AI settings</button></div>';var ob=$('uaiOpenCfg');if(ob)ob.addEventListener('click',function(){var c=$('aiCfg');if(c){c.classList.add('open');c.scrollIntoView({behavior:'smooth',block:'center'});}});}log.scrollTop=log.scrollHeight;});
 }
 
 function reRenderCurrent(){try{if($('pgToday').classList.contains('on')||($('pgHabits')&&$('pgHabits').classList.contains('on')))renderToday();if($('pgMood')&&$('pgMood').classList.contains('on'))renderMood();if($('pgExp').classList.contains('on'))renderExp();if($('pgStats').classList.contains('on'))renderStats();if($('pgTasks').classList.contains('on'))renderTasks();}catch(e){}}
@@ -3451,8 +3477,7 @@ var jrEd = null, jrQ = '', jrTag = 'all', jrView = 'timeline', jrCalY = 0, jrCal
 
 /* ---- helpers ---- */
 function jrToday(){ return today(); }
-function jrStrip(h){ var d=document.createElement('div'); d.innerHTML=String(h||'').replace(/<br\s*\/?>|<\/(p|div|li|h[1-6]|blockquote|pre|tr)>/gi,' $&'); return (d.textContent||'').replace(/\s+/g,' ').trim(); }   /* a space where each line or block ended */
-function jrText(e){ return (e.title?e.title+' ':'') + jrStrip(e.content); }
+function jrStrip(h){ return jrTextOf(h).replace(/\s+/g,' ').trim(); }   /* inert parse: previews never load or run anything */ function jrText(e){ return (e.title?e.title+' ':'') + jrStrip(e.content); }
 function jrTagsOf(e){
   var m = ((e.title||'')+' '+jrStrip(e.content)).match(/#[A-Za-z0-9_]+/g) || [];
   var extra = Array.isArray(e.tags)?e.tags:[];
@@ -3804,7 +3829,7 @@ function openJrRead(id){
   var mr=$('jrReadMetaRow'); if(mr){ mr.innerHTML=meta.join(''); mr.style.display=meta.length?'':'none'; }
   var title=jrClean(e.title||'');
   var tEl=$('jrReadTitle'); if(tEl){ tEl.textContent=title; tEl.style.display=title?'':'none'; }
-  var body=$('jrReadBody'); if(body) body.innerHTML = e.content || '<p style="color:var(--mut2)">(No content)</p>';
+  var body=$('jrReadBody'); if(body) body.innerHTML = jrSanitize(e.content) || '<p style="color:var(--mut2)">(No content)</p>';
   var tg=jrTagsOf(e);
   var tagEl=$('jrReadTags'); if(tagEl) tagEl.innerHTML = tg.length? tg.map(function(t){return '<span class="jrTag">'+esc(t)+'</span>';}).join('') : '';
   var fav=$('jrReadFav'); if(fav){ fav.classList.toggle('on', !!e.favorite); fav.innerHTML = e.favorite ? (window.ICON?ICON('star'):'\u2605') : (window.ICON?ICON('star'):'\u2606'); }
@@ -3822,7 +3847,7 @@ function openJr(id, prompt, tplBody, forceDate, draftObj){
   $('jrDate').value = jrEd.date||(forceDate||jrToday());
   $('jrTime').value = jrEd.time||now.toTimeString().slice(0,5);
   if($('jrLocation')) $('jrLocation').value = jrEd.location||'';
-  $('jrBody').innerHTML = src ? (jrEd.content||'') : (tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
+  $('jrBody').innerHTML = src ? jrSanitize(jrEd.content||'') : jrSanitize(tplBody || (prompt?'<p><i>'+esc(prompt)+'</i></p><p></p>':''));
   if(!$('jrBody').innerHTML.trim()) $('jrBody').innerHTML='<p><br></p>';
   var _ft=$('jrFavTog'); if(_ft){ _ft.classList.toggle('on', !!jrEd.favorite); _ft.setAttribute('aria-checked', !!jrEd.favorite); }
   jrSyncMood();
@@ -3930,8 +3955,9 @@ function onJrDelete(){
   var b=$('jrDelBtn');
   if(!jrDelArmed){ jrDelArmed=true; b.classList.add('armed'); b.textContent='Tap again to delete'; jrDelTimer2=setTimeout(jrResetDel,2600); return; }
   var ex=jrFind(jrEd._edit||jrEd.id);
-  if(ex) state.jr.splice(state.jr.indexOf(ex),1);
+  if(ex){ moveToTrash('journal',ex); state.jr.splice(state.jr.indexOf(ex),1); }   /* kept in Recently deleted, as the Data screen promises */
   persist(); closeSheet(); renderJr();
+  if(ex) toastN('Entry deleted \u00b7 restore it from Recently deleted');
 }
 
 /* ---- AI plumbing (uses existing gemCall) ---- */
@@ -4198,6 +4224,20 @@ function jrRenderReflect(){
 }
 
 /* ---- migration helper (called from normState) ---- */
+/* Journal HTML sanitiser (build 69): stored text can come from imports, sync and AI, so it must never run code.
+   DOMParser documents are inert: nothing loads or executes while we clean them. */
+function jrSanitize(html){
+  html=String(html||'');
+  if(!/<(script|iframe|object|embed|style|link|meta|base|form|svg|math|frame)\b|\son[a-z]+\s*=|javascript:|vbscript:|data:text\/html|srcdoc/i.test(html)) return html;
+  try{
+    var doc=new DOMParser().parseFromString('<body>'+html+'</body>','text/html');
+    [].forEach.call(doc.querySelectorAll('script,iframe,object,embed,style,link,meta,base,form,svg,math,frame,frameset,noscript'),function(n){ n.remove(); });
+    [].forEach.call(doc.body.querySelectorAll('*'),function(el){ [].slice.call(el.attributes).forEach(function(a){ var n=a.name.toLowerCase(), v=String(a.value||'');
+      if(n.indexOf('on')===0||n==='srcdoc'||((n==='href'||n==='src'||n==='xlink:href'||n==='action'||n==='formaction'||n==='background')&&/^\s*(javascript|vbscript|data:text\/html)/i.test(v))) el.removeAttribute(a.name); }); });
+    return doc.body.innerHTML;
+  }catch(e){ return html.replace(/<[^>]*>/g,''); }
+}
+function jrTextOf(html){ try{ var doc=new DOMParser().parseFromString('<body>'+String(html||'').replace(/<br\s*\/?>|<\/(p|div|li|h[1-6]|blockquote|pre|tr)>/gi,' $&')+'</body>','text/html'); return (doc.body.textContent||''); }catch(e){ return String(html||'').replace(/<[^>]*>/g,' '); } }
 function jrMigrateEntry(je){
   je = je || {};
   /* legacy fields: d,t,b,ph,created -> new schema */
@@ -4206,8 +4246,8 @@ function jrMigrateEntry(je){
   out.date = /^\d{4}-\d{2}-\d{2}$/.test(je.date||je.d||'') ? (je.date||je.d) : today();
   out.time = /^\d{2}:\d{2}$/.test(je.time||'') ? je.time : (je.created?new Date(je.created).toTimeString().slice(0,5):'');
   out.title = String(je.title!==undefined?je.title:(je.t||'')).slice(0,120);
-  out.content = String(je.content!==undefined?je.content:(je.b||'')).slice(0,100000);
-  var m=je.mood; out.mood = (m && JR_MOODS[m])?m:'';
+  out.content = jrSanitize(String(je.content!==undefined?je.content:(je.b||'')).slice(0,100000));
+  var m=je.mood; out.mood = (m && ({great:1,good:1,okay:1,low:1,diff:1})[m])?m:'';   /* JR_MOODS is defined later in the file: using it here crashed loading */
   out.tags = Array.isArray(je.tags)?je.tags.map(function(x){return String(x).toLowerCase();}).slice(0,30):[];
   out.favorite = !!(je.favorite);
   out.template = String(je.template||'').slice(0,40);
@@ -5324,7 +5364,7 @@ function scanReceiptWithAi(){
     var prompt='Read this receipt and return ONLY valid JSON with keys amount, merchant, date, category, payment_method, note. amount must be a number. date must be YYYY-MM-DD or empty. category should be one of the common categories if clear. Do not invent missing values. Do not include extra text.';
     toastN('Scanning receipt…');
     return fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt},{inlineData:{mimeType:mime,data:b64}}]}],generationConfig:{maxOutputTokens:220}})})
-      .then(function(r){if(!r.ok)throw new Error('API '+r.status);return r.json();})
+      .then(function(r){if(!r.ok) return aiHttpError(r);return r.json();})
       .then(function(d){var txt=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;if(!txt)throw new Error('Empty response');txt=txt.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();var o=JSON.parse(txt);if(o.amount>0)$('expAmt').value=fmtV(o.amount);if(o.merchant)$('expPayee').value=String(o.merchant).slice(0,60);if(/^\d{4}-\d{2}-\d{2}$/.test(o.date||'')){expEd.d=o.date;$('expDateTxt').textContent=o.date===today()?'Today':niceDate(o.date);}if(o.payment_method)$('expMethod').value=String(o.payment_method).slice(0,24);if(o.note)$('expNote').value=String(o.note).slice(0,200);var cats=Object.keys(state.cats),want=String(o.category||'').toLowerCase(),best='';for(var i=0;i<cats.length;i++)if(cats[i].toLowerCase()===want){best=cats[i];break;}if(best){expCatSel=best;paintExpPickers();}var _got=!!(parseFloat(o.amount)>0||o.merchant);toastN(_got?'Receipt scanned — check the details, then Save':'Couldn\u2019t read this receipt clearly — please enter the details');})
       .catch(function(e){toastN('Receipt scan failed: '+e.message);})
       .then(function(){clearReceiptScanData();renderExpReceipt();});
@@ -6411,7 +6451,7 @@ function _showTabInner(id){
   if(id==='pgExp') renderExp();
   if(id==='pgSet'){ renderSet(); try{ if(typeof _settingsToLanding==='function') _settingsToLanding(); }catch(e){} }
   if(id==='pgJr'){ if(typeof jrCalY!=='undefined'&&!jrCalY){var _n=new Date();jrCalY=_n.getFullYear();jrCalM=_n.getMonth();} renderJr(); jrGo(jrView||'timeline'); }
-  if(id==='pgAI'){ renderAI(); try{ var _g=$('aiGreet'), _h=new Date().getHours(); if(_g) _g.textContent=(_h<12?'Good morning.':_h<17?'Good afternoon.':'Good evening.')+' What can I help you with? I\u2019ll confirm before changing anything.'; }catch(_e){} }
+  if(id==='pgAI'){ renderAI(); try{ var _g=$('aiGreet'), _h=new Date().getHours(); if(_g) _g.textContent=(_h<12?'Good morning.':_h<17?'Good afternoon.':'Good evening.')+' What can I help you with? Anything that deletes data asks first, and changes can be undone.'; }catch(_e){} }
   $('fab').style.display = (id==='pgToday'||id==='pgExp') ? '' : 'none';
   $('fabLbl').textContent = id==='pgExp' ? 'Add' : id==='pgTasks' ? 'Add task' : 'Add anything';
 }
@@ -6529,13 +6569,13 @@ function gSearchRun(q){
   if(q.length<2){ out.innerHTML='<div class="hmEmpty">Type at least two letters to search habits, tasks, transactions and journal entries.</div>'; return; }
   var has=function(){ for(var i=0;i<arguments.length;i++){ if(String(arguments[i]||'').toLowerCase().indexOf(q)>=0) return true; } return false; };
   var groups=[], row=function(go,t,sub,val){ return '<button class="listRow" data-gs="'+esc(go)+'"><span class="lrT"><span class="gsT">'+esc(t)+'</span><span class="gsS">'+esc(sub)+'</span></span>'+(val?'<span class="lrV">'+esc(val)+'</span>':'')+'</button>'; };
-  var tx=state.tx.filter(function(x){ return has(x.payee,x.note,x.cat,x.sub,x.tags); }).sort(function(a,b){ return a.d<b.d?1:-1; });
+  var tx=!modOn('money')?[]:state.tx.filter(function(x){ return has(x.payee,x.note,x.cat,x.sub,x.tags); }).sort(function(a,b){ return a.d<b.d?1:-1; });
   if(tx.length) groups.push(['Transactions',tx.length,tx.slice(0,5).map(function(x){ return row('tx:'+x.id, x.payee||x.cat||'Transaction', (x.cat||'')+' · '+niceDate(x.d), (x.kind==='exp'?'-':'+')+inr(x.amt)); }).join('')]);
   var jr=(state.jr||[]).filter(function(e){ return has(e.title,_gsText(e.content),(e.tags||[]).join(' ')); }).sort(function(a,b){ return a.date<b.date?1:-1; });
   if(jr.length) groups.push(['Journal',jr.length,jr.slice(0,5).map(function(e){ var t=_gsText(e.content); return row('jr:'+e.id, e.title||t.slice(0,48)||'Entry', niceDate(e.date)+(e.title&&t?' · '+t.slice(0,40):'')); }).join('')]);
-  var tk=state.tasks.filter(function(k){ return !k.virtualHabit && has(k.title,k.description); });
+  var tk=!modOn('tasks')?[]:state.tasks.filter(function(k){ return !k.virtualHabit && has(k.title,k.description); });
   if(tk.length) groups.push(['Tasks',tk.length,tk.slice(0,5).map(function(k){ return row('task:'+k.id, k.title, (k.status==='completed'?'Completed':(k.dueDate?'Due '+niceDate(k.dueDate):'No due date'))); }).join('')]);
-  var ex=(state.exs||[]).filter(function(x){ return has(x.name,x.unit); });
+  var ex=!modOn('workouts')?[]:(state.exs||[]).filter(function(x){ return has(x.name,x.unit); });
   if(ex.length) groups.push(['Workouts',ex.length,ex.slice(0,5).map(function(x){ return row('wk:'+x.id, x.name, 'Exercise'); }).join('')]);
   var mn=Object.keys(state.moodNotes||{}).filter(function(d){ return has(state.moodNotes[d]); }).sort().reverse();
   if(mn.length) groups.push(['Mood',mn.length,mn.slice(0,5).map(function(d){ var mi=state.mood[d]; return row('mood:'+d, (mi>=0&&MOODS[mi]?MOODS[mi].l:'Mood')+' · '+niceDate(d), String(state.moodNotes[d]).slice(0,60)); }).join('')]);
@@ -7222,6 +7262,7 @@ function modSweep(root){
   root.querySelectorAll('[data-hm-qa="workout"],.qaTile[data-qa="workout"]').forEach(function(b){ hide(b,off.workouts); });
   /* a Home section left with no rows (e.g. Next with only tasks) disappears */
   root.querySelectorAll('.hmSec').forEach(function(sec){ var rows=sec.querySelectorAll('.hmNextRow,.hmGlRow'); if(!rows.length) return; var vis=[].some.call(rows,function(r){ return !r.classList.contains('modHidden'); }); sec.classList.toggle('modHidden',!vis); });
+  root.querySelectorAll('#pgAI .uaiCategory').forEach(function(c){ hide(c,(off.money&&/spend|money|expense/i.test(c.textContent))||(off.tasks&&/\btask/i.test(c.textContent))||(off.workouts&&/workout/i.test(c.textContent))); });
   root.querySelectorAll('.uaiHint').forEach(function(h){ var t=h.textContent.trim().toLowerCase(); hide(h,(off.tasks&&(t==='+ task'||t==='overdue'))||(off.money&&t==='+ expense')); });
   var mx=$('btnMoneyXlsx'); if(mx) hide(mx.closest('.setRow'),off.money);
   document.querySelectorAll('#setCardGrid .setCard2').forEach(function(c){ if(/Money\s*&\s*currency/.test(c.textContent)) hide(c,off.money); });
@@ -7678,6 +7719,230 @@ function taskTilesDecorate(){
   sum.addEventListener('click',function(e){ var t=e.target.closest('[data-tsf]'); if(!t) return; var pill=document.querySelector('#taskFilters [data-tf="'+t.getAttribute('data-tsf')+'"]'); if(pill) pill.click(); });
   sum.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){ var t=e.target.closest('[data-tsf]'); if(t){ e.preventDefault(); t.click(); } } });
   if(window.MutationObserver) new MutationObserver(taskTilesDecorate).observe(sum,{childList:true,subtree:true}); taskTilesDecorate(); })();
+
+/* ================= Build 67 ================= */
+/* --- AI: real error messages, a model that matches the provider, automatic recovery --- */
+function aiHttpError(r){
+  return r.text().then(function(t){ var msg=''; try{ var j=JSON.parse(t); msg=(j.error&&(j.error.message||j.error.status))||j.message||j.detail||''; if(typeof msg!=='string') msg=JSON.stringify(msg); }catch(e){ msg=String(t||'').slice(0,160); }
+    var label=r.status===401||r.status===403?'The API key was rejected':r.status===404?'Model not found':r.status===429?'Too many requests (rate limit)':r.status>=500?'The AI service is having trouble':'The request was refused';
+    var e=new Error(label+' ('+r.status+')'+(msg?': '+msg.replace(/\s+/g,' ').slice(0,200):'')); e.status=r.status; throw e; },
+    function(){ var e=new Error('AI error '+r.status); e.status=r.status; throw e; }); }
+function aiModelFits(provider, model){
+  var P=AI_PROVIDERS[provider]; if(!P||!model) return false;
+  if(P.models.some(function(m){ return m.id===model; })) return true;
+  var elsewhere=Object.keys(AI_PROVIDERS).some(function(k){ return k!==provider && AI_PROVIDERS[k].models.some(function(m){ return m.id===model; }); });
+  if(elsewhere) return false;                                   /* a model from another provider */
+  if(provider==='gemini') return /^(gemini|gemma|learnlm)/i.test(model);
+  return !/^gemini/i.test(model);
+}
+(function(){
+  var gm=getAiModel; getAiModel=function(){ var p=getAiProvider(), m=uStore.getItem('ai_model'); if(m && !aiModelFits(p,m)){ try{ uStore.removeItem('ai_model'); }catch(e){} } return gm(); };
+  var gc=gemCall; gemCall=function(prompt,maxTokens,opts){
+    var p=getAiProvider(), P=AI_PROVIDERS[p];
+    return gc(prompt,maxTokens,opts).catch(function(err){
+      var st=err&&err.status, model=getAiModel(), def=P&&P.models[0]&&P.models[0].id;
+      if(st===400 && p==='gemini' && opts && !opts.lean) return gc(prompt,maxTokens,{lean:true});      /* retry without extra settings */
+      if(st===404 && def && model!==def){ uStore.setItem('ai_model',def); return gc(prompt,maxTokens,opts).then(function(t){ toastN('AI model switched to '+def); return t; }); }
+      if(st===404 && p==='gemini' && P.listModels){ return P.listModels(getAiKey()).then(function(list){
+          var pick=(list||[]).map(function(x){ return x.id; }).filter(function(id){ return /flash/.test(id) && !/image|tts|live|audio|embedding|thinking-exp/.test(id); }).sort().reverse()[0];
+          if(!pick) throw err; uStore.setItem('ai_model',pick); return gc(prompt,maxTokens,opts).then(function(t){ toastN('AI model switched to '+pick); return t; }); }); }
+      throw err; }); };
+  /* the lean retry: Gemini call without thinking/JSON settings */
+  var gcall=AI_PROVIDERS.gemini&&AI_PROVIDERS.gemini.call; if(gcall) AI_PROVIDERS.gemini.call=function(key,model,prompt,max,opts){ if(opts&&opts.lean){
+      return aiFetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:Math.max(max||300,800)}})},45000)
+        .then(function(r){ if(!r.ok) return aiHttpError(r); return r.json(); }).then(function(d){ try{ var t=d.candidates[0].content.parts.filter(function(x){ return !x.thought; }).map(function(x){ return x.text||''; }).join(''); if(!t) throw 0; return t; }catch(e){ throw new Error('Empty response'); } }); }
+    return gcall.apply(this,arguments); };
+  /* AI can't act on a turned-off module */
+  if(typeof executeAction==='function'){ var ex=executeAction; executeAction=function(r){ var a=r&&r.action||'';
+    var mod=/_task$|^(add|complete|delete|update)_task/.test(a)?'tasks':/expense|transaction/.test(a)?'money':/workout/.test(a)?'workouts':'';
+    if(mod && !modOn(mod)) return {ok:0,msg:(mod==='tasks'?'Tasks':mod==='money'?'Money':'Workouts')+' is turned off in Settings \u203a Modules, so I can\u2019t do that.'};
+    return ex.apply(this,arguments); }; }
+})();
+/* --- Journal drafts: the button updates as soon as a draft is saved, shown as a "Drafts · N" pill --- */
+setTimeout(function(){
+  function R(){ try{ if(typeof window._renderJrDraftsBtn==='function') window._renderJrDraftsBtn(); }catch(e){} }
+  if(typeof jrMaybeSaveDraft==='function'){ var mx=jrMaybeSaveDraft; jrMaybeSaveDraft=function(){ var n=(state.jrDrafts||[]).length, r=mx.apply(this,arguments); R(); if((state.jrDrafts||[]).length>n) toastN('Saved as a draft'); return r; }; }
+  var btn=$('jrDraftsBtn');
+  function pill(){ if(!btn) return; var n=(state.jrDrafts||[]).length; if(!n){ btn.classList.remove('jrDraftPill'); return; }
+    var want='Drafts \u00b7 '+n, cur=btn.querySelector('.jrDpTxt'); if(cur&&cur.textContent===want&&btn.classList.contains('jrDraftPill')) return;
+    btn.classList.add('jrDraftPill'); btn.innerHTML=ICON('edit')+'<span class="jrDpTxt">'+want+'</span>'; btn.setAttribute('aria-label',n+' draft'+(n===1?'':'s')); }
+  if(btn&&window.MutationObserver) new MutationObserver(pill).observe(btn,{childList:true,attributes:true,attributeFilter:['style']});
+  R(); pill(); setTimeout(function(){ R(); pill(); },1500);
+},0);
+/* --- Journal: notebook picker instead of the plain dropdown --- */
+(function(){
+  var sel=$('jrBookSel'); if(!sel) return;
+  var btn=document.createElement('button'); btn.type='button'; btn.className='jbPick'; btn.id='jbPickBtn'; btn.setAttribute('aria-haspopup','listbox');
+  var menu=document.createElement('div'); menu.className='jbMenu'; menu.id='jbPickMenu'; menu.setAttribute('role','listbox'); menu.hidden=true;
+  sel.parentNode.insertBefore(btn,sel); sel.parentNode.insertBefore(menu,sel.nextSibling); sel.classList.add('jbHiddenSel'); sel.setAttribute('tabindex','-1'); sel.setAttribute('aria-hidden','true');
+  function paint(){ var bk=jrBookById(sel.value)||jrBookById(JB_MAIN); btn.innerHTML='<i class="jrBookDot" style="background:'+esc(bk.color)+'"></i><span>'+esc(bk.name)+'</span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>'; btn.setAttribute('aria-label','Notebook: '+bk.name); }
+  function open(){ menu.innerHTML=jrBooks().map(function(b){ var on=b.id===sel.value; return '<button type="button" role="option" aria-selected="'+on+'" class="jbOpt'+(on?' on':'')+'" data-id="'+esc(b.id)+'"><i class="jrBookDot" style="background:'+esc(b.color)+'"></i><span>'+esc(b.name)+'</span>'+(on?ICON('check'):'')+'</button>'; }).join('')+'<button type="button" class="jbOpt jbNew" data-new="1">'+ICON('plus')+'<span>New notebook</span></button>'; menu.hidden=false; btn.classList.add('open'); }
+  function close(){ menu.hidden=true; btn.classList.remove('open'); }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); if(menu.hidden) open(); else close(); });
+  menu.addEventListener('click',function(e){ e.stopPropagation(); var o=e.target.closest('.jbOpt'); if(!o) return; if(o.getAttribute('data-new')){ close(); openJrBookEdit(null); return; }
+    sel.value=o.getAttribute('data-id'); sel.dispatchEvent(new Event('change')); paint(); close(); });
+  document.addEventListener('click',function(){ if(!menu.hidden) close(); });
+  sel.addEventListener('change',paint);
+  var oj=openJr; openJr=function(){ var r=oj.apply(this,arguments); try{ close(); paint(); }catch(e){} return r; };
+  paint();
+})();
+/* --- Spaces: label in its own element so it can carry the colour bar --- */
+function spacesDecorate(){ document.querySelectorAll('.hmSpaceGrid button').forEach(function(b){ var lb=[].find.call(b.children,function(c){ return !c.classList.contains('sq'); }); if(lb) lb.classList.add('spLbl'); }); }
+(function(){ var rh=renderHome; renderHome=function(){ var r=rh.apply(this,arguments); try{ spacesDecorate(); }catch(e){} return r; }; setTimeout(spacesDecorate,0); })();
+
+/* ================= Task card menu: a labelled list that is never clipped (build 68) ================= */
+function tcMenuPlace(){
+  document.querySelectorAll('.tcMenu.on').forEach(function(m){
+    var card=m.closest('.taskCard'), more=card&&card.querySelector('.tcMore'); if(!more) return; card.classList.add('menuOpen');
+    [].forEach.call(m.querySelectorAll('.tcAct'),function(a){ if(a.querySelector('.tcLbl')) return;
+      var lbl=a.hasAttribute('data-task-pin')?(a.classList.contains('on')?'Unpin':'Pin to top'):(a.getAttribute('title')||'');
+      a.insertAdjacentHTML('beforeend','<span class="tcLbl">'+esc(lbl)+'</span>'); a.setAttribute('role','menuitem'); });
+    m.setAttribute('role','menu'); more.setAttribute('aria-expanded','true'); more.classList.add('open');
+    var r=more.getBoundingClientRect(), mh=m.offsetHeight||150, mw=m.offsetWidth||220, vh=window.innerHeight, vw=window.innerWidth;
+    var below=r.bottom+6+mh<=vh-12, top=below?r.bottom+6:Math.max(12,r.top-6-mh);
+    m.style.top=Math.round(top)+'px'; m.style.left=Math.round(Math.min(Math.max(12,r.right-mw),vw-mw-12))+'px'; m.style.right='auto';
+  });
+  document.querySelectorAll('.tcMore.open').forEach(function(b){ var c=b.closest('.taskCard'), m=c&&c.querySelector('.tcMenu'); if(!m||!m.classList.contains('on')){ b.classList.remove('open'); b.setAttribute('aria-expanded','false'); if(c) c.classList.remove('menuOpen'); } });
+}
+(function(){
+  document.addEventListener('click',function(){ setTimeout(tcMenuPlace,0); },true);   /* capture: the task list stops the click from bubbling */
+  var app=document.getElementById('app')||window;
+  function closeAll(){ document.querySelectorAll('.tcMenu.on').forEach(function(m){ m.classList.remove('on'); }); tcMenuPlace(); }
+  var y0=null; function sy(){ return (window.scrollY||document.documentElement.scrollTop||0)+((app&&app!==window)?app.scrollTop:0); }   /* phones scroll the page, desktop scrolls #app */
+  document.addEventListener('click',function(){ setTimeout(function(){ y0=document.querySelector('.tcMenu.on')?sy():null; },0); },true);
+  function onScr(){ if(y0!==null && Math.abs(sy()-y0)>24){ y0=null; closeAll(); } }   /* only a real scroll closes it */
+  if(app!==window) app.addEventListener('scroll',onScr,{passive:true}); window.addEventListener('scroll',onScr,{passive:true});
+  window.addEventListener('resize',closeAll,{passive:true});
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') closeAll(); });
+  /* a press inside the open menu must not start a card swipe (the swipe moves the card, so the tap was lost) */
+  ['pointerdown','mousedown','touchstart'].forEach(function(t){ document.addEventListener(t,function(e){ if(e.target&&e.target.closest&&e.target.closest('.tcMenu.on')) e.stopPropagation(); },{capture:true,passive:true}); });
+})();
+
+/* ================= Save buttons ignore an accidental second tap (build 69) =================
+   A quick double tap on Save used to create the same habit/task/expense twice. A second tap is ignored when the first one
+   already saved (its sheet or screen closed), or when it comes almost instantly; a retry after a refused save still works. */
+(function(){
+  var SAVE=['saveBtn','taskSave','expSave','jrSaveBtn','acctSave','budgSave','exSave','sleepSave','sgSave','jbSave','jrTplSave','valSave'], last={};
+  function closedNow(b){ var sh=b.closest('.sheet'); if(sh) return typeof sheetOpen!=='undefined' && sheetOpen!==sh.id; var g=b.closest('#sleepGate'); return !!(g&&g.hidden); }
+  document.addEventListener('click',function(e){
+    var b=e.target&&e.target.closest&&e.target.closest('button'); if(!b||SAVE.indexOf(b.id)<0) return;
+    var now=Date.now(), dt=last[b.id]?now-last[b.id]:1e9;
+    if(dt<250 || (dt<1500 && closedNow(b))){ e.stopImmediatePropagation(); e.preventDefault(); return; }
+    last[b.id]=now;
+  },true);
+})();
+(function(){ var sj=saveJr; saveJr=function(){ try{ var b=$('jrBody'); if(b){ var c=jrSanitize(b.innerHTML); if(c!==b.innerHTML) b.innerHTML=c; } }catch(e){} return sj.apply(this,arguments); }; })();
+/* ================= AI changes can always be undone (build 69) =================
+   Deletions already ask first; additions and check-offs applied straight away with no Undo, and echoed the model's
+   question ("Add habit X?") as the result. Each change now gets an Undo and a plain done message. */
+(function(){
+  if(typeof executeAction!=='function') return;
+  var ex2=executeAction;
+  var MAP=[[/habit/,['habits']],[/task/,['tasks']],[/expense|transaction|income|transfer/,['tx','accts']],[/journal/,['jr']],[/mood/,['mood','moodNotes']],[/sleep/,['sleep']],[/workout|exercise/,['wlog','exs']]];
+  var LABEL={add_habit:'Habit added',complete_habit:'Marked done for today',add_task:'Task added',complete_task:'Task completed',update_task:'Task updated',add_expense:'Expense added',add_journal:'Journal entry added',update_journal:'Journal entry updated',log_workout:'Workout logged'};
+  executeAction=function(r){
+    var a=(r&&r.action)||'', keys=null; for(var i=0;i<MAP.length;i++){ if(MAP[i][0].test(a)){ keys=MAP[i][1]; break; } }
+    var snap=null; if(keys && !/^delete_/.test(a)){ try{ snap={}; keys.forEach(function(k){ snap[k]=JSON.parse(JSON.stringify(state[k]===undefined?null:state[k])); }); }catch(e){ snap=null; } }
+    var res=ex2.apply(this,arguments);
+    if(res && res.ok){
+      if(typeof res.msg==='string' && /\?\s*$/.test(res.msg)) res.msg=LABEL[a]||'Done';
+      if(!res.undo && snap) res.undo=function(){ Object.keys(snap).forEach(function(k){ if(snap[k]!==null) state[k]=snap[k]; }); persist({now:true}); };
+    }
+    return res;
+  };
+})();
+/* ================= UI/UX pass (build 70), batch 1 ================= */
+/* Add expense: the amount is the hero of the sheet */
+(function(){
+  var amt=$('expAmt'); if(!amt||amt.closest('.expAmtWrap')) return;
+  var w=document.createElement('div'); w.className='expAmtWrap'; amt.parentNode.insertBefore(w,amt);
+  var cur=document.createElement('span'); cur.className='expCur'; cur.setAttribute('aria-hidden','true'); w.appendChild(cur); w.appendChild(amt);
+  function paintCur(){ cur.textContent=(state.set&&state.set.curr)||'\u20B9'; var sh=$('expSheet'); if(sh) sh.setAttribute('data-kind',typeof expKindSel!=='undefined'?expKindSel:'exp'); }
+  if(typeof paintKind==='function'){ var pk=paintKind; paintKind=function(){ var r=pk.apply(this,arguments); try{ paintCur(); }catch(e){} return r; }; }
+  var oe=openExp; openExp=function(){ var r=oe.apply(this,arguments); try{ paintCur(); }catch(e){} return r; };
+  w.addEventListener('click',function(){ amt.focus(); });
+  paintCur();
+})();
+/* Money: the month's insights live inside the hero card */
+function expHeroInsights(){
+  var sum=$('expSum'); if(!sum) return; var hero=sum.querySelector('.expHero2'); if(!hero) return;
+  var trend=[].find.call(sum.children,function(c){ return !c.className && /vs last month/i.test(c.textContent); }), top=sum.querySelector(':scope > .expTopCat');
+  if(!trend && !top) return;
+  var box=hero.querySelector('.heroIns'); if(!box){ box=document.createElement('div'); box.className='heroIns'; hero.appendChild(box); }
+  box.innerHTML='';
+  if(trend){ var t=trend.textContent.trim(); var down=/^\u2193|down/i.test(t); var b=document.createElement('span'); b.className='heroTrend '+(down?'down':'up'); b.textContent=t; box.appendChild(b); trend.remove(); }
+  if(top){ top.classList.add('inHero'); box.appendChild(top); }
+}
+(function(){ if(typeof renderExp!=='function') return; var re=renderExp; renderExp=function(){ var r=re.apply(this,arguments); try{ expHeroInsights(); }catch(e){} return r; }; setTimeout(function(){ try{ expHeroInsights(); }catch(e){} },0); })();
+
+/* ================= UI/UX pass (build 70), batch 2 ================= */
+/* the weekly recap only appears when the week had some activity */
+(function(){ if(typeof weeklyRecapHTML!=='function') return; var wr=weeklyRecapHTML;
+  weeklyRecapHTML=function(now){ try{ var any=false, d0=new Date(now||new Date());
+      for(var i=0;i<7&&!any;i++){ var d=new Date(d0); d.setDate(d0.getDate()-i); var ds=fmt(d);
+        if(state.habits.some(function(h){ try{ return isDone(h,ds); }catch(e){ return false; } })) any=true;
+        else if((state.tx||[]).some(function(x){ return x.d===ds; })) any=true;
+        else if((state.jr||[]).some(function(e){ return e.date===ds; })) any=true;
+        else if(typeof moodOf==='function' && moodOf(ds)>=0) any=true; }
+      if(!any) return ''; }catch(e){}
+    return wr.apply(this,arguments); }; })();
+/* Habits: one-tap starter habits in the empty state */
+(function(){ var em=$('empty'); if(!em||$('emptyQs')) return;
+  var starters=[['\uD83D\uDCA7','Drink water'],['\uD83D\uDCDA','Read'],['\uD83D\uDEB6','Walk'],['\uD83E\uDDD8','Meditate']];
+  em.insertAdjacentHTML('beforeend','<div class="emptyQs" id="emptyQs"><div class="emptyQsLbl">Or start with one tap</div><div class="emptyQsRow">'+starters.map(function(x){ return '<button class="emptyQsChip" type="button" data-qs="'+x[1]+'"><span aria-hidden="true">'+x[0]+'</span>'+x[1]+'</button>'; }).join('')+'</div></div>');
+  em.addEventListener('click',function(e){ var b=e.target.closest('[data-qs]'); if(!b) return; var name=b.getAttribute('data-qs'); openEdit(null);
+    setTimeout(function(){ var t=[].find.call(document.querySelectorAll('#tplRow button'),function(x){ return x.textContent.indexOf(name)>=0; }); if(t) t.click(); else { var f=$('fName'); if(f){ f.value=name; f.dispatchEvent(new Event('input',{bubbles:true})); } } },320); });
+})();
+
+/* hide "Select" when there is nothing to select */
+function selBarsSync(){ try{
+  var jb=$('jrSelBar'), je=$('jrEmpty'); if(jb) jb.classList.toggle('isEmpty', !!(je && !je.hidden));
+  var ex=$('pgExp'); if(ex){ var bar=ex.querySelector('.selBar'); if(bar) bar.classList.toggle('isEmpty', !ex.querySelector('.txRow')); }
+}catch(e){} }
+(function(){ ['renderJr','renderExp'].forEach(function(n){ if(typeof window[n]!=='function') return; var f=window[n]; window[n]=function(){ var r=f.apply(this,arguments); selBarsSync(); return r; }; }); setTimeout(selBarsSync,0); })();
+/* ================= Spaces: clean tiles and clearer icons (build 71) ================= */
+var SPACE_ICONS={
+  Workout:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/></svg>',
+  Journal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 4.5A1.5 1.5 0 017 3h12v15H7a1.5 1.5 0 00-1.5 1.5z"/><path d="M5.5 19.5A1.5 1.5 0 007 21h12"/><path d="M9.5 7.5h5.5M9.5 11h3.5"/></svg>'
+};
+(function(){ var sd=spacesDecorate; spacesDecorate=function(){ var r=sd.apply(this,arguments); try{
+  document.querySelectorAll('.hmSpaceGrid button').forEach(function(b){ var n=b.textContent.trim(), sq=b.querySelector('.sq .ic'); if(sq&&SPACE_ICONS[n]&&!sq.getAttribute('data-sp')){ sq.innerHTML=SPACE_ICONS[n]; sq.setAttribute('data-sp','1'); } });
+}catch(e){} return r; }; setTimeout(function(){ try{ spacesDecorate(); }catch(e){} },0); })();
+
+/* Habit detail: the habit's own colour, details as chips (build 71) */
+(function(){ if(typeof openDetail!=='function') return; var od=openDetail; openDetail=function(id){ var r=od.apply(this,arguments); try{
+  var h=findHabit?findHabit(id):state.habits.find(function(x){return x.id===id;}); var sh=$('detailSheet');
+  if(h&&sh) sh.style.setProperty('--hc',h.color||'var(--amber)');
+  var sub=$('dSub'); if(sub&&!sub.querySelector('.dChip')){ var parts=sub.textContent.split(' \u00B7 ').filter(Boolean), chips=[], since='';
+    parts.forEach(function(p){ if(/^since /i.test(p)) since=p; else if(/^Reminder /i.test(p)) chips.push('<span class="dChip dRem">'+ICON('clock')+esc(p.replace(/^Reminder /i,''))+'</span>'); else chips.push(p); });
+    /* type and target read as one chip ("Count \u00B7 8/day"); category on its own */
+    var plain=chips.filter(function(c){ return c.indexOf('<span')!==0; }), rich=chips.filter(function(c){ return c.indexOf('<span')===0; }), out=[];
+    if(plain.length){ var typ=plain[0], tgt=plain.filter(function(x){ return /\/day|\/week|per /i.test(x); })[0], rest=plain.filter(function(x){ return x!==typ && x!==tgt; });
+      out.push('<span class="dChip">'+esc(typ+(tgt?' \u00B7 '+tgt:''))+'</span>'); rest.forEach(function(x){ out.push('<span class="dChip">'+esc(x)+'</span>'); }); }
+    sub.innerHTML=out.concat(rich).join('')+(since?'<span class="dSince">'+esc(since)+'</span>':''); }
+}catch(e){} return r; }; })();
+/* ================= Search: recent searches and shortcuts before typing (build 71) ================= */
+(function(){
+  if(typeof gSearchRun!=='function') return;
+  function recents(){ try{ return JSON.parse(uStore.getItem('gs_recent')||'[]').slice(0,6); }catch(e){ return []; } }
+  function remember(q){ q=String(q||'').trim(); if(q.length<2) return; var r=recents().filter(function(x){ return x.toLowerCase()!==q.toLowerCase(); }); r.unshift(q); try{ uStore.setItem('gs_recent',JSON.stringify(r.slice(0,6))); }catch(e){} }
+  var GO=[['pgHabits','Habits','habit','amber'],['pgTasks','Tasks','task','blue','tasks'],['pgExp','Money','money','green','money'],['pgJr','Journal','journal','coral'],['pgStats','Insights','stats','teal'],['pgSet','Settings','settings','purple']];
+  function idle(){
+    var out=$('gSearchOut'); if(!out) return; var r=recents(), h='';
+    if(r.length) h+='<div class="gsSec"><div class="gsSecH"><span>Recent</span><button type="button" class="gsClear" data-gsclear="1">Clear</button></div><div class="gsChips">'+r.map(function(q){ return '<button type="button" class="gsChip" data-gsq="'+esc(q)+'">'+ICON('clock')+'<span>'+esc(q)+'</span></button>'; }).join('')+'</div></div>';
+    h+='<div class="gsSec"><div class="gsSecH"><span>Go to</span></div><div class="gsGo">'+GO.filter(function(g){ return !g[4]||modOn(g[4]); }).map(function(g){ return '<button type="button" class="gsGoBtn" data-gsgo="'+g[0]+'" style="--gc:var(--tx-'+g[3]+')"><span class="gsGoIc">'+(g[2]==='journal'&&typeof SPACE_ICONS!=='undefined'?'<span class="ic" aria-hidden="true">'+SPACE_ICONS.Journal+'</span>':ICON(g[2]))+'</span><span>'+g[1]+'</span></button>'; }).join('')+'</div></div>';
+    h+='<div class="gsHint">Type at least two letters to search habits, tasks, transactions and journal entries.</div>';
+    out.innerHTML=h;
+  }
+  var run=gSearchRun; gSearchRun=function(q){ if(String(q||'').trim().length<2){ idle(); return; } return run.apply(this,arguments); };
+  var out=$('gSearchOut'), inp=$('gSearchIn');
+  if(out) out.addEventListener('click',function(e){
+    var res=e.target.closest('[data-gs]'); if(res&&inp) remember(inp.value);
+    var q=e.target.closest('[data-gsq]'); if(q&&inp){ inp.value=q.getAttribute('data-gsq'); gSearchRun(inp.value); inp.focus(); return; }
+    if(e.target.closest('[data-gsclear]')){ try{ uStore.removeItem('gs_recent'); }catch(x){} idle(); return; }
+    var g=e.target.closest('[data-gsgo]'); if(g){ closeSheet(); var t=g.getAttribute('data-gsgo'); setTimeout(function(){ showTab(t); },60); }
+  },true);
+})();
 
 function climb(el, root, attr){
   while(el && el !== root){
@@ -8308,7 +8573,7 @@ function init(){
       var jrMonth=(state.jr||[]).filter(function(e){return e.date>=ms && e.date<=me;}).sort(function(a,b){return (a.date+(a.time||'')).localeCompare(b.date+(b.time||''));});
       if(jrMonth.length){
         var jrDays={}; jrMonth.forEach(function(e){jrDays[e.date]=1;});
-        var jrWords=jrMonth.reduce(function(a,e){var d=document.createElement('div');d.innerHTML=String(e.content||'');return a+(d.textContent||'').split(/\s+/).filter(Boolean).length;},0);
+        var jrWords=jrMonth.reduce(function(a,e){return a+jrTextOf(e.content).split(/\s+/).filter(Boolean).length;},0);
         var jrMoods={}; jrMonth.forEach(function(e){if(e.mood)jrMoods[e.mood]=(jrMoods[e.mood]||0)+1;});
         var moodLbl={great:'Great',good:'Good',okay:'Okay',low:'Low',diff:'Difficult'};
         var moodStr=Object.keys(jrMoods).sort(function(a,b){return jrMoods[b]-jrMoods[a];}).map(function(mk){return (moodLbl[mk]||mk)+' ×'+jrMoods[mk];}).join(', ')||'—';
@@ -8316,7 +8581,7 @@ function init(){
         h+='<p>Entries: <b>'+jrMonth.length+'</b> across <b>'+Object.keys(jrDays).length+'</b> days · <b>'+jrWords.toLocaleString()+'</b> words written.</p>';
         h+='<p>Moods logged: '+moodStr+'</p>';
         h+='<table><tr><th>Date</th><th>Entry</th><th>Mood</th></tr>';
-        jrMonth.slice(-20).forEach(function(e){var dv=document.createElement('div');dv.innerHTML=String(e.content||'');var snip=(e.title|| (dv.textContent||'').trim()).slice(0,60);h+='<tr><td>'+e.date+'</td><td>'+String(snip).replace(/</g,'&lt;')+'</td><td>'+(moodLbl[e.mood]||'—')+'</td></tr>';});
+        jrMonth.slice(-20).forEach(function(e){var snip=(e.title|| jrTextOf(e.content).trim()).slice(0,60);h+='<tr><td>'+e.date+'</td><td>'+String(snip).replace(/</g,'&lt;')+'</td><td>'+(moodLbl[e.mood]||'—')+'</td></tr>';});
         h+='</table>';
         if(jrMonth.length>20) h+='<p style="font-size:11px;color:#888">Showing the 20 most recent of '+jrMonth.length+' entries.</p>';
       }
@@ -8548,13 +8813,14 @@ function init(){
     closeDraftsOverlay();
     /* open the editor directly with the draft loaded (openJr supports a draftObj param) */
     try{ openJr(null,null,null,null,dr); }
-    catch(e){ /* fallback: manual load */ try{ openJr(null); jrEd._draftId=dr.id; jrEd.mood=dr.mood||''; jrEd.tags=dr.tags||[]; if($('jrTitle'))$('jrTitle').value=dr.title||''; if($('jrBody'))$('jrBody').innerHTML=dr.content||'<p><br></p>'; if($('jrDate'))$('jrDate').value=dr.date||jrToday(); if($('jrTime'))$('jrTime').value=dr.time||''; if($('jrLocation'))$('jrLocation').value=dr.location||''; }catch(e2){ toastN&&toastN('Could not open draft'); } }
+    catch(e){ /* fallback: manual load */ try{ openJr(null); jrEd._draftId=dr.id; jrEd.mood=dr.mood||''; jrEd.tags=dr.tags||[]; if($('jrTitle'))$('jrTitle').value=dr.title||''; if($('jrBody'))$('jrBody').innerHTML=jrSanitize(dr.content)||'<p><br></p>'; if($('jrDate'))$('jrDate').value=dr.date||jrToday(); if($('jrTime'))$('jrTime').value=dr.time||''; if($('jrLocation'))$('jrLocation').value=dr.location||''; }catch(e2){ toastN&&toastN('Could not open draft'); } }
   }
   var _jdBtn=$('jrDraftsBtn'); if(_jdBtn) _jdBtn.addEventListener('click', openDraftsOverlay);
   var _jdClose=$('draftsClose'); if(_jdClose) _jdClose.addEventListener('click', closeDraftsOverlay);
   var _jdOv=$('draftsOverlay'); if(_jdOv) _jdOv.addEventListener('click', function(e){
     if(e.target===_jdOv){ closeDraftsOverlay(); return; }              /* tap backdrop closes */
-    var op=e.target.closest('[data-draft-open]'); if(op){ resumeDraft(op.getAttribute('data-draft-open')); return; }
+    var op=e.target.closest('[data-draft-open]'); if(!op && !e.target.closest('[data-draft-del]')){ var row=e.target.closest('[data-draft]'); if(row) op={getAttribute:function(){ return row.getAttribute('data-draft'); }}; }   /* the whole row opens the draft */
+      if(op){ resumeDraft(op.getAttribute('data-draft-open')); return; }
     var del=e.target.closest('[data-draft-del]'); if(del){ e.stopPropagation(); jrClearDraft(del.getAttribute('data-draft-del')); renderDraftsList(); renderJrDraftsBtn(); if(!(state.jrDrafts||[]).length) closeDraftsOverlay(); return; }
   });
   window._renderJrDraftsBtn=renderJrDraftsBtn;
@@ -8575,7 +8841,7 @@ function init(){
   function normVaultData(d){ d=d||{}; return { pw:(d.pw||[]).map(function(x){return normVaultItem(x,'pw');}), note:(d.note||[]).map(function(x){return normVaultItem(x,'note');}) }; }
 
   window.openVault=function(){
-    if(!state.set||!state.set.pin){ toastN('Set an app PIN first (Settings \u2192 Privacy)'); showTab('pgSet'); return; }
+    if(!state.set||!state.set.pin){ toastN('Set an app PIN to use the Vault'); showTab('pgSet'); setTimeout(function(){ try{ var c=[].find.call(document.querySelectorAll('#setCardGrid .setCard2'),function(x){ return /Privacy/.test(x.textContent); }); if(c) c.click(); setTimeout(function(){ var b=$('pinBtn')||[].find.call(document.querySelectorAll('#pgSet button'),function(x){ return x.getClientRects().length && /^(Set|Change)$/.test(x.textContent.trim()); }); if(b){ b.classList.add('pulseHint'); b.scrollIntoView({block:'center'}); setTimeout(function(){ b.classList.remove('pulseHint'); },2400); } },250); }catch(e){} },60); return; }   /* opens Privacy & security with the PIN button highlighted */
     _vaultPin=null; _vaultData={pw:[],note:[]};
     vShow('vaultLocked');
     var pi=$('vaultPin'); if(pi) pi.value=''; var hint=$('vaultPinHint'); if(hint) hint.style.display='none';
@@ -9128,7 +9394,7 @@ function init(){
     var rw=climb(e.target,this,'data-jrrw'); if(rw){ jrRewrite(rw.getAttribute('data-jrrw')); }
   });
   $('jrEntryAiOut').addEventListener('click', function(e){
-    if(e.target && e.target.id==='jrRwApply'){ if(_jrRewritePending!=null){ $('jrBody').innerHTML=_jrRewritePending; jrUpdTagLine(); _jrRewritePending=null; $('jrEntryAiOut').innerHTML='<div class="jrAiOut"><div class="b">\u2713 Entry replaced. Remember to Save.</div></div>'; } return; }
+    if(e.target && e.target.id==='jrRwApply'){ if(_jrRewritePending!=null){ $('jrBody').innerHTML=jrSanitize(_jrRewritePending); jrUpdTagLine(); _jrRewritePending=null; $('jrEntryAiOut').innerHTML='<div class="jrAiOut"><div class="b">\u2713 Entry replaced. Remember to Save.</div></div>'; } return; }
     if(e.target && e.target.id==='jrRwCopy'){ if(_jrRewritePending!=null){ try{ navigator.clipboard.writeText(jrStrip(_jrRewritePending)); toastN('Copied'); }catch(_){}} return; }
     if(e.target && e.target.id==='jrRwDiscard'){ _jrRewritePending=null; $('jrEntryAiOut').innerHTML=''; return; }
   });

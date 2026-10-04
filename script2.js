@@ -434,7 +434,7 @@
     var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent';
     var ctl=typeof AbortController!=='undefined'?new AbortController():null,tm=setTimeout(function(){if(ctl)ctl.abort();},30000);
     return fetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{maxOutputTokens:1600,responseMimeType:'application/json'}}),signal:ctl?ctl.signal:undefined})
-      .then(function(r){if(!r.ok)throw new Error('API '+r.status);return r.json();}).finally(function(){clearTimeout(tm);})
+      .then(function(r){if(!r.ok) return aiHttpError(r);return r.json();}).finally(function(){clearTimeout(tm);})
       .then(function(d){var txt=d.candidates&&d.candidates[0]&&d.candidates[0].content&&d.candidates[0].content.parts&&d.candidates[0].content.parts[0]&&d.candidates[0].content.parts[0].text;if(!txt)throw new Error('Empty response');return importAiSafeJson(txt);})
       .then(function(ai){
         var m=ai.mapping||{},out={date:+(m.date!=null?m.date:-1),desc:+(m.description!=null?m.description:-1),amount:+(m.amount!=null?m.amount:-1),debit:+(m.debit!=null?m.debit:-1),credit:+(m.credit!=null?m.credit:-1),direction:+(m.direction!=null?m.direction:-1),category:+(m.category!=null?m.category:-1),currency:+(m.currency!=null?m.currency:-1),account:+(m.account!=null?m.account:-1),payment_method:+(m.payment_method!=null?m.payment_method:-1),reference:+(m.reference!=null?m.reference:-1),balance:+(m.balance!=null?m.balance:-1),note:+(m.note!=null?m.note:-1)};

@@ -216,3 +216,59 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     Upcoming, Done) that filter the list when tapped; search field with an icon and 48 px view buttons.
   - Pop-up size system for every sheet and dialog: 48 px main buttons, fields and dropdowns; 44 px secondary
     buttons; 40 px inline buttons and chips.
+- **Build 67 — AI errors, drafts, chat, modules, journal and Spaces polish:**
+  - AI: the saved model is checked against the provider (a model from another provider caused 404/400); a 404 falls
+    back to the provider's default (Gemini: a working Flash model from your key's list) and is remembered; a Gemini
+    400 retries without extra settings; errors show the provider's actual reason; "API key not set up" only when
+    there is no key.
+  - Journal drafts: the Drafts button never refreshed (renderJr called a misnamed function); it now updates the
+    moment a draft is saved, shows as a "Drafts · N" pill, with a "Saved as a draft" message.
+  - Chat: your messages are fitted, right-aligned purple bubbles (no clipping); replies read at 15 px with formatting;
+    errors are a card with the reason and a "Check AI settings" button; Clear is a compact pill.
+  - Quick log widget: Journal opens the app's New entry screen again.
+  - Modules: Settings › Money & currency, AI starters, global search and AI actions now respect turned-off modules.
+  - Journal: notebook picker is a custom menu (colour dots, check, New notebook); native dropdowns follow the theme.
+  - Journal stats: one compact row of four on phones.
+  - Spaces: glass tiles with glowing app icons and a colour bar under each label.
+- **Build 68 — task card menu:**
+  - The ⋯ menu was clipped inside the card (task cards use content-visibility, which also trapped its position). It
+    now opens as a labelled list on top of the page — Pin to top / Unpin, Snooze to tomorrow, Duplicate, with
+    coloured icons — anchored to the ⋯ button, opening upwards near the bottom of the screen.
+  - A press inside the menu no longer starts the card swipe (which moved the card and lost the tap); the menu closes
+    on a real scroll, a tap elsewhere, Escape or back. The ⋯ button shows a subtle highlight instead of an amber ring.
+- **Build 69 — production test pass (139 functional cases + audits), fixes:**
+  - CRITICAL: a journal entry saved with a mood made loading crash at the next start (JR_MOODS used before it was
+    defined), and the blank fallback state then overwrote the saved data. Fixed the cause; load() now keeps an
+    untouched rescue copy, salvages every readable record, and retries the full data once the app has started.
+  - SECURITY: journal HTML is sanitised (scripts, frames, event attributes, javascript: links removed) on save, load,
+    sync and every display; previews use an inert parser so stored text can never run code.
+  - Deleting a journal entry now goes to Recently deleted (it was permanent despite the Data screen's promise).
+  - Tapping anywhere on a draft row reopens the draft (the row edge did nothing).
+  - Save buttons ignore an accidental second tap (duplicates were created); a retry after a refused save works.
+  - Empty messages are never shown (Android could display "null").
+  - Text size and Font weight options were cut off on 360 px phones; crowded segments now sit under their label.
+  - AI: additions and check-offs made by the assistant now show a plain done message (not the model's question) and an
+    Undo button; deletions already asked first. The AI page's promise now reads "Anything that deletes data asks first,
+    and changes can be undone."
+  - Touch targets raised to 40 px (recap and insight close buttons, notebook and Select pills, AI summary icon,
+    Appearance options); compact journal stat labels 12 px; AI message box follows the border/radius settings.
+- **Build 70 — UI/UX pass across every screen:**
+  - One selected style for every choice chip in the editors (task reminder and expense account chips were outlined
+    while others were filled); light theme uses dark text on amber for contrast.
+  - Add expense: the amount is the hero (44 px, currency symbol, coloured by type); Expense / Income / Transfer each
+    select in their own colour (coral, green, blue).
+  - Money: "vs last month" and the top category now sit inside the hero card as an insight row (trend badge green
+    when spending is down, coral when up).
+  - Habits: each habit's check button is filled in the habit's own colour, matching its name and chain.
+  - New users: the weekly recap stays hidden until the week has activity; the Habits empty state offers one-tap
+    starter habits; empty-state buttons use their page colour; "Select" hides when a list is empty.
+  - Journal › AI: the date range fits its card; Tasks: icon-only Export on phones so the summary line fits.
+- **Build 71 — Spaces redesign and second UI/UX pass:**
+  - Spaces: clean tinted tiles (no decorative circles or label bars), crisp 48 px icon tiles with a soft glow, clearer
+    labels; new Workout (dumbbell) and Journal (notebook) icons.
+  - Habit detail: the name, icon tile and stats in the habit's own colour; details as three chips
+    (type · target, category, reminder) with "since" as quiet text.
+  - Insights: trend chart in the page's teal.
+  - Search: recent searches (with Clear) and colourful "Go to" shortcuts before typing; turned-off modules left out.
+  - Vault without a PIN now opens Privacy & security with the PIN button highlighted.
+  - Profile name placeholder is neutral ("e.g. Alex").
