@@ -272,3 +272,18 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Search: recent searches (with Clear) and colourful "Go to" shortcuts before typing; turned-off modules left out.
   - Vault without a PIN now opens Privacy & security with the PIN button highlighted.
   - Profile name placeholder is neutral ("e.g. Alex").
+- **Build 72 — Appearance screen fixes:**
+  - Large empty gaps under "Text size", "Font weight", "Paper texture" and "Type": a stacked label's fixed width was
+    acting as a 116 px height; stacked labels now size to their text.
+  - Sliders show a visible track filled in the accent colour up to the value, with a white thumb ringed in amber; the
+    fill updates while dragging and when presets (Density, Reset) move them. Dark, AMOLED and light.
+  - "Larger touch targets" and "Strong focus indicators" checkboxes had collapsed to 0×0; they are now proper switches
+    (48×28, purple when on), the whole row is tappable, and they keep their shape with larger touch targets on.
+- **Build 73 — journal photos fix and photo ZIP export:**
+  - Photos below the first ~20 timeline entries stayed as empty squares: rows loaded while scrolling were never asked
+    to load their images. Every batch now loads, and a watcher on the Journal page loads any photo tile added later.
+  - A photo that is genuinely not on this device shows a "not on this device" marker instead of a blank square.
+  - Export journal › Photos: "Download photos (ZIP)" for the chosen date range and tags, with a live photo count and
+    progress. Files are named "YYYY-MM-DD HHMM Title NN.jpg" and keep the entry's date and time. Android streams the
+    ZIP to Downloads in pieces (new saveChunkBegin/Append/End bridge), so large ranges are safe.
+  - Export journal date fields no longer run past the sheet edge.

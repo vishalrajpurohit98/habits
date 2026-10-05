@@ -672,6 +672,33 @@ public class MainActivity extends Activity {
         }
     }
 
+    /* Chunked save: large files (photo ZIPs) are streamed in pieces to a temp file, then moved to Downloads. */
+    final java.util.Map<String,File> chunkFiles=new java.util.HashMap<>();
+    String saveChunkBegin(String name){ File dir=new File(getCacheDir(),"chunks"); if(!dir.exists()) dir.mkdirs(); String id="c"+System.currentTimeMillis()+"_"+(int)(Math.random()*1e6); File f=new File(dir,id); f.delete(); synchronized(chunkFiles){ chunkFiles.put(id,f); } return id; }
+    boolean saveChunkAppend(String id,String b64){ File f; synchronized(chunkFiles){ f=chunkFiles.get(id); } if(f==null) return false; try(FileOutputStream out=new FileOutputStream(f,true)){ out.write(Base64.decode(b64,Base64.DEFAULT)); return true; }catch(Exception e){ return false; } }
+    String saveChunkEnd(String id,String name,String mime){
+        File f; synchronized(chunkFiles){ f=chunkFiles.remove(id); }
+        if(f==null) return "";
+        try{
+            if(name==null||name.isEmpty()||!f.exists()) return "";
+            if (Build.VERSION.SDK_INT >= 29) {
+                ContentValues v=new ContentValues();
+                v.put(MediaStore.Downloads.DISPLAY_NAME,name); v.put(MediaStore.Downloads.MIME_TYPE,mime); v.put(MediaStore.Downloads.RELATIVE_PATH,Environment.DIRECTORY_DOWNLOADS); v.put(MediaStore.Downloads.IS_PENDING,1);
+                Uri u=getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI,v);
+                if(u==null) throw new IOException("MediaStore insert failed");
+                try(InputStream in=new FileInputStream(f); OutputStream out=getContentResolver().openOutputStream(u)){ if(out==null) throw new IOException("no output"); byte[] buf=new byte[65536]; int n; while((n=in.read(buf))>0) out.write(buf,0,n); }
+                v.clear(); v.put(MediaStore.Downloads.IS_PENDING,0); getContentResolver().update(u,v,null,null);
+                toast("Saved to Downloads/"+name); return "Downloads/"+name;
+            } else {
+                File dir=Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS); if(!dir.exists()) dir.mkdirs();
+                File dst=new File(dir,name);
+                try(InputStream in=new FileInputStream(f); OutputStream out=new FileOutputStream(dst)){ byte[] buf=new byte[65536]; int n; while((n=in.read(buf))>0) out.write(buf,0,n); }
+                toast("Saved to "+dst.getAbsolutePath()); return dst.getAbsolutePath();
+            }
+        }catch(Exception e){ toast("Could not save "+name); return ""; }
+        finally{ try{ f.delete(); }catch(Exception e){} }
+    }
+
     Uri shareTemp(String name,String mime,String b64)throws Exception{
         File dir=new File(getCacheDir(),"share"); if(!dir.exists())dir.mkdirs();
         File f=new File(dir,name); try(FileOutputStream out=new FileOutputStream(f)){out.write(Base64.decode(b64,Base64.DEFAULT));}
@@ -752,6 +779,9 @@ public class MainActivity extends Activity {
         @JavascriptInterface public String readPhoto(String name){try{File f=new File(new File(getFilesDir(),pendingPhotoDir),name);if(!f.exists())return "";return Base64.encodeToString(readAll(new FileInputStream(f)),Base64.NO_WRAP);}catch(Exception e){return "";}}
         @JavascriptInterface public void deletePhoto(String name){try{new File(new File(getFilesDir(),pendingPhotoDir),name).delete();}catch(Exception ignored){}}
         @JavascriptInterface public String saveFile(String name,String mime,String b64)throws Exception{return MainActivity.this.saveFile(name,mime,b64);}
+        @JavascriptInterface public String saveChunkBegin(String name){return MainActivity.this.saveChunkBegin(name);}
+        @JavascriptInterface public boolean saveChunkAppend(String id,String b64){return MainActivity.this.saveChunkAppend(id,b64);}
+        @JavascriptInterface public String saveChunkEnd(String id,String name,String mime){return MainActivity.this.saveChunkEnd(id,name,mime);}
         @JavascriptInterface public boolean printHtmlToPdf(final String name, final String html){
             try{ MainActivity.this.runOnUiThread(new Runnable(){ public void run(){ MainActivity.this.printHtmlToPdf(name, html); } }); return true; }
             catch(Exception e){ return false; }

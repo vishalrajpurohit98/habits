@@ -6811,7 +6811,7 @@ function jrAddPhotoData(dataUrl){
     .catch(function(){ toastN('Couldn\u2019t save the photo on this device'); });
 }
 function jrHydrate(root){ (root||document).querySelectorAll('img[data-ph]:not([src])').forEach(function(im){ var k=im.getAttribute('data-ph'); if(!/^ph[a-z0-9]+(_t|_p)?$/.test(k)) return; var base=k.replace(/_(t|p)$/,''), tries=/_p$/.test(k)?[k,base+'_t',base]:(/_t$/.test(k)?[k,base]:[k]);
-    (function tryNext(){ var key=tries.shift(); if(!key){ var c=im.closest('.jrPh,.jrReadPh'); if(c) c.classList.add('phMissing'); return; } PhotoDB.get(key).then(function(v){ if(v) im.src=v; else tryNext(); }).catch(function(){}); })(); }); }
+    (function tryNext(){ var key=tries.shift(); if(!key){ var c=im.closest('.jrPh,.jrReadPh')||im.parentElement; if(c){ c.classList.add('phMissing'); c.title='This photo is not on this device'; } return; } PhotoDB.get(key).then(function(v){ if(v) im.src=v; else tryNext(); }).catch(function(){}); })(); }); }
 function jrRenderEdPhotos(){ var g=$('jrPhotoGrid'); if(!g) return; var ph=(jrEd&&jrEd.photos)||[];
   g.innerHTML=ph.map(function(id){ return '<div class="jrPh"><img data-ph="'+esc(id)+'_t" alt="Photo"><button class="jrPhX" type="button" data-jrphdel="'+esc(id)+'" aria-label="Remove photo">'+ICON('close')+'</button></div>'; }).join('');
   g.style.display=ph.length?'':'none'; jrHydrate(g); }
@@ -7942,6 +7942,101 @@ var SPACE_ICONS={
     if(e.target.closest('[data-gsclear]')){ try{ uStore.removeItem('gs_recent'); }catch(x){} idle(); return; }
     var g=e.target.closest('[data-gsgo]'); if(g){ closeSheet(); var t=g.getAttribute('data-gsgo'); setTimeout(function(){ showTab(t); },60); }
   },true);
+})();
+
+/* ================= Sliders show their track and fill (build 72) ================= */
+function rangeFill(el){ try{ var mn=+el.min||0, mx=(el.max===''?100:+el.max), v=+el.value; var p=mx>mn?((v-mn)/(mx-mn))*100:0; el.style.setProperty('--p',Math.max(0,Math.min(100,p))+'%'); }catch(e){} }
+function rangeFillAll(root){ (root||document).querySelectorAll('input[type=range]').forEach(rangeFill); }
+(function(){
+  document.addEventListener('input',function(e){ if(e.target&&e.target.type==='range') rangeFill(e.target); },true);
+  document.addEventListener('change',function(e){ if(e.target&&e.target.type==='range') rangeFill(e.target); },true);
+  /* presets (Density, Reset) move sliders without input events */
+  document.addEventListener('click',function(){ setTimeout(function(){ rangeFillAll(); },0); },true);
+  if(window.MutationObserver){ var t=null; new MutationObserver(function(){ clearTimeout(t); t=setTimeout(function(){ rangeFillAll(); },60); }).observe(document.body,{childList:true,subtree:true}); }
+  setTimeout(function(){ rangeFillAll(); },0);
+})();
+/* ================= Journal photos: every row loads its images (build 73) =================
+   jrTimelineMore() appended later batches without hydrating them, so photos below the first ~20 entries stayed blank. */
+(function(){
+  if(typeof jrTimelineMore==='function'){ var tm=jrTimelineMore; jrTimelineMore=function(){ var r=tm.apply(this,arguments); try{ if(typeof jrHydrate==='function') jrHydrate($('jrList')); }catch(e){} return r; }; }
+  /* safety net: any photo tile added anywhere in Journal gets loaded */
+  var pg=$('pgJr'), t=null;
+  if(pg&&window.MutationObserver) new MutationObserver(function(){ clearTimeout(t); t=setTimeout(function(){ try{ if(typeof jrHydrate==='function'&&pg.querySelector('img[data-ph]:not([src])')) jrHydrate(pg); }catch(e){} },40); }).observe(pg,{childList:true,subtree:true});
+})();
+/* ================= Download a date range's photos as a ZIP (build 73) ================= */
+var ZIP_CRC=(function(){ var t=new Uint32Array(256); for(var n=0;n<256;n++){ var c=n; for(var k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; } return t; })();
+function zipCrc32(u8){ var c=0xFFFFFFFF; for(var i=0;i<u8.length;i++) c=ZIP_CRC[(c^u8[i])&255]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function zipDos(d){ return [((d.getHours()<<11)|(d.getMinutes()<<5)|Math.floor(d.getSeconds()/2))&0xFFFF, (((d.getFullYear()-1980)<<9)|((d.getMonth()+1)<<5)|d.getDate())&0xFFFF]; }
+/* minimal ZIP writer (stored entries: photos are already compressed); sink(parts) receives Uint8Arrays in file order */
+function ZipWriter(sink){ this.sink=sink; this.off=0; this.cd=[]; }
+ZipWriter.prototype.add=function(name,data,date){
+  var nb=new TextEncoder().encode(name), crc=zipCrc32(data), dd=zipDos(date&&!isNaN(date)?date:new Date()), h=new DataView(new ArrayBuffer(30));
+  h.setUint32(0,0x04034b50,true); h.setUint16(4,20,true); h.setUint16(6,0x0800,true); h.setUint16(8,0,true); h.setUint16(10,dd[0],true); h.setUint16(12,dd[1],true);
+  h.setUint32(14,crc,true); h.setUint32(18,data.length,true); h.setUint32(22,data.length,true); h.setUint16(26,nb.length,true); h.setUint16(28,0,true);
+  this.sink([new Uint8Array(h.buffer),nb,data]); this.cd.push({nb:nb,crc:crc,size:data.length,dd:dd,off:this.off}); this.off+=30+nb.length+data.length;
+};
+ZipWriter.prototype.finish=function(){
+  var parts=[], start=this.off, len=0;
+  this.cd.forEach(function(c){ var h=new DataView(new ArrayBuffer(46)); h.setUint32(0,0x02014b50,true); h.setUint16(4,20,true); h.setUint16(6,20,true); h.setUint16(8,0x0800,true); h.setUint16(10,0,true);
+    h.setUint16(12,c.dd[0],true); h.setUint16(14,c.dd[1],true); h.setUint32(16,c.crc,true); h.setUint32(20,c.size,true); h.setUint32(24,c.size,true); h.setUint16(28,c.nb.length,true);
+    h.setUint32(38,0,true); h.setUint32(42,c.off,true); parts.push(new Uint8Array(h.buffer),c.nb); len+=46+c.nb.length; });
+  var e=new DataView(new ArrayBuffer(22)); e.setUint32(0,0x06054b50,true); e.setUint16(8,this.cd.length,true); e.setUint16(10,this.cd.length,true); e.setUint32(12,len,true); e.setUint32(16,start,true);
+  parts.push(new Uint8Array(e.buffer)); this.sink(parts);
+};
+function u8ToB64(u8){ var s='', CH=0x8000; for(var i=0;i<u8.length;i+=CH) s+=String.fromCharCode.apply(null,u8.subarray(i,i+CH)); return btoa(s); }
+function photoBytes(v){
+  if(v instanceof Blob) return v.arrayBuffer().then(function(b){ return {bytes:new Uint8Array(b),mime:v.type||'image/jpeg'}; });
+  var s=String(v||''), i=s.indexOf(','); var mime=(s.slice(5,s.indexOf(';'))||'image/jpeg'); var bin=atob(s.slice(i+1)), u=new Uint8Array(bin.length); for(var j=0;j<bin.length;j++) u[j]=bin.charCodeAt(j);
+  return Promise.resolve({bytes:u,mime:mime});
+}
+function jrPhotoItems(from,to,tags){
+  var list=(typeof jrFilterEntries==='function'?jrFilterEntries(from,to,tags||[]):state.jr).slice().sort(function(a,b){ return (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')); }), items=[];
+  list.forEach(function(e){ (e.photos||[]).filter(function(p){ return /^ph[a-z0-9]+$/.test(p); }).forEach(function(id,i){ items.push({e:e,id:id,i:i}); }); });
+  return items;
+}
+function jrZipName(e,i,ext,used){
+  var t=String(e.title||jrStrip(e.content||'').slice(0,30)||'entry').replace(/[\\\/:*?"<>|#\r\n\t]+/g,' ').replace(/\s+/g,' ').trim().slice(0,40)||'entry';
+  var n=e.date+' '+String(e.time||'').replace(':','')+' '+t+' '+String(i+1).padStart(2,'0')+'.'+ext, k=2; while(used[n]){ n=n.replace(/( \(\d+\))?(\.\w+)$/,' ('+(k++)+')$2'); } used[n]=1; return n;
+}
+var _jrZipBusy=false;
+async function jrExportPhotoZip(){
+  if(_jrZipBusy) return;
+  var from=($('jrExpFrom')||{}).value||'', to=($('jrExpTo')||{}).value||'', items=jrPhotoItems(from,to,typeof jrExpTags!=='undefined'?jrExpTags:[]);
+  if(!items.length){ toastN('No photos in this date range'); return; }
+  var btn=$('jrExpZip'), label=btn?btn.innerHTML:'', first=items[0].e.date, last=items[items.length-1].e.date;
+  var name='momentum-photos-'+(from||first)+'-to-'+(to||last)+'.zip';
+  var chunked=!!(nat&&nat.saveChunkBegin), webParts=[], cid=null, ok=0, miss=0, used={};
+  _jrZipBusy=true; if(btn){ btn.disabled=true; }
+  try{
+    if(chunked) cid=nat.saveChunkBegin(name);
+    var zw=new ZipWriter(function(parts){ parts.forEach(function(p){ if(chunked) nat.saveChunkAppend(cid,u8ToB64(p)); else webParts.push(p); }); });
+    for(var k=0;k<items.length;k++){
+      var it=items[k]; if(btn) btn.textContent='Preparing '+(k+1)+' of '+items.length+'\u2026';
+      var v=null; try{ v=await PhotoDB.get(it.id); if(!v) v=await PhotoDB.get(it.id+'_p'); }catch(e){}
+      if(!v){ miss++; continue; }
+      var b=await photoBytes(v), ext=/png/.test(b.mime)?'png':/webp/.test(b.mime)?'webp':/gif/.test(b.mime)?'gif':'jpg';
+      zw.add(jrZipName(it.e,it.i,ext,used),b.bytes,new Date(it.e.date+'T'+(it.e.time||'12:00')+':00')); ok++;
+      if(k%4===3) await new Promise(function(r){ setTimeout(r,0); });
+    }
+    if(!ok){ if(chunked&&nat.saveChunkEnd) try{ nat.saveChunkEnd(cid,'',''); }catch(e){} toastN('None of these photos are on this device'); return; }
+    zw.finish();
+    if(chunked){ nat.saveChunkEnd(cid,name,'application/zip'); }
+    else{
+      var blob=new Blob(webParts,{type:'application/zip'});
+      if(nat&&nat.saveFile){ if(blob.size>30*1024*1024){ toastN('Update the Android app to save large photo ZIPs'); return; } var buf=new Uint8Array(await blob.arrayBuffer()); nat.saveFile(name,'application/zip',u8ToB64(buf)); }
+      else { var url=URL.createObjectURL(blob), a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ a.remove(); URL.revokeObjectURL(url); },1500); }
+    }
+    toastN(ok+' photo'+(ok===1?'':'s')+' saved'+(miss?' \u00b7 '+miss+' not on this device':''));
+  }catch(e){ toastN('Could not create the photo ZIP'); }
+  finally{ _jrZipBusy=false; if(btn){ btn.disabled=false; btn.innerHTML=label; } jrUpdPhotoCount(); }
+}
+function jrUpdPhotoCount(){ var el=$('jrExpPhCount'); if(!el) return; var from=($('jrExpFrom')||{}).value||'', to=($('jrExpTo')||{}).value||''; var n=jrPhotoItems(from,to,typeof jrExpTags!=='undefined'?jrExpTags:[]).length; el.textContent=n+' photo'+(n===1?'':'s')+' in this range'; var b=$('jrExpZip'); if(b) b.disabled=!n; }
+(function(){
+  var btns=document.querySelector('#jrExportSheet .jrExpBtns'); if(!btns||$('jrExpZip')) return;
+  btns.insertAdjacentHTML('afterend','<div class="jrExpPhotos"><div class="jrExpPhHead"><span class="jrExpPhIc">'+ICON('camera')+'</span><div><div class="jrExpPhT">Photos</div><div class="jrExpPhS" id="jrExpPhCount"></div></div></div><button class="btnS" id="jrExpZip" type="button">'+ICON('download')+'<span>Download photos (ZIP)</span></button></div>');
+  $('jrExpZip').addEventListener('click',jrExportPhotoZip);
+  ['jrExpFrom','jrExpTo'].forEach(function(id){ var i=$(id); if(i){ i.addEventListener('change',jrUpdPhotoCount); i.addEventListener('input',jrUpdPhotoCount); } });
+  if(typeof jrUpdExpCount==='function'){ var u=jrUpdExpCount; jrUpdExpCount=function(){ var r=u.apply(this,arguments); try{ jrUpdPhotoCount(); }catch(e){} return r; }; }
 })();
 
 function climb(el, root, attr){
