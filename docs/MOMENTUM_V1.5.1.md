@@ -287,3 +287,13 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     progress. Files are named "YYYY-MM-DD HHMM Title NN.jpg" and keep the entry's date and time. Android streams the
     ZIP to Downloads in pieces (new saveChunkBegin/Append/End bridge), so large ranges are safe.
   - Export journal date fields no longer run past the sheet edge.
+- **Build 74 — phrase search, jump to match, Google Drive storage:**
+  - Search understands phrases: words in quotes must appear exactly; other words must all appear, in any order;
+    entries containing the whole query as a phrase rank first; case and accents are ignored. Applies to Journal ›
+    Search and global search (all result types).
+  - Journal search results show a snippet around the match with the words highlighted.
+  - Opening an entry from a search scrolls to the exact match and highlights every occurrence, with a "1 of N"
+    navigator (previous / next / clear); the phrase is preferred over single words.
+  - Settings › Cloud sync › Storage: space used by Momentum's photo folder (from every sync listing) and the Google
+    account's storage (used / limit, with a bar), refreshed on opening and on demand. New Android bridge call
+    driveQuota (Drive about.get, allowed by the existing drive.appdata permission).

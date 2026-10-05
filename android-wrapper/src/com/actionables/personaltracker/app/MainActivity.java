@@ -803,6 +803,7 @@ public class MainActivity extends Activity {
             js("window.onGoogleIdToken&&window.onGoogleIdToken(" + org.json.JSONObject.quote(tok==null?"":tok) + "," + org.json.JSONObject.quote(email==null?"":email) + "," + org.json.JSONObject.quote(err==null?"":err) + ")"))); }
         @JavascriptInterface public void driveDisconnect(){ DriveSync.disconnect(MainActivity.this); }
         @JavascriptInterface public void driveList(){ DriveSync.list(MainActivity.this, driveEmit); }
+        @JavascriptInterface public void driveQuota(){ DriveSync.quota(MainActivity.this, driveEmit); }
         @JavascriptInterface public void driveUpload(String name, String b64){ if(name!=null&&name.matches("ph[a-z0-9]+\\.jpg")) DriveSync.upload(MainActivity.this, name, b64, driveEmit); }
         @JavascriptInterface public void driveDownload(String name, String fileId){ if(name!=null&&name.matches("ph[a-z0-9]+\\.jpg")&&fileId!=null&&fileId.matches("[A-Za-z0-9_-]+")) DriveSync.download(MainActivity.this, name, fileId, driveEmit); }
     }

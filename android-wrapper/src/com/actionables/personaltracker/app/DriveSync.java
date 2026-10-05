@@ -102,6 +102,18 @@ public class DriveSync {
         });
     }
 
+    /** Account storage (used / limit) for the Cloud sync screen; drive.appdata allows about.get. */
+    static void quota(final Activity a, final Emit emit) {
+        EX.execute(() -> {
+            try {
+                JSONObject o = new JSONObject(new String(http(a, "GET", "https://www.googleapis.com/drive/v3/about?fields=storageQuota", null, null), StandardCharsets.UTF_8));
+                JSONObject q = o.optJSONObject("storageQuota");
+                emit.event("quota", q != null ? q.toString() : "{}", "");
+            } catch (NeedConsent nc) { emit.event("consent", "", ""); }
+            catch (Exception e) { emit.event("quotaFailed", friendly(e), ""); }
+        });
+    }
+
     static void upload(final Activity a, final String name, final String b64, final Emit emit) {
         EX.execute(() -> {
             try {
