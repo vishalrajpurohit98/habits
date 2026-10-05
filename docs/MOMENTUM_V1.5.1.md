@@ -297,3 +297,8 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Settings › Cloud sync › Storage: space used by Momentum's photo folder (from every sync listing) and the Google
     account's storage (used / limit, with a bar), refreshed on opening and on demand. New Android bridge call
     driveQuota (Drive about.get, allowed by the existing drive.appdata permission).
+- **Build 75 — Cloud sync Storage row always appears; build number in Settings:**
+  - The Storage row follows the "Sync photos now" row directly (it could stay hidden if the Drive rows were shown
+    before it was set up); buttons in the Drive card sit on the right edge.
+  - Settings shows the build ("Momentum 1.5.1 · build 75 · web"; Android adds "web build 75") so you can confirm the
+    newest code is loaded. WEB_BUILD must be raised with each build.

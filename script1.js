@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1';
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 75;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -5772,8 +5772,8 @@ function renderSet(){
     'Saved daily \u00B7 last: ' + state.set.lastAutoBk
     : 'A local backup is saved once a day';
   $('verLine').textContent = nat
-    ? ('Momentum v' + (function(){try{return nat.appVer();}catch(e){return APP_VERSION;}})() + ' \u00b7 private')
-    : 'Momentum ' + APP_VERSION + ' \u00b7 web \u00b7 private';
+    ? ('Momentum v' + (function(){try{return nat.appVer();}catch(e){return APP_VERSION;}})() + ' \u00b7 web build ' + WEB_BUILD + ' \u00b7 private')
+    : 'Momentum ' + APP_VERSION + ' \u00b7 build ' + WEB_BUILD + ' \u00b7 web \u00b7 private';
 }
 
 /* ================= cloud sync (Firebase Cloud Firestore) ================= */
@@ -8121,6 +8121,10 @@ function driveUsagePaint(){
   var r2=$('driveRow2'); if(!r2||$('driveUsageRow')) return;
   r2.insertAdjacentHTML('afterend','<div class="setRow" id="driveUsageRow" style="display:none"><div style="flex:1;min-width:0"><div class="setT">Storage</div><div class="setS" id="driveUsageApp"></div><div class="duBar" id="duBar" style="display:none" aria-hidden="true"><i id="duUsed"></i><i id="duApp"></i></div><div class="setS" id="driveUsageAcct"></div><div class="setS duWhen" id="driveUsageWhen"></div></div><button class="sbtn" id="driveUsageBtn" type="button">Refresh</button></div>');
   $('driveUsageBtn').addEventListener('click',function(){ DrivePhotos.usage(true); });
+  /* follow "Sync photos now" directly, whichever code shows or hides it */
+  function mirror(){ var row=$('driveUsageRow'), r2=$('driveRow2'); if(!row||!r2) return; var vis=r2.style.display!=='none'; row.style.display=vis?'':'none'; if(vis) driveUsagePaint(); }
+  if(window.MutationObserver) new MutationObserver(mirror).observe(r2,{attributes:true,attributeFilter:['style']});
+  mirror();
   try{ DrivePhotos.ui(); }catch(e){}
   /* refresh when Cloud sync opens and the figures are older than 10 minutes */
   document.addEventListener('click',function(e){ var c=e.target.closest&&e.target.closest('#setCardGrid .setCard2'); if(c&&/Cloud sync/.test(c.textContent)){ var u=state.set.driveUsage||{}; if(DrivePhotos.on()&&(!u.at||Date.now()-u.at>600000)) setTimeout(function(){ DrivePhotos.usage(false); },400); } },true);
