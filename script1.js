@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 75;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 77;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -1329,8 +1329,9 @@ var AI_PROVIDERS = {
     ],
     call: function(key, model, prompt, max, opts){
       var url='https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent'; var gc={maxOutputTokens:max||300};
-      if(/gemini-2\.5-flash/.test(model)) gc.thinkingConfig={thinkingBudget:0};        /* thinking tokens would count against the reply limit */
-      else if(/gemini-(2\.5-pro|3)/.test(model)) gc.maxOutputTokens=(max||300)+2048; /* these always think: leave room for the answer */
+      if(/gemini-2\.5-flash/.test(model)){ if(opts&&opts.think){ gc.thinkingConfig={thinkingBudget:1024}; gc.maxOutputTokens=(max||300)+1024; } else gc.thinkingConfig={thinkingBudget:0}; }   /* reasoning questions get thinking time, with room left for the answer; quick actions stay instant */
+      else if(/^gemini-(flash|flash-lite|pro)-latest$/.test(model)||/^gemini-([3-9]|\d{2,})/.test(model)){ gc.thinkingConfig={thinkingLevel:(opts&&opts.think)?'medium':'low'}; gc.maxOutputTokens=(max||300)+((opts&&opts.think)?2048:1024); }   /* Gemini 3+: thinking levels replace thinking budgets; leave room for the answer */
+      else if(/gemini-2\.5-pro/.test(model)) gc.maxOutputTokens=(max||300)+2048; /* always thinks: leave room for the answer */
       if(opts&&opts.json) gc.responseMimeType='application/json';
       return aiFetch(url,{method:'POST',headers:{'Content-Type':'application/json','x-goog-api-key':key},
         body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:gc})},45000).then(function(r){if(!r.ok) return aiHttpError(r);return r.json();})
@@ -1615,11 +1616,12 @@ function uaiPrompt(text,conversationContext){
   +'update_task: {id,match,newTitle,description,dueDate,dueTime,priority,status,reminders,recurrence}\n'
   +'change_setting: {key,value} (theme:dark/light, curr:symbol)\n'
   +'navigate: {tab(today/tasks/mood/exp/stats/ai/set)}\n'
-  +'query: {} message=answer the question from app data. This INCLUDES journal questions; answer ONLY from JOURNAL entries in APP DATA; if nothing matches say you could not find a journal entry about it; never invent journal entries, dates, or counts.\n'
+  +'query: {} message=the complete answer. For questions about the user\u2019s own life or data, answer from APP DATA (journal questions ONLY from JOURNAL entries; if nothing matches say you could not find a journal entry about it; never invent journal entries, dates, or counts). For any other question, answer from your own knowledge and reasoning.\n'
   +'clarify: {} message=ask for missing info \u2014 USE ONLY when CREATING/UPDATING something and a REQUIRED field is missing. NEVER use clarify to answer a question.\\n\\n'
   +'CRITICAL QUESTION RULE: If the user is ASKING something (a question, or starts with can/could/do/does/what/when/where/who/why/how/show/tell/summarize/list/compare/did/have/is/are, or asks about their journal, habits, mood, sleep, spending, tasks, or workouts) you MUST use action "query" and ANSWER using APP DATA. Never return clarify for a question. Example: "can you access journal data?" -> query + answer yes with a brief summary of what the journal shows. "what makes me happy?" -> query + answer from journal/mood. If specific data is absent, still use query and say what you found or did not find — do not ask for more info in response to a question.\\n\\n'
-  +'For add_expense, acct must be the account ID shown in APP DATA (preferred) or the exact account name; never use a merchant/payee/category as the account. If the user does not specify an account, leave acct empty and let the app choose the active default account. Put merchant names such as Swiggy in payee, not acct.\n'
-  +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep the message concise and conversational, usually 1-3 sentences.\n'
+  +'GENERAL QUESTIONS: You are also a capable general assistant. If a question is not about the user\u2019s own data \u2014 general knowledge, facts, explanations, maths, logic, planning, writing, advice on relationships, health, fitness, money or work \u2014 answer it fully and accurately from your own knowledge with careful step-by-step reasoning, using action "query". Personalise with APP DATA when it helps (e.g. advice based on their habits, sleep or spending). The never-invent rule applies only to claims about the user\u2019s own life and records. For non-trivial questions, reason through the problem first and give a clear conclusion; say when something is uncertain.\\n\\n'
+      +'For add_expense, acct must be the account ID shown in APP DATA (preferred) or the exact account name; never use a merchant/payee/category as the account. If the user does not specify an account, leave acct empty and let the app choose the active default account. Put merchant names such as Swiggy in payee, not acct.\n'
+  +'For update_task, use match for the existing task title and id when available; title is the new title only when renaming. Task due dates may be in the future.\nRULES: yesterday='+fmt(addDays(new Date(),-1))+' today='+today()+'. "slept at 11"=23:00. Map mood words: happy=1,calm=2,tired=4,sad=5,stressed=6,great=0,neutral=3. Match habits by name. Keep confirmations short (1-3 sentences); answer questions as fully as they need, conversationally.\n'
   +'For QUERIES: answer with specific numbers from the data. For workout questions, use exercise logs/personal bests. For "best workout" questions, reference the personal_best and recent sessions. For "how to improve" questions, analyze patterns (consistency, progression, frequency) and give actionable advice. For summaries, cover the requested timeframe with real data points.\n'
   +'CONVERSATION RULES: Understand natural language and scenarios, not only explicit commands. Infer likely intent, but NEVER execute a create/update action while a required field is missing. The assistant must behave like a conversational form: collect required details over multiple turns, one focused question at a time, and carry every previously supplied detail forward. IMPORTANT REQUIRED-FIELD RULES: For add_habit, require the habit name AND an explicit meaningful frequency/schedule (daily, weekdays, selected days, X times, or quota); if frequency is missing, return clarify and DO NOT create the habit. For add_task, require the task title AND ask when it should be due/scheduled; if the user says no due date, that is an explicit answer and may be used. If a task is intended to repeat, also collect the recurrence/frequency; never invent a deadline or recurrence. For set_mood, require the mood before saving; if the user only says \"log my mood\" or similar, ask which mood and do not default to Neutral. For set_sleep, require both bedtime and wake time before saving; if either is missing, ask for the missing time and do not silently use 23:00/06:00. For log_workout, require the exercise and workout values/sets before saving; ask for whichever is missing. For add_journal, require meaningful title/body content before saving. For add_expense, require amount and a reliable category; ask for category when it cannot be reliably inferred rather than defaulting to Other. Account may use the explicit/default account rule already defined. Keep follow-up questions focused: normally ask ONE smallest missing detail, not a long questionnaire. Preserve context across follow-up turns. Treat scenario/problem statements as opportunities to identify the user’s likely goal. If the scenario clearly implies a useful tracker action, propose the action or ask one focused question rather than merely giving generic advice; once the user authorizes it, collect required details and execute. Do not mutate data solely from an uncertain inference. Explicit preference statements such as \"remember that...\" should be reflected in PERSISTENT USER PREFERENCES; casual temporary comments should not. If the user asks to remember or forget a preference, handle that explicitly.\n\n'
   +'RECENT CONVERSATION (active chat context):\n'+(conversationContext||'None')+'\n\nPENDING ACTION FROM PREVIOUS TURN (if any):\n'+(function(){try{var p=JSON.parse(uStore.getItem('uai_pending_action_v1')||'null');return p?(p.action+' '+JSON.stringify(p.params||{})):'None';}catch(e){return 'None';}})()+'\n\nFOLLOW-UP RULES: If the latest user message is short (for example a category, account, amount, date, habit name, task name, yes/no answer, or correction), treat it as a continuation of the immediately preceding request/clarification. Do NOT discard the earlier request. Carry forward all already supplied fields and fill only the missing/corrected field. Never restart an expense, task, habit, or other action from scratch unless the user explicitly starts a new request. For destructive actions, use the exact named record from the conversation or APP DATA; never substitute the first/most familiar record. If a name is ambiguous, ask the user to choose instead of guessing.\n'+'CHAT RESPONSE RULES: Write for a normal text chat. Never expose internal IDs, database fields, JSON, params, action names, or implementation details unless the user explicitly asks about technical implementation. For lists and progress, use names and meaningful numbers, not raw records. When asking a follow-up, ask only the smallest missing detail. If a pending action exists, merge the user’s latest answer into that action instead of starting over. Never invent missing frequency, priority, dates, times, amounts, categories, or other required fields. Keep answers concise but useful.\n\nUser: '+text;
@@ -1853,7 +1855,7 @@ function uaiSend(text){
   log.innerHTML+='<div class="uaiMsg bot" id="uaiTyping" style="opacity:.5">Thinking…</div>';log.scrollTop=log.scrollHeight;
   var context=uaiChatContext();
   try{var _jpf=uStore.getItem('uai_prefill_context');if(_jpf){context=_jpf+'\n\n'+context;uStore.removeItem('uai_prefill_context');}}catch(e){}
-  gemCall(uaiPrompt(text,context),1500,{json:true}).then(function(raw){
+  gemCall(uaiPrompt(text,context),aiNeedsThinking(text)?2200:1500,{json:true,think:aiNeedsThinking(text)}).then(function(raw){
     var el=$('uaiTyping');if(el)el.remove();
     var result=aiExtractJson(raw);
     if(!result){
@@ -8128,6 +8130,123 @@ function driveUsagePaint(){
   try{ DrivePhotos.ui(); }catch(e){}
   /* refresh when Cloud sync opens and the figures are older than 10 minutes */
   document.addEventListener('click',function(e){ var c=e.target.closest&&e.target.closest('#setCardGrid .setCard2'); if(c&&/Cloud sync/.test(c.textContent)){ var u=state.set.driveUsage||{}; if(DrivePhotos.on()&&(!u.at||Date.now()-u.at>600000)) setTimeout(function(){ DrivePhotos.usage(false); },400); } },true);
+})();
+
+/* ================= AI: reasoning for open questions (build 76) ================= */
+function aiNeedsThinking(t){ t=String(t||'').trim(); if(t.length>90) return true; return /\b(why|how|explain|should|compare|analy[sz]e|reason|plan|advice|advise|suggest|difference|pros|cons|what if|think|calculate|solve|prove|strategy|help me (decide|understand|figure))\b/i.test(t); }
+/* ================= Journal AI: follow-up questions on every result (build 76) ================= */
+function jrFUEntriesText(ids){
+  var list=ids.map(function(id){ return jrFind(id); }).filter(Boolean).sort(function(a,b){ return (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')); });
+  var out='', cap=28000;
+  for(var i=0;i<list.length&&out.length<cap;i++){ var e=list[i]; out+='--- '+e.date+(e.time?' '+e.time:'')+(e.title?' \u00b7 '+e.title:'')+'\n'+jrStrip(e.content||'').slice(0,1800)+'\n'; }
+  return out.slice(0,cap);
+}
+function jrFUAttach(el,label,text,sources){
+  var box=el.querySelector('.jrAiOut'); if(!box||!sources||!sources.length) return;
+  el._fu={label:label,text:String(text||''),ids:sources.map(function(e){ return e.id; }),turns:[]};
+  var chips=['Why do you think that?','What could I do differently?','Which entries show this most clearly?'];
+  box.insertAdjacentHTML('beforeend','<div class="jrFU"><div class="jrFULog" aria-live="polite"></div>'+
+    '<div class="jrFUChips">'+chips.map(function(c){ return '<button type="button" class="jrFUChip" data-fq="'+esc(c)+'">'+esc(c)+'</button>'; }).join('')+'</div>'+
+    '<div class="jrFUBar"><input class="inp jrFUIn" type="text" maxlength="500" placeholder="Ask a follow-up\u2026" aria-label="Ask a follow-up question"><button type="button" class="jrFUSend" aria-label="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button></div>'+
+    '<button type="button" class="jrFUMain">'+ICON('ai')+'<span>Continue in AI chat</span></button></div>');
+}
+function jrFUAsk(el,q){
+  var fu=el&&el._fu; q=String(q||'').trim(); if(!fu||!q||fu.busy) return;
+  var log=el.querySelector('.jrFULog'), inp=el.querySelector('.jrFUIn'); if(inp) inp.value='';
+  log.insertAdjacentHTML('beforeend','<div class="jrFUMsg me">'+esc(q)+'</div><div class="jrFUMsg ai pending">Thinking\u2026</div>');
+  var pend=log.lastElementChild; try{ pend.scrollIntoView({block:'nearest',behavior:'smooth'}); }catch(e){}
+  fu.busy=true;
+  var hist=fu.turns.slice(-6).map(function(t){ return 'User: '+t.q+'\nYou: '+t.a; }).join('\n\n');
+  var prompt='You are Momentum\u2019s journal companion: thoughtful, honest and warm. The user wrote the journal entries below and is asking follow-up questions about an analysis you gave.\n\n'+
+    'JOURNAL ENTRIES ('+fu.ids.length+'):\n'+jrFUEntriesText(fu.ids)+'\n\nYOUR EARLIER '+String(fu.label||'analysis').toUpperCase()+':\n'+fu.text+'\n\n'+(hist?'CONVERSATION SO FAR:\n'+hist+'\n\n':'')+
+    'NEW QUESTION: '+q+'\n\n'+
+    'Think it through before answering. Use the entries as the only source for facts about the user\u2019s life \u2014 never invent events, people, dates or quotes; cite dates when you refer to an entry. You may also use general knowledge and reasoning (psychology, relationships, health, practical advice), and say clearly which parts are your suggestions rather than what the entries say. If the entries do not answer the question, say so. Reply in plain text with light markdown (**bold**, short lists); no JSON.';
+  gemCall(prompt,1600,{think:true}).then(function(ans){
+    ans=aiPlainText(String(ans||'').trim())||'I could not come up with an answer \u2014 try asking another way.';
+    fu.turns.push({q:q,a:ans}); pend.classList.remove('pending'); pend.innerHTML=aiMd(ans);
+  }).catch(function(e){ pend.classList.remove('pending'); pend.classList.add('err'); pend.textContent=(e&&e.message)?e.message:'The AI could not answer right now.'; })
+  .then(function(){ fu.busy=false; try{ pend.scrollIntoView({block:'nearest',behavior:'smooth'}); }catch(e){} });
+}
+(function(){
+  if(typeof jrAiShow!=='function') return;
+  var orig=jrAiShow; jrAiShow=function(target,label,text,sources){ var r=orig.apply(this,arguments); try{ var el=$(target); if(el) jrFUAttach(el,label,text,sources); }catch(e){} return r; };
+  function host(n){ var o=n.closest('.jrAiOut'); return o?o.parentElement:null; }
+  document.addEventListener('click',function(e){
+    var c=e.target.closest('.jrFUChip'); if(c){ jrFUAsk(host(c),c.getAttribute('data-fq')); return; }
+    var s=e.target.closest('.jrFUSend'); if(s){ var h=host(s); jrFUAsk(h,(h.querySelector('.jrFUIn')||{}).value); return; }
+    var m=e.target.closest('.jrFUMain'); if(m){ var h2=host(m), fu=h2&&h2._fu; if(!fu) return;
+      var ctx='JOURNAL CONTEXT \u2014 the user is continuing a conversation about these entries.\n'+jrFUEntriesText(fu.ids).slice(0,12000)+'\nEARLIER ANALYSIS:\n'+fu.text+(fu.turns.length?'\nFOLLOW-UPS:\n'+fu.turns.map(function(t){ return 'Q: '+t.q+'\nA: '+t.a; }).join('\n'):'');
+      try{ uStore.setItem('uai_prefill_context',ctx); }catch(x){} showTab('pgAI'); setTimeout(function(){ var inp=$('uaiInput'); if(inp){ inp.placeholder='Ask about these journal entries\u2026'; inp.focus(); } },250); toastN('Your journal context is attached to the next question'); }
+  });
+  document.addEventListener('keydown',function(e){ if(e.key==='Enter' && e.target.classList && e.target.classList.contains('jrFUIn')){ e.preventDefault(); jrFUAsk(host(e.target),e.target.value); } });
+})();
+
+/* ================= AI models: current free models, kept up to date automatically (build 77) ================= */
+/* built-in fallbacks (used until the live list is fetched); the "-latest" names always point to the newest model */
+AI_PROVIDERS.gemini.models=[{id:'gemini-flash-latest',label:'Gemini Flash \u00b7 latest \u00b7 free'},{id:'gemini-flash-lite-latest',label:'Gemini Flash-Lite \u00b7 latest \u00b7 most free requests'},{id:'gemini-3.5-flash-lite',label:'Gemini 3.5 Flash-Lite \u00b7 free'}];
+AI_PROVIDERS.openrouter.models=[{id:'openrouter/free',label:'Best free model (auto) \u00b7 free'}].concat(AI_PROVIDERS.openrouter.models.filter(function(m){ return /:free$/.test(m.id); }));
+AI_PROVIDERS.mistral.models=[{id:'mistral-small-latest',label:'Mistral Small \u00b7 latest \u00b7 fast'},{id:'mistral-medium-latest',label:'Mistral Medium \u00b7 latest'},{id:'mistral-large-latest',label:'Mistral Large \u00b7 latest \u00b7 best'}];
+var AI_FREE_FETCH={
+  gemini:function(key){ return fetch('https://generativelanguage.googleapis.com/v1beta/models?pageSize=200',{headers:{'x-goog-api-key':key}}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(function(d){
+    var ms=(d.models||[]).filter(function(m){ return (m.supportedGenerationMethods||[]).indexOf('generateContent')>=0; }).map(function(m){ return {id:String(m.name||'').replace(/^models\//,''),dn:m.displayName||''}; });
+    var ver=function(id){ return parseFloat((id.match(/^gemini-(\d+(?:\.\d+)?)/)||[0,0])[1]); };
+    /* free tier = Flash and Flash-Lite only (Pro left the free tier in April 2026); stable names only */
+    var alias=ms.filter(function(m){ return /^gemini-flash(-lite)?-latest$/.test(m.id); }).sort(function(a,b){ return a.id.localeCompare(b.id); });
+    var stable=ms.filter(function(m){ return /^gemini-\d+(\.\d+)?-flash(-lite)?$/.test(m.id); });
+    var flash=stable.filter(function(m){ return !/-lite$/.test(m.id); }).sort(function(a,b){ return ver(b.id)-ver(a.id); }).slice(0,2);
+    var lite=stable.filter(function(m){ return /-lite$/.test(m.id); }).sort(function(a,b){ return ver(b.id)-ver(a.id); }).slice(0,2);
+    return alias.map(function(m){ return {id:m.id,label:/lite/.test(m.id)?'Gemini Flash-Lite \u00b7 latest \u00b7 most free requests':'Gemini Flash \u00b7 latest \u00b7 free'}; })
+      .concat(flash.concat(lite).map(function(m){ return {id:m.id,label:(m.dn||m.id)+' \u00b7 free'}; })); }); },
+  groq:function(key){ return fetch('https://api.groq.com/openai/v1/models',{headers:{'Authorization':'Bearer '+key}}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(function(d){
+    return (d.data||[]).filter(function(m){ return m.active!==false && !/whisper|tts|guard|playai|orpheus|distil|compound|safeguard|transcri|speech|embed/i.test(m.id); })
+      .sort(function(a,b){ return (b.created||0)-(a.created||0); }).slice(0,10).map(function(m){ return {id:m.id,label:m.id.replace(/^[^/]+\//,'')+' \u00b7 free'}; }); }); },
+  openrouter:function(){ return fetch('https://openrouter.ai/api/v1/models').then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(function(d){
+    var free=(d.data||[]).filter(function(m){ var p=m.pricing||{}; var zero=(+p.prompt===0&&+p.completion===0)||/:free$/.test(m.id); var arch=m.architecture||{}; var textOut=!arch.output_modalities||arch.output_modalities.indexOf('text')>=0; return zero&&textOut&&!/embed|image|tts|audio|guard/i.test(m.id); })
+      .sort(function(a,b){ return (b.created||0)-(a.created||0); }).slice(0,14).map(function(m){ return {id:m.id,label:String(m.name||m.id).replace(/\s*\(free\)\s*$/i,'')+' \u00b7 free'}; });
+    if(!free.some(function(m){ return m.id==='openrouter/free'; }) && (d.data||[]).some(function(m){ return m.id==='openrouter/free'; })) free.unshift({id:'openrouter/free',label:'Best free model (auto) \u00b7 free'});
+    return free; }); },
+  mistral:function(key){ return fetch('https://api.mistral.ai/v1/models',{headers:{'Authorization':'Bearer '+key}}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(function(d){
+    var seen={}, out=[];
+    (d.data||[]).filter(function(m){ return (m.capabilities||{}).completion_chat!==false && !m.deprecation && !/embed|ocr|moderation|transcri|tts|voxtral/i.test(m.id); })
+      .sort(function(a,b){ return (/-latest$/.test(b.id)?1:0)-(/-latest$/.test(a.id)?1:0) || String(a.id).localeCompare(String(b.id)); })
+      .forEach(function(m){ var k=m.name||m.id; if(seen[k]) return; seen[k]=1; (m.aliases||[]).forEach(function(a){ seen[a]=1; }); out.push({id:m.id,label:m.id+' \u00b7 free tier'}); });
+    return out.slice(0,10); }); },
+  cerebras:function(key){ return fetch('https://api.cerebras.ai/v1/models',{headers:{'Authorization':'Bearer '+key}}).then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.json(); }).then(function(d){
+    return (d.data||[]).slice(0,10).map(function(m){ return {id:m.id,label:m.id+' \u00b7 free tier'}; }); }); }
+};
+function aiModelsCache(p){ try{ return JSON.parse(uStore.getItem('ai_models_v2_'+p)||'null'); }catch(e){ return null; } }
+function aiModelsFor(p){ var c=aiModelsCache(p); return (c&&c.list&&c.list.length)?c.list:((AI_PROVIDERS[p]||{}).models||[]); }
+function aiRefreshModels(p,force){
+  p=p||getAiProvider(); var key=getAiKey(), f=AI_FREE_FETCH[p], c=aiModelsCache(p);
+  if(!f||(!key&&p!=='openrouter')) return Promise.resolve(false);
+  if(!force && c && c.at && Date.now()-c.at<24*3600*1000) return Promise.resolve(false);
+  return f(key).then(function(list){
+    if(!list||!list.length) return false;
+    try{ uStore.setItem('ai_models_v2_'+p,JSON.stringify({at:Date.now(),list:list})); }catch(e){}
+    var saved=uStore.getItem('ai_model');
+    if(p===getAiProvider() && saved && !list.some(function(m){ return m.id===saved; })){ uStore.setItem('ai_model',list[0].id); try{ syncAiCfgToNative(); }catch(e){} toastN('AI model '+saved+' is no longer free or available \u2014 switched to '+list[0].label.split(' \u00b7 ')[0]); }
+    try{ if($('aiProvider')&&$('aiProvider').value===p) populateModels(p); }catch(e){}
+    return true;
+  }).catch(function(e){ if(force) toastN('Could not refresh the model list ('+(e&&e.message||'offline')+')'); return false; });
+}
+(function(){
+  /* the picker shows the live free list, with its freshness and a refresh link */
+  var pm=populateModels; populateModels=function(provId){ var P=AI_PROVIDERS[provId]; if(!P) return pm.apply(this,arguments); var real=P.models; P.models=aiModelsFor(provId); try{ pm.apply(this,arguments); } finally { P.models=real; }
+    var c=aiModelsCache(provId), h=$('aiModelHint'), n=aiModelsFor(provId).length;
+    if(h) h.innerHTML=n+' free model'+(n===1?'':'s')+' \u00b7 '+(c&&c.at?('updated '+(new Date(c.at).toDateString()===new Date().toDateString()?'today':new Date(c.at).toLocaleDateString(undefined,{day:'numeric',month:'short'}))):'built-in list')+' \u00b7 <button type="button" class="linkBtn" data-airefresh="'+provId+'">Refresh</button>'; };
+  document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-airefresh]'); if(!b) return; b.textContent='Refreshing\u2026'; aiRefreshModels(b.getAttribute('data-airefresh'),true).then(function(ok){ if(ok) toastN('Model list updated'); try{ populateModels(b.getAttribute('data-airefresh')); }catch(x){} }); });
+  /* a saved model is valid if it is in the live list too */
+  var fits=aiModelFits; aiModelFits=function(provider,model){ if(aiModelsFor(provider).some(function(m){ return m.id===model; })) return true; return fits.apply(this,arguments); };
+  /* refresh after a key is saved, and once a day in the background */
+  var sv=$('btnAiSave'); if(sv) sv.addEventListener('click',function(){ setTimeout(function(){ aiRefreshModels(getAiProvider(),true); },300); });
+  setTimeout(function(){ if(getAiKey()) aiRefreshModels(getAiProvider(),false); },4000);
+  /* xAI has no free tier: hidden from the picker unless it is already in use */
+  var ps=$('aiProvider'); if(ps&&getAiProvider()!=='grok'){ var o=ps.querySelector('option[value="grok"]'); if(o) o.remove(); }
+  /* Gemini: when Flash's small free daily quota runs out, use Flash-Lite until tomorrow */
+  var gm=getAiModel; getAiModel=function(){ var m=gm.apply(this,arguments); try{ if(getAiProvider()==='gemini'){ var ex=String(uStore.getItem('ai_gem_exhausted')||''); if(ex.indexOf(today()+'|'+m)===0){ var lite=aiModelsFor('gemini').filter(function(x){ return /lite/.test(x.id); })[0]; if(lite) return lite.id; } } }catch(e){} return m; };
+  var gc=gemCall; gemCall=function(prompt,max,opts){ var m0=getAiModel(); return gc(prompt,max,opts).catch(function(err){
+    if(err&&err.status===429&&getAiProvider()==='gemini'&&!/lite/.test(m0)){ uStore.setItem('ai_gem_exhausted',today()+'|'+m0); var lite=getAiModel(); if(lite!==m0){ toastN('Gemini Flash free limit reached for today \u2014 using Flash-Lite'); return gc(prompt,max,opts); } }
+    throw err; }); };
 })();
 
 function climb(el, root, attr){

@@ -62,25 +62,42 @@ public final class NativeAi {
         }
     }
 
-    /** Blocking HTTP call \u2014 must run on a background thread. Returns the model's text. */
+    /** Blocking HTTP call \u2014 must run on a background thread. Returns the model's text.
+     *  Gemini: defaults to the free Flash-Lite alias, and retries once on Flash-Lite when a model is retired (404)
+     *  or its free daily quota is used up (429). */
     public static String call(Cfg c, String prompt, int maxTokens) throws Exception {
         if (c.key.isEmpty()) throw new Exception("No API key");
-        String url, body;
         boolean gemini = !"groq openrouter mistral cerebras grok".contains(c.provider);
+        if (!gemini) return callOnce(c, c.model, false, prompt, maxTokens);
+        String model = c.model.isEmpty() ? "gemini-flash-lite-latest" : c.model;
+        try { return callOnce(c, model, true, prompt, maxTokens); }
+        catch (Exception e) {
+            String m = String.valueOf(e.getMessage());
+            if ((m.contains("API 404") || m.contains("API 429")) && !model.contains("lite")) return callOnce(c, "gemini-flash-lite-latest", true, prompt, maxTokens);
+            throw e;
+        }
+    }
+
+    static String callOnce(Cfg c, String model, boolean gemini, String prompt, int maxTokens) throws Exception {
+        String url, body;
         if (gemini) {
-            String model = c.model.isEmpty() ? "gemini-2.5-flash" : c.model;
             url = "https://generativelanguage.googleapis.com/v1beta/models/" + model + ":generateContent";
             JSONObject part = new JSONObject().put("text", prompt);
             JSONObject content = new JSONObject().put("parts", new JSONArray().put(part));
-            body = new JSONObject()
-                    .put("contents", new JSONArray().put(content))
-                    .put("generationConfig", new JSONObject().put("maxOutputTokens", maxTokens))
-                    .toString();
+            JSONObject gc = new JSONObject().put("maxOutputTokens", maxTokens);
+            if (model.matches("gemini-(flash|flash-lite|pro)-latest") || model.matches("gemini-([3-9]|\\d{2,}).*")) {
+                /* Gemini 3+: thinking levels replace thinking budgets; leave room for the answer */
+                gc.put("thinkingConfig", new JSONObject().put("thinkingLevel", "low"));
+                gc.put("maxOutputTokens", maxTokens + 1024);
+            } else if (model.startsWith("gemini-2.5-flash")) {
+                gc.put("thinkingConfig", new JSONObject().put("thinkingBudget", 0));
+            }
+            body = new JSONObject().put("contents", new JSONArray().put(content)).put("generationConfig", gc).toString();
         } else {
             url = endpointFor(c.provider);
             JSONObject msg = new JSONObject().put("role", "user").put("content", prompt);
             body = new JSONObject()
-                    .put("model", c.model)
+                    .put("model", model)
                     .put("messages", new JSONArray().put(msg))
                     .put("max_tokens", maxTokens)
                     .toString();
@@ -102,9 +119,10 @@ public final class NativeAi {
             String raw = read(conn.getInputStream());
             JSONObject d = new JSONObject(raw);
             if (gemini) {
-                return d.getJSONArray("candidates").getJSONObject(0)
-                        .getJSONObject("content").getJSONArray("parts")
-                        .getJSONObject(0).getString("text");
+                JSONArray parts = d.getJSONArray("candidates").getJSONObject(0).getJSONObject("content").getJSONArray("parts");
+                StringBuilder out = new StringBuilder();
+                for (int i = 0; i < parts.length(); i++) { JSONObject p = parts.getJSONObject(i); if (!p.optBoolean("thought", false)) out.append(p.optString("text", "")); }
+                return out.toString();
             }
             return d.getJSONArray("choices").getJSONObject(0)
                     .getJSONObject("message").getString("content");

@@ -302,3 +302,23 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     before it was set up); buttons in the Drive card sit on the right edge.
   - Settings shows the build ("Momentum 1.5.1 · build 75 · web"; Android adds "web build 75") so you can confirm the
     newest code is loaded. WEB_BUILD must be raised with each build.
+- **Build 76 — AI follow-ups and general reasoning:**
+  - Every Journal AI result (range analysis, whole journal, summarise/reflect) has a follow-up chat: ask questions,
+    tap suggestion chips, answers appear in the card. Each follow-up sends the same entries, the earlier analysis and
+    the conversation so far. "Continue in AI chat" carries the context to the AI page.
+  - The AI assistant answers anything: general knowledge, maths, logic, planning, writing and advice, personalised
+    with your data when useful. The never-invent rule now applies only to claims about your own records.
+  - Reasoning questions (why/how/should/compare/explain or longer questions) get a Gemini thinking budget (1,024
+    tokens, with room left for the reply); quick actions stay instant.
+- **Build 77 — current free AI models, kept up to date automatically:**
+  - Each provider's model list is fetched live with your key (on saving a key, opening AI settings via Refresh, and
+    once a day) and filtered to free, current, chat models: Gemini Flash and Flash-Lite only (aliases
+    gemini-flash-latest / gemini-flash-lite-latest plus the two newest of each; no Pro, previews, image, voice or
+    embedding models); Groq active chat models; OpenRouter zero-price text models (with the free auto-router);
+    Mistral chat models without deprecated or duplicate entries; Cerebras chat models.
+  - Built-in fallbacks updated (outdated Gemini 2.5 entries and 2.5 Pro removed). A saved model that is no longer
+    free or available switches to the best current one, with a message. xAI (paid only) removed from the picker.
+  - Gemini 3+ and the -latest aliases use thinkingLevel (low; medium for reasoning) instead of thinkingBudget.
+  - When Gemini Flash's free daily quota runs out (429), the app uses Flash-Lite for the rest of the day.
+  - Android NativeAi: defaults to gemini-flash-lite-latest, uses thinkingLevel on Gemini 3+, retries once on
+    Flash-Lite after a 404/429, and joins all reply text parts.
