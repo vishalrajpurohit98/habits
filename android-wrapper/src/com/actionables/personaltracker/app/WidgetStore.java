@@ -157,6 +157,13 @@ public class WidgetStore {
         return o;
     }
 
+    /** Settings › Modules (money, tasks, workouts); a module is on unless explicitly turned off. */
+    public boolean moduleOn(String m) {
+        JSONObject set = state.optJSONObject("set");
+        JSONObject mods = set == null ? null : set.optJSONObject("modules");
+        return mods == null || mods.optBoolean(m, true);
+    }
+
     public String currency() {
         JSONObject set = state.optJSONObject("set");
         String c = set == null ? "" : set.optString("curr", "");

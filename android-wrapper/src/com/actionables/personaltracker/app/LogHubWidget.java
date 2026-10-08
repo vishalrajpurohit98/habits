@@ -14,6 +14,7 @@ public class LogHubWidget extends BaseWidget {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_loghub);
         v.setOnClickPendingIntent(R.id.lh_habit,   WidgetHub.openAppDeep(ctx, "viewHabits", "1"));
         v.setOnClickPendingIntent(R.id.lh_task,    WidgetHub.openAppDeep(ctx, "addTask", "1"));
+        v.setViewVisibility(R.id.lh_task, st.moduleOn("tasks") ? android.view.View.VISIBLE : android.view.View.GONE);
         v.setOnClickPendingIntent(R.id.lh_mood,    WidgetHub.openAppDeep(ctx, "addMood", "1"));
         v.setOnClickPendingIntent(R.id.lh_sleep,   WidgetHub.openAppDeep(ctx, "addSleep", "1"));
         v.setOnClickPendingIntent(R.id.lh_journal, WidgetHub.openAppDeep(ctx, "addJournal", "1"));   // opens the app on a new journal entry

@@ -14,6 +14,8 @@ import java.util.List;
  * \u25BE \u2192 native account picker; the choice persists per widget.
  */
 public class MoneyWidget extends BaseWidget {
+    @Override protected String module() { return "money"; }
+
 
     @Override protected RemoteViews render(Context ctx, WidgetStore st, int id, int bucket) {
         RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_money);

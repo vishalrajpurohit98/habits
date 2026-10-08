@@ -322,3 +322,25 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - When Gemini Flash's free daily quota runs out (429), the app uses Flash-Lite for the rest of the day.
   - Android NativeAi: defaults to gemini-flash-lite-latest, uses thinkingLevel on Gemini 3+, retries once on
     Flash-Lite after a 404/429, and joins all reply text parts.
+- **Build 78 — Momentum Design 2 (Modern), with Classic kept:**
+  - Appearance › Design: Modern (default) or Classic (the original look), saved per account.
+  - Surfaces: neutral layered cards with hairline borders (still driven by Border contrast); light theme on a cool
+    grey page with white cards lifted by soft shadows.
+  - Navigation: frosted-glass tab bar with an indicator pill behind the active tab; a compact title bar fades in when
+    the large page title scrolls away (phones and tablets).
+  - Typography: sentence-case 17 px section titles in their colours (Apple Health style) instead of small capitals;
+    tighter large titles; tabular numbers; calmer day labels.
+  - Sheets slide with a spring curve, 28 px corners and a softly blurred backdrop; inputs are filled with an accent
+    focus ring; chips and secondary buttons are tinted instead of outlined; tappable surfaces press in slightly;
+    pages fade in (respecting reduced motion).
+- **Build 79 — widgets follow Modules; Bills & subscriptions:**
+  - Widgets: Money, Tasks and Workout widgets show "<Module> is off" (tap opens Settings) while their module is off;
+    Quick log hides Task when Tasks is off; widget dialogs and the AI quick-log never create tasks, expenses or
+    workouts for a turned-off module. New layout widget_off.xml; WidgetStore.moduleOn().
+  - Bills & subscriptions (Money): rules with name, amount, category, account, frequency (weekly, every 2 weeks,
+    monthly, every 3 months, yearly), next date, optional end date and pause. "Add it automatically" posts each
+    payment on its date (catching up missed ones, monthly dates keep the start day, clamped to month end);
+    "Remind me" shows it as due with Mark paid / Skip and schedules a 9:00 reminder (on the day, 1 or 3 days before).
+    Money card with the monthly total and the next three; full list (Due / Upcoming / Paused) and editor.
+    Add expense › Repeat turns any transaction into a recurring rule. Rules sync across devices (recur records),
+    are saved in backups, and pause while Money is off. The old "recurring" links open the new screens.

@@ -19,6 +19,18 @@ public abstract class BaseWidget extends AppWidgetProvider {
         invalidate their RemoteViewsFactory data. */
     protected boolean hasList() { return false; }
 
+    /** The module this widget belongs to ("money", "tasks", "workouts"), or null. */
+    protected String module() { return null; }
+
+    private static String moduleName(String m) { return "money".equals(m) ? "Money" : "tasks".equals(m) ? "Tasks" : "workouts".equals(m) ? "Workouts" : m; }
+
+    private RemoteViews offView(Context ctx, String m) {
+        RemoteViews v = new RemoteViews(ctx.getPackageName(), R.layout.widget_off);
+        v.setTextViewText(R.id.off_title, moduleName(m) + " is off");
+        v.setOnClickPendingIntent(R.id.off_root, WidgetHub.openAppDeep(ctx, "tab", "pgSet"));
+        return v;
+    }
+
     @Override public void onUpdate(Context ctx, AppWidgetManager mgr, int[] ids) {
         WidgetStore st = WidgetStore.load(ctx);
         for (int id : ids) push(ctx, mgr, st, id);
@@ -34,7 +46,8 @@ public abstract class BaseWidget extends AppWidgetProvider {
 
     private void push(Context ctx, AppWidgetManager mgr, WidgetStore st, int id) {
         try {
-            mgr.updateAppWidget(id, render(ctx, st, id, WidgetHub.bucket(mgr, id)));
+            String m = module();
+            mgr.updateAppWidget(id, (m != null && !st.moduleOn(m)) ? offView(ctx, m) : render(ctx, st, id, WidgetHub.bucket(mgr, id)));
         } catch (Exception ignored) { /* a broken render must never crash the launcher */ }
     }
 }

@@ -9,6 +9,8 @@ import android.widget.RemoteViews;
  * No + by design (spec \u00A713).
  */
 public class WorkoutWidget extends BaseWidget {
+    @Override protected String module() { return "workouts"; }
+
 
     @Override protected boolean hasList() { return true; }
 

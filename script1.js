@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 77;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 79;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -5890,7 +5890,7 @@ function applySyncMeta(d){d=d||{};var x=d.syncMeta&&typeof d.syncMeta==='object'
 function loadSyncMeta(){var ref=syncMetaRef();if(!ref)return Promise.resolve();return ref.once('value').then(function(s){var d=s.val()||{};if(d&&d.syncMeta){applySyncMeta(d.syncMeta);renderSyncUI();renderTodaySyncUI();}}).catch(function(){});}
 function writeSyncMeta(status){var ref=syncMetaRef();if(!ref||!fbUser)return Promise.resolve();var at=Date.now();var payload={lastSyncAtMs:at,lastSyncState:status||'synced',lastSyncDeviceId:deviceId,lastSyncMtime:Number(state.mtime||at),schemaVersion:1};syncLastAt=at;syncLastState=status||'synced';syncLastDevice=deviceId;return ref.update({syncMeta:payload}).catch(function(){});}
 
-function syncRecordEntries(){var out={};function addArray(d,a,idf){(a||[]).forEach(function(v){var k=v&&(idf?v[idf]:v.id);if(v&&k)out[d+':'+k]=v;});}function addMap(d,o){if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(k){out[d+':'+k]={key:k,value:o[k]};});}addArray('habit',state.habits);addArray('tx',state.tx);addArray('acct',state.accts);addArray('exercise',state.exs);addArray('workout',state.wlog);addArray('sleep',state.sleep,'d');addArray('journal',state.jr);addArray('jrtpl',state.jrTpl);addArray('goal',state.goals);addArray('task',state.tasks);addMap('mood',state.mood);addMap('moodNote',state.moodNotes);addMap('hlog',state.hlog);addMap('closed',state.closed);addMap('budg',state.budg);addMap('budgets',state.budgets);addMap('cats',state.cats);addMap('fxRates',state.fxRates);out['set:all']=state.set;out['incCats:all']=state.incCats;if(state.vault)out['vault:all']={key:'all',value:state.vault};if(state.vaultCats&&state.vaultCats.length)out['vaultCats:all']={key:'all',value:state.vaultCats};if(state.jrDrafts&&state.jrDrafts.length)out['jrDrafts:all']={key:'all',value:state.jrDrafts};if(state.trash&&state.trash.length)out['trash:all']={key:'all',value:state.trash};return out;}
+function syncRecordEntries(){var out={};function addArray(d,a,idf){(a||[]).forEach(function(v){var k=v&&(idf?v[idf]:v.id);if(v&&k)out[d+':'+k]=v;});}function addMap(d,o){if(!o||typeof o!=='object')return;Object.keys(o).forEach(function(k){out[d+':'+k]={key:k,value:o[k]};});}addArray('habit',state.habits);addArray('tx',state.tx);addArray('acct',state.accts);addArray('exercise',state.exs);addArray('workout',state.wlog);addArray('sleep',state.sleep,'d');addArray('journal',state.jr);addArray('jrtpl',state.jrTpl);addArray('goal',state.goals);addArray('task',state.tasks);addArray('recur',state.recur||[]);addMap('mood',state.mood);addMap('moodNote',state.moodNotes);addMap('hlog',state.hlog);addMap('closed',state.closed);addMap('budg',state.budg);addMap('budgets',state.budgets);addMap('cats',state.cats);addMap('fxRates',state.fxRates);out['set:all']=state.set;out['incCats:all']=state.incCats;if(state.vault)out['vault:all']={key:'all',value:state.vault};if(state.vaultCats&&state.vaultCats.length)out['vaultCats:all']={key:'all',value:state.vaultCats};if(state.jrDrafts&&state.jrDrafts.length)out['jrDrafts:all']={key:'all',value:state.jrDrafts};if(state.trash&&state.trash.length)out['trash:all']={key:'all',value:state.trash};return out;}
 var syncRecordShadow={};var syncPendingRecords={};
 try{syncRecordShadow=JSON.parse(uStore.getItem('hb_sync_record_shadow')||'{}')||{};}catch(e){}
 try{syncPendingRecords=JSON.parse(uStore.getItem('hb_sync_pending')||'{}')||{};}catch(e){}
@@ -5924,7 +5924,7 @@ function queueChangedSyncRecords(){
   syncRecordShadow=meta;
   try{uStore.setItem('hb_sync_record_shadow',JSON.stringify(meta));uStore.setItem('hb_sync_pending',JSON.stringify(syncPendingRecords));}catch(e){}
 }
-function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){if(!Array.isArray(a))return;var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){var si=state.sleep.findIndex(function(x){return x&&x.d===id;});if(deleted){if(si>=0)state.sleep.splice(si,1);}else if(si>=0)state.sleep[si]=value;else state.sleep.push(value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='jrtpl'){state.jrTpl=state.jrTpl||[];arrSet(state.jrTpl,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='vault'&&id==='all'){if(!deleted)state.vault=(value&&value.value!==undefined?value.value:value);return;}if(d==='vaultCats'&&id==='all'){if(!deleted)state.vaultCats=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='jrDrafts'&&id==='all'){if(!deleted)state.jrDrafts=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='trash'&&id==='all'){if(!deleted)state.trash=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
+function applySyncRecord(key,value,deleted){var p=key.indexOf(':'),d=p>=0?key.slice(0,p):key,id=p>=0?key.slice(p+1):'';function arrSet(a,v){if(!Array.isArray(a))return;var ix=a.findIndex(function(x){return x&&x.id===id;});if(deleted){if(ix>=0)a.splice(ix,1);}else if(ix>=0)a[ix]=v;else a.push(v);}if(d==='habit'){arrSet(state.habits,value);return;}if(d==='tx'){arrSet(state.tx,value);return;}if(d==='acct'){arrSet(state.accts,value);return;}if(d==='exercise'){arrSet(state.exs,value);return;}if(d==='workout'){arrSet(state.wlog,value);return;}if(d==='sleep'){var si=state.sleep.findIndex(function(x){return x&&x.d===id;});if(deleted){if(si>=0)state.sleep.splice(si,1);}else if(si>=0)state.sleep[si]=value;else state.sleep.push(value);return;}if(d==='journal'){arrSet(state.jr,value);return;}if(d==='jrtpl'){state.jrTpl=state.jrTpl||[];arrSet(state.jrTpl,value);return;}if(d==='goal'){arrSet(state.goals,value);return;}if(d==='task'){arrSet(state.tasks,value);return;}if(d==='recur'){if(!Array.isArray(state.recur))state.recur=[];arrSet(state.recur,value);return;}var map={'mood':'mood','moodNote':'moodNotes','hlog':'hlog','closed':'closed','budg':'budg','budgets':'budgets','cats':'cats','fxRates':'fxRates'}[d];if(map){state[map]=state[map]||{};if(deleted)delete state[map][id];else state[map][id]=value&&value.value!==undefined?value.value:value;return;}if(d==='set'&&id==='all'){if(!deleted)state.set=Object.assign({},state.set,value||{});return;}if(d==='vault'&&id==='all'){if(!deleted)state.vault=(value&&value.value!==undefined?value.value:value);return;}if(d==='vaultCats'&&id==='all'){if(!deleted)state.vaultCats=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='jrDrafts'&&id==='all'){if(!deleted)state.jrDrafts=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='trash'&&id==='all'){if(!deleted)state.trash=(value&&value.value!==undefined?value.value:value)||[];return;}if(d==='incCats'&&id==='all'){if(!deleted)state.incCats=value||[];}}
 function pushRecordSync(force){
   if(!fbDB||!fbUser)return Promise.resolve();
   if(!isOnline()&&!force){setSyncState('cached');return Promise.resolve();}
@@ -8247,6 +8247,155 @@ function aiRefreshModels(p,force){
   var gc=gemCall; gemCall=function(prompt,max,opts){ var m0=getAiModel(); return gc(prompt,max,opts).catch(function(err){
     if(err&&err.status===429&&getAiProvider()==='gemini'&&!/lite/.test(m0)){ uStore.setItem('ai_gem_exhausted',today()+'|'+m0); var lite=getAiModel(); if(lite!==m0){ toastN('Gemini Flash free limit reached for today \u2014 using Flash-Lite'); return gc(prompt,max,opts); } }
     throw err; }); };
+})();
+
+/* ================= Momentum Design 2: switch, compact title bar (build 78) ================= */
+function applyDesign(){ var on=!state.set||state.set.design!=='classic'; document.documentElement.classList.toggle('ds2',on);
+  document.querySelectorAll('[data-design]').forEach(function(b){ b.classList.toggle('sel',(b.getAttribute('data-design')==='classic')!==on); b.setAttribute('aria-pressed',String((b.getAttribute('data-design')==='classic')!==on)); }); }
+(function(){
+  applyDesign();
+  if(typeof applyTheme==='function'){ var at=applyTheme; applyTheme=function(){ var r=at.apply(this,arguments); try{ applyDesign(); }catch(e){} return r; }; }
+  /* Appearance › Design */
+  var th=$('thRow'); var col=th&&th.closest('.setCol');
+  if(col&&!$('dsSeg')){ col.insertAdjacentHTML('beforebegin','<div class="setCol"><div class="setT" style="margin-bottom:4px">Design</div><div class="setS" style="margin-bottom:10px">The overall look of the app</div><div class="dsSeg" id="dsSeg" role="group" aria-label="Design"><button type="button" class="dsOpt" data-design="modern"><b>Modern</b><span>Glass, depth, motion</span></button><button type="button" class="dsOpt" data-design="classic"><b>Classic</b><span>The original look</span></button></div></div>');
+    $('dsSeg').addEventListener('click',function(e){ var b=e.target.closest('[data-design]'); if(!b) return; state.set.design=b.getAttribute('data-design'); persist(); applyDesign(); toastN(state.set.design==='classic'?'Classic design':'Modern design'); });
+    applyDesign(); }
+  /* compact title bar: appears once the page's large title has scrolled away */
+  var bar=document.createElement('div'); bar.id='ds2Top'; bar.setAttribute('aria-hidden','true'); bar.innerHTML='<span></span>'; document.body.appendChild(bar);
+  var raf=0;
+  function update(){ raf=0; if(innerWidth>=1000||!document.documentElement.classList.contains('ds2')){ bar.classList.remove('on'); return; }
+    var pg=document.querySelector('.page.on'), h=pg&&pg.querySelector('h1'); if(!h||typeof sheetOpen!=='undefined'&&sheetOpen){ bar.classList.remove('on'); return; }
+    var r=h.getBoundingClientRect(), on=r.bottom<40; if(on){ var t=(h.textContent||'').trim(); if(bar.firstChild.textContent!==t) bar.firstChild.textContent=t; } bar.classList.toggle('on',on); }
+  function q(){ if(!raf) raf=requestAnimationFrame(update); }
+  window.addEventListener('scroll',q,{passive:true}); var app=$('app'); if(app) app.addEventListener('scroll',q,{passive:true}); document.addEventListener('scroll',q,{passive:true,capture:true});
+  if(typeof showTab==='function'){ var st=showTab; showTab=function(){ var r=st.apply(this,arguments); setTimeout(update,30); return r; }; }
+})();
+
+/* ================= Bills & subscriptions (build 79) ================= */
+var BILL_FREQ={weekly:'Weekly',biweekly:'Every 2 weeks',monthly:'Monthly',quarterly:'Every 3 months',yearly:'Yearly'};
+function billsAll(){ if(!Array.isArray(state.recur)) state.recur=[]; return state.recur; }
+function billNorm(r){
+  r.id=r.id||('rc'+Date.now().toString(36)+Math.random().toString(36).slice(2,6)); r.kind=r.kind==='inc'?'inc':'exp'; r.amt=Math.abs(+r.amt||0);
+  if(!BILL_FREQ[r.freq]) r.freq='monthly'; r.start=r.start||r.nextDate||today(); r.nextDate=r.nextDate||r.start;
+  r.mode=r.mode==='remind'?'remind':'auto'; r.remind=[0,1,3].indexOf(+r.remind)>=0?+r.remind:1;
+  if(r.status==='paused') r.active=false; r.active=r.active!==false; r.name=String(r.name||r.payee||r.cat||'Recurring').slice(0,60); return r;
+}
+/* next occurrence: weekly/biweekly add days; monthly-style keeps the start day, clamped to the month's end */
+function billAddInterval(ds,r){ var d=new Date(ds+'T12:00:00');
+  if(r.freq==='weekly'||r.freq==='biweekly'){ d.setDate(d.getDate()+(r.freq==='weekly'?7:14)); return fmt(d); }
+  var months=r.freq==='quarterly'?3:r.freq==='yearly'?12:1, anchor=+String(r.start||ds).slice(8,10)||d.getDate(), y=d.getFullYear(), m=d.getMonth()+months;
+  var last=new Date(y,m+1,0).getDate(); return fmt(new Date(y,m,Math.min(anchor,last),12)); }
+function billMonthly(r){ return r.amt*({weekly:52/12,biweekly:26/12,monthly:1,quarterly:1/3,yearly:1/12}[r.freq]||1); }
+function billPost(r,ds){ var a=activeAccts(); var tx={kind:r.kind,amt:r.amt,cat:r.cat||(r.kind==='inc'?((state.incCats||[])[0]||'Income'):'Bills & Utilities'),sub:r.sub||'',payee:r.name,acct:(r.acct&&acctById(r.acct))?r.acct:((a[0]||{}).id||''),note:'Repeats '+BILL_FREQ[r.freq].toLowerCase(),d:ds,recurId:r.id};
+  state.tx.push(normTx(tx)); r.last=ds; }
+function billsRun(){ if(typeof modOn==='function'&&!modOn('money')) return 0; var t=today(), n=0;
+  billsAll().forEach(function(r){ billNorm(r); if(!r.active||r.mode!=='auto') return; var g=0;
+    while(r.nextDate<=t && g++<500){ if(r.end&&r.nextDate>r.end){ r.active=false; break; } billPost(r,r.nextDate); n++; r.nextDate=billAddInterval(r.nextDate,r); } });
+  if(n){ persist(); try{ renderExp(); }catch(e){} toastN(n+' recurring '+(n===1?'payment':'payments')+' added'); } return n; }
+function billDueLabel(ds){ var t=today(); if(ds===t) return 'Today'; var d=Math.round((new Date(ds+'T12:00:00')-new Date(t+'T12:00:00'))/864e5);
+  if(d===1) return 'Tomorrow'; if(d<0) return 'Overdue \u00b7 '+new Date(ds+'T12:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'}); if(d<=7) return 'In '+d+' days';
+  return new Date(ds+'T12:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'}); }
+function billIsDue(r){ return r.active&&r.mode==='remind'&&r.nextDate<=today(); }
+function billAmt(r){ return '<b class="'+(r.kind==='inc'?'bInc':'bExp')+'">'+(r.kind==='inc'?'+':'\u2212')+esc(inr(r.amt))+'</b>'; }
+function billRowHTML(r,compact){
+  var due=billIsDue(r);
+  return '<div class="billRow'+(due?' due':'')+(r.active?'':' paused')+'" data-bill="'+esc(r.id)+'"><span class="billIc">'+ICON('calendar')+'</span>'+
+    '<div class="billMain"><div class="billName">'+esc(r.name)+'</div><div class="billMeta">'+(r.active?esc(billDueLabel(r.nextDate)):'Paused')+(compact?'':' \u00b7 '+esc(BILL_FREQ[r.freq])+(r.mode==='auto'?' \u00b7 added automatically':' \u00b7 reminder'))+'</div></div>'+
+    '<div class="billRight">'+billAmt(r)+(due?'<div class="billActs"><button type="button" class="billPay" data-billpay="'+esc(r.id)+'">Mark paid</button><button type="button" class="billSkip" data-billskip="'+esc(r.id)+'">Skip</button></div>':'')+'</div></div>';
+}
+function billsSorted(){ return billsAll().map(billNorm).slice().sort(function(a,b){ return (b.active-a.active)||(billIsDue(b)-billIsDue(a))||a.nextDate.localeCompare(b.nextDate); }); }
+function billsTotals(){ var e=0,i=0,n=0; billsAll().forEach(function(r){ billNorm(r); if(!r.active) return; n++; if(r.kind==='inc') i+=billMonthly(r); else e+=billMonthly(r); }); return {e:e,i:i,n:n}; }
+function billsCardPaint(){
+  var sum=$('expSum'); if(!sum) return; var card=$('billsCard'); if(!card){ card=document.createElement('div'); card.id='billsCard'; card.className='billsCard'; sum.parentNode.insertBefore(card,sum.nextSibling); }
+  if(typeof modOn==='function'&&!modOn('money')){ card.style.display='none'; return; } card.style.display='';
+  var list=billsSorted(), tt=billsTotals();
+  if(!list.length){ card.innerHTML='<div class="billsEmpty"><span class="billIc">'+ICON('calendar')+'</span><div class="billMain"><div class="billName">Bills &amp; subscriptions</div><div class="billMeta">Rent, Netflix, salary \u2014 anything that repeats</div></div><button type="button" class="sbtn" data-billnew="1">Add</button></div>'; return; }
+  card.innerHTML='<div class="billsHead"><div><div class="billsT">Bills &amp; subscriptions</div><div class="billsS">'+esc(inr(Math.round(tt.e)))+' a month'+(tt.i?' \u00b7 '+esc(inr(Math.round(tt.i)))+' in':'')+' \u00b7 '+tt.n+' active</div></div><button type="button" class="linkBtn" data-billsall="1">See all</button></div>'+
+    list.filter(function(r){ return r.active; }).slice(0,3).map(function(r){ return billRowHTML(r,true); }).join('');
+}
+function openBills(){ if(typeof modOn==='function'&&!modOn('money')){ toastN('Money is turned off in Settings \u203a Modules'); return; }
+  var list=billsSorted(), tt=billsTotals(), due=list.filter(billIsDue), up=list.filter(function(r){ return r.active&&!billIsDue(r); }), paused=list.filter(function(r){ return !r.active; });
+  var sec=function(t,a){ return a.length?'<div class="billsSec">'+t+'</div>'+a.map(function(r){ return billRowHTML(r,false); }).join(''):''; };
+  $('billsBody').innerHTML='<div class="billsSum">'+(list.length?esc(inr(Math.round(tt.e)))+' a month in bills'+(tt.i?' \u00b7 '+esc(inr(Math.round(tt.i)))+' a month coming in':'')+' \u00b7 '+tt.n+' active':'Add things that repeat \u2014 rent, subscriptions, EMIs, salary. Choose whether each one is added automatically or reminds you to mark it paid.')+'</div>'+
+    sec('Due',due)+sec('Upcoming',up)+sec('Paused',paused);
+  openSheet('billsSheet'); }
+var billEd=null;
+function openBill(id){ var r=id?billsAll().find(function(x){ return x.id===id; }):null; billEd=r?JSON.parse(JSON.stringify(billNorm(r))):billNorm({kind:'exp',freq:'monthly',mode:'auto',remind:1,start:today(),nextDate:today(),active:true,name:''});
+  billEd._new=!r; $('billSheetT').textContent=r?'Edit recurring':'New bill or subscription'; $('billName').value=r?billEd.name:''; $('billAmt').value=billEd.amt||''; $('billNext').value=billEd.nextDate; $('billEnd').value=billEd.end||''; $('billDel').style.display=r?'':'none';
+  billPaint(); openSheet('billSheet'); }
+function billPaint(){ var e=billEd; if(!e) return;
+  document.querySelectorAll('#billKind [data-bk]').forEach(function(b){ b.classList.toggle('sel',b.getAttribute('data-bk')===e.kind); });
+  document.querySelectorAll('#billFreq [data-bf]').forEach(function(b){ b.classList.toggle('sel',b.getAttribute('data-bf')===e.freq); });
+  document.querySelectorAll('#billMode [data-bm]').forEach(function(b){ b.classList.toggle('sel',b.getAttribute('data-bm')===e.mode); });
+  document.querySelectorAll('#billRem [data-br]').forEach(function(b){ b.classList.toggle('sel',+b.getAttribute('data-br')===e.remind); });
+  document.querySelectorAll('#billState [data-bs]').forEach(function(b){ b.classList.toggle('sel',(b.getAttribute('data-bs')==='on')===e.active); });
+  $('billRemWrap').style.display=e.mode==='remind'?'':'none';
+  var cats=e.kind==='inc'?(state.incCats||[]):Object.keys(state.cats||{}); if(!e.cat||cats.indexOf(e.cat)<0) e.cat=e.kind==='inc'?(cats[0]||''):(cats.indexOf('Bills & Utilities')>=0?'Bills & Utilities':(cats[0]||''));
+  $('billCat').innerHTML=cats.map(function(c){ return '<option'+(c===e.cat?' selected':'')+'>'+esc(c)+'</option>'; }).join('');
+  var ac=activeAccts(); if(!e.acct||!ac.some(function(a){ return a.id===e.acct; })) e.acct=(ac[0]||{}).id||'';
+  $('billAcct').innerHTML=ac.map(function(a){ return '<option value="'+esc(a.id)+'"'+(a.id===e.acct?' selected':'')+'>'+esc(a.name)+'</option>'; }).join(''); }
+function saveBill(){ var e=billEd; if(!e) return; e.name=$('billName').value.trim(); e.amt=Math.abs(+$('billAmt').value||0); e.nextDate=$('billNext').value||today(); e.end=$('billEnd').value||''; e.cat=$('billCat').value; e.acct=$('billAcct').value;
+  if(!e.name){ toastN('Give it a name, like Rent or Netflix'); $('billName').focus(); return; } if(!e.amt){ toastN('Enter the amount'); $('billAmt').focus(); return; }
+  if(e.end&&e.end<e.nextDate){ toastN('The end date is before the next date'); return; }
+  if(e._new) e.start=e.nextDate; var isNew=e._new; delete e._new;
+  var all=billsAll(), ix=all.findIndex(function(x){ return x.id===e.id; }); if(ix>=0) all[ix]=e; else all.push(e);
+  persist(); closeSheet(); var n=billsRun(); renderExp(); try{ pushAlarms(); }catch(x){}
+  if(!n) toastN(isNew?(e.mode==='auto'?'Will be added automatically \u00b7 next '+billDueLabel(e.nextDate):'You\u2019ll be reminded \u00b7 next '+billDueLabel(e.nextDate)):'Saved'); }
+function billMarkPaid(id,skip){ var r=billsAll().find(function(x){ return x.id===id; }); if(!r) return; billNorm(r);
+  if(!skip) billPost(r,r.nextDate); r.nextDate=billAddInterval(r.nextDate,r); if(r.end&&r.nextDate>r.end) r.active=false;
+  persist(); renderExp(); try{ pushAlarms(); }catch(e){} toastN(skip?'Skipped \u00b7 next '+billDueLabel(r.nextDate):'Marked paid \u00b7 next '+billDueLabel(r.nextDate)); if(sheetOpen==='billsSheet') openBills(); }
+(function(){
+  document.body.insertAdjacentHTML('beforeend',
+   '<div class="sheet" id="billsSheet"><div class="grab"></div><h2>Bills &amp; subscriptions</h2><div id="billsBody"></div><button type="button" class="primary" data-billnew="1" style="margin-top:16px">Add a bill or subscription</button></div>'+
+   '<div class="sheet" id="billSheet"><div class="grab"></div><h2 id="billSheetT">New bill or subscription</h2>'+
+     '<div class="seg" id="billKind" style="margin:4px 0 12px"><button type="button" data-bk="exp">Expense</button><button type="button" data-bk="inc">Income</button></div>'+
+     '<div class="lbl">Name</div><input id="billName" class="inp" maxlength="60" placeholder="e.g. Rent, Netflix, Salary">'+
+     '<div class="lbl">Amount</div><input id="billAmt" class="inp" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0">'+
+     '<div class="lbl">How often</div><div class="chips" id="billFreq">'+Object.keys(BILL_FREQ).map(function(k){ return '<button type="button" class="chip" data-bf="'+k+'">'+BILL_FREQ[k]+'</button>'; }).join('')+'</div>'+
+     '<div class="lbl">Next date</div><input id="billNext" class="inp" type="date">'+
+     '<div class="lbl">When it\u2019s due</div><div class="chips" id="billMode"><button type="button" class="chip" data-bm="auto">Add it automatically</button><button type="button" class="chip" data-bm="remind">Remind me to mark it paid</button></div>'+
+     '<div id="billRemWrap"><div class="lbl">Remind me</div><div class="chips" id="billRem"><button type="button" class="chip" data-br="0">On the day</button><button type="button" class="chip" data-br="1">1 day before</button><button type="button" class="chip" data-br="3">3 days before</button></div></div>'+
+     '<div class="lbl">Category</div><select id="billCat" class="inp"></select><div class="lbl">Account</div><select id="billAcct" class="inp"></select>'+
+     '<div class="lbl">Ends (optional)</div><input id="billEnd" class="inp" type="date">'+
+     '<div class="lbl">Status</div><div class="chips" id="billState"><button type="button" class="chip" data-bs="on">Active</button><button type="button" class="chip" data-bs="off">Paused</button></div>'+
+     '<button type="button" class="primary" id="billSave">Save</button><button type="button" class="ghost danger" id="billDel" style="margin-top:10px;width:100%">Delete</button></div>');
+  var bs=$('billSheet');
+  bs.addEventListener('click',function(e){ var t=e.target.closest('[data-bk],[data-bf],[data-bm],[data-br],[data-bs]'); if(!t||!billEd) return;
+    if(t.dataset.bk){ billEd.kind=t.dataset.bk; billEd.cat=''; } if(t.dataset.bf) billEd.freq=t.dataset.bf; if(t.dataset.bm) billEd.mode=t.dataset.bm; if(t.dataset.br!=null) billEd.remind=+t.dataset.br; if(t.dataset.bs) billEd.active=t.dataset.bs==='on'; billPaint(); });
+  $('billSave').addEventListener('click',saveBill);
+  $('billDel').addEventListener('click',function(){ if(!billEd) return; if(!confirm('Delete \u201C'+(billEd.name||'this')+'\u201D? Transactions already added stay.')) return; state.recur=billsAll().filter(function(x){ return x.id!==billEd.id; }); persist(); closeSheet(); renderExp(); try{ pushAlarms(); }catch(x){} toastN('Deleted'); });
+  document.addEventListener('click',function(e){
+    var p=e.target.closest('[data-billpay]'); if(p){ e.stopPropagation(); billMarkPaid(p.getAttribute('data-billpay'),false); return; }
+    var k=e.target.closest('[data-billskip]'); if(k){ e.stopPropagation(); billMarkPaid(k.getAttribute('data-billskip'),true); return; }
+    if(e.target.closest('[data-billnew]')){ if(sheetOpen) closeSheet(); setTimeout(function(){ openBill(null); },sheetOpen?260:0); return; }
+    if(e.target.closest('[data-billsall]')){ openBills(); return; }
+    var row=e.target.closest('.billRow[data-bill]'); if(row){ var id=row.getAttribute('data-bill'); if(sheetOpen) closeSheet(); setTimeout(function(){ openBill(id); },sheetOpen?260:0); } });
+  setTimeout(function(){ try{
+  /* the old "recurring" entry points open the new screens */
+  ['openRecurList','showRecurControls'].forEach(function(n){ window[n]=openBills; }); window.openRecur=function(id){ openBill(id||null); };
+  /* Money: the card under the summary */
+  /* redraw the card whenever the Money summary is re-rendered (renderExp is re-declared by a later script, so wrapping it is not reliable) */
+  (function(){ var sum=$('expSum'), t=null; if(sum&&window.MutationObserver) new MutationObserver(function(){ clearTimeout(t); t=setTimeout(function(){ try{ billsCardPaint(); }catch(e){} },30); }).observe(sum,{childList:true}); setTimeout(function(){ try{ billsCardPaint(); }catch(e){} },0); })();
+  /* Add expense › Repeat */
+  var box=$('expMoreBox'); if(box&&!$('expRepeat')){ var dl=box.querySelector('#expDateBtn'); var html='<div class="lbl">Repeat</div><select id="expRepeat" class="inp"><option value="">Doesn\u2019t repeat</option>'+Object.keys(BILL_FREQ).map(function(k){ return '<option value="'+k+'">'+BILL_FREQ[k]+'</option>'; }).join('')+'</select>';
+    if(dl) dl.insertAdjacentHTML('afterend',html); else box.insertAdjacentHTML('afterbegin',html); }
+  if(typeof openExp==='function'){ var oe=openExp; openExp=function(){ var r=oe.apply(this,arguments); try{ $('expRepeat').value=''; }catch(e){} return r; }; }
+  /* the Save button holds the original saveExp, so watch the tap itself: note Repeat before saving, create the rule once the transaction exists */
+  var es=$('expSave'); if(es) es.addEventListener('click',function(){ var rep=($('expRepeat')||{}).value||'', n0=state.tx.length; if(!rep) return;
+    setTimeout(function(){ try{ if(state.tx.length!==n0+1) return; var tx=state.tx[state.tx.length-1]; if(!tx||tx.kind==='xfer'||tx.recurId) return;
+      var rule=billNorm({kind:tx.kind,amt:tx.amt,cat:tx.cat,sub:tx.sub,name:tx.payee||tx.cat,acct:tx.acct,freq:rep,start:tx.d,mode:'auto',remind:1,active:true});
+      rule.nextDate=billAddInterval(tx.d,rule); rule.last=tx.d; tx.recurId=rule.id; billsAll().push(rule); persist(); try{ pushAlarms(); }catch(x){} try{ billsCardPaint(); }catch(x){}
+      toastN('Repeats '+BILL_FREQ[rep].toLowerCase()+' \u00b7 next '+billDueLabel(rule.nextDate)); }catch(e){} },120); },true);
+  /* phone reminders for "Remind me" bills, at 9:00 */
+  if(typeof computeAlarms==='function'){ var ca=computeAlarms; computeAlarms=function(){ var j=ca.apply(this,arguments), out=[]; try{ out=JSON.parse(j)||[]; }catch(e){ return j; }
+    if(typeof modOn!=='function'||modOn('money')){ var now=Date.now(); billsAll().forEach(function(r){ billNorm(r); if(!r.active||r.mode!=='remind') return; var at=new Date(r.nextDate+'T09:00:00'); at.setDate(at.getDate()-r.remind); if(at.getTime()<=now) return;
+      out.push({c:intHash('bill|'+r.id+'|'+r.nextDate),t:at.getTime(),h:'bill:'+r.id,n:r.name+' '+(r.kind==='inc'?'arrives':'is due')+' '+(r.remind?(r.remind===1?'tomorrow':'in '+r.remind+' days'):'today'),e:'\uD83D\uDCB3',b:inr(r.amt)+' \u00b7 open Momentum to mark it paid',r:0}); });
+      out.sort(function(a,b){ return a.t-b.t; }); } return JSON.stringify(out.slice(0,140)); }; }
+  }catch(e){ try{ console.error('bills setup',e); }catch(x){} } },0);
+  /* post due automatic payments on start, when the app comes back, and on opening Money */
+  setTimeout(billsRun,1500);
+  document.addEventListener('visibilitychange',function(){ if(!document.hidden) billsRun(); });
+  setTimeout(function(){ if(typeof showTab==='function'){ var st=showTab; window.showTab=showTab=function(id){ var r=st.apply(this,arguments); if(id==='pgExp') try{ billsRun(); billsCardPaint(); }catch(e){} return r; }; } },0);
 })();
 
 function climb(el, root, attr){

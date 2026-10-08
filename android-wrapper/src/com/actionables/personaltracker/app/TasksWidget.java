@@ -11,6 +11,8 @@ import android.widget.RemoteViews;
  * Large + = New Task composer in-app. TODAY | OVERDUE filter persists per widget.
  */
 public class TasksWidget extends BaseWidget {
+    @Override protected String module() { return "tasks"; }
+
 
     @Override protected boolean hasList() { return true; }
 

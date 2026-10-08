@@ -91,6 +91,9 @@ public class WidgetDialogActivity extends Activity {
     }
 
     void dispatch() {
+        String needs = (A_ADD_TASK.equals(action) || A_TASK_DETAIL.equals(action)) ? "tasks"
+                : (A_ADD_EXPENSE.equals(action) || A_EDIT_EXPENSE.equals(action) || A_PICK_ACCOUNT.equals(action)) ? "money" : null;
+        if (needs != null && !st.moduleOn(needs)) { toast(("tasks".equals(needs) ? "Tasks" : "Money") + " is turned off in Settings \u203a Modules"); finish(); return; }
         switch (action) {
             case A_ADD_TASK: uiTask(null); break;
             case A_TASK_DETAIL: uiTask(st.findTask(s("taskId"))); break;
@@ -812,6 +815,15 @@ public class WidgetDialogActivity extends Activity {
         title("\uD83C\uDF99 AI found " + actions.size() + (actions.size() == 1 ? " action" : " actions"),
                 "\u201C" + q + "\u201D");
         List<Runnable> validators = new ArrayList<>();
+        int dropped = 0;
+        for (java.util.Iterator<AiParser.Action> it0 = actions.iterator(); it0.hasNext(); ) {
+            AiParser.Action a0 = it0.next();
+            String m0 = AiParser.T_EXPENSE.equals(a0.type) ? "money"
+                    : (AiParser.T_TASK_ADD.equals(a0.type) || AiParser.T_TASK_DONE.equals(a0.type)) ? "tasks"
+                    : (AiParser.T_PLAN.equals(a0.type) || AiParser.T_SET.equals(a0.type)) ? "workouts" : null;
+            if (m0 != null && !st.moduleOn(m0)) { it0.remove(); dropped++; }
+        }
+        if (dropped > 0) toast(dropped + (dropped == 1 ? " item was" : " items were") + " skipped \u2014 that module is turned off");
         for (AiParser.Action a : actions) {
             LinearLayout card = new LinearLayout(this);
             card.setOrientation(LinearLayout.VERTICAL);
