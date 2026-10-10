@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 79;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 82;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -5170,7 +5170,7 @@ function renderExpAcct(){
   var html='<div class="insCard" style="text-align:center"><div class="il">Net worth</div><div class="iv" style="font-size:26px;color:'+(netWorth()<0?'var(--coral)':'var(--ink)')+'">'+inr(netWorth())+'</div><div class="setS" style="margin-top:4px">Credit cards are excluded from net worth</div></div>';
   for(var i=0;i<state.accts.length;i++){
     var a=state.accts[i], bal=acctBalance(a.id), shown=a.type==='credit'?-creditOutstanding(a.id):bal;
-    var acctMeta=a.type==='credit' ? ((a.creditLimit?inr(a.creditLimit)+' limit · ':'')+(a.creditLimit?'Available '+inr(creditAvailable(a.id))+' · ':'')+'Due day '+a.dueDay) : a.type;
+    var acctMeta=a.type==='credit' ? ((a.creditLimit?inr(a.creditLimit)+' limit · ':'')+(a.creditLimit?'Available '+inr(creditAvailable(a.id))+' · ':'')+(function(){ try{ var s=ccStatus(a); return s.remaining>0?('Bill '+inr(s.remaining)+' due '+ccNice(s.due)):('Next bill '+ccNice(s.open)+' · due '+ccNice(s.openDue)); }catch(e){ return 'Due day '+a.dueDay; } })()) : a.type;
     html += '<div class="acctCard" data-acct="'+a.id+'"><div class="ai">'+(ACCT_ICON[a.type]||'💰')+'</div>'
       + '<div class="an"><b>'+esc(a.name)+(a.active?'':' <span style="color:var(--mut)">(inactive)</span>')+'</b><span>'+esc(acctMeta)+'</span></div>'
       + '<div class="abal'+(shown<0?' neg':'')+'">'+(a.type==='credit'?'Owed '+inr(creditOutstanding(a.id)):inr(shown))+'</div></div>';
@@ -5436,18 +5436,18 @@ function paintExpPickers(){
     $('expToGrid').innerHTML=tg; }
 }
 function addNewCat(){
-  var snap=captureExpenseForm();
+  var snap=(typeof captureExpenseForm==='function')?captureExpenseForm():null;
   var n=$('expNewCat').value.trim().slice(0,24);if(!n)return;
   if(expKindSel==='inc'){if(state.incCats.indexOf(n)<0)state.incCats.push(n);}else{if(!state.cats[n])state.cats[n]=[];}
   expCatSel=n;expSubSel='';$('expNewCatRow').style.display='none';$('expNewCat').value='';
-  paintExpPickers();restoreExpenseForm(snap);persist();toastN('Category added — transaction details preserved');
+  paintExpPickers();if(snap&&typeof restoreExpenseForm==='function')restoreExpenseForm(snap);persist();toastN('Category “'+n+'” added');
 }
 function addNewSub(){
-  var snap=captureExpenseForm();
+  var snap=(typeof captureExpenseForm==='function')?captureExpenseForm():null;
   var n=$('expNewSub').value.trim().slice(0,24);if(!n||expKindSel!=='exp'||!expCatSel||!state.cats[expCatSel])return;
   if(state.cats[expCatSel].indexOf(n)<0)state.cats[expCatSel].push(n);expSubSel=n;
-  $('expNewSubRow').style.display='none';$('expNewSub').value='';paintExpPickers();restoreExpenseForm(snap);persist();
-  toastN('Subcategory added — transaction details preserved');
+  $('expNewSubRow').style.display='none';$('expNewSub').value='';paintExpPickers();if(snap&&typeof restoreExpenseForm==='function')restoreExpenseForm(snap);persist();
+  toastN('Subcategory “'+n+'” added');
 }
 function saveExp(){var amt=parseFloat(($('expAmt').value||'').replace(',','.'));if(isNaN(amt)||amt<=0){$('expAmt').focus();toastN('Enter an amount');return;}expEd.kind=expKindSel;expEd.amt=amt;expEd.acct=expAcctSel;if(expKindSel==='xfer'){if(!expToSel||expToSel===expAcctSel){toastN('Pick a different destination');return;}expEd.to=expToSel;expEd.cat='';expEd.sub='';}else{expEd.to='';expEd.cat=expCatSel||'Other';expEd.sub=expKindSel==='exp'?expSubSel:'';}expEd.payee=$('expPayee').value.trim();expEd.method=$('expMethod').value.trim();expEd.note=$('expNote').value.trim();expEd.tags=$('expTags').value.trim();expEd.receipt=''; expEd.receiptData=''; function commit(){expEd.receipt=''; expEd.receiptData='';if(expEd._edit){for(var i=0;i<state.tx.length;i++)if(state.tx[i].id===expEd._edit){delete expEd._edit;state.tx[i]=expEd;break;}}else{delete expEd._edit;expEd.id='t'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);state.tx.push(expEd);}persist();closeSheet();renderExp();buzz(14);var over=budgetWarn();toastN(over||'Saved');}commit();}
 function budgetWarn(){
@@ -8396,6 +8396,135 @@ function billMarkPaid(id,skip){ var r=billsAll().find(function(x){ return x.id==
   setTimeout(billsRun,1500);
   document.addEventListener('visibilitychange',function(){ if(!document.hidden) billsRun(); });
   setTimeout(function(){ if(typeof showTab==='function'){ var st=showTab; window.showTab=showTab=function(id){ var r=st.apply(this,arguments); if(id==='pgExp') try{ billsRun(); billsCardPaint(); }catch(e){} return r; }; } },0);
+})();
+
+/* ================= Add expense: merchant at the top with suggestions (build 81) ================= */
+function expMerchants(kind){
+  var seen={}, out=[]; var list=(state.tx||[]).slice(-600);
+  for(var i=list.length-1;i>=0;i--){ var t=list[i]; if(!t||t.kind!==kind) continue; var p=String(t.payee||'').trim(); if(!p) continue; var k=p.toLowerCase();
+    if(!seen[k]){ seen[k]={name:p,n:0,last:t}; out.push(seen[k]); } seen[k].n++; }
+  return out.sort(function(a,b){ return b.n-a.n; });
+}
+function expApplyMerchant(name,force){
+  if(typeof expKindSel==='undefined'||expKindSel==='xfer') return;
+  var m=expMerchants(expKindSel).find(function(x){ return x.name.toLowerCase()===String(name||'').trim().toLowerCase(); }); if(!m) return;
+  if(!force && window._expCatTouched) return;                       /* never override a category the user picked */
+  var t=m.last, cats=expKindSel==='inc'?(state.incCats||[]):Object.keys(state.cats||{});
+  if(t.cat&&cats.indexOf(t.cat)>=0){ expCatSel=t.cat; expSubSel=(t.sub&&state.cats&&state.cats[t.cat]&&state.cats[t.cat].indexOf(t.sub)>=0)?t.sub:''; }
+  if(t.acct&&activeAccts().some(function(a){ return a.id===t.acct; })) expAcctSel=t.acct;
+  try{ paintExpPickers(); }catch(e){}
+}
+function expPayeeChips(){
+  var box=$('expPayeeChips'), inp=$('expPayee'); if(!box||!inp) return;
+  if(typeof expKindSel!=='undefined'&&expKindSel==='xfer'){ box.innerHTML=''; return; }
+  var q=inp.value.trim().toLowerCase(), all=expMerchants(expKindSel||'exp');
+  var list=all.filter(function(m){ return !q||m.name.toLowerCase().indexOf(q)>=0; }).filter(function(m){ return m.name.toLowerCase()!==q; }).slice(0,8);
+  box.innerHTML=list.map(function(m){ return '<button type="button" class="chip payeeChip" data-payee="'+esc(m.name)+'">'+esc(m.name)+'</button>'; }).join('');
+  var dl=$('expPayeeList'); if(dl) dl.innerHTML=all.slice(0,40).map(function(m){ return '<option value="'+esc(m.name)+'">'; }).join('');
+}
+(function(){
+  var inp=$('expPayee'), amt=$('expAmt'); if(!inp||!amt) return;
+  var lbl=inp.previousElementSibling&&inp.previousElementSibling.classList.contains('lbl')?inp.previousElementSibling:null;
+  /* move the merchant field right under the amount */
+  var anchor=amt.closest('.expAmtWrap')||amt;
+  var wrap=document.createElement('div'); wrap.id='expPayeeWrap'; wrap.className='expPayeeWrap';
+  wrap.innerHTML='<div class="lbl" id="expPayeeLbl">Merchant</div>'; anchor.parentNode.insertBefore(wrap,anchor.nextSibling);
+  wrap.appendChild(inp); if(lbl) lbl.remove();
+  inp.setAttribute('placeholder','e.g. Swiggy, Big Bazaar'); inp.setAttribute('list','expPayeeList'); inp.setAttribute('autocomplete','off'); inp.setAttribute('enterkeyhint','next');
+  wrap.insertAdjacentHTML('beforeend','<datalist id="expPayeeList"></datalist><div class="payeeChips" id="expPayeeChips"></div>');
+  var more=$('expMore'); if(more) more.innerHTML=more.innerHTML.replace('Date, payee, note, tags','Date, note, tags');
+  inp.addEventListener('input',expPayeeChips);
+  inp.addEventListener('change',function(){ expApplyMerchant(inp.value,false); expPayeeChips(); });
+  $('expPayeeChips').addEventListener('click',function(e){ var c=e.target.closest('[data-payee]'); if(!c) return; inp.value=c.getAttribute('data-payee'); expApplyMerchant(inp.value,true); expPayeeChips(); });
+  /* a category tapped by the user is never overwritten by a merchant default */
+  ['expCatGrid','expSubGrid'].forEach(function(id){ var g=$(id); if(g) g.addEventListener('click',function(e){ if(e.target.closest('[data-ec],[data-es],[data-newcat],[data-newsub]')) window._expCatTouched=true; },true); });
+  function relabel(){ var k=typeof expKindSel!=='undefined'?expKindSel:'exp'; $('expPayeeWrap').style.display=k==='xfer'?'none':''; $('expPayeeLbl').textContent=k==='inc'?'Received from':'Merchant'; inp.placeholder=k==='inc'?'e.g. Employer, client':'e.g. Swiggy, Big Bazaar'; expPayeeChips(); }
+  setTimeout(function(){
+    if(typeof openExp==='function'){ var oe=openExp; window.openExp=openExp=function(id){ window._expCatTouched=!!id; var r=oe.apply(this,arguments); try{ relabel(); }catch(e){} return r; }; }
+    if(typeof paintKind==='function'){ var pk=paintKind; window.paintKind=paintKind=function(){ var r=pk.apply(this,arguments); try{ relabel(); }catch(e){} return r; }; }
+    relabel();
+  },0);
+})();
+
+/* ================= Credit cards: billing cycles, due dates, reminders (build 82) ================= */
+function ccClamp(y,m,d){ var last=new Date(y,m+1,0).getDate(); return new Date(y,m,Math.min(d,last),12); }
+function ccBillDay(a){ return Math.min(31,Math.max(1,+a.billDay||1)); }
+function ccDueDay(a){ return Math.min(31,Math.max(1,+a.dueDay||15)); }
+/* the bill (statement) a purchase on ds lands on: this month's bill day if not passed yet, else next month's */
+function ccStatementFor(a,ds){ var t=new Date(String(ds||today())+'T12:00:00'), s=ccClamp(t.getFullYear(),t.getMonth(),ccBillDay(a)); if(t>s) s=ccClamp(t.getFullYear(),t.getMonth()+1,ccBillDay(a)); return s; }
+/* that bill's due date: the first due day after the bill date */
+function ccDueFor(a,stmt){ var d=ccClamp(stmt.getFullYear(),stmt.getMonth(),ccDueDay(a)); if(d<=stmt) d=ccClamp(stmt.getFullYear(),stmt.getMonth()+1,ccDueDay(a)); return d; }
+function ccPrevStatement(a,stmt){ return ccClamp(stmt.getFullYear(),stmt.getMonth()-1,ccBillDay(a)); }
+function ccDays(a,b){ return Math.round((b-a)/864e5); }
+function ccNice(d){ return d.toLocaleDateString(undefined,{day:'numeric',month:'short'}); }
+function ccSpent(a,from,to){ /* card spending minus refunds with from < date <= to */ var f=fmt(from), t=fmt(to), s=0;
+  (state.tx||[]).forEach(function(x){ if(x.acct!==a.id||x.d<=f||x.d>t) return; if(x.kind==='exp') s+=(+x.amt||0); else if(x.kind==='inc') s-=(+x.amt||0); }); return Math.max(0,s); }
+function ccPaid(a,from,to){ var f=fmt(from), t=fmt(to), s=0; (state.tx||[]).forEach(function(x){ if(x.kind==='xfer'&&x.to===a.id&&x.d>f&&x.d<=t) s+=(+x.amt||0); }); return s; }
+/* the card's state today: the last bill (amount, due, paid, remaining) and the open cycle */
+function ccStatus(a){
+  var t=today(), now=new Date(t+'T12:00:00'), open=ccStatementFor(a,t);
+  var last=(fmt(open)===t)?ccPrevStatement(a,open):ccPrevStatement(a,open);          /* the most recent closed bill */
+  if(fmt(open)===t){ last=open; open=ccClamp(open.getFullYear(),open.getMonth()+1,ccBillDay(a)); }   /* today is bill day: today's bill is generated */
+  var lastStart=ccPrevStatement(a,last), billed=ccSpent(a,lastStart,last), due=ccDueFor(a,last), paid=ccPaid(a,last,now);
+  return {last:last,due:due,billed:billed,paid:paid,remaining:Math.max(0,Math.round((billed-paid)*100)/100),daysToDue:ccDays(now,due),
+    open:open,openDue:ccDueFor(a,open),cycleSpent:ccSpent(a,last,now),cycleStart:new Date(last.getTime()+864e5)};
+}
+function ccCards(){ return (state.accts||[]).filter(function(a){ return a.type==='credit'&&a.active!==false; }); }
+/* Add expense: which bill this purchase lands on */
+function ccExpInfoPaint(){
+  var box=$('expCcInfo'); if(!box) return;
+  var a=(typeof expAcctSel!=='undefined')?acctById(expAcctSel):null, k=(typeof expKindSel!=='undefined')?expKindSel:'exp';
+  if(!a||a.type!=='credit'||k==='xfer'){ box.style.display='none'; return; }
+  var ds=(typeof expEd!=='undefined'&&expEd&&expEd.d)||today(), st=ccStatementFor(a,ds), du=ccDueFor(a,st), free=ccDays(new Date(ds+'T12:00:00'),du);
+  box.innerHTML='<span class="ccIc">'+ICON('money')+'</span><span>'+(k==='inc'?'Refund credited to the <b>':'Goes on your <b>')+ccNice(st)+'</b> bill \u00b7 due <b>'+ccNice(du)+'</b>'+(k==='inc'?'':' \u00b7 '+free+' days interest-free')+'</span>';
+  box.style.display='';
+}
+/* Pay a card bill: a transfer from your bank to the card, pre-filled */
+function ccPay(id){
+  var c=acctById(id); if(!c) return; var s=ccStatus(c), from=activeAccts().find(function(a){ return a.type!=='credit'; });
+  openExp(null); setTimeout(function(){ try{ expKindSel='xfer'; paintKind(); if(from) expAcctSel=from.id; expToSel=c.id; paintExpPickers(); $('expAmt').value=s.remaining||''; ccExpInfoPaint(); }catch(e){} },60);
+}
+(function(){
+  /* account editor: clearer labels and a live preview */
+  var bd=$('acctBillDay'), dd=$('acctDueDay');
+  if(bd&&dd){ var lb=bd.previousElementSibling, ld=dd.previousElementSibling; if(lb) lb.textContent='Bill (statement) day'; if(ld) ld.textContent='Payment due day';
+    var row=bd.closest('div[style*="display:flex"]')||bd.parentNode.parentNode; row.insertAdjacentHTML('afterend','<div class="ccPreview" id="ccPreview"></div>');
+    var pv=function(){ var a={billDay:+bd.value||1,dueDay:+dd.value||15}, st=ccStatementFor(a,today()), du=ccDueFor(a,st);
+      $('ccPreview').innerHTML='Purchases until <b>'+ccNice(st)+'</b> go on that bill, due <b>'+ccNice(du)+'</b> ('+ccDays(st,du)+' days to pay). Purchases after it go on the next bill.'; };
+    bd.addEventListener('input',pv); dd.addEventListener('input',pv);
+    setTimeout(function(){ if(typeof openAcct==='function'){ var oa=openAcct; window.openAcct=openAcct=function(){ var r=oa.apply(this,arguments); try{ pv(); }catch(e){} return r; }; } pv(); },0); }
+  /* Add expense: the bill line under the account chips */
+  var ag=$('expAcctGrid'); if(ag&&!$('expCcInfo')){ ag.insertAdjacentHTML('afterend','<div class="ccInfo" id="expCcInfo" style="display:none" role="status"></div>');
+    var mo=function(){ try{ ccExpInfoPaint(); }catch(e){} };
+    if(window.MutationObserver){ new MutationObserver(mo).observe(ag,{childList:true,subtree:true,attributes:true,attributeFilter:['class']}); var dt=$('expDateTxt'); if(dt) new MutationObserver(mo).observe(dt,{childList:true,characterData:true,subtree:true}); var kd=$('expKind'); if(kd) new MutationObserver(mo).observe(kd,{subtree:true,attributes:true,attributeFilter:['class']}); } }
+  /* Money › Bills card: card bills that need paying */
+  if(typeof billsCardPaint==='function'){ var bp=billsCardPaint; billsCardPaint=function(){ var r=bp.apply(this,arguments); try{
+      var card=$('billsCard'); if(!card||card.style.display==='none') return r; var rows=ccCards().map(function(c){ return {c:c,s:ccStatus(c)}; }).filter(function(x){ return x.s.remaining>0&&x.s.daysToDue<=10; });
+      if(!rows.length) return r;
+      var html=rows.map(function(x){ var d=x.s.daysToDue, lbl=d<0?'Overdue by '+(-d)+' day'+(d===-1?'':'s'):d===0?'Due today':d===1?'Due tomorrow':'Due in '+d+' days';
+        return '<div class="billRow ccBillRow'+(d<=3?' due':'')+'"><span class="billIc ccIcBg">'+ICON('money')+'</span><div class="billMain"><div class="billName">'+esc(x.c.name)+' bill</div><div class="billMeta">'+lbl+' \u00b7 bill of '+ccNice(x.s.last)+'</div></div><div class="billRight"><b class="bExp">'+esc(inr(x.s.remaining))+'</b><div class="billActs"><button type="button" class="billPay" data-ccpay="'+esc(x.c.id)+'">Pay</button></div></div></div>'; }).join('');
+      var head=card.querySelector('.billsHead'), empty=card.querySelector('.billsEmpty');
+      if(head) head.insertAdjacentHTML('afterend',html); else if(empty) empty.insertAdjacentHTML('afterend',html); else card.insertAdjacentHTML('afterbegin',html);
+    }catch(e){} return r; }; }
+  document.addEventListener('click',function(e){ var p=e.target.closest&&e.target.closest('[data-ccpay]'); if(p){ e.stopPropagation(); ccPay(p.getAttribute('data-ccpay')); } },true);
+  /* Notifications › Credit card reminders */
+  var ex=$('remExpenseTog'), exRow=ex&&ex.closest('.setRow');
+  if(exRow&&!$('remCcTog')){ exRow.insertAdjacentHTML('afterend','<div class="setRow"><div class="setInfo"><div class="setT">Credit card reminders</div><div class="setS">When a bill is generated, 3 days before it\u2019s due and on the due day</div></div><div class="tog'+(state.set.ccRemind===false?'':' on')+'" id="remCcTog" role="switch" aria-label="Credit card reminders"></div></div>');
+    $('remCcTog').addEventListener('click',function(){ state.set.ccRemind=state.set.ccRemind===false; this.classList.toggle('on',state.set.ccRemind!==false); this.setAttribute('aria-checked',String(state.set.ccRemind!==false)); persist(); try{ pushAlarms(); }catch(x){} toastN(state.set.ccRemind!==false?'Credit card reminders on':'Credit card reminders off'); }); }
+  /* phone reminders: bill generated (with amount), 3 days before due, due day (skipped once paid) */
+  setTimeout(function(){ if(typeof computeAlarms!=='function') return; var ca=computeAlarms; window.computeAlarms=computeAlarms=function(){ var j=ca.apply(this,arguments), out=[]; try{ out=JSON.parse(j)||[]; }catch(e){ return j; }
+    if(state.set.ccRemind!==false&&(typeof modOn!=='function'||modOn('money'))){ var now=Date.now();
+      ccCards().forEach(function(c){ var s=ccStatus(c);
+        var add=function(dt,key,title,body){ if(dt.getTime()<=now) return; out.push({c:intHash('cc|'+c.id+'|'+key),t:dt.getTime(),h:'cc:'+c.id,n:title,e:'\uD83D\uDCB3',b:body,r:0}); };
+        var at=function(d,h){ var x=new Date(d.getFullYear(),d.getMonth(),d.getDate(),h,0,0); return x; };
+        if(s.remaining>0){ var d3=new Date(s.due); d3.setDate(d3.getDate()-3);
+          add(at(d3,9),'d3|'+fmt(s.due),c.name+' bill due in 3 days',inr(s.remaining)+' due '+ccNice(s.due));
+          add(at(s.due,9),'d0|'+fmt(s.due),c.name+' bill is due today',inr(s.remaining)+' \u00b7 pay today to avoid interest'); }
+        var nb=new Date(s.open); nb.setDate(nb.getDate()+1);   /* the morning after the next bill date */
+        add(at(nb,9),'gen|'+fmt(s.open),c.name+' bill generated',inr(Math.round(ccSpent(c,s.last,s.open)))+' so far this cycle \u00b7 due '+ccNice(s.openDue));
+      });
+      out.sort(function(a,b){ return a.t-b.t; }); }
+    return JSON.stringify(out.slice(0,140)); }; },0);
 })();
 
 function climb(el, root, attr){

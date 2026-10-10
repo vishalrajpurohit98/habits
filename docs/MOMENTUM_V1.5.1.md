@@ -344,3 +344,31 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     Money card with the monthly total and the next three; full list (Due / Upcoming / Paused) and editor.
     Add expense › Repeat turns any transaction into a recurring rule. Rules sync across devices (recur records),
     are saved in backups, and pause while Money is off. The old "recurring" links open the new screens.
+- **Build 80 — button alignment across pop-ups and cards:**
+  - .primary carries a 24px top margin for stacked layouts; inside button rows it pushed the button below its
+    neighbour. Fixed for the task/habit editor footers (12px off), Daily review (24px off, Cancel stretched to 72px)
+    and the workout session summary (24px off): buttons in a row now share their top edge and height (48px).
+  - Workout icon everywhere is the clear dumbbell.
+  - New alignment audit (perf/align.py): 40 places plus 9 Financial Tools screens at 390, 768 and 1280px report
+    0 misaligned button rows.
+- **Build 81 — adding categories fixed; merchant at the top:**
+  - Adding a category or subcategory while entering an expense or income failed: the ✓ handler called
+    captureExpenseForm(), which only exists inside the Financial Tools block, so it threw and nothing was saved. The
+    helper is now optional; new categories and subcategories are saved, selected and kept on the transaction
+    (✓ or Enter), with a "Category “X” added" message. The inline add row has clear 44px ✓ / ✕ buttons.
+  - Add expense: the merchant field sits right under the amount, always visible ("Received from" for income, hidden
+    for transfers), with your frequent merchants as tappable chips that filter as you type, plus autocomplete.
+    Choosing a known merchant fills its last category, subcategory and account; a category you pick yourself is
+    never overwritten. "Date, payee, note, tags" is now "Date, note, tags".
+- **Build 82 — credit card billing cycles, due dates and reminders:**
+  - The bill (statement) day is now used: each purchase lands on a bill (this month's bill day if not passed, else
+    next month's, clamped to month end) whose due date is the next due day after it.
+  - Add expense on a credit card shows "Goes on your <bill> bill · due <date> · N days interest-free" (refunds: which
+    bill they are credited to); it follows the account, date and type.
+  - Card status: last bill amount (spending minus refunds in that cycle), payments since, remaining, days to due, and
+    the open cycle's spending. Accounts tab shows "Bill ₹X due <date>" or "Next bill <date> · due <date>".
+  - Money › Bills card lists card bills due within 10 days (or overdue) with Pay, which opens a pre-filled transfer
+    from your bank to the card for the remaining amount.
+  - Phone reminders at 9:00: bill generated (with this cycle's spending), 3 days before due and on the due day
+    (skipped once paid). Notifications › Credit card reminders turns them off.
+  - Account editor: "Bill (statement) day" / "Payment due day" with a live plain-language preview.
