@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 82;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 84;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -100,7 +100,7 @@ function pad(n){ return n < 10 ? '0' + n : '' + n; }
 function fmt(d){ return d.getFullYear() + '-' + pad(d.getMonth()+1) + '-' + pad(d.getDate()); }
 var _todayCache='', _todayCacheAt=0;
 function today(){ var n=Date.now(); if(n-_todayCacheAt<30000 && _todayCache) return _todayCache; _todayCache=fmt(new Date()); _todayCacheAt=n; return _todayCache; }
-function toDate(s){ var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }
+function toDate(s){ if(s instanceof Date) return new Date(s.getTime()); if(typeof s==='number') return new Date(s); if(typeof s!=='string'||!/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(today()+'T00:00:00'); var p = s.split('-'); return new Date(+p[0], +p[1]-1, +p[2]); }   /* tolerant: a timestamp or a bad value never crashes a page */
 function addDays(d, n){ var x = new Date(d.getTime()); x.setDate(x.getDate() + n); return x; }
 function dayDiff(a, b){ return Math.round((toDate(b) - toDate(a)) / 86400000); }
 function monKey(d){ return d.getFullYear() + '-' + pad(d.getMonth()+1); }
@@ -149,9 +149,9 @@ function normHabit(h){
   h.sched.x = Math.max(2, +h.sched.x || 2);
   h.sched.quota = Math.max(1, +h.sched.quota || 3);
   h.section = h.section || 'any';
-  h.rem = h.rem || {times:[], repeat:false, missed:false};
+  h.rem = h.rem || {times:[], repeat:false, missed:false}; if(Array.isArray(h.rem)) h.rem={times:h.rem.filter(function(x){ return typeof x==='string'; }),missed:false}; if(!h.rem||typeof h.rem!=='object') h.rem={times:[],missed:false}; if(!Array.isArray(h.rem.times)) h.rem.times=[]; h.rem.times=h.rem.times.filter(function(x){ return /^\d{2}:\d{2}$/.test(String(x)); });   /* a malformed reminder list never crashes scheduling */
   h.rem.times = h.rem.times || [];
-  h.created = h.created || today();
+  h.created = (typeof h.created==='number') ? fmt(new Date(h.created)) : (h.created || today()); if(typeof h.start==='number') h.start=fmt(new Date(h.start));
   h.start = h.start || h.created;
   h.end = h.end || '';
   h.done = h.done || {}; h.frozen = h.frozen || {};
@@ -4338,7 +4338,7 @@ function scheduleWebNotifs(){
     }
   }
   for(var ci=0;ci<state.accts.length;ci++){var ca=state.accts[ci];if(ca.type!=='credit'||!ca.active)continue;var cb=creditOutstanding(ca.id);if(cb<=0)continue;var due=nextCreditDue(ca), dueAt=new Date(due.getFullYear(),due.getMonth(),due.getDate(),9,0,0,0), cdelay=dueAt.getTime()-now.getTime();if(cdelay<=0||cdelay>7*86400000)continue;(function(card,balance,at){var id=setTimeout(function(){try{new Notification('Credit card payment due: '+card.name,{body:'Outstanding '+inr(balance)+' · payment due today.',tag:'cc-due-'+card.id});}catch(e){}},cdelay);webTimers.push(id);})(ca,cb,dueAt);}
-  for(var ti=0;ti<state.tasks.length;ti++){var tk=state.tasks[ti],st=taskEffectiveStatus(tk);if(st==='completed'||!tk.dueDate||!tk.reminders.length)continue;var base=new Date(tk.dueDate+'T'+(tk.dueTime||'09:00'));for(var ri=0;ri<tk.reminders.length;ri++){var at=new Date(base.getTime()-tk.reminders[ri]*86400000),delay=at.getTime()-now.getTime();if(delay<=0||delay>30*86400000)continue;(function(task,when){var id=setTimeout(function(){try{var n=new Notification((task.priority==='high'?'🔴 ':'✓ ')+task.title,{body:'Task reminder · due '+niceDate(task.dueDate)+(task.dueTime?' at '+timeFmt(task.dueTime):''),tag:'task-'+task.id+'-'+when});n.onclick=function(){window.focus();showTab('pgTasks');setTimeout(function(){if(state.tasks.some(function(x){return x.id===task.id;}))openTask(task.id);},100);};}catch(e){}},delay);webTimers.push(id);})(tk,tk.reminders[ri]);}}
+  for(var ti=0;ti<state.tasks.length;ti++){var tk=state.tasks[ti],st=taskEffectiveStatus(tk);if(!Array.isArray(tk.reminders))tk.reminders=[];if(st==='completed'||!tk.dueDate||!tk.reminders.length)continue;var base=new Date(tk.dueDate+'T'+(tk.dueTime||'09:00'));for(var ri=0;ri<tk.reminders.length;ri++){var at=new Date(base.getTime()-tk.reminders[ri]*86400000),delay=at.getTime()-now.getTime();if(delay<=0||delay>30*86400000)continue;(function(task,when){var id=setTimeout(function(){try{var n=new Notification((task.priority==='high'?'🔴 ':'✓ ')+task.title,{body:'Task reminder · due '+niceDate(task.dueDate)+(task.dueTime?' at '+timeFmt(task.dueTime):''),tag:'task-'+task.id+'-'+when});n.onclick=function(){window.focus();showTab('pgTasks');setTimeout(function(){if(state.tasks.some(function(x){return x.id===task.id;}))openTask(task.id);},100);};}catch(e){}},delay);webTimers.push(id);})(tk,tk.reminders[ri]);}}
   /* journal + expense daily reminders in the browser */
   (function(){
     var rc=(state.set&&state.set.reminders)||{};
@@ -8525,6 +8525,28 @@ function ccPay(id){
       });
       out.sort(function(a,b){ return a.t-b.t; }); }
     return JSON.stringify(out.slice(0,140)); }; },0);
+})();
+
+/* ================= Habit cards: readable 7-day strip (build 84) ================= */
+(function(){
+  function wk7(h){ var letters=['S','M','T','W','T','F','S'], t=new Date(), out='';
+    for(var i=6;i>=0;i--){ var d=addDays(t,-i), ds=fmt(d), due=dueOn(h,d), done=isDone(h,ds), froz=isFroz(h,ds), part=!done&&!froz&&val(h,ds)>0;
+      var cls='wd'+(done?' done':froz?' froz':part?' part':due?' due':' off')+(i===0?' today':'');
+      out+='<div class="'+cls+'" title="'+esc(ds)+'"><span class="wl">'+letters[d.getDay()]+'</span><span class="wc">'+(done?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>':froz?'\u2744':'')+'</span></div>'; }
+    return '<div class="wk7" style="--hc:'+h.color+'" aria-label="Last 7 days">'+out+'</div>'; }
+  setTimeout(function(){ if(typeof ribbon==='function'){ window.ribbon=ribbon=wk7; try{ if(typeof renderToday==='function'&&document.querySelector('.page.on')&&document.querySelector('.page.on').id==='pgHabits') renderToday(); }catch(e){} } },0);
+})();
+
+/* ================= Home: tick off tasks and habits from Top 3 / Next (build 84) ================= */
+(function(){
+  var pg=$('pgToday'); if(!pg) return;
+  pg.addEventListener('click',function(e){
+    var ic=e.target.closest&&e.target.closest('.hmNextRow .hmNextIc'); if(!ic) return;
+    var row=ic.closest('.hmNextRow'), go=row.getAttribute('data-hm-go')||''; e.preventDefault(); e.stopPropagation();
+    if(go.indexOf('task:')===0){ var id=go.slice(5), t=state.tasks.find(function(x){ return x.id===id; }); if(!t) return;
+      row.classList.add('hmDoneAnim'); setTimeout(function(){ toggleTaskComplete(id); persist(); renderHome(); toastN('\u2713 '+t.title.slice(0,32)+' done \u00b7 undo in Tasks'); },220); return; }
+    if(go.indexOf('habit:')===0){ var hid=go.slice(6), h=findHabit(hid); if(!h) return; if(typeof tapMain==='function'){ row.classList.add('hmDoneAnim'); setTimeout(function(){ tapMain(hid); renderHome(); },220); } }
+  },true);
 })();
 
 function climb(el, root, attr){

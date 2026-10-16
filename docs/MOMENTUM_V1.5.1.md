@@ -372,3 +372,22 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Phone reminders at 9:00: bill generated (with this cycle's spending), 3 days before due and on the due day
     (skipped once paid). Notifications › Credit card reminders turns them off.
   - Account editor: "Bill (statement) day" / "Payment due day" with a live plain-language preview.
+- **Build 83 — full re-test (166 cases) and fixes:**
+  - Insights crashed if a habit's created/start date was a timestamp instead of a date string (possible from an old
+    backup or sync): toDate() tolerates timestamps and bad values; normHabit converts them.
+  - Reminder scheduling crashed on a malformed habit reminder list (array instead of {times, missed}) or a task
+    without a reminders array (e.g. created by a widget mid-session): both are repaired automatically.
+  - Accessibility: entry reader date readable in light mode; Journal AI stat labels, task comment badge and mood
+    calendar weekday/legend text at least 11 px; See all, Mark paid, Skip and mood calendar arrows/close are 40 px.
+  - Removed a stray file from the project root that a failed edit created in build 72.
+  - Test kit rebuilt: 12 suites / 166 cases (26 new for search, AI follow-ups and models, bills, credit cards,
+    merchant, photo ZIP, Drive storage, Design switch, Appearance controls, task menu), accessibility, layout and
+    button-alignment audits.
+- **Build 84 — UI/UX round: habit 7-day strip, Home quick-complete:**
+  - Habit cards: the tiny SVG ribbon (11 px circles, 5 px letters) is replaced by an HTML 7-day strip in the style of
+    Streaks/Habitify: 26 px circles, readable weekday initials, filled check for done, hollow ring for missed, dim dot
+    when not scheduled, a highlighted ring for today, partial progress shown as a dot, frozen days as snowflakes, and
+    a soft link through consecutive done days.
+  - Home: the leading icon of each Top 3 / Next row is a quick-complete control (task or habit) with a strike-through
+    animation; tapping the title still opens the item.
+  - Stability: three 400-action monkey runs across every page and sheet produced 0 JavaScript errors.
