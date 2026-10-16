@@ -391,3 +391,19 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Home: the leading icon of each Top 3 / Next row is a quick-complete control (task or habit) with a strike-through
     animation; tapping the title still opens the item.
   - Stability: three 400-action monkey runs across every page and sheet produced 0 JavaScript errors.
+- **Build 85 — Home Today tiles, sleep check-in quality and preset:**
+  - Home › Today: under the habit ring, three tappable tiles show tasks done today, today's mood (emoji + label, or
+    "Log") and last night's sleep (duration + quality, or "Log"); they open Tasks, the mood sheet and the sleep sheet
+    and refresh when a mood or sleep is logged. The old "N of M tasks done" line is folded into the tiles.
+  - Sleep check-in: a "Same as last night · 11:00 PM – 6:45 AM" pill fills both times in one tap (shown when a
+    previous night exists); "How did you sleep?" offers Great / OK / Poor, saved as q (3/2/1) on the sleep record
+    and shown on the Home sleep tile.
+- **Build 86 — Android widgets refreshed:**
+  - Widgets follow the phone's light/dark mode: a themed palette (values = light, values-night = dark) replaces every
+    hard-coded colour in the widget layouts, drawables and Java (MoneyWidget, TasksWidget). Light mode: white cards,
+    dark text, deeper accents; dark mode: the app's Modern dark surfaces.
+  - Android 12+: widget corners use the launcher's system radius (drawable-v31) and inner cells the system inner
+    radius; a 1 dp hairline border replaces the 2 dp outline.
+  - Headers: tinted vector icons (new ic_w_money, ic_w_workout) and sentence-case titles ("Habits", "Tasks", "Money",
+    "Mood", "Workout", "Ask AI") replace emoji and all-caps labels.
+  - List rows: 34 dp check targets, 48 dp minimum row height.

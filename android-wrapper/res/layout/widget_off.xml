@@ -5,8 +5,8 @@
     android:orientation="vertical" android:gravity="center" android:background="@drawable/widget_bg"
     android:paddingLeft="16dp" android:paddingRight="16dp" android:paddingTop="12dp" android:paddingBottom="12dp">
     <TextView android:id="@+id/off_title" android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:textSize="15sp" android:textStyle="bold" android:textColor="#F5F5F7" android:gravity="center"/>
+        android:textSize="15sp" android:textStyle="bold" android:textColor="@color/wg_ink" android:gravity="center"/>
     <TextView android:id="@+id/off_text" android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_marginTop="4dp" android:textSize="12.5sp" android:textColor="#A9A9B0" android:gravity="center"
+        android:layout_marginTop="4dp" android:textSize="12.5sp" android:textColor="@color/wg_dim" android:gravity="center"
         android:text="Turned off in Settings › Modules. Tap to open Settings."/>
 </LinearLayout>

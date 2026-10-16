@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 84;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 86;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -6514,9 +6514,7 @@ function renderHome(){
    +'</nav>'
    +(habits.length?'':'<section class="hmSec"><div class="sectLbl">'+ICON('habit')+'Today</div><div class="hmInsText">No habits yet. Start with one small habit you can do every day.</div><button class="btnP" data-hm-go="new:habit">'+ICON('plus')+'Create a habit</button></section>')
    +(!habits.length?'':'<section class="hmSec"><div class="sectLbl">'+ICON('habit')+'Today</div>'
-     +'<div class="hmTodayRow"><svg class="hmRing" viewBox="0 0 96 96" role="img" aria-label="'+pct+'% of habits completed"><circle class="hmRingBg" cx="48" cy="48" r="40"/><circle class="hmRingFg" cx="48" cy="48" r="40" stroke-dasharray="251.3" stroke-dashoffset="'+(251.3*(1-pct/100)).toFixed(1)+'" transform="rotate(-90 48 48)"/><text x="48" y="55" text-anchor="middle" class="hmRingTxt">'+pct+'%</text></svg><div class="hmTodayTxt"><div class="hmBig"><span class="hmBigNum">'+hDone+'<span class="hmBigDen"> / '+hDue+'</span></span></div><div class="hmBigOf">habits completed</div>'+(tasksToday.length?'<div class="hmTodayTasks">'+ICON('task')+tDone+' of '+tasksToday.length+' tasks done</div>':'')+'</div></div>'
-     
-   +'</section>')
+     +'<div class="hmTodayRow"><svg class="hmRing" viewBox="0 0 96 96" role="img" aria-label="'+pct+'% of habits completed"><circle class="hmRingBg" cx="48" cy="48" r="40"/><circle class="hmRingFg" cx="48" cy="48" r="40" stroke-dasharray="251.3" stroke-dashoffset="'+(251.3*(1-pct/100)).toFixed(1)+'" transform="rotate(-90 48 48)"/><text x="48" y="55" text-anchor="middle" class="hmRingTxt">'+pct+'%</text></svg><div class="hmTodayTxt"><div class="hmBig"><span class="hmBigNum">'+hDone+'<span class="hmBigDen"> / '+hDue+'</span></span></div><div class="hmBigOf">habits completed</div>'+'</div></div>'+hmGlanceTiles(tDone,tasksToday.length)+'</section>')
    +'<section class="hmSec"><div class="sectLbl">'+ICON('clock')+'Next</div><div class="hmNext">'+nextHtml+'</div></section>'
    +'<section class="hmSec"><div class="sectLbl">'+ICON('zap')+'At a glance</div><div class="hmGlance">'+glance+'</div></section>'
    +'<section class="hmSec"><div class="sectLbl">'+ICON('ai')+'One insight</div>'+insHtml+'<button class="btnS" data-hm-go="tab:pgStats">'+ICON('stats')+'View insights</button></section>'
@@ -8547,6 +8545,37 @@ function ccPay(id){
       row.classList.add('hmDoneAnim'); setTimeout(function(){ toggleTaskComplete(id); persist(); renderHome(); toastN('\u2713 '+t.title.slice(0,32)+' done \u00b7 undo in Tasks'); },220); return; }
     if(go.indexOf('habit:')===0){ var hid=go.slice(6), h=findHabit(hid); if(!h) return; if(typeof tapMain==='function'){ row.classList.add('hmDoneAnim'); setTimeout(function(){ tapMain(hid); renderHome(); },220); } }
   },true);
+})();
+
+/* ================= Home: Today summary tiles (build 85) ================= */
+function hmGlanceTiles(tDone,tTotal){
+  var t=today(), mi=moodOf(t), m=(mi!=null&&mi>=0&&MOODS[mi])?MOODS[mi]:null, sl=sleepOn(t);
+  var ql={3:'Great',2:'OK',1:'Poor'}[sl&&sl.q]||'';
+  return '<div class="hmG3">'+
+    '<button type="button" class="hmG3t" data-hmg="tasks" style="--gc:var(--tx-blue)"><span class="hmG3i">'+ICON('task')+'</span><b>'+(tTotal?(tDone+'<small>/'+tTotal+'</small>'):'\u2014')+'</b><span class="hmG3l">'+(tTotal?'tasks done':'no tasks today')+'</span></button>'+
+    '<button type="button" class="hmG3t" data-hmg="mood" style="--gc:'+(m?m.c:'var(--tx-purple)')+'"><span class="hmG3i hmG3e">'+(m?m.e:ICON('mood'))+'</span><b>'+(m?esc(m.l):'Log')+'</b><span class="hmG3l">'+(m?'mood today':'how are you?')+'</span></button>'+
+    '<button type="button" class="hmG3t" data-hmg="sleep" style="--gc:var(--tx-indigo,#7B8CFF)"><span class="hmG3i">'+ICON('sleep')+'</span><b>'+(sl&&sl.mins?esc(fmtDur(sl.mins)):'Log')+'</b><span class="hmG3l">'+(sl&&sl.mins?(ql?'slept \u00b7 '+ql.toLowerCase():'slept'):'last night')+'</span></button>'+
+  '</div>';
+}
+(function(){
+  var pg=$('pgToday'); if(!pg) return;
+  pg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-hmg]'); if(!b) return; e.preventDefault(); e.stopPropagation(); var k=b.getAttribute('data-hmg');
+    if(k==='tasks') showTab('pgTasks'); else if(k==='mood'){ openSheet('moodSheet'); try{ renderMoodToday(); }catch(x){} } else if(k==='sleep') openSleep(today()); },true);
+  /* the tiles refresh when mood or sleep change */
+  ['moodSheet','sleepSheet'].forEach(function(id){ var el=$(id); if(el&&window.MutationObserver) new MutationObserver(function(){ if(!el.classList.contains('open')&&document.querySelector('.page.on')&&document.querySelector('.page.on').id==='pgToday') setTimeout(function(){ try{ renderHome(); }catch(x){} },50); }).observe(el,{attributes:true,attributeFilter:['class']}); });
+})();
+/* ================= Sleep check-in: quality and "same as last night" (build 85) ================= */
+(function(){
+  var g=$('sleepGate'); if(!g) return; var dur=g.querySelector('.sgDurRow'), times=g.querySelector('.sgTimes'); if(!dur||!times) return;
+  times.insertAdjacentHTML('beforebegin','<button type="button" class="sgPreset" id="sgSame" hidden>'+ICON('clock')+'<span class="sgPresetTxt"></span></button>');
+  dur.insertAdjacentHTML('afterend','<div class="sgQ"><div class="sgQl">How did you sleep?</div><div class="sgQc" id="sgQual"><button type="button" class="chip" data-q="3">\uD83D\uDE34 Great</button><button type="button" class="chip" data-q="2">\uD83D\uDE42 OK</button><button type="button" class="chip" data-q="1">\uD83D\uDE2B Poor</button></div></div>');
+  var q=0; function paint(){ g.querySelectorAll('#sgQual .chip').forEach(function(c){ c.classList.toggle('sel',+c.getAttribute('data-q')===q); }); }
+  $('sgQual').addEventListener('click',function(e){ var c=e.target.closest('[data-q]'); if(!c) return; q=(+c.getAttribute('data-q')===q)?0:+c.getAttribute('data-q'); paint(); });
+  $('sgSame').addEventListener('click',function(){ var d=sleepGateDefaults(); $('sgBed').value=d.bed; $('sgWake').value=d.wake; sleepGateUpd(); $('sgMsg').textContent=''; });
+  var ss=showSleepGate; window.showSleepGate=showSleepGate=function(){ var r=ss.apply(this,arguments); try{ q=0; paint(); var last=(state.sleep||[]).filter(function(x){ return x.bed&&x.wake&&x.d!==today(); }).sort(function(a,b){ return a.d<b.d?1:-1; })[0]; var p=$('sgSame');
+    if(last){ p.hidden=false; p.querySelector('.sgPresetTxt').textContent='Same as last night \u00b7 '+timeFmt(last.bed)+' \u2013 '+timeFmt(last.wake); } else p.hidden=true; }catch(e){} return r; };
+  /* the quality is saved with the record */
+  $('sgSave').addEventListener('click',function(){ setTimeout(function(){ try{ if(g.hidden&&q){ var rec=sleepOn(today()); if(rec){ rec.q=q; persist(); } } }catch(e){} },0); },true);
 })();
 
 function climb(el, root, attr){

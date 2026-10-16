@@ -27,7 +27,7 @@ public class MoneyWidget extends BaseWidget {
 
         double spent = st.todayExpenseTotal();
         v.setTextViewText(R.id.exp, spent > 0 ? "\u2212" + st.inr(spent) : st.currency() + "0");
-        v.setTextColor(R.id.exp, spent > 0 ? 0xFFFF6B5E : 0xFF9AA0AC);
+        v.setTextColor(R.id.exp, spent > 0 ? ctx.getColor(R.color.wg_red) : ctx.getColor(R.color.wg_dim));
 
         v.setTextViewText(R.id.bal, acct == null ? "\u2014" : st.inr(st.acctBalance(acctId)));
         String nm = acct == null ? null : acct.optString("name", "Account");

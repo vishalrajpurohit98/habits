@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="wrap_content"
     android:orientation="horizontal" android:gravity="center_vertical"
-    android:minHeight="46dp" android:paddingTop="5dp" android:paddingBottom="5dp"
+    android:minHeight="48dp" android:paddingTop="5dp" android:paddingBottom="5dp"
     android:paddingLeft="2dp" android:paddingRight="2dp">
-<TextView android:id="@+id/row_chk" android:layout_width="32dp" android:layout_height="32dp"
-    android:gravity="center" android:textSize="13sp" android:textStyle="bold" android:textColor="#0B0D12"
+<TextView android:id="@+id/row_chk" android:layout_width="34dp" android:layout_height="34dp"
+    android:gravity="center" android:textSize="13sp" android:textStyle="bold" android:textColor="@color/wg_on_fill"
     android:background="@drawable/chk_habit_off" android:text="" android:includeFontPadding="false"/>
 <FrameLayout android:layout_width="11dp" android:layout_height="1dp"/>
 <LinearLayout android:id="@+id/row_body" android:layout_width="0dp" android:layout_weight="1"

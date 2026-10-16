@@ -33,9 +33,9 @@ public class TasksWidget extends BaseWidget {
         v.setTextViewText(R.id.t_sub, sub);
         v.setViewVisibility(R.id.t_sub, bucket == WidgetHub.SMALL ? View.GONE : View.VISIBLE);
 
-        chip(v, R.id.f_today, !over && !all, R.drawable.chip_active_blue, 0xFF0B0D12);
-        chip(v, R.id.f_over, over, R.drawable.chip_active_red, 0xFF0B0D12);
-        chip(v, R.id.f_all, all, R.drawable.chip_active_ink, 0xFF0B0D12);
+        chip(v, R.id.f_today, !over && !all, R.drawable.chip_active_blue, ctx.getColor(R.color.wg_on_fill), ctx.getColor(R.color.wg_dim));
+        chip(v, R.id.f_over, over, R.drawable.chip_active_red, ctx.getColor(R.color.wg_on_fill), ctx.getColor(R.color.wg_dim));
+        chip(v, R.id.f_all, all, R.drawable.chip_active_ink, ctx.getColor(R.color.wg_on_fill), ctx.getColor(R.color.wg_dim));
         v.setOnClickPendingIntent(R.id.f_today, filterIntent(ctx, id, "today"));
         v.setOnClickPendingIntent(R.id.f_over, filterIntent(ctx, id, "overdue"));
         v.setOnClickPendingIntent(R.id.f_all, filterIntent(ctx, id, "all"));
@@ -45,9 +45,9 @@ public class TasksWidget extends BaseWidget {
         return v;
     }
 
-    static void chip(RemoteViews v, int cid, boolean active, int activeBg, int activeInk) {
+    static void chip(RemoteViews v, int cid, boolean active, int activeBg, int activeInk, int dim) {
         v.setInt(cid, "setBackgroundResource", active ? activeBg : R.drawable.widget_chip_dim);
-        v.setTextColor(cid, active ? activeInk : 0xFF9AA0AC);
+        v.setTextColor(cid, active ? activeInk : dim);
     }
 
     static android.app.PendingIntent filterIntent(Context ctx, int id, String val) {

@@ -3,16 +3,25 @@
      file so the pre-existing values files stay untouched. -->
 <resources>
 
-    <!-- ===== Widget palette (mirrors the app's dark "ember" theme) ===== -->
-    <color name="wg_card">#F20E0C08</color>
-    <color name="wg_card_inner">#FF1A160D</color>
-    <color name="wg_ink">#FFFFFFFF</color>
-    <color name="wg_dim">#FF9AA0AC</color>
-    <color name="wg_acc">#FFFFAE1F</color>
-    <color name="wg_acc_ink">#FF221A05</color>
-    <color name="wg_red">#FFFF6B5E</color>
-    <color name="wg_green">#FF7ED957</color>
-    <color name="wg_line">#1FFFFFFF</color>
+    <!-- ===== Widget palette: light mode (values-night holds dark). Widgets follow the phone's theme. ===== -->
+    <color name="wg_bg">#FFFFFFFF</color>
+    <color name="wg_card">#FFFFFFFF</color>
+    <color name="wg_inner">#FFF2F2F7</color>
+    <color name="wg_card_inner">#FFF2F2F7</color>
+    <color name="wg_track">#FFE6E6EB</color>
+    <color name="wg_ink">#FF111114</color>
+    <color name="wg_dim">#FF55555C</color>
+    <color name="wg_line">#14111114</color>
+    <color name="wg_on_fill">#FFFFFFFF</color>
+    <color name="wg_acc">#FFD98500</color>
+    <color name="wg_acc_ink">#FFFFFFFF</color>
+    <color name="wg_red">#FFD94B3E</color>
+    <color name="wg_green">#FF2F9E4F</color>
+    <color name="wg_blue">#FF2F6FE0</color>
+    <color name="wg_purple">#FF7B4FD6</color>
+    <color name="wg_purple_soft">#227B4FD6</color>
+    <color name="wg_teal">#FF1E9C8C</color>
+    <color name="wg_orange">#FFD9661F</color>
 
     <!-- ===== Widget strings ===== -->
     <string name="wg_tasks_label">Tasks</string>

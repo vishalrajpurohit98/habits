@@ -2971,6 +2971,26 @@ html.light .wk7 .done .wc{color:#1A1203}
 .hmNextRow.hmDoneAnim{opacity:.35;transform:translateX(6px);transition:opacity .22s,transform .22s}
 .hmNextRow.hmDoneAnim .hmNextTitle{text-decoration:line-through}
 .hmNextRow.hmDoneAnim .hmNextIc{background:var(--tx-green)!important;color:#fff!important}
+/* ================= Home Today tiles (build 85) ================= */
+.hmG3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.hmG3t{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px 12px 11px;border-radius:16px;background:color-mix(in srgb,var(--gc) 10%,var(--card2));border:1px solid color-mix(in srgb,var(--gc) 22%,transparent);color:var(--ink);text-align:left;min-height:88px;transition:transform .12s}
+.hmG3t:active{transform:scale(.97)}
+.hmG3i{width:28px;height:28px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--gc) 20%,transparent);color:var(--gc);font-size:16px}
+.hmG3i .ic{width:16px;height:16px;color:var(--gc)}
+.hmG3e{color:var(--ink)}
+.hmG3t b{font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.hmG3t b small{font-size:13px;font-weight:600;color:var(--mut)}
+.hmG3l{font-size:11.5px;color:var(--mut);line-height:1.2}
+@media (min-width:1000px){ .hmG3{max-width:520px} }
+/* ================= Sleep check-in (build 85) ================= */
+.sgPreset{display:flex;width:100%;justify-content:center;align-items:center;gap:8px;margin:0 0 14px;min-height:44px;padding:0 14px;border-radius:999px;border:1px solid color-mix(in srgb,var(--tx-indigo,#7B8CFF) 40%,transparent);background:color-mix(in srgb,var(--tx-indigo,#7B8CFF) 12%,transparent);color:var(--ink);font-size:13.5px;font-weight:600;max-width:100%}
+.sgPreset .ic{width:16px;height:16px;color:var(--tx-indigo,#7B8CFF);flex:none}
+.sgPreset .sgPresetTxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sgQ{margin:14px 0 4px}
+.sgQl{font-size:13px;color:var(--mut);margin-bottom:8px}
+.sgQc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sgQc .chip{justify-content:center;min-height:44px!important;font-size:14px}
+.sgQc .chip.sel{background:var(--tx-indigo,#7B8CFF)!important;color:#fff!important;border-color:transparent!important}
 /* active workout session */
 #wkSession{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;padding:calc(10px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
 #wkSession.on{display:flex;animation:simpleTabFade 100ms ease-out}
@@ -4943,7 +4963,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 84;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 86;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -11441,9 +11461,7 @@ function renderHome(){
    +'</nav>'
    +(habits.length?'':'<section class="hmSec"><div class="sectLbl">'+ICON('habit')+'Today</div><div class="hmInsText">No habits yet. Start with one small habit you can do every day.</div><button class="btnP" data-hm-go="new:habit">'+ICON('plus')+'Create a habit</button></section>')
    +(!habits.length?'':'<section class="hmSec"><div class="sectLbl">'+ICON('habit')+'Today</div>'
-     +'<div class="hmTodayRow"><svg class="hmRing" viewBox="0 0 96 96" role="img" aria-label="'+pct+'% of habits completed"><circle class="hmRingBg" cx="48" cy="48" r="40"/><circle class="hmRingFg" cx="48" cy="48" r="40" stroke-dasharray="251.3" stroke-dashoffset="'+(251.3*(1-pct/100)).toFixed(1)+'" transform="rotate(-90 48 48)"/><text x="48" y="55" text-anchor="middle" class="hmRingTxt">'+pct+'%</text></svg><div class="hmTodayTxt"><div class="hmBig"><span class="hmBigNum">'+hDone+'<span class="hmBigDen"> / '+hDue+'</span></span></div><div class="hmBigOf">habits completed</div>'+(tasksToday.length?'<div class="hmTodayTasks">'+ICON('task')+tDone+' of '+tasksToday.length+' tasks done</div>':'')+'</div></div>'
-     
-   +'</section>')
+     +'<div class="hmTodayRow"><svg class="hmRing" viewBox="0 0 96 96" role="img" aria-label="'+pct+'% of habits completed"><circle class="hmRingBg" cx="48" cy="48" r="40"/><circle class="hmRingFg" cx="48" cy="48" r="40" stroke-dasharray="251.3" stroke-dashoffset="'+(251.3*(1-pct/100)).toFixed(1)+'" transform="rotate(-90 48 48)"/><text x="48" y="55" text-anchor="middle" class="hmRingTxt">'+pct+'%</text></svg><div class="hmTodayTxt"><div class="hmBig"><span class="hmBigNum">'+hDone+'<span class="hmBigDen"> / '+hDue+'</span></span></div><div class="hmBigOf">habits completed</div>'+'</div></div>'+hmGlanceTiles(tDone,tasksToday.length)+'</section>')
    +'<section class="hmSec"><div class="sectLbl">'+ICON('clock')+'Next</div><div class="hmNext">'+nextHtml+'</div></section>'
    +'<section class="hmSec"><div class="sectLbl">'+ICON('zap')+'At a glance</div><div class="hmGlance">'+glance+'</div></section>'
    +'<section class="hmSec"><div class="sectLbl">'+ICON('ai')+'One insight</div>'+insHtml+'<button class="btnS" data-hm-go="tab:pgStats">'+ICON('stats')+'View insights</button></section>'
@@ -13474,6 +13492,37 @@ function ccPay(id){
       row.classList.add('hmDoneAnim'); setTimeout(function(){ toggleTaskComplete(id); persist(); renderHome(); toastN('\u2713 '+t.title.slice(0,32)+' done \u00b7 undo in Tasks'); },220); return; }
     if(go.indexOf('habit:')===0){ var hid=go.slice(6), h=findHabit(hid); if(!h) return; if(typeof tapMain==='function'){ row.classList.add('hmDoneAnim'); setTimeout(function(){ tapMain(hid); renderHome(); },220); } }
   },true);
+})();
+
+/* ================= Home: Today summary tiles (build 85) ================= */
+function hmGlanceTiles(tDone,tTotal){
+  var t=today(), mi=moodOf(t), m=(mi!=null&&mi>=0&&MOODS[mi])?MOODS[mi]:null, sl=sleepOn(t);
+  var ql={3:'Great',2:'OK',1:'Poor'}[sl&&sl.q]||'';
+  return '<div class="hmG3">'+
+    '<button type="button" class="hmG3t" data-hmg="tasks" style="--gc:var(--tx-blue)"><span class="hmG3i">'+ICON('task')+'</span><b>'+(tTotal?(tDone+'<small>/'+tTotal+'</small>'):'\u2014')+'</b><span class="hmG3l">'+(tTotal?'tasks done':'no tasks today')+'</span></button>'+
+    '<button type="button" class="hmG3t" data-hmg="mood" style="--gc:'+(m?m.c:'var(--tx-purple)')+'"><span class="hmG3i hmG3e">'+(m?m.e:ICON('mood'))+'</span><b>'+(m?esc(m.l):'Log')+'</b><span class="hmG3l">'+(m?'mood today':'how are you?')+'</span></button>'+
+    '<button type="button" class="hmG3t" data-hmg="sleep" style="--gc:var(--tx-indigo,#7B8CFF)"><span class="hmG3i">'+ICON('sleep')+'</span><b>'+(sl&&sl.mins?esc(fmtDur(sl.mins)):'Log')+'</b><span class="hmG3l">'+(sl&&sl.mins?(ql?'slept \u00b7 '+ql.toLowerCase():'slept'):'last night')+'</span></button>'+
+  '</div>';
+}
+(function(){
+  var pg=$('pgToday'); if(!pg) return;
+  pg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-hmg]'); if(!b) return; e.preventDefault(); e.stopPropagation(); var k=b.getAttribute('data-hmg');
+    if(k==='tasks') showTab('pgTasks'); else if(k==='mood'){ openSheet('moodSheet'); try{ renderMoodToday(); }catch(x){} } else if(k==='sleep') openSleep(today()); },true);
+  /* the tiles refresh when mood or sleep change */
+  ['moodSheet','sleepSheet'].forEach(function(id){ var el=$(id); if(el&&window.MutationObserver) new MutationObserver(function(){ if(!el.classList.contains('open')&&document.querySelector('.page.on')&&document.querySelector('.page.on').id==='pgToday') setTimeout(function(){ try{ renderHome(); }catch(x){} },50); }).observe(el,{attributes:true,attributeFilter:['class']}); });
+})();
+/* ================= Sleep check-in: quality and "same as last night" (build 85) ================= */
+(function(){
+  var g=$('sleepGate'); if(!g) return; var dur=g.querySelector('.sgDurRow'), times=g.querySelector('.sgTimes'); if(!dur||!times) return;
+  times.insertAdjacentHTML('beforebegin','<button type="button" class="sgPreset" id="sgSame" hidden>'+ICON('clock')+'<span class="sgPresetTxt"></span></button>');
+  dur.insertAdjacentHTML('afterend','<div class="sgQ"><div class="sgQl">How did you sleep?</div><div class="sgQc" id="sgQual"><button type="button" class="chip" data-q="3">\uD83D\uDE34 Great</button><button type="button" class="chip" data-q="2">\uD83D\uDE42 OK</button><button type="button" class="chip" data-q="1">\uD83D\uDE2B Poor</button></div></div>');
+  var q=0; function paint(){ g.querySelectorAll('#sgQual .chip').forEach(function(c){ c.classList.toggle('sel',+c.getAttribute('data-q')===q); }); }
+  $('sgQual').addEventListener('click',function(e){ var c=e.target.closest('[data-q]'); if(!c) return; q=(+c.getAttribute('data-q')===q)?0:+c.getAttribute('data-q'); paint(); });
+  $('sgSame').addEventListener('click',function(){ var d=sleepGateDefaults(); $('sgBed').value=d.bed; $('sgWake').value=d.wake; sleepGateUpd(); $('sgMsg').textContent=''; });
+  var ss=showSleepGate; window.showSleepGate=showSleepGate=function(){ var r=ss.apply(this,arguments); try{ q=0; paint(); var last=(state.sleep||[]).filter(function(x){ return x.bed&&x.wake&&x.d!==today(); }).sort(function(a,b){ return a.d<b.d?1:-1; })[0]; var p=$('sgSame');
+    if(last){ p.hidden=false; p.querySelector('.sgPresetTxt').textContent='Same as last night \u00b7 '+timeFmt(last.bed)+' \u2013 '+timeFmt(last.wake); } else p.hidden=true; }catch(e){} return r; };
+  /* the quality is saved with the record */
+  $('sgSave').addEventListener('click',function(){ setTimeout(function(){ try{ if(g.hidden&&q){ var rec=sleepOn(today()); if(rec){ rec.q=q; persist(); } } }catch(e){} },0); },true);
 })();
 
 function climb(el, root, attr){
