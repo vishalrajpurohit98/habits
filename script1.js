@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 90;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 95;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -1286,7 +1286,7 @@ function renderAI(){
   try{ renderProactiveInsights(); }catch(e){}
 }
 function renderProactiveInsights(){
-  var box=$('uaiInsights'); if(!box) return;
+  var box=$('uaiInsights'); if(!box) return; box.style.display='none'; return; /* build 91: shown on Home and Insights */
   var dismissed=''; try{ dismissed=uStore.getItem('uai_insights_dismissed_'+today())||''; }catch(e){}
   if(dismissed==='1'){ box.style.display='none'; return; }
   var ins=[]; try{ ins=proactiveInsights(); }catch(e){}
@@ -5231,12 +5231,12 @@ function renderExpIns(){
   var avg=mt.exp/Math.max(1,dayN);
   var vsLast = pt.exp>0 ? Math.round((mt.exp-pt.exp)/pt.exp*100) : 0;
   var html='';
-  html += '<div class="lbl"><i class="lic" style="--lc:var(--amber)"></i>Insight</div>';
-  html += '<div class="insCard" style="margin-bottom:10px">'+insightHTML(expenseInsight(mt, pt, ct, topCat, topV))+'</div>';
+  html += '<div class="lbl"><i class="lic" style="--lc:var(--amber)"></i>This month</div>';
+  html += ''; /* the insight sentence repeats the hero card (build 91) */
   html += '<div class="insCard"><div class="il">Total spent this month</div><div class="iv" style="color:var(--coral)">'+inr(mt.exp)+'</div></div>';
-  if(topCat) html += '<div class="insCard"><div class="il">Highest category</div><div class="iv">'+(CAT_ICON[topCat]||'')+' '+esc(topCat)+' <small style="color:var(--mut)">'+inr(topV)+'</small></div></div>';
+  if(topCat) html += ''; /* shown in the hero card (build 91) */
   if(topSub) html += '<div class="insCard"><div class="il">Highest subcategory</div><div class="iv">'+esc(topSub)+' <small style="color:var(--mut)">'+inr(topSubV)+'</small></div></div>';
-  html += '<div class="insCard"><div class="il">vs last month</div><div class="iv"><small style="color:'+(vsLast>0?'var(--coral)':'var(--sGreen)')+'">'+(vsLast>0?'+':'')+vsLast+'%</small> <span style="font-size:12px;color:var(--mut)">('+inr(pt.exp)+' last)</span></div></div>';
+  html += ''; /* the hero card shows the trend (build 91) */
   html += '<div class="insCard"><div class="il">Avg / day</div><div class="iv">'+inr(avg)+'</div></div>';
   // category breakdown bars
   var cats=Object.keys(ct).sort(function(a,b){return ct[b]-ct[a];});
@@ -6498,7 +6498,7 @@ function renderHome(){
   var glance=''
     +(bestStreak?'<button class="hmGlanceRow" data-hm-go="tab:pgHabits"><span class="tIc t-orange">'+ICON('flame')+'</span><span><b>'+bestStreak+' day</b> streak</span></button>':'')
     +'<button class="hmGlanceRow" data-hm-go="tab:pgExp"><span class="tIc t-green">'+ICON('money')+'</span><span><b>'+_hmCurrency(Math.abs(mt.net))+'</b> '+(mt.net<0?'more spent than earned this month':'remaining this month')+'</span></button>'
-    +'<button class="hmGlanceRow" data-hm-qa="mood"><span class="tIc t-purple">'+ICON('mood')+'</span><span>'+(mi>=0?'<b>'+MOODS[mi].l+'</b> mood today':'<b>Log</b> how you feel')+'</span></button>';
+    ; /* mood lives in the Today tiles (build 91) */
 
   /* ONE INSIGHT */
   var ins=(window._lastInsights||[])[0];
@@ -8630,6 +8630,124 @@ function hmSyncTile(){
   p.then(function(){ toastN('Synced \u2714'); }).catch(function(e){ try{ setSyncState('error'); }catch(x){} var m=(typeof prettySyncErr==='function')?prettySyncErr(e):String(e&&e.message||e); toastN(m); })
    .then(function(){ if(tile) tile.classList.remove('syncing'); try{ if(typeof DrivePhotos!=='undefined'&&DrivePhotos.on()&&!DrivePhotos.busy) DrivePhotos.sync(false); }catch(e){} });
 }
+/* ================= Duplicate features removed / merged (build 92) ================= */
+(function(){
+  /* A. Settings › Data › "Money (Excel or PDF)": the same export lives in Money › Financial Tools › Export data */
+  var mx=$('btnMoneyXlsx'); if(mx&&mx.closest('.setRow')) mx.closest('.setRow').style.display='none';
+  /* B. Journal › AI: "Analyse my whole journal" becomes an "All time" quick range for "Analyse this range" */
+  var whole=$('jrWholeAiBtn'); if(whole) whole.style.display='none';
+  var from=$('jrInsFrom'), to=$('jrInsTo'); if(from&&to&&!$('jrInsQuick')){ from.closest('.jrMetaRow').insertAdjacentHTML('beforebegin','<div class="chips jrInsQuick" id="jrInsQuick"><button type="button" class="chip" data-q="7">7 days</button><button type="button" class="chip" data-q="30">30 days</button><button type="button" class="chip" data-q="year">This year</button><button type="button" class="chip" data-q="all">All time</button></div>');
+    $('jrInsQuick').addEventListener('click',function(e){ var b=e.target.closest('[data-q]'); if(!b) return; var q=b.getAttribute('data-q'), t=today(), f;
+      if(q==='all'){ var ds=(state.jr||[]).map(function(x){ return x.date; }).filter(Boolean).sort(); f=ds[0]||t; } else if(q==='year'){ f=t.slice(0,4)+'-01-01'; } else { var d=new Date(); d.setDate(d.getDate()-(+q-1)); f=fmt(d); }
+      from.value=f; to.value=t; from.dispatchEvent(new Event('change',{bubbles:true})); to.dispatchEvent(new Event('change',{bubbles:true})); $('jrInsQuick').querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('sel',c===b); }); }); }
+  /* C. AI page: "+ Habit / + Task / + Expense" pills duplicate the Create menu */
+  document.querySelectorAll('.uaiHints .uaiHint').forEach(function(h){ if(/^\+\s/.test(h.textContent.trim())) h.remove(); });
+  /* D. Notifications: one "Journal reminder" row with Off / At a time / Smart (the separate Smart row is merged in) */
+  var jt=$('remJournalTog'), st=$('remSmartTog'), jtime=$('remJournalTime'); if(jt&&st){
+    var smartRow=st.closest('.setRow'); if(smartRow) smartRow.style.display='none';
+    var row=jt.closest('.setRow'), ctl=jt.parentElement; jt.style.display='none';
+    ctl.insertAdjacentHTML('afterbegin','<div class="chips remJrMode" id="remJrMode"><button type="button" class="chip" data-m="off">Off</button><button type="button" class="chip" data-m="time">At a time</button><button type="button" class="chip" data-m="smart">Smart</button></div>');
+    var sub=row.querySelector('.setS'); var on=function(el){ return el.classList.contains('on'); };
+    function mode(){ return on(st)?'smart':(on(jt)?'time':'off'); }
+    function paint(){ var m=mode(); $('remJrMode').querySelectorAll('.chip').forEach(function(c){ c.classList.toggle('sel',c.getAttribute('data-m')===m); }); if(jtime) jtime.style.display=(m==='time')?'':'none';
+      if(sub) sub.textContent=m==='smart'?'Learns when you usually write and reminds you then if you haven\u2019t yet':m==='time'?'Daily nudge at the time you choose':'No daily nudge to write'; }
+    $('remJrMode').addEventListener('click',function(e){ var b=e.target.closest('[data-m]'); if(!b) return; var want=b.getAttribute('data-m');
+      if(want==='smart'){ if(!on(st)) st.click(); if(on(jt)) jt.click(); } else if(want==='time'){ if(on(st)) st.click(); if(!on(jt)) jt.click(); } else { if(on(st)) st.click(); if(on(jt)) jt.click(); } setTimeout(paint,30); });
+    function resolve(){ if(on(st)&&on(jt)) jt.click(); setTimeout(paint,30); }   /* both on: Smart wins, no double nudges */
+    setTimeout(resolve,1500); document.addEventListener('click',function(e){ var c=e.target.closest&&e.target.closest('#setCardGrid .setCard2'); if(c&&/Notifications/.test(c.textContent)) setTimeout(resolve,250); },true);
+    paint(); if(window.MutationObserver){ new MutationObserver(paint).observe(jt,{attributes:true,attributeFilter:['class']}); new MutationObserver(paint).observe(st,{attributes:true,attributeFilter:['class']}); } }
+})();
+
+/* ================= Money: organised, minimal layout (build 93) ================= */
+(function(){
+  var pg=$('pgExp'), sum=$('expSum'), seg=$('expSeg'), nav=$('expMonNav'), sel=$('txSelBar'); if(!pg||!sum||!seg) return;
+  /* 1. tabs right under the header */
+  sum.parentNode.insertBefore(seg,sum);
+  /* 2. header: a More menu holds Financial Tools; the card leaves the page */
+  var h1=pg.querySelector('.h1row'); if(h1&&!$('expMoreBtn')){ h1.insertAdjacentHTML('beforeend','<button class="srchBtn" id="expMoreBtn" aria-label="More" title="Financial tools"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>');
+    $('expMoreBtn').addEventListener('click',function(){ var l=document.querySelector('[data-ft="financial-tools"]'); if(l) l.click(); else toastN('Financial tools are loading'); }); }
+  /* 3. quick actions under the hero */
+  if(!$('mQuick')){ sum.insertAdjacentHTML('afterend','<div class="mQuick" id="mQuick">'+
+    '<button type="button" data-mq="add" style="--qc:var(--tx-coral)"><span>'+ICON('plus')+'</span><b>Add</b></button>'+
+    '<button type="button" data-mq="xfer" style="--qc:var(--tx-blue)"><span>'+ICON('refresh')+'</span><b>Transfer</b></button>'+
+    '<button type="button" data-mq="scan" style="--qc:var(--tx-purple)"><span>'+ICON('camera')+'</span><b>Scan</b></button>'+
+    '<button type="button" data-mq="bills" style="--qc:var(--tx-green)"><span>'+ICON('calendar')+'</span><b>Bills</b></button></div>');
+    $('mQuick').addEventListener('click',function(e){ var b=e.target.closest('[data-mq]'); if(!b) return; var k=b.getAttribute('data-mq');
+      if(k==='add') openExp(null);
+      else if(k==='xfer'){ openExp(null); setTimeout(function(){ try{ var x=document.querySelector('#expKind [data-k=xfer]'); x&&x.click(); }catch(e){} },80); }
+      else if(k==='scan'){ openExp(null); setTimeout(function(){ try{ var c=$('expReceiptCamera')||$('expReceiptAdd'); c&&c.click(); }catch(e){} },200); }
+      else if(k==='bills') openBills(); }); }
+  /* 4. month + Select share one toolbar (transactions tab) */
+  if(nav&&sel&&!$('mToolbar')){ var tb=document.createElement('div'); tb.id='mToolbar'; tb.className='mToolbar'; nav.parentNode.insertBefore(tb,nav); tb.appendChild(nav); tb.appendChild(sel); }
+  /* 5. the Bills card becomes an "Upcoming" strip, shown only when something is due within a week or overdue */
+  if(typeof billsCardPaint==='function'){ var bp=billsCardPaint; window.billsCardPaint=billsCardPaint=function(){ var r=bp.apply(this,arguments); try{
+      var card=$('billsCard'); if(!card) return r; var q=$('mQuick'); if(q&&card.previousElementSibling!==q) q.after(card); if(card.style.display==='none') return r;
+      var soon=[].slice.call(card.querySelectorAll('.billRow')).filter(function(row){ var m=(row.querySelector('.billMeta')||{}).textContent||''; return /today|tomorrow|overdue|in [1-7] days|due in [1-7] days|due today|due tomorrow/i.test(m); });
+      if(!soon.length){ card.style.display='none'; return r; }
+      card.querySelectorAll('.billRow').forEach(function(row){ row.style.display=soon.indexOf(row)>=0?'':'none'; });
+      var head=card.querySelector('.billsHead'); if(head){ head.querySelector('.billsT').textContent='Upcoming'; var s=head.querySelector('.billsS'); if(s) s.textContent=soon.length+' due this week'; }
+      var empty=card.querySelector('.billsEmpty'); if(empty) empty.style.display='none';
+    }catch(e){} return r; }; setTimeout(function(){ try{ billsCardPaint(); }catch(e){} },0); }
+})();
+
+/* ================= Habits: progress bar + Done today group (build 94) ================= */
+function habitsOrganise(){
+  var list=$('list'); if(!list) return;
+  var pct=null; try{ var d=habitsDoneOn(today()); pct=d.due?Math.round(d.done/d.due*100):null; var bar=$('habitsProg'); if(bar){ bar.style.display=d.due?'':'none'; bar.querySelector('i').style.width=(pct||0)+'%'; bar.setAttribute('aria-valuenow',String(pct||0)); } }catch(e){}
+  var box=$('habitsDone'), inBox=box?[].slice.call(box.querySelectorAll('.habitsDoneBody > .card')):[];
+  var cards=[].slice.call(list.querySelectorAll(':scope > .card')).concat(inBox); if(!cards.length){ if(box) box.remove(); return; }
+  var isDone=function(c){ var k=c.querySelector('.chk'); return k&&k.classList.contains('on'); };
+  var done=cards.filter(isDone), back=inBox.filter(function(c){ return !isDone(c); });
+  back.forEach(function(c){ list.insertBefore(c,box); });   /* unticked inside the group: back to the list */
+  if(!done.length){ if(box) box.remove(); return; }
+  if(!box){ box=document.createElement('div'); box.id='habitsDone'; box.className='habitsDone'+((state.set&&state.set.habitsDoneOpen)?' open':''); box.innerHTML='<button type="button" class="habitsDoneH" id="habitsDoneH" aria-expanded="false"><span class="hdIc">'+ICON('check')+'</span><span class="hdT">Done today</span><span class="hdN" id="habitsDoneN"></span><span class="hdChev">'+ICON('chev')+'</span></button><div class="habitsDoneBody" id="habitsDoneBody"></div>';
+    box.querySelector('.habitsDoneH').addEventListener('click',function(){ box.classList.toggle('open'); state.set.habitsDoneOpen=box.classList.contains('open'); persist(); this.setAttribute('aria-expanded',String(box.classList.contains('open'))); }); }
+  list.appendChild(box);
+  var body=box.querySelector('.habitsDoneBody'); done.forEach(function(c){ body.appendChild(c); });
+  box.querySelector('#habitsDoneN').textContent=done.length; box.querySelector('.habitsDoneH').setAttribute('aria-expanded',String(box.classList.contains('open')));
+  /* section headers left with no cards disappear */
+  [].slice.call(list.querySelectorAll(':scope > .secH')).forEach(function(h){ var n=h.nextElementSibling; if(!n||!n.classList.contains('card')) h.style.display='none'; else h.style.display=''; });
+}
+(function(){
+  var head=document.querySelector('#pgHabits .pageHead'); if(head&&!$('habitsProg')) head.insertAdjacentHTML('afterend','<div class="habitsProg" id="habitsProg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-label="Habits done today"><i></i></div>');
+  var list=$('list'); if(list&&window.MutationObserver){ var t=null, busy=false; new MutationObserver(function(){ if(busy) return; clearTimeout(t); t=setTimeout(function(){ busy=true; try{ habitsOrganise(); }catch(e){} busy=false; },40); }).observe(list,{childList:true,subtree:true,attributes:true,attributeFilter:['class']}); }
+  setTimeout(function(){ try{ habitsOrganise(); }catch(e){} },300);
+})();
+/* ================= Vault: minimal home (build 94) ================= */
+(function(){
+  var home=$('vaultHome'); if(!home) return;
+  /* More menu: Excel export / import leave the sort row */
+  var head=home.querySelector('.vaultHead'); if(head&&!$('vaultMoreBtn')){ head.insertAdjacentHTML('beforeend','<button type="button" class="vaultLockBtn vaultMoreBtn" id="vaultMoreBtn" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button><div class="vMoreMenu" id="vMoreMenu" hidden><button type="button" data-vm="export">'+ICON('export')+'Export to Excel</button><button type="button" data-vm="import">'+ICON('import')+'Import from Excel</button></div>');
+    $('vaultMoreBtn').addEventListener('click',function(e){ e.stopPropagation(); var m=$('vMoreMenu'); m.hidden=!m.hidden; });
+    $('vMoreMenu').addEventListener('click',function(e){ var b=e.target.closest('[data-vm]'); if(!b) return; $('vMoreMenu').hidden=true; var t=b.getAttribute('data-vm')==='export'?$('vaultExcelExport'):$('vaultExcelImport'); t&&t.click(); });
+    document.addEventListener('click',function(e){ var m=$('vMoreMenu'); if(m&&!m.hidden&&!e.target.closest('#vMoreMenu,#vaultMoreBtn')) m.hidden=true; }); }
+  /* counts move into the chips; the summary cards go */
+  function chips(){ var pw=$('vaultPwCount'), nt=$('vaultNoteCount'); var a=home.querySelector('#vaultChips [data-vf=pw]'), b=home.querySelector('#vaultChips [data-vf=note]');
+    if(a&&pw) a.innerHTML='Passwords <b class="vN">'+pw.textContent+'</b>'; if(b&&nt) b.innerHTML='Notes <b class="vN">'+nt.textContent+'</b>'; }
+  if(typeof renderVault==='function'){ var rv=renderVault; window.renderVault=renderVault=function(){ var r=rv.apply(this,arguments); try{ chips(); }catch(e){} return r; }; }
+  setTimeout(chips,0);
+})();
+
+/* ================= AI page: minimal, organised (build 95) ================= */
+(function(){
+  var pg=$('pgAI'); if(!pg) return; var h1=pg.querySelector('h1'); if(!h1) return;
+  /* header row: AI · ⋯ (AI settings, Clear conversation) */
+  if(!$('aiHead')){ var row=document.createElement('div'); row.className='h1row aiHead'; row.id='aiHead'; h1.parentNode.insertBefore(row,h1); row.appendChild(h1);
+    row.insertAdjacentHTML('beforeend','<button class="srchBtn" id="aiMoreBtn" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button><div class="vMoreMenu aiMoreMenu" id="aiMoreMenu" hidden><button type="button" data-am="settings">'+ICON('settings')+'AI settings</button><button type="button" data-am="memory">'+ICON('ai')+'What I remember</button><button type="button" data-am="clear">'+ICON('close')+'Clear conversation</button></div>');
+    $('aiMoreBtn').addEventListener('click',function(e){ e.stopPropagation(); var m=$('aiMoreMenu'); m.hidden=!m.hidden; });
+    $('aiMoreMenu').addEventListener('click',function(e){ var b=e.target.closest('[data-am]'); if(!b) return; $('aiMoreMenu').hidden=true; var k=b.getAttribute('data-am');
+      if(k==='settings'){ var c=$('aiCfg'); if(c){ c.classList.add('shown'); if(!c.classList.contains('open')){ var hd=$('aiCfgHead'); hd&&hd.click(); } c.scrollIntoView({block:'start',behavior:'smooth'}); } }
+      else if(k==='clear'){ var x=$('uaiClear'); x&&x.click(); }
+      else if(k==='memory'){ var m=[].slice.call(document.querySelectorAll('.uaiHint')).find(function(h){ return /remember/i.test(h.textContent); }); if(m) m.click(); else uaiSend('What do you remember about me?'); } });
+    document.addEventListener('click',function(e){ var m=$('aiMoreMenu'); if(m&&!m.hidden&&!e.target.closest('#aiMoreMenu,#aiMoreBtn')) m.hidden=true; }); }
+  /* one-line greeting */
+  function greet(){ var g=$('aiGreet'); if(!g) return; var h=new Date().getHours(); g.textContent=(h<12?'Good morning.':h<17?'Good afternoon.':'Good evening.')+' Ask about your habits, money and journal \u2014 or anything else.'; }
+  greet(); setTimeout(function(){ if(typeof showTab==='function'){ var st=showTab; window.showTab=showTab=function(id){ var r=st.apply(this,arguments); if(id==='pgAI') setTimeout(greet,0); return r; }; } },0);
+  /* the "Conversation" label and the Clear pill only once there are messages; suggestions only while empty */
+  var log=$('uaiLog'); function sync(){ var has=!!(log&&log.querySelector('.uaiMsg')); pg.classList.toggle('aiHasChat',has); }
+  if(log&&window.MutationObserver) new MutationObserver(sync).observe(log,{childList:true}); sync();
+})();
+
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;

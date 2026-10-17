@@ -424,3 +424,35 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - The sync bar (status dot, state and detail, Sync / Sign in button) is always shown under the greeting, restyled as
     a card: Synced / Syncing… / Offline (cached) / Changes to sync / Sync error with the reason; signed-out shows
     "Sign in from Settings to sync". The build 89 Sync tile is removed from Spaces.
+- **Build 91 — duplicate cards removed:**
+  - Home › At a glance no longer repeats the mood (it is a Today tile); it keeps streak and money.
+  - Money › Insights tab: the insight sentence, "Highest category" and "vs last month" tiles are gone (the hero card
+    on the same screen shows them); the section is headed "This month" with total, average per day, Where it went
+    and Top 5 expenses.
+  - Journal: the Write tab is removed (the "How was your day?" card and Create open the editor).
+  - AI page: the "For you" insights card is removed (the same insights are on Home and Insights).
+- **Build 92 — more duplicates removed or merged:**
+  - Settings › Data › "Money (Excel or PDF)" removed (same export as Money › Financial Tools › Export data).
+  - Notifications: "Journal reminder" and "Smart journal reminder" merged into one row with Off / At a time / Smart;
+    if both were on, Smart wins so there are no double nudges.
+  - AI page: the "+ Habit / + Task / + Expense" pills removed (the Create menu does this); question starters stay.
+  - Journal › AI: "Analyse my whole journal" replaced by quick ranges (7 days, 30 days, This year, All time) for
+    "Analyse this range".
+- **Build 93 — Money reorganised (minimal, market-style layout):**
+  - Order: header (Money · search · ⋯ More) → tabs (Transactions / Budgets / Accounts / Insights) → account chips
+    + compact hero (about a third shorter: smaller amount, no sparkline caption) → quick actions (Add · Transfer ·
+    Scan · Bills) → Upcoming strip (only when a bill or card payment is due within a week or overdue) → month +
+    Select on one row → list.
+  - The Financial Tools card is gone from the page; its items live under the header ⋯ menu.
+  - Before the first transaction: ~700 px of cards → ~470 px, and the list starts on the first screen.
+- **Build 94 — Habits and Vault organised:**
+  - Habits: a slim progress bar under the header; done habits sink into a collapsible "Done today · N" group at the
+    bottom (state remembered), so the list leads with what is left; empty section headers hide.
+  - Vault: the Passwords / Secure Notes count cards are gone (counts shown in the filter chips); Excel export and
+    import moved to a ⋯ menu in the header; sort is a slim right-aligned control; the warning is a short footnote.
+- **Build 95 — AI page organised; Vault header fixed:**
+  - AI: header row with a ⋯ menu (AI settings, What I remember, Clear conversation); one-line greeting; while the
+    conversation is empty only the four suggestion tiles show (no "Conversation" label or Clear pill, no box);
+    the AI configuration panel is hidden until opened from the menu; the "Show my progress" tile (duplicate of the
+    Habit progress pill) is gone.
+  - Vault: the lock and ⋯ buttons sit together on the right of the header (the title takes the free width).
