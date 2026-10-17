@@ -2991,6 +2991,8 @@ html.light .wk7 .done .wc{color:#1A1203}
 .sgQc{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .sgQc .chip{justify-content:center;min-height:44px!important;font-size:14px}
 .sgQc .chip.sel{background:var(--tx-indigo,#7B8CFF)!important;color:#fff!important;border-color:transparent!important}
+/* lock: cancel back to Home (build 87) */
+.lockCancel{margin-top:18px;min-height:44px;padding:0 22px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--mut);font-size:15px;font-weight:600}
 /* active workout session */
 #wkSession{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;padding:calc(10px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
 #wkSession.on{display:flex;animation:simpleTabFade 100ms ease-out}
@@ -4963,7 +4965,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 86;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 87;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -10696,7 +10698,7 @@ function renderSet(){
   $('stExact').textContent = exact ? 'On \u2014 reminders fire exactly on time' : 'Off \u2014 reminders may drift a few minutes';
   $('btnExact').style.display = (nat && !exact) ? '' : 'none';
   var hasPin = !!state.set.pin;
-  $('stPin').textContent = hasPin ? 'On \u2014 required to open the app' : 'Off';
+  $('stPin').textContent = hasPin ? 'On \u2014 asked for the Journal and the Vault' : 'Off \u2014 protects the Journal and the Vault';
   $('btnPin').textContent = hasPin ? 'Change' : 'Set';
   $('btnPinOff').style.display = hasPin ? '' : 'none';
   $('rowBio').style.display = (hasPin && bioAvailSafe()) ? '' : 'none';
@@ -13525,6 +13527,38 @@ function hmGlanceTiles(tDone,tTotal){
   $('sgSave').addEventListener('click',function(){ setTimeout(function(){ try{ if(g.hidden&&q){ var rec=sleepOn(today()); if(rec){ rec.q=q; persist(); } } }catch(e){} },0); },true);
 })();
 
+/* ================= Lock guards the Journal and the Vault only (build 87) =================
+   No PIN on launch or resume. The Journal asks for the PIN / fingerprint when opened and re-locks after 30 s away. */
+var jrUnlockedAt=0, _lockGateCb=null, _lockHiddenAt=0;
+function jrLocked(){ return !!(state.set&&state.set.pin) && !jrUnlockedAt; }
+function jrGate(cb,label){
+  if(!jrLocked()){ cb&&cb(); return true; }
+  _lockGateCb=cb||null; showLock('unlock');
+  try{ $('lockS').textContent=(label||'Journal')+' is locked'; $('lockT').textContent='Enter PIN'; var c=$('lockCancel'); if(c) c.style.display=''; }catch(e){}
+  return false;
+}
+function jrRelock(){ jrUnlockedAt=0; var onJr=document.querySelector('.page.on')&&document.querySelector('.page.on').id==='pgJr', jrSheet=/^jr/.test(String(sheetOpen||''))||sheetOpen==='jrReadSheet';
+  if(onJr||jrSheet){ jrGate(function(){},'Journal'); } }
+(function(){
+  /* cancel returns to Home when the lock is guarding the Journal */
+  var lock=$('lock'); if(lock&&!$('lockCancel')){ lock.insertAdjacentHTML('beforeend','<button type="button" class="lockCancel" id="lockCancel" style="display:none">Cancel</button>');
+    $('lockCancel').addEventListener('click',function(){ _lockGateCb=null; var wasGate=true; _lockCancelling=true; try{ closeSheet(); }catch(e){} hideLock(); _lockCancelling=false; jrUnlockedAt=0; if(wasGate&&document.querySelector('.page.on')&&document.querySelector('.page.on').id==='pgJr'){ showTab('pgToday'); } }); }
+  /* a successful unlock (PIN or fingerprint) continues into what was requested */
+  var _lockCancelling=false; var hl=hideLock; window.hideLock=hideLock=function(){ var wasUnlock=(lockMode==='unlock')&&!_lockCancelling; var r=hl.apply(this,arguments); try{ var c=$('lockCancel'); if(c) c.style.display='none'; $('lockS').textContent='Momentum is locked'; }catch(e){}
+    if(wasUnlock){ jrUnlockedAt=Date.now(); var cb=_lockGateCb; _lockGateCb=null; if(cb){ try{ cb(); }catch(e){} } } return r; };
+  /* no lock on launch; lockNow (resume) becomes a Journal re-lock after 30 s away */
+  window.lockNow=lockNow=function(){ if(!state.set.pin) return; if(_lockHiddenAt&&Date.now()-_lockHiddenAt>30000) jrRelock(); };
+  document.addEventListener('visibilitychange',function(){ if(document.hidden) _lockHiddenAt=Date.now(); });
+  setTimeout(function(){
+    /* Journal entry points */
+    var st=showTab; window.showTab=showTab=function(id){ if(id==='pgJr'&&jrLocked()){ var a=[].slice.call(arguments); if(!jrGate(function(){ st.apply(null,a); },'Journal')) return; } return st.apply(this,arguments); };
+    ['openJr','openJrRead','openJrBooks'].forEach(function(n){ var f=window[n]; if(typeof f!=='function') return; window[n]=function(){ var a=[].slice.call(arguments), self=this; if(jrLocked()){ jrGate(function(){ f.apply(self,a); },'Journal'); return; } return f.apply(self,a); }; });
+    if(typeof openJr==='function') openJr=window.openJr; if(typeof openJrRead==='function') openJrRead=window.openJrRead; if(typeof openJrBooks==='function') openJrBooks=window.openJrBooks;
+    /* Settings copy */
+    try{ var s=$('stPin'); if(s&&state.set.pin) s.textContent='On \u2014 asked for the Journal and the Vault'; var b=document.querySelector('#rowBio .setS'); if(b) b.textContent='Unlock the Journal and the Vault with biometrics'; }catch(e){}
+  },0);
+})();
+
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;
@@ -15617,7 +15651,7 @@ function init(){
   if(hasMeaningfulData(state)) { var _bj=stateJson(); if(_bj){ try{ uStore.setItem(KEY, _bj); }catch(e){} } }
   /* perf: let the first frame paint before the Firebase SDKs load and parse */
   if(typeof initSync==='function') setTimeout(initSync, 400);
-  if(state.set.pin) showLock('unlock');
+  /* build 87: the PIN guards the Journal and the Vault, not the app */
   try{ initOnboarding(); }catch(e){}
   try{ applyUiTune(); }catch(e){}
   try{ applyPaper(); }catch(e){}

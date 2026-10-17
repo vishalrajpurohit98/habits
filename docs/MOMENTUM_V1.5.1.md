@@ -407,3 +407,10 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Headers: tinted vector icons (new ic_w_money, ic_w_workout) and sentence-case titles ("Habits", "Tasks", "Money",
     "Mood", "Workout", "Ask AI") replace emoji and all-caps labels.
   - List rows: 34 dp check targets, 48 dp minimum row height.
+- **Build 87 — PIN / biometric lock guards the Journal and the Vault only:**
+  - No lock on launch or on returning to the app. The Journal asks for the PIN (or fingerprint) when opened: the
+    Journal tab/Space tile, a new entry from Create or a widget, an entry from search, notebooks. Once unlocked it
+    stays open for the session and re-locks after the app has been in the background for more than 30 s.
+  - The lock screen says "Journal is locked" and has a Cancel button that returns to Home (cancel keeps it locked).
+  - The Vault keeps its own PIN / fingerprint gate. Settings › Privacy copy explains what the PIN protects.
+  - New test SEC-03 covers launch, gating, cancel and session behaviour.
