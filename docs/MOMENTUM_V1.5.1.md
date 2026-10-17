@@ -417,3 +417,10 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
 - **Build 88 — Spaces layout (Home):**
   - Appearance › Spaces layout: Shortcuts (default: tinted rounded icons with labels, no tile backgrounds; one row on
     desktop, four per row on phones), Tiles (the previous grid) or Chips (compact pills that wrap). Saved per account.
+- **Build 89 — Sync tile on Home:**
+  - Spaces has a Sync tile again (blue cloud, between Sleep and Settings). Signed in: syncs now (spinner, "Syncing…"
+    then "Synced ✔"; offline and error messages), then nudges Drive photo sync. Signed out: opens Settings › Cloud sync.
+- **Build 90 — Home sync bar restored above Spaces; Sync tile removed:**
+  - The sync bar (status dot, state and detail, Sync / Sign in button) is always shown under the greeting, restyled as
+    a card: Synced / Syncing… / Offline (cached) / Changes to sync / Sync error with the reason; signed-out shows
+    "Sign in from Settings to sync". The build 89 Sync tile is removed from Spaces.

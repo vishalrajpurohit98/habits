@@ -2408,7 +2408,7 @@ html.sleepGateOn #tabbar{display:none!important}
 .sgMsg{min-height:20px;font-size:14px;color:var(--coral);margin:4px 0 8px}
 .sgCard .primary{width:100%}
 /* duplicates removed (build 59) */
-#todaySyncBar{display:none!important}#todaySyncBar.syncProblem{display:flex!important}   /* shown only when sync fails */
+#todaySyncBar{display:flex!important}#todaySyncBar.syncProblem{display:flex!important}   /* shown only when sync fails */
 #jrView-write #jrTalkBtn,#profileChip,#profileMenu,#profileList,#pgHabits #srchBtn,#statSubSeg [data-ss="mo"],#jrChatLog,#jrChatClear{display:none!important}
 #syncReconfig{display:none!important}
 .setRow:has(> #syncReconfig){display:none!important}
@@ -3010,6 +3010,25 @@ html[data-spaces="pills"] .hmSpaceGrid button::before,html[data-spaces="pills"] 
 html[data-spaces="pills"] .hmSpaceGrid .spLbl{flex-direction:row!important;gap:8px!important;font-size:13.5px!important;font-weight:600!important}
 html[data-spaces="pills"] .hmSpaceGrid .sq{width:28px!important;height:28px!important;border-radius:9px!important;box-shadow:none!important}
 html[data-spaces="pills"] .hmSpaceGrid .sq .ic{width:15px!important;height:15px!important}
+/* Sync tile spins while syncing (build 89) */
+@keyframes hmSpin{to{transform:rotate(360deg)}}
+#hmSyncTile.syncing .sq .ic,#hmSyncTile.syncing .sq svg{animation:hmSpin 1s linear infinite}
+/* ================= Home sync bar, above Spaces (build 90) ================= */
+#todaySyncBar.todaySyncBar{display:flex!important;align-items:center;justify-content:space-between;gap:10px;background:var(--card)!important;border:1px solid var(--line)!important;border-radius:16px!important;padding:10px 10px 10px 14px!important;margin:0 0 12px!important;min-height:52px}
+#todaySyncBar .todaySyncState{display:flex;align-items:center;gap:10px;min-width:0}
+#todaySyncBar .todaySyncDot{width:10px;height:10px;border-radius:50%;background:var(--mut2);flex:none;transition:background .3s,box-shadow .3s}
+#todaySyncBar .todaySyncDot.synced{background:var(--tx-green);box-shadow:0 0 0 3px color-mix(in srgb,var(--tx-green) 22%,transparent)}
+#todaySyncBar .todaySyncDot.syncing{background:var(--amber);box-shadow:0 0 0 3px color-mix(in srgb,var(--amber) 22%,transparent);animation:todaySyncPulse 1s ease-in-out infinite}
+#todaySyncBar .todaySyncDot.cached{background:var(--tx-blue)}
+#todaySyncBar .todaySyncDot.error{background:var(--tx-coral);box-shadow:0 0 0 3px color-mix(in srgb,var(--tx-coral) 22%,transparent)}
+@keyframes todaySyncPulse{0%,100%{opacity:1}50%{opacity:.45}}
+#todaySyncBar .todaySyncText{font-size:14.5px;font-weight:700;color:var(--ink);line-height:1.2}
+#todaySyncBar .todaySyncSub{font-size:12.5px;color:var(--mut);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#todaySyncBar .todaySyncBtn{display:inline-flex!important;align-items:center;gap:6px;min-height:40px!important;padding:0 14px!important;border-radius:999px!important;border:0!important;background:color-mix(in srgb,var(--tx-blue) 16%,transparent)!important;color:var(--tx-blue)!important;font-size:13.5px!important;font-weight:700;flex:none;box-shadow:none!important}
+#todaySyncBar .todaySyncBtn svg,#todaySyncBar .todaySyncBtn .ic{color:var(--tx-blue)!important;stroke:var(--tx-blue)}
+#todaySyncBar .todaySyncBtn svg,.todaySyncBtn .ic{width:16px;height:16px}
+#todaySyncBar .todaySyncBtn.busy svg{animation:hmSpin 1s linear infinite}
+#todaySyncBar.disabled .todaySyncBtn{background:color-mix(in srgb,var(--ink) 9%,transparent);color:var(--ink)}
 /* active workout session */
 #wkSession{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;padding:calc(10px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
 #wkSession.on{display:flex;animation:simpleTabFade 100ms ease-out}
@@ -4982,7 +5001,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 88;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 90;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -11517,7 +11536,7 @@ function renderHome(){
     var rx=e.target.closest('.hmRecapX'); if(rx){ state.set.recapHidden=fmt(weekStart(new Date())); persist(); renderHome(); return; }
     var b=e.target.closest('[data-hm-mood],[data-hm-go],[data-hm-qa]'); if(!b||!host.contains(b)) return;
     if(b.hasAttribute('data-hm-mood')){ var i=+b.getAttribute('data-hm-mood'), t=today(); setMood(t, moodOf(t)===i?-1:i); if(typeof haptic==='function') haptic(); renderHome(); try{ renderStrictReminders(); }catch(_){} return; }
-    if(b.hasAttribute('data-hm-qa')){ var q=document.querySelector('#quickAccess [data-qa="'+b.getAttribute('data-hm-qa')+'"]'); if(q) q.click(); return; }
+    if(b.getAttribute('data-hm-qa')==='sync'){ hmSyncTile(); return; } if(b.hasAttribute('data-hm-qa')){ var q=document.querySelector('#quickAccess [data-qa="'+b.getAttribute('data-hm-qa')+'"]'); if(q) q.click(); return; }
     var g=b.getAttribute('data-hm-go')||'', k=g.slice(0,g.indexOf(':')), v=g.slice(g.indexOf(':')+1);
     if(k==='tab') showTab(v);
     else if(k==='task'){ if(typeof openTask==='function') openTask(v); }
@@ -13586,6 +13605,16 @@ function applySpacesStyle(){ var v=(state.set&&state.set.spacesStyle)||'icons'; 
     $('spacesSeg').addEventListener('click',function(e){ var b=e.target.closest('[data-spaces-opt]'); if(!b) return; state.set.spacesStyle=b.getAttribute('data-spaces-opt'); persist(); applySpacesStyle(); }); applySpacesStyle(); }
 })();
 
+/* ================= Home: Sync tile (build 89) ================= */
+function hmSyncTile(){
+  var signedIn=!!(typeof fbUser!=='undefined'&&fbUser);
+  if(!signedIn){ showTab('pgSet'); setTimeout(function(){ try{ var c=[...document.querySelectorAll('#setCardGrid .setCard2')].find(function(x){ return /Cloud sync/.test(x.textContent); }); if(c) c.click(); }catch(e){} },80); toastN('Sign in to sync across devices'); return; }
+  if(typeof isOnline==='function'&&!isOnline()){ try{ setSyncState('cached'); }catch(e){} toastN('Offline \u2014 your changes are safe and will sync later'); return; }
+  var tile=$('hmSyncTile'); if(tile) tile.classList.add('syncing'); toastN('Syncing\u2026');
+  var p=(typeof syncWithTimeout==='function')?syncWithTimeout():Promise.reject(new Error('Sync is not set up'));
+  p.then(function(){ toastN('Synced \u2714'); }).catch(function(e){ try{ setSyncState('error'); }catch(x){} var m=(typeof prettySyncErr==='function')?prettySyncErr(e):String(e&&e.message||e); toastN(m); })
+   .then(function(){ if(tile) tile.classList.remove('syncing'); try{ if(typeof DrivePhotos!=='undefined'&&DrivePhotos.on()&&!DrivePhotos.busy) DrivePhotos.sync(false); }catch(e){} });
+}
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;

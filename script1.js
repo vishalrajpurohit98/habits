@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 88;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 90;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -6551,7 +6551,7 @@ function renderHome(){
     var rx=e.target.closest('.hmRecapX'); if(rx){ state.set.recapHidden=fmt(weekStart(new Date())); persist(); renderHome(); return; }
     var b=e.target.closest('[data-hm-mood],[data-hm-go],[data-hm-qa]'); if(!b||!host.contains(b)) return;
     if(b.hasAttribute('data-hm-mood')){ var i=+b.getAttribute('data-hm-mood'), t=today(); setMood(t, moodOf(t)===i?-1:i); if(typeof haptic==='function') haptic(); renderHome(); try{ renderStrictReminders(); }catch(_){} return; }
-    if(b.hasAttribute('data-hm-qa')){ var q=document.querySelector('#quickAccess [data-qa="'+b.getAttribute('data-hm-qa')+'"]'); if(q) q.click(); return; }
+    if(b.getAttribute('data-hm-qa')==='sync'){ hmSyncTile(); return; } if(b.hasAttribute('data-hm-qa')){ var q=document.querySelector('#quickAccess [data-qa="'+b.getAttribute('data-hm-qa')+'"]'); if(q) q.click(); return; }
     var g=b.getAttribute('data-hm-go')||'', k=g.slice(0,g.indexOf(':')), v=g.slice(g.indexOf(':')+1);
     if(k==='tab') showTab(v);
     else if(k==='task'){ if(typeof openTask==='function') openTask(v); }
@@ -8620,6 +8620,16 @@ function applySpacesStyle(){ var v=(state.set&&state.set.spacesStyle)||'icons'; 
     $('spacesSeg').addEventListener('click',function(e){ var b=e.target.closest('[data-spaces-opt]'); if(!b) return; state.set.spacesStyle=b.getAttribute('data-spaces-opt'); persist(); applySpacesStyle(); }); applySpacesStyle(); }
 })();
 
+/* ================= Home: Sync tile (build 89) ================= */
+function hmSyncTile(){
+  var signedIn=!!(typeof fbUser!=='undefined'&&fbUser);
+  if(!signedIn){ showTab('pgSet'); setTimeout(function(){ try{ var c=[...document.querySelectorAll('#setCardGrid .setCard2')].find(function(x){ return /Cloud sync/.test(x.textContent); }); if(c) c.click(); }catch(e){} },80); toastN('Sign in to sync across devices'); return; }
+  if(typeof isOnline==='function'&&!isOnline()){ try{ setSyncState('cached'); }catch(e){} toastN('Offline \u2014 your changes are safe and will sync later'); return; }
+  var tile=$('hmSyncTile'); if(tile) tile.classList.add('syncing'); toastN('Syncing\u2026');
+  var p=(typeof syncWithTimeout==='function')?syncWithTimeout():Promise.reject(new Error('Sync is not set up'));
+  p.then(function(){ toastN('Synced \u2714'); }).catch(function(e){ try{ setSyncState('error'); }catch(x){} var m=(typeof prettySyncErr==='function')?prettySyncErr(e):String(e&&e.message||e); toastN(m); })
+   .then(function(){ if(tile) tile.classList.remove('syncing'); try{ if(typeof DrivePhotos!=='undefined'&&DrivePhotos.on()&&!DrivePhotos.busy) DrivePhotos.sync(false); }catch(e){} });
+}
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;
