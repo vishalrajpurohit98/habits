@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 87;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 88;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -8608,6 +8608,16 @@ function jrRelock(){ jrUnlockedAt=0; var onJr=document.querySelector('.page.on')
     /* Settings copy */
     try{ var s=$('stPin'); if(s&&state.set.pin) s.textContent='On \u2014 asked for the Journal and the Vault'; var b=document.querySelector('#rowBio .setS'); if(b) b.textContent='Unlock the Journal and the Vault with biometrics'; }catch(e){}
   },0);
+})();
+
+/* ================= Spaces layout: Shortcuts / Tiles / Chips (build 88) ================= */
+function applySpacesStyle(){ var v=(state.set&&state.set.spacesStyle)||'icons'; document.documentElement.setAttribute('data-spaces',v);
+  document.querySelectorAll('[data-spaces-opt]').forEach(function(b){ b.classList.toggle('sel',b.getAttribute('data-spaces-opt')===v); }); }
+(function(){
+  applySpacesStyle();
+  var ds=$('dsSeg'); var col=ds&&ds.closest('.setCol');
+  if(col&&!$('spacesSeg')){ col.insertAdjacentHTML('afterend','<div class="setCol"><div class="setT" style="margin-bottom:4px">Spaces layout</div><div class="setS" style="margin-bottom:10px">How the shortcuts on Home are shown</div><div class="chips" id="spacesSeg"><button type="button" class="chip" data-spaces-opt="icons">Shortcuts</button><button type="button" class="chip" data-spaces-opt="tiles">Tiles</button><button type="button" class="chip" data-spaces-opt="pills">Chips</button></div></div>');
+    $('spacesSeg').addEventListener('click',function(e){ var b=e.target.closest('[data-spaces-opt]'); if(!b) return; state.set.spacesStyle=b.getAttribute('data-spaces-opt'); persist(); applySpacesStyle(); }); applySpacesStyle(); }
 })();
 
 function climb(el, root, attr){

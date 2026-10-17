@@ -414,3 +414,6 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - The lock screen says "Journal is locked" and has a Cancel button that returns to Home (cancel keeps it locked).
   - The Vault keeps its own PIN / fingerprint gate. Settings › Privacy copy explains what the PIN protects.
   - New test SEC-03 covers launch, gating, cancel and session behaviour.
+- **Build 88 — Spaces layout (Home):**
+  - Appearance › Spaces layout: Shortcuts (default: tinted rounded icons with labels, no tile backgrounds; one row on
+    desktop, four per row on phones), Tiles (the previous grid) or Chips (compact pills that wrap). Saved per account.

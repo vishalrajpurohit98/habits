@@ -2993,6 +2993,23 @@ html.light .wk7 .done .wc{color:#1A1203}
 .sgQc .chip.sel{background:var(--tx-indigo,#7B8CFF)!important;color:#fff!important;border-color:transparent!important}
 /* lock: cancel back to Home (build 87) */
 .lockCancel{margin-top:18px;min-height:44px;padding:0 22px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--mut);font-size:15px;font-weight:600}
+/* ================= Spaces layouts (build 88) ================= */
+/* Shortcuts: tinted rounded icons with labels, no tile backgrounds */
+html[data-spaces="icons"] .hmSpaceGrid{display:flex!important;flex-wrap:wrap;gap:2px 0!important;justify-content:flex-start}
+html[data-spaces="icons"] .hmSpaceGrid button{flex:0 0 25%;max-width:25%;min-height:0!important;padding:8px 4px 10px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:14px;gap:7px!important}
+html[data-spaces="icons"] .hmSpaceGrid button::before,html[data-spaces="icons"] .hmSpaceGrid button::after{display:none!important}
+html[data-spaces="icons"] .hmSpaceGrid .sq{width:54px!important;height:54px!important;border-radius:18px!important;box-shadow:0 6px 16px color-mix(in srgb,var(--sc,#888) 28%,transparent)}
+html[data-spaces="icons"] .hmSpaceGrid .sq .ic{width:24px!important;height:24px!important}
+html[data-spaces="icons"] .hmSpaceGrid button:active .sq{transform:scale(.92)}
+html[data-spaces="icons"] .hmSpaceGrid .spLbl{gap:7px!important;font-size:12.5px!important;font-weight:600!important}
+@media (min-width:1000px){ html[data-spaces="icons"] .hmSpaceGrid{flex-wrap:nowrap!important;max-width:760px} html[data-spaces="icons"] .hmSpaceGrid button{flex:1 1 0;max-width:110px} }
+/* Chips: compact pills that wrap */
+html[data-spaces="pills"] .hmSpaceGrid{display:flex!important;flex-wrap:wrap;gap:8px!important}
+html[data-spaces="pills"] .hmSpaceGrid button{flex:0 0 auto;flex-direction:row!important;gap:8px!important;min-height:40px!important;padding:0 14px 0 8px!important;border-radius:999px!important;background:color-mix(in srgb,var(--sc,var(--ink)) 11%,var(--card2))!important;border:1px solid color-mix(in srgb,var(--sc,var(--ink)) 26%,transparent)!important;box-shadow:none!important}
+html[data-spaces="pills"] .hmSpaceGrid button::before,html[data-spaces="pills"] .hmSpaceGrid button::after{display:none!important}
+html[data-spaces="pills"] .hmSpaceGrid .spLbl{flex-direction:row!important;gap:8px!important;font-size:13.5px!important;font-weight:600!important}
+html[data-spaces="pills"] .hmSpaceGrid .sq{width:28px!important;height:28px!important;border-radius:9px!important;box-shadow:none!important}
+html[data-spaces="pills"] .hmSpaceGrid .sq .ic{width:15px!important;height:15px!important}
 /* active workout session */
 #wkSession{position:fixed;inset:0;z-index:70;background:var(--bg);display:none;flex-direction:column;overflow-y:auto;padding:calc(10px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
 #wkSession.on{display:flex;animation:simpleTabFade 100ms ease-out}
@@ -4965,7 +4982,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 87;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 88;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -13557,6 +13574,16 @@ function jrRelock(){ jrUnlockedAt=0; var onJr=document.querySelector('.page.on')
     /* Settings copy */
     try{ var s=$('stPin'); if(s&&state.set.pin) s.textContent='On \u2014 asked for the Journal and the Vault'; var b=document.querySelector('#rowBio .setS'); if(b) b.textContent='Unlock the Journal and the Vault with biometrics'; }catch(e){}
   },0);
+})();
+
+/* ================= Spaces layout: Shortcuts / Tiles / Chips (build 88) ================= */
+function applySpacesStyle(){ var v=(state.set&&state.set.spacesStyle)||'icons'; document.documentElement.setAttribute('data-spaces',v);
+  document.querySelectorAll('[data-spaces-opt]').forEach(function(b){ b.classList.toggle('sel',b.getAttribute('data-spaces-opt')===v); }); }
+(function(){
+  applySpacesStyle();
+  var ds=$('dsSeg'); var col=ds&&ds.closest('.setCol');
+  if(col&&!$('spacesSeg')){ col.insertAdjacentHTML('afterend','<div class="setCol"><div class="setT" style="margin-bottom:4px">Spaces layout</div><div class="setS" style="margin-bottom:10px">How the shortcuts on Home are shown</div><div class="chips" id="spacesSeg"><button type="button" class="chip" data-spaces-opt="icons">Shortcuts</button><button type="button" class="chip" data-spaces-opt="tiles">Tiles</button><button type="button" class="chip" data-spaces-opt="pills">Chips</button></div></div>');
+    $('spacesSeg').addEventListener('click',function(e){ var b=e.target.closest('[data-spaces-opt]'); if(!b) return; state.set.spacesStyle=b.getAttribute('data-spaces-opt'); persist(); applySpacesStyle(); }); applySpacesStyle(); }
 })();
 
 function climb(el, root, attr){
