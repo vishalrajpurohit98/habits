@@ -487,3 +487,22 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     Journal), Insights › Wellness mood cards and year in pixels (the tab is now Fitness), the Android Mood widget's
     logging (its buttons open a journal entry), the Quick Log Mood button (opens a journal entry) and the AI
     quick-log mood parsing.
+- **Build 99 — Workouts: library, progress, routines, habit link, rest timer:**
+  - Exercise library (32 exercises in Chest, Back, Shoulders, Arms, Legs, Core, Cardio, Full body) with search and
+    muscle-group filters; adding one sets its type, unit and goal; every library exercise has "How to" steps and
+    tips (also from the ? on the exercise card and from the new-exercise sheet).
+  - Per-exercise progress (chart icon on the card): sessions, best, goal line, last 12 sessions as bars, recent
+    sessions with sets and personal-best markers.
+  - Routines: name + exercise checklist; Start opens a session with only those exercises, in order, titled with the
+    routine; routines sync across devices.
+  - Habit link: saving a session ticks the linked habit (auto-detected from names like Workout/Gym/Run; choose
+    another or none from the module).
+  - Rest timer starts automatically after each set with the remembered length (60s / 90s / 2 min), buzzes and beeps
+    when done.
+- **Build 100 — interval (HIIT) timer and custom rest length:**
+  - Interval timer (Workouts › Interval timer, and "Intervals" in a session's rest card): presets Tabata, 30/30,
+    40/20, 45/15, EMOM 60, or your own work / rest / rounds / get-ready seconds (remembered); full-screen countdown
+    with phase colours (get ready, work, rest, done), round counter, progress bar, 3-2-1 beeps and a tone plus
+    vibration on every change, Pause / Skip / Stop, screen kept awake; Back closes it.
+  - Rest card: a custom seconds field alongside 60s / 90s / 2 min; the chosen length is remembered and starts
+    automatically after each set.
