@@ -456,3 +456,17 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     the AI configuration panel is hidden until opened from the menu; the "Show my progress" tile (duplicate of the
     Habit progress pill) is gone.
   - Vault: the lock and ⋯ buttons sit together on the right of the header (the title takes the free width).
+- **Build 96 — scope trim (Workouts, Vault and font styles kept):**
+  - Sleep tracking removed from the UI: no morning check-in gate, no Sleep space, no Create › Sleep, no Wellness sleep
+    cards, AI log_sleep retired, Quick log widget's Sleep button hidden, AI quick-log ignores sleep. Existing sleep
+    records stay in backups and the Everything export.
+  - Daily review removed: no Review space and no "Start daily review" in the evening wrap-up (Journal › Reflect and
+    the AI review starters remain). Strict mood & journal nag and Test reminder rows removed.
+  - Financial Tools: Savings goals, Smart report and Export data removed; Monthly report (PDF) and Task export
+    removed (Backup, Everything (Excel) and Journal export remain).
+  - Habits: the Money habit type is retired for new habits (existing ones keep working).
+  - Fine-tune appearance keeps Typography (Text size), Motion and Accessibility; Layout & density, Cards, Controls,
+    Font weight and Paper texture are gone and their saved values reset to defaults.
+  - Insights › Wellness: the mood calendar is gone (Year in pixels stays).
+  - Home: Today tiles are Tasks · Mood · Money (left this month) with the best current streak under the ring;
+    the At a glance card is gone.

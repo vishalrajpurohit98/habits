@@ -17,9 +17,7 @@ def wk(pg,ctx):
 CASES=[
  ('MS-01','Mood','Log today mood from the mood sheet','PY:mood'),
  ('MS-02','Mood','Changing mood the same day replaces it (one per day)',"(()=>{setMood(today(),0);setMood(today(),3);return T.ok(moodOf(today())===3,moodOf(today()))})()"),
- ('MS-03','Sleep','Sleep duration across midnight is correct',"(()=>{const a=sleepMins('23:30','07:15'),b=sleepMins('13:00','14:00');return T.ok(a===465&&b===60,'23:30 to 07:15 = '+a+' min, 13:00 to 14:00 = '+b+' min')})()"),
- ('MS-04','Sleep','Log sleep from the sleep sheet',"(async()=>{openSleep(today());"+W+"const s=T.q('#sleepSave');if(!s)return T.ok(false,'no save');s.click();"+W+"return T.ok(!!sleepOn(today()),JSON.stringify(sleepOn(today())))})()"),
- ('MS-05','Sleep','Average sleep and sleep-mood link render in Insights',"(async()=>{showTab('pgStats');T.click('#statSubSeg [data-ss=he]');await T.w(500);return T.ok(/sleep|mood/i.test(T.q('#pgStats').innerText),'wellness text ok')})()"),
+ ('MS-05','Mood','Wellness tab renders mood insights',"(async()=>{showTab('pgStats');T.click('#statSubSeg [data-ss=he]');await T.w(500);return T.ok(/mood/i.test(T.q('#pgStats').innerText),'wellness text ok')})()"),
  ('WK-01','Workouts','Workout module opens with its controls','PY:wk'),
  ('WK-02','Workouts','Workout log values are summed per day',"(()=>{const e=(state.exs||[])[0];if(!e)return T.ok(false,'no exercises in demo');const v=exToday(e.id);return T.ok(typeof v==='number',e.name+' today '+v)})()"),
  ('INS-01','Insights','Overview, Habits and Wellness tabs render',"(async()=>{showTab('pgStats');const r=[];for(const b of T.qa('#statSubSeg button').filter(x=>T.vis(x))){b.click();await T.w(400);r.push(b.textContent.trim()+':'+(T.q('#pgStats').innerText.length>150));}return T.ok(r.length===3&&r.every(x=>x.endsWith('true')),r)})()"),

@@ -821,7 +821,7 @@ public class WidgetDialogActivity extends Activity {
             String m0 = AiParser.T_EXPENSE.equals(a0.type) ? "money"
                     : (AiParser.T_TASK_ADD.equals(a0.type) || AiParser.T_TASK_DONE.equals(a0.type)) ? "tasks"
                     : (AiParser.T_PLAN.equals(a0.type) || AiParser.T_SET.equals(a0.type)) ? "workouts" : null;
-            if (m0 != null && !st.moduleOn(m0)) { it0.remove(); dropped++; }
+            if ((m0 != null && !st.moduleOn(m0)) || AiParser.T_SLEEP.equals(a0.type)) { it0.remove(); dropped++; }
         }
         if (dropped > 0) toast(dropped + (dropped == 1 ? " item was" : " items were") + " skipped \u2014 that module is turned off");
         for (AiParser.Action a : actions) {

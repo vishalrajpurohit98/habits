@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 95;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 96;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -6509,14 +6509,13 @@ function renderHome(){
    +'<nav class="hmSpaces" aria-label="More spaces">'
      +'<div class="sectLbl">'+ICON('grid')+'Spaces</div><div class="hmSpaceGrid">'
      +'<button data-hm-go="tab:pgTasks"><span class="sq s-blue">'+ICON('task')+'</span><span>Tasks</span></button><button data-hm-go="tab:pgJr"><span class="sq s-orange">'+ICON('note')+'</span><span>Journal</span></button><button data-hm-qa="workout"><span class="sq s-coral">'+ICON('workout')+'</span><span>Workout</span></button>'
-     +'<button data-hm-go="tab:pgStats"><span class="sq s-teal">'+ICON('stats')+'</span><span>Insights</span></button><button data-hm-qa="vault"><span class="sq s-gray">'+ICON('vault')+'</span><span>Vault</span></button><button data-review-open><span class="sq s-amber">'+ICON('star')+'</span><span>Review</span></button>'
-     +'<button data-hm-qa="sleep"><span class="sq s-indigo">'+ICON('sleep')+'</span><span>Sleep</span></button><button data-hm-go="tab:pgSet"><span class="sq s-slate">'+ICON('settings')+'</span><span>Settings</span></button></div>'
+     +'<button data-hm-go="tab:pgStats"><span class="sq s-teal">'+ICON('stats')+'</span><span>Insights</span></button><button data-hm-qa="vault"><span class="sq s-gray">'+ICON('vault')+'</span><span>Vault</span></button><button data-hm-go="tab:pgSet"><span class="sq s-slate">'+ICON('settings')+'</span><span>Settings</span></button></div>'
    +'</nav>'
    +(habits.length?'':'<section class="hmSec"><div class="sectLbl">'+ICON('habit')+'Today</div><div class="hmInsText">No habits yet. Start with one small habit you can do every day.</div><button class="btnP" data-hm-go="new:habit">'+ICON('plus')+'Create a habit</button></section>')
    +(!habits.length?'':'<section class="hmSec"><div class="sectLbl">'+ICON('habit')+'Today</div>'
      +'<div class="hmTodayRow"><svg class="hmRing" viewBox="0 0 96 96" role="img" aria-label="'+pct+'% of habits completed"><circle class="hmRingBg" cx="48" cy="48" r="40"/><circle class="hmRingFg" cx="48" cy="48" r="40" stroke-dasharray="251.3" stroke-dashoffset="'+(251.3*(1-pct/100)).toFixed(1)+'" transform="rotate(-90 48 48)"/><text x="48" y="55" text-anchor="middle" class="hmRingTxt">'+pct+'%</text></svg><div class="hmTodayTxt"><div class="hmBig"><span class="hmBigNum">'+hDone+'<span class="hmBigDen"> / '+hDue+'</span></span></div><div class="hmBigOf">habits completed</div>'+'</div></div>'+hmGlanceTiles(tDone,tasksToday.length)+'</section>')
    +'<section class="hmSec"><div class="sectLbl">'+ICON('clock')+'Next</div><div class="hmNext">'+nextHtml+'</div></section>'
-   +'<section class="hmSec"><div class="sectLbl">'+ICON('zap')+'At a glance</div><div class="hmGlance">'+glance+'</div></section>'
+   
    +'<section class="hmSec"><div class="sectLbl">'+ICON('ai')+'One insight</div>'+insHtml+'<button class="btnS" data-hm-go="tab:pgStats">'+ICON('stats')+'View insights</button></section>'
    ;
   /* ---- adaptive Home: the first card after Spaces depends on the time of day ---- */
@@ -6537,7 +6536,7 @@ function renderHome(){
     feat='<section class="hmSec hmFeature" data-sec="wrap"><div class="sectLbl">'+ICON('sleep')+'Evening wrap-up</div>'
       +(leftH.length||leftT.length ? '<div class="hmWrapSum"><b>'+leftH.length+'</b> habit'+(leftH.length===1?'':'s')+' and <b>'+leftT.length+'</b> task'+(leftT.length===1?'':'s')+' still open</div><div class="hmNext">'+items+'</div>'
                                    : '<div class="hmInsText">Everything for today is done. Take a minute to reflect before bed.</div>')
-      +'<button class="btnP hmWrapBtn" type="button" data-review-open>'+ICON('star')+'Start daily review</button></section>';
+      +'</section>';
   }
   if(isRecapDay(now)) feat+=weeklyRecapHTML(new Date(now.getTime()));
   if(feat){ var cut=html.indexOf('</nav>'); if(cut>0) html=html.slice(0,cut+6)+feat+html.slice(cut+6); }
@@ -8747,6 +8746,42 @@ function habitsOrganise(){
   var log=$('uaiLog'); function sync(){ var has=!!(log&&log.querySelector('.uaiMsg')); pg.classList.toggle('aiHasChat',has); }
   if(log&&window.MutationObserver) new MutationObserver(sync).observe(log,{childList:true}); sync();
 })();
+
+/* ================= Scope trim (build 96): sleep, daily review, extras ================= */
+function trimSleepUI(root){ try{ [].slice.call((root||document).querySelectorAll('#pgStats .insCard,#pgStats .card,#pgStats .chartBox,#pgStats .statCard')).forEach(function(e){ if(e.querySelector('.card,.insCard')) return; if(/average sleep|sleep ?&|sleep and mood|sleep vs|sleep[- ]mood|bedtime|last night|hours slept|sleep duration|sleep trend/i.test(e.textContent)) e.style.display='none'; }); }catch(e){} }
+(function(){
+  /* 1. Sleep tracking is out of the UI (records stay in backups and exports) */
+  document.querySelectorAll('[data-add-action="sleep"]').forEach(function(b){ b.style.display='none'; });
+  var g=$('sleepGate'); if(g){ g.hidden=true; document.documentElement.classList.remove('sleepGateOn'); }
+  setTimeout(function(){
+    window.sleepGateNeeded=function(){ return false; }; if(typeof showSleepGate==='function') window.showSleepGate=showSleepGate=function(){ var g=$('sleepGate'); if(g) g.hidden=true; document.documentElement.classList.remove('sleepGateOn'); };
+    if(typeof executeAction==='function'){ var ex=executeAction; window.executeAction=executeAction=function(a){ if(a&&/sleep/i.test(String(a.action||''))) return {ok:false,msg:'Sleep tracking is no longer part of Momentum.'}; return ex.apply(this,arguments); }; }
+    /* 2. the strict evening nag is gone */
+    if(typeof renderStrictReminders==='function') window.renderStrictReminders=renderStrictReminders=function(){ var b=$('strictRem'); if(b) b.innerHTML=''; };
+    var sr=$('strictRem'); if(sr) sr.innerHTML='';
+  },0);
+  var st=$('pgStats'); if(st&&window.MutationObserver){ var t=null; new MutationObserver(function(){ clearTimeout(t); t=setTimeout(function(){ trimSleepUI(st); },30); }).observe(st,{childList:true,subtree:true}); }
+  /* 3. Settings rows that leave: Test reminder, Strict mood & journal, Monthly PDF, Font weight, Fine-tune groups */
+  [].slice.call(document.querySelectorAll('#pgSet .setT')).forEach(function(t){ if(/^(Test reminder|Strict mood)/.test(t.textContent.trim())){ var r=t.closest('.setRow'); if(r) r.style.display='none'; } });
+  var pdf=$('btnPdfReport'); if(pdf&&pdf.closest('.setRow')) pdf.closest('.setRow').style.display='none';
+  var rs=$('tuneReset'); if(rs) rs.style.display='none';
+  [].slice.call(document.querySelectorAll('#pgSet .tuneGroupT')).forEach(function(h){ var drop=/Layout|Cards|Controls|Paper/i.test(h.textContent); var n=h; while(n){ if(drop) n.style.display='none'; n=n.nextElementSibling; if(!n||n.classList.contains('tuneGroupT')) break; } });
+  var w=document.querySelector('[data-tuneseg="weight"]'); if(w){ var row=w.closest('.tuneSegRow')||w.parentElement; row.style.display='none'; }
+  var fwLbl=[].slice.call(document.querySelectorAll('#pgSet .tuneSegRow > label')).find(function(l){ return /font weight/i.test(l.textContent); }); if(fwLbl) fwLbl.closest('.tuneSegRow').style.display='none';
+  /* removed Fine-tune controls go back to defaults once */
+  try{ if(state.set){ var u=state.set.ui||{}, had=false; ['pad','gap','density','borderA','borderW','radius','shadow','tint','icon','weight'].forEach(function(k){ if(k in u){ delete u[k]; had=true; } }); if(state.set.paper){ delete state.set.paper; had=true; } if(had){ state.set.ui=u; persist(); try{ applyUiTune(); }catch(e){} ['applyPaper','applyPaperTexture','paperApply'].forEach(function(n){ try{ if(typeof window[n]==='function') window[n](); }catch(e){} }); } } }catch(e){}
+})();
+/* Home Today tiles: Tasks · Mood · Money, streak under the ring (replaces At a glance) */
+function hmGlanceTiles(tDone,tTotal){
+  var t=today(), mi=moodOf(t), m=(mi!=null&&mi>=0&&MOODS[mi])?MOODS[mi]:null; var n=new Date(), mt=null; try{ mt=monthTotals(n.getFullYear(),n.getMonth()); }catch(e){}
+  var best=0; try{ (state.habits||[]).forEach(function(h){ if(h.arch) return; var s=streak(h); if(s>best) best=s; }); }catch(e){}
+  return (best>0?'<div class="hmStreakLine">\uD83D\uDD25 <b>'+best+'-day</b> streak</div>':'')+'<div class="hmG3">'+
+    '<button type="button" class="hmG3t" data-hmg="tasks" style="--gc:var(--tx-blue)"><span class="hmG3i">'+ICON('task')+'</span><b>'+(tTotal?(tDone+'<small>/'+tTotal+'</small>'):'\u2014')+'</b><span class="hmG3l">'+(tTotal?'tasks done':'no tasks today')+'</span></button>'+
+    '<button type="button" class="hmG3t" data-hmg="mood" style="--gc:'+(m?m.c:'var(--tx-purple)')+'"><span class="hmG3i hmG3e">'+(m?m.e:ICON('mood'))+'</span><b>'+(m?esc(m.l):'Log')+'</b><span class="hmG3l">'+(m?'mood today':'how are you?')+'</span></button>'+
+    (typeof modOn!=='function'||modOn('money')?'<button type="button" class="hmG3t" data-hmg="money" style="--gc:var(--tx-green)"><span class="hmG3i">'+ICON('money')+'</span><b>'+(mt?esc(inr(Math.round(mt.inc-mt.exp))):'\u2014')+'</b><span class="hmG3l">left this month</span></button>':'')+
+  '</div>';
+}
+(function(){ var pg=$('pgToday'); if(pg) pg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-hmg="money"]'); if(b){ e.preventDefault(); e.stopPropagation(); showTab('pgExp'); } },true); })();
 
 function climb(el, root, attr){
   while(el && el !== root){
