@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 101;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 102;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -9072,6 +9072,50 @@ function htClose(){ htStop(); $('hiit').classList.remove('on'); }
     var gl=$('exLibGroups'); if(gl){ var b=gl.querySelector('[data-lg="Home"]'); if(b) b.textContent='Home workout'; } };
   /* routines are retired from the module */
   window.wkRoutinesHTML=wkRoutinesHTML=function(){ return ''; };
+})();
+
+/* ================= Visual guides: animated figure + muscle map (build 102) ================= */
+var EX_VIS={
+ pushup:{t:'pushup',m:['chest','triceps'],s:['shoulders','abs']},bench:{t:'bench',m:['chest','triceps'],s:['shoulders']},dbfly:{t:'fly',m:['chest'],s:['shoulders']},
+ pullup:{t:'pullup',m:['lats','biceps'],s:['forearms','upperback']},row:{t:'row',m:['lats','upperback'],s:['biceps','lowerback']},latpull:{t:'pullup',m:['lats'],s:['biceps','upperback']},deadlift:{t:'hinge',m:['hamstrings','glutes','lowerback'],s:['upperback','forearms']},
+ ohp:{t:'press',m:['shoulders','triceps'],s:['abs']},latraise:{t:'raise',m:['shoulders'],s:['upperback']},facepull:{t:'row',m:['upperback','shoulders'],s:['biceps']},
+ curl:{t:'curl',m:['biceps'],s:['forearms']},tricep:{t:'dip',m:['triceps','chest'],s:['shoulders']},skull:{t:'curl',m:['triceps'],s:[]},
+ squat:{t:'squat',m:['quads','glutes'],s:['hamstrings','abs']},lunge:{t:'lunge',m:['quads','glutes'],s:['hamstrings','calves']},rdl:{t:'hinge',m:['hamstrings','glutes'],s:['lowerback']},legpress:{t:'squat',m:['quads','glutes'],s:['hamstrings']},calf:{t:'calf',m:['calves'],s:[]},glute:{t:'bridge',m:['glutes','hamstrings'],s:['abs']},
+ plank:{t:'plank',m:['abs'],s:['shoulders','glutes']},crunch:{t:'crunch',m:['abs'],s:['obliques']},legraise:{t:'legraise',m:['abs'],s:['quads']},deadbug:{t:'deadbug',m:['abs'],s:['obliques']},
+ run:{t:'run',m:['quads','calves','hamstrings'],s:['glutes','abs']},walk:{t:'run',m:['calves','quads'],s:['glutes']},cycle:{t:'squat',m:['quads','calves'],s:['glutes','hamstrings']},rower:{t:'row',m:['lats','quads'],s:['biceps','lowerback']},jump:{t:'jump',m:['calves'],s:['quads','shoulders']},
+ burpee:{t:'burpee',m:['chest','quads'],s:['abs','shoulders','calves']},kbswing:{t:'hinge',m:['glutes','hamstrings'],s:['lowerback','shoulders']},thruster:{t:'press',m:['quads','shoulders'],s:['glutes','triceps']},mtnclimb:{t:'climber',m:['abs','quads'],s:['shoulders']},
+ airsquat:{t:'squat',m:['quads','glutes'],s:['hamstrings']},wallsit:{t:'wallsit',m:['quads'],s:['glutes']},revlunge:{t:'lunge',m:['quads','glutes'],s:['hamstrings']},stepup:{t:'lunge',m:['quads','glutes'],s:['calves']},inclinepu:{t:'pushup',m:['chest','triceps'],s:['shoulders']},diamondpu:{t:'pushup',m:['triceps','chest'],s:['shoulders']},pikepu:{t:'pike',m:['shoulders','triceps'],s:['upperback']},superman:{t:'superman',m:['lowerback','glutes'],s:['upperback']},birddog:{t:'birddog',m:['abs','lowerback'],s:['glutes','shoulders']},donkey:{t:'birddog',m:['glutes'],s:['hamstrings']},highknees:{t:'run',m:['quads','abs'],s:['calves']},sqjump:{t:'jump',m:['quads','glutes','calves'],s:['abs']},chairdip:{t:'dip',m:['triceps'],s:['shoulders','chest']},inchworm:{t:'pike',m:['abs','shoulders'],s:['hamstrings']},bicycle:{t:'crunch',m:['abs','obliques'],s:[]},twist:{t:'twist',m:['obliques'],s:['abs']},flutter:{t:'legraise',m:['abs'],s:['quads']},hollow:{t:'hollow',m:['abs'],s:['quads']},
+ plankhigh:{t:'plankhigh',m:['abs'],s:['shoulders','triceps']},sideplank:{t:'sideplank',m:['obliques'],s:['shoulders','glutes']},revplank:{t:'revplank',m:['glutes','lowerback'],s:['shoulders','triceps']},plankshoulder:{t:'plankdyn',m:['abs','shoulders'],s:['obliques']},plankupdown:{t:'plankupdown',m:['abs','triceps'],s:['shoulders']},plankjack:{t:'plankjack',m:['abs'],s:['glutes','shoulders']},spiderplank:{t:'climber',m:['obliques','abs'],s:['quads']},plankhipdip:{t:'plank',m:['obliques'],s:['abs']},planklegraise:{t:'plankleg',m:['glutes','abs'],s:['lowerback']},planklong:{t:'plank',m:['abs'],s:['shoulders']},sideplankdip:{t:'sideplank',m:['obliques'],s:['glutes']},copenhagen:{t:'sideplank',m:['obliques'],s:['abs','glutes']},planktopike:{t:'pike',m:['abs','shoulders'],s:['hamstrings']},bearplank:{t:'bear',m:['abs','quads'],s:['shoulders']},commando:{t:'plankupdown',m:['abs','triceps'],s:['shoulders']}
+};
+var MUSCLE_LABEL={chest:'Chest',shoulders:'Shoulders',biceps:'Biceps',triceps:'Triceps',forearms:'Forearms',abs:'Abs',obliques:'Obliques',quads:'Quads',hamstrings:'Hamstrings',glutes:'Glutes',calves:'Calves',lats:'Lats',upperback:'Upper back',lowerback:'Lower back'};
+function exMuscleChips(id){ var v=EX_VIS[id]; if(!v) return ''; return v.m.map(function(k){ return MUSCLE_LABEL[k]; }).join(' \u00b7 '); }
+/* body map: front and back silhouettes with muscle regions */
+function exBodyMapSVG(id){ var v=EX_VIS[id]||{m:[],s:[]}; var cls=function(k){ return v.m.indexOf(k)>=0?'mp':v.s.indexOf(k)>=0?'ms':''; };
+  var front='<svg viewBox="0 0 100 190" class="bodyMap" aria-hidden="true"><g class="sil"><circle cx="50" cy="16" r="11"/><path d="M34 32h32l6 30v38l-4 42v40h-10l-4-40-4 40h-10l-4-40-4-42V62z"/><path d="M34 32l-10 8-6 30 4 26h7l3-24 2-30z"/><path d="M66 32l10 8 6 30-4 26h-7l-3-24-2-30z"/></g>'+
+   '<ellipse class="'+cls('chest')+'" cx="41" cy="46" rx="9" ry="7"/><ellipse class="'+cls('chest')+'" cx="59" cy="46" rx="9" ry="7"/><circle class="'+cls('shoulders')+'" cx="28" cy="38" r="6"/><circle class="'+cls('shoulders')+'" cx="72" cy="38" r="6"/>'+
+   '<ellipse class="'+cls('biceps')+'" cx="23" cy="56" rx="4" ry="9"/><ellipse class="'+cls('biceps')+'" cx="77" cy="56" rx="4" ry="9"/><ellipse class="'+cls('forearms')+'" cx="19" cy="80" rx="3.5" ry="11"/><ellipse class="'+cls('forearms')+'" cx="81" cy="80" rx="3.5" ry="11"/>'+
+   '<rect class="'+cls('abs')+'" x="43" y="56" width="14" height="30" rx="5"/><ellipse class="'+cls('obliques')+'" cx="37" cy="72" rx="4" ry="12"/><ellipse class="'+cls('obliques')+'" cx="63" cy="72" rx="4" ry="12"/>'+
+   '<ellipse class="'+cls('quads')+'" cx="41" cy="118" rx="7" ry="22"/><ellipse class="'+cls('quads')+'" cx="59" cy="118" rx="7" ry="22"/><ellipse class="'+cls('calves')+'" cx="41" cy="164" rx="4.5" ry="16"/><ellipse class="'+cls('calves')+'" cx="59" cy="164" rx="4.5" ry="16"/></svg>';
+  var back='<svg viewBox="0 0 100 190" class="bodyMap" aria-hidden="true"><g class="sil"><circle cx="50" cy="16" r="11"/><path d="M34 32h32l6 30v38l-4 42v40h-10l-4-40-4 40h-10l-4-40-4-42V62z"/><path d="M34 32l-10 8-6 30 4 26h7l3-24 2-30z"/><path d="M66 32l10 8 6 30-4 26h-7l-3-24-2-30z"/></g>'+
+   '<path class="'+cls('upperback')+'" d="M36 36h28l-4 14H40z"/><path class="'+cls('lats')+'" d="M37 52l13 22 13-22-2 26-11 8-11-8z"/><rect class="'+cls('lowerback')+'" x="44" y="78" width="12" height="14" rx="4"/>'+
+   '<circle class="'+cls('shoulders')+'" cx="28" cy="38" r="6"/><circle class="'+cls('shoulders')+'" cx="72" cy="38" r="6"/><ellipse class="'+cls('triceps')+'" cx="23" cy="56" rx="4" ry="9"/><ellipse class="'+cls('triceps')+'" cx="77" cy="56" rx="4" ry="9"/>'+
+   '<ellipse class="'+cls('glutes')+'" cx="42" cy="98" rx="8" ry="9"/><ellipse class="'+cls('glutes')+'" cx="58" cy="98" rx="8" ry="9"/><ellipse class="'+cls('hamstrings')+'" cx="41" cy="128" rx="6.5" ry="18"/><ellipse class="'+cls('hamstrings')+'" cx="59" cy="128" rx="6.5" ry="18"/>'+
+   '<ellipse class="'+cls('calves')+'" cx="41" cy="164" rx="4.5" ry="16"/><ellipse class="'+cls('calves')+'" cx="59" cy="164" rx="4.5" ry="16"/></svg>';
+  return '<div class="exMapWrap"><div class="exMap"><div>'+front+'<span>Front</span></div><div>'+back+'<span>Back</span></div></div><div class="exMapLegend"><span><i class="lp"></i>Primary</span><span><i class="ls"></i>Secondary</span></div><div class="exMuscles">'+v.m.concat(v.s).map(function(k,i){ return '<span class="'+(i<v.m.length?'mp':'ms')+'">'+MUSCLE_LABEL[k]+'</span>'; }).join('')+'</div></div>';
+}
+/* animated figure: a jointed stick athlete; the template picks the motion (CSS keyframes) */
+function exFigureSVG(id){ var v=EX_VIS[id]; var t=v?v.t:'hold';
+  var fig='<g class="whole"><g class="torsoG"><line class="torso" x1="60" y1="34" x2="60" y2="80"/><circle class="head" cx="60" cy="22" r="8"/>'+
+    '<g class="armB"><line x1="60" y1="36" x2="60" y2="58"/><g class="foreB"><line x1="60" y1="58" x2="60" y2="78"/></g></g>'+
+    '<g class="armF"><line x1="60" y1="36" x2="60" y2="58"/><g class="foreF"><line x1="60" y1="58" x2="60" y2="78"/></g></g></g>'+
+    '<g class="legB"><line x1="60" y1="80" x2="60" y2="108"/><g class="shinB"><line x1="60" y1="108" x2="60" y2="136"/><line class="foot" x1="60" y1="136" x2="70" y2="136"/></g></g>'+
+    '<g class="legF"><line x1="60" y1="80" x2="60" y2="108"/><g class="shinF"><line x1="60" y1="108" x2="60" y2="136"/><line class="foot" x1="60" y1="136" x2="70" y2="136"/></g></g></g>';
+  return '<svg class="exFig t-'+t+'" viewBox="-10 0 140 150" aria-hidden="true"><line class="floor" x1="-4" y1="140" x2="124" y2="140"/>'+fig+'</svg>';
+}
+(function(){
+  var oh=openExHow; window.openExHow=openExHow=function(id){ oh.apply(this,arguments); if(sheetOpen!=='exHowSheet') return; var body=$('exHowBody'); if(!body||body.querySelector('.exVis')) return;
+    body.insertAdjacentHTML('afterbegin','<div class="exVis"><div class="exVisFig">'+exFigureSVG(id)+'<span>Movement guide</span></div>'+exBodyMapSVG(id)+'</div>'); };
+  var paint=exLibPaint; window.exLibPaint=exLibPaint=function(){ paint.apply(this,arguments); $('exLibList').querySelectorAll('.exLibRow').forEach(function(r){ var b=r.querySelector('[data-lhow]'); if(!b) return; var id=b.getAttribute('data-lhow'), ch=exMuscleChips(id); var span=r.querySelector('.exLibMain span'); if(ch&&span&&span.textContent.indexOf('\u2014')<0) span.textContent=span.textContent+' \u2014 '+ch; }); };
 })();
 
 function climb(el, root, attr){

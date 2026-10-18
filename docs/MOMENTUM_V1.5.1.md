@@ -513,3 +513,8 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     plank hip dips, Copenhagen, plank to pike, bear plank, commando), each with how-to steps and tips. The "Home
     workout" filter also lists bodyweight exercises from other groups.
   - Routines are removed from the Workouts module (saved routines stay in backups).
+- **Build 102 — visual exercise guides:**
+  - Every How-to sheet opens with an animated movement guide (a jointed figure looping the exercise; about 35
+    motion templates cover all 65 exercises, inline SVG + CSS, works offline, respects reduce-motion) and a body map
+    (front and back) highlighting primary and secondary muscles, plus muscle chips. Library rows show the muscles
+    worked.
