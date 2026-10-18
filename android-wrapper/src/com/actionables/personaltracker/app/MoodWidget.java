@@ -23,7 +23,7 @@ public class MoodWidget extends BaseWidget {
             if (hide) continue;
             v.setTextViewText(M[i], WidgetStore.MOOD_EMOJI[i]);
             v.setInt(M[i], "setBackgroundResource", i == cur ? R.drawable.widget_mood_sel : 0);
-            v.setOnClickPendingIntent(M[i], WidgetHub.broadcast(ctx, WidgetActionReceiver.SET_MOOD, id, "mood", String.valueOf(i)));
+            v.setOnClickPendingIntent(M[i], WidgetHub.openAppDeep(ctx, "addJournal", "1"));   /* mood is logged in a journal entry (build 98) */
         }
 
         v.setTextViewText(R.id.m_status, cur >= 0 ? WidgetStore.MOOD_LABEL[cur] : "");
@@ -35,7 +35,7 @@ public class MoodWidget extends BaseWidget {
         boolean showNote = WidgetHub.rows(ctx, id) >= 2;
         v.setViewVisibility(R.id.note_btn, showNote ? View.VISIBLE : View.GONE);
         v.setTextViewText(R.id.note_btn, cur >= 0 ? "\u270E Add a note\u2026" : "Tap a mood to log it");
-        if (showNote) v.setOnClickPendingIntent(R.id.note_btn, WidgetHub.popup(ctx, WidgetDialogActivity.A_MOOD_DETAIL, id));
+        if (showNote) v.setOnClickPendingIntent(R.id.note_btn, WidgetHub.openAppDeep(ctx, "addJournal", "1"));
         return v;
     }
 }

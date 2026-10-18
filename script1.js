@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 97;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 98;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -8811,6 +8811,64 @@ function wkOrganise(){
   var body=$('wkBody'); if(body&&body.querySelector('.exCard')&&!$('wkExLbl')){ var first=body.querySelector('.exCard'); first.insertAdjacentHTML('beforebegin','<div class="sectLbl wkExLbl" id="wkExLbl">'+ICON('workout')+'Exercises</div>'); }
 }
 (function(){ var body=$('wkBody'); if(body&&window.MutationObserver){ var t=null,busy=false; new MutationObserver(function(){ if(busy) return; clearTimeout(t); t=setTimeout(function(){ busy=true; try{ wkOrganise(); }catch(e){} busy=false; },30); }).observe(body,{childList:true,subtree:true}); } setTimeout(function(){ try{ wkOrganise(); }catch(e){} },500); })();
+
+/* ================= Mood lives in the Journal (build 98) ================= */
+var JRM={great:{l:'Great',e:'\uD83D\uDE04',c:'var(--tx-green)'},good:{l:'Good',e:'\uD83D\uDE42',c:'var(--tx-teal)'},okay:{l:'Okay',e:'\uD83D\uDE10',c:'var(--tx-blue)'},low:{l:'Low',e:'\uD83D\uDE14',c:'var(--tx-purple)'},diff:{l:'Difficult',e:'\uD83D\uDE23',c:'var(--tx-coral)'}};
+var JRM_ORDER=['great','good','okay','low','diff'], LEGACY_MOOD=['great','good','good','okay','low','low','diff'];
+/* one mood per day: the latest entry with a mood wins; older quick-log history fills gaps */
+function jrMoodMap(){ var m={}; (state.jr||[]).slice().sort(function(a,b){ return (a.date+(a.time||'')).localeCompare(b.date+(b.time||'')); }).forEach(function(e){ if(e.mood&&JRM[e.mood]) m[e.date]={k:e.mood,id:e.id}; });
+  var lg=state.mood||{}; Object.keys(lg).forEach(function(d){ if(!m[d]&&lg[d]>=0&&LEGACY_MOOD[lg[d]]) m[d]={k:LEGACY_MOOD[lg[d]],id:null}; }); return m; }
+var jrMoodYM=null;
+function jrRenderMood(){
+  var box=$('jrView-mood'); if(!box) return; var mm=jrMoodMap(), t=today(), tm=mm[t], now=new Date(); if(!jrMoodYM) jrMoodYM=[now.getFullYear(),now.getMonth()];
+  var y=jrMoodYM[0], mo=jrMoodYM[1], first=new Date(y,mo,1), days=new Date(y,mo+1,0).getDate(), lead=(first.getDay()+6)%7;
+  var counts={}, logged=0; JRM_ORDER.forEach(function(k){ counts[k]=0; }); for(var d=1;d<=days;d++){ var ds=fmt(new Date(y,mo,d)); if(mm[ds]){ counts[mm[ds].k]++; logged++; } }
+  var top=JRM_ORDER.slice().sort(function(a,b){ return counts[b]-counts[a]; })[0];
+  var todayEntry=(state.jr||[]).filter(function(e){ return e.date===t; }).pop();
+  var html='<div class="jmHero">'+(tm?'<div class="jmHeroE">'+JRM[tm.k].e+'</div><div class="jmHeroT">Feeling <b style="color:'+JRM[tm.k].c+'">'+JRM[tm.k].l.toLowerCase()+'</b> today</div><div class="jmHeroS">'+((tm.id||todayEntry)?'Logged with today\u2019s entry':'From your earlier mood log')+'</div><button type="button" class="sbtn" data-jm-open="'+esc(tm.id||(todayEntry?todayEntry.id:''))+'">'+((tm.id||todayEntry)?'Change in entry':'Write today\u2019s entry')+'</button>'
+      :'<div class="jmHeroE">\uD83D\uDCDD</div><div class="jmHeroT">How are you feeling today?</div><div class="jmHeroS">Mood is logged inside a journal entry</div><button type="button" class="primary jmCta" data-jm-open="'+esc(todayEntry?todayEntry.id:'')+'">'+(todayEntry?'Add mood to today\u2019s entry':'Write today\u2019s entry')+'</button>')+'</div>';
+  html+='<div class="sectLbl" style="--txc:var(--tx-purple)">'+ICON('mood')+'This month</div><div class="jmCard"><div class="jmSum">'+(logged?('<b>'+logged+'</b> day'+(logged===1?'':'s')+' logged \u00b7 mostly <b style="color:'+JRM[top].c+'">'+JRM[top].l.toLowerCase()+'</b>'):'No moods logged this month yet')+'</div>'+
+    '<div class="jmBars">'+JRM_ORDER.map(function(k){ var n=counts[k], pct=logged?Math.round(n/logged*100):0; return '<div class="jmBar"><span class="jmBarE">'+JRM[k].e+'</span><span class="jmBarL">'+JRM[k].l+'</span><span class="jmBarT"><i style="width:'+pct+'%;background:'+JRM[k].c+'"></i></span><span class="jmBarN">'+n+'</span></div>'; }).join('')+'</div></div>';
+  html+='<div class="sectLbl" style="--txc:var(--tx-blue)">'+ICON('calendar')+'Calendar</div><div class="jmCard"><div class="jmCalHead"><button type="button" class="jmNav" data-jm-nav="-1" aria-label="Previous month">\u2039</button><b>'+first.toLocaleDateString(undefined,{month:'long',year:'numeric'})+'</b><button type="button" class="jmNav" data-jm-nav="1" aria-label="Next month">\u203a</button></div><div class="jmDow">'+['M','T','W','T','F','S','S'].map(function(x){ return '<span>'+x+'</span>'; }).join('')+'</div><div class="jmGrid">';
+  for(var i=0;i<lead;i++) html+='<span class="jmCell off"></span>';
+  for(var d2=1;d2<=days;d2++){ var ds2=fmt(new Date(y,mo,d2)), m2=mm[ds2]; html+='<button type="button" class="jmCell'+(ds2===t?' today':'')+(m2?' has':'')+'" data-jm-day="'+ds2+'" style="'+(m2?'--mc:'+JRM[m2.k].c:'')+'">'+(m2?'<span class="jmCellE">'+JRM[m2.k].e+'</span>':'<span class="jmCellN">'+d2+'</span>')+'</button>'; }
+  html+='</div></div>';
+  /* year in pixels */
+  var yr=now.getFullYear(); html+='<div class="sectLbl" style="--txc:var(--tx-teal)">'+ICON('insights')+'Year in pixels \u00b7 '+yr+'</div><div class="jmCard"><div class="jmYp">';
+  for(var mi=0;mi<12;mi++){ html+='<div class="jmYpRow"><span class="jmYpM">'+'JFMAMJJASOND'[mi]+'</span>'; for(var dd=1;dd<=31;dd++){ var inM=dd<=new Date(yr,mi+1,0).getDate(); var k2=inM?(mm[fmt(new Date(yr,mi,dd))]||{}).k:null; html+='<i class="jmPx'+(inM?'':' off')+'" style="'+(k2?'background:'+JRM[k2].c:'')+'"></i>'; } html+='</div>'; }
+  html+='</div><div class="jmLegend">'+JRM_ORDER.map(function(k){ return '<span><i style="background:'+JRM[k].c+'"></i>'+JRM[k].l+'</span>'; }).join('')+'</div></div>';
+  box.innerHTML=html;
+}
+(function(){
+  var nav=$('jrNav'); if(nav&&!nav.querySelector('[data-jv="mood"]')){ var ai=nav.querySelector('[data-jv="insights"]'); var el=document.createElement('div'); el.className='jrNavItem'; el.setAttribute('data-jv','mood'); el.innerHTML='<span class="lb">Mood</span>'; nav.insertBefore(el,ai); }
+  var ph=$('jrView-photos'); if(ph&&!$('jrView-mood')){ var v=document.createElement('div'); v.id='jrView-mood'; v.style.display='none'; ph.parentNode.insertBefore(v,ph.nextSibling); }
+  setTimeout(function(){ if(typeof jrGo==='function'){ var g=jrGo; window.jrGo=jrGo=function(v){ var r=g.apply(this,arguments); var mv=$('jrView-mood'); if(mv) mv.style.display=(v==='mood')?'':'none'; if(v==='mood'){ try{ jrRenderMood(); }catch(e){} var n=$('jrNav'); if(n) Array.prototype.forEach.call(n.children,function(x){ x.classList.toggle('on',x.getAttribute('data-jv')==='mood'); }); } return r; }; } },0);
+  document.addEventListener('click',function(e){
+    var nv=e.target.closest&&e.target.closest('#jrNav [data-jv="mood"]'); if(nv){ e.stopPropagation(); jrGo('mood'); return; }
+    var n=e.target.closest&&e.target.closest('[data-jm-nav]'); if(n){ jrMoodYM[1]+=+n.getAttribute('data-jm-nav'); if(jrMoodYM[1]<0){ jrMoodYM[1]=11; jrMoodYM[0]--; } if(jrMoodYM[1]>11){ jrMoodYM[1]=0; jrMoodYM[0]++; } jrRenderMood(); return; }
+    var o=e.target.closest&&e.target.closest('[data-jm-open]'); if(o){ var id=o.getAttribute('data-jm-open'); if(id) openJr(id); else openJr(null); return; }
+    var c=e.target.closest&&e.target.closest('[data-jm-day]'); if(c){ var ds=c.getAttribute('data-jm-day'); var en=(state.jr||[]).filter(function(x){ return x.date===ds; }).pop(); if(en) openJr(en.id); else if(ds===today()) openJr(null); else toastN('No entry on '+new Date(ds+'T12:00:00').toLocaleDateString(undefined,{day:'numeric',month:'short'})); }
+  },true);
+  /* Mood is logged only through journal entries */
+  document.querySelectorAll('[data-add-action="mood"]').forEach(function(b){ b.style.display='none'; });
+  var pg=$('pgToday'); function hideHomeMood(){ pg&&pg.querySelectorAll('[data-hm-mood]').forEach(function(b){ var row=b.parentElement; if(row){ row.style.display='none'; var prev=row.previousElementSibling; if(prev&&/feel|mood/i.test(prev.textContent)) prev.style.display='none'; } }); }
+  if(pg&&window.MutationObserver) new MutationObserver(hideHomeMood).observe(pg,{childList:true,subtree:true}); hideHomeMood();
+  setTimeout(function(){ if(typeof executeAction==='function'){ var ex=executeAction; window.executeAction=executeAction=function(a){ if(a&&/mood/i.test(String(a.action||''))) return {ok:false,msg:'Mood is logged inside a journal entry \u2014 open the Journal to add it.'}; return ex.apply(this,arguments); }; }
+    var he=document.querySelector('#statSubSeg [data-ss=he] .lb, #statSubSeg [data-ss=he]'); if(he&&/wellness/i.test(he.textContent)) he.textContent='Fitness'; },0);
+  var st=$('pgStats'); function trimMoodUI(){ try{ [].slice.call(st.querySelectorAll('.insCard,.card,.chartBox,.statCard,.calCard,.ypCard')).forEach(function(e){ if(e.querySelector('.card,.insCard')) return; if(/year in pixels|mood/i.test(e.textContent)&&!/workout|fitness|exercise/i.test(e.textContent)) e.style.display='none'; }); var yp=st.querySelector('.ypGrid'); if(yp){ var c=yp.closest('.card,.insCard,div'); if(c&&c!==st) c.style.display='none'; } }catch(e){} }
+  if(st&&window.MutationObserver){ var t=null; new MutationObserver(function(){ clearTimeout(t); t=setTimeout(trimMoodUI,30); }).observe(st,{childList:true,subtree:true}); }
+})();
+/* Home Today tiles: Tasks · Journal · Money */
+function hmGlanceTiles(tDone,tTotal){
+  var t=today(), te=(state.jr||[]).filter(function(e){ return e.date===t; }), n=new Date(), mt=null; try{ mt=monthTotals(n.getFullYear(),n.getMonth()); }catch(e){}
+  var best=0; try{ (state.habits||[]).forEach(function(h){ if(h.arch) return; var s=streak(h); if(s>best) best=s; }); }catch(e){}
+  return (best>0?'<div class="hmStreakLine">\uD83D\uDD25 <b>'+best+'-day</b> streak</div>':'')+'<div class="hmG3">'+
+    '<button type="button" class="hmG3t" data-hmg="tasks" style="--gc:var(--tx-blue)"><span class="hmG3i">'+ICON('task')+'</span><b>'+(tTotal?(tDone+'<small>/'+tTotal+'</small>'):'\u2014')+'</b><span class="hmG3l">'+(tTotal?'tasks done':'no tasks today')+'</span></button>'+
+    '<button type="button" class="hmG3t" data-hmg="journal" style="--gc:var(--tx-coral)"><span class="hmG3i">'+ICON('journal')+'</span><b>'+(te.length?te.length+'<small> '+(te.length===1?'entry':'entries')+'</small>':'Write')+'</b><span class="hmG3l">'+(te.length?'journal today':'today\u2019s journal')+'</span></button>'+
+    (typeof modOn!=='function'||modOn('money')?'<button type="button" class="hmG3t" data-hmg="money" style="--gc:var(--tx-green)"><span class="hmG3i">'+ICON('money')+'</span><b>'+(mt?esc(inr(Math.round(mt.inc-mt.exp))):'\u2014')+'</b><span class="hmG3l">left this month</span></button>':'')+
+  '</div>';
+}
+(function(){ var pg=$('pgToday'); if(pg) pg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-hmg="journal"]'); if(b){ e.preventDefault(); e.stopPropagation(); var t=today(), en=(state.jr||[]).filter(function(x){ return x.date===t; }).pop(); if(en) openJrRead(en.id); else openJr(null); } },true); })();
 
 function climb(el, root, attr){
   while(el && el !== root){

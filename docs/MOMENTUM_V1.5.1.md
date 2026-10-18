@@ -477,3 +477,13 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Spacing scale: 10 px between cards, 16 px between sections, 14 px under page headers, applied across pages.
   - Workout module: three stat tiles (this week, last 30 days, day streak), progress bar, Start session, then an
     Exercises section; exercise cards with consistent spacing.
+- **Build 98 — mood lives in the Journal:**
+  - Journal gets a Mood tab (Timeline · Calendar · Photos · Mood · AI): today's mood with a link to the entry (or a
+    "Write today's entry" action), this month's breakdown with the most common mood, a month calendar of moods
+    (tap a day to open its entry), and the year in pixels. Moods come from journal entries (the latest entry with a
+    mood wins per day); older quick-log history fills gaps so nothing is lost.
+  - Mood is logged only through the journal entry editor. Removed elsewhere: the Home mood tile (now a Journal
+    tile), the Home mood row, Create › Mood, the quick-log mood sheet, the AI's log_mood action (it points to the
+    Journal), Insights › Wellness mood cards and year in pixels (the tab is now Fitness), the Android Mood widget's
+    logging (its buttons open a journal entry), the Quick Log Mood button (opens a journal entry) and the AI
+    quick-log mood parsing.
