@@ -518,3 +518,20 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     motion templates cover all 65 exercises, inline SVG + CSS, works offline, respects reduce-motion) and a body map
     (front and back) highlighting primary and secondary muscles, plus muscle chips. Library rows show the muscles
     worked.
+- **Build 103 — full guide page for every exercise:**
+  - Each exercise opens a guide laid out like the best fitness apps: name and muscles; Correct form (top and bottom
+    position figures with a form cue each); Muscles worked (front/back maps, primary/secondary); How to do it (three
+    numbered steps, each with an illustration and 3 cues); Tips (keep in mind, Too hard?, Too easy?, Common mistakes).
+  - Authored content for all 65 exercises (EX_GUIDE): step titles and cues, easier and harder variations, three common
+    mistakes. Figures are illustrated (SVG), not photos; the app stays offline and self-contained.
+- **Build 104 — illustrated athlete:**
+  - The stick figure is replaced by an illustrated person (head, hair, torso, shirt, shorts, limbs with real thickness,
+    shoes; back limbs shaded) on the same animated skeleton, so every movement guide, position frame and step
+    illustration shows a human. Overhead movements angle the arms forward so they stay visible in side view.
+  - Optional real media: `exercises/<id>.webp|gif|jpg|png` replaces the figure in the Top position slot when present
+    (see exercises/README.md).
+- **Build 105 — real exercise photos:**
+  - 45 of the 65 exercises show real start/end photographs of a person (exercises/<id>_0.webp and _1.webp, 480 px
+    WebP, 1.4 MB total) in Correct form and in the three steps; the other 20 keep the illustrated athlete. Photos
+    come from Free Exercise DB (Unlicense, public domain); exercises/sources.json maps ids to source names. The
+    guide shows a photo credit line.
