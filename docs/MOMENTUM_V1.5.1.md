@@ -506,3 +506,10 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     vibration on every change, Pause / Skip / Stop, screen kept awake; Back closes it.
   - Rest card: a custom seconds field alongside 60s / 90s / 2 min; the chosen length is remembered and starts
     automatically after each set.
+- **Build 101 — library: Home workout and Planks; routines retired:**
+  - Exercise library grows to 65 exercises with two new groups: Home workout (18 bodyweight moves such as air squats,
+    wall sit, step-ups, incline/diamond/pike push-ups, superman, bird dog, hollow hold) and Planks (16 variations:
+    forearm, high, side, reverse, shoulder taps, up-downs, jacks, Spiderman, hip dips, leg raise, long-lever, side
+    plank hip dips, Copenhagen, plank to pike, bear plank, commando), each with how-to steps and tips. The "Home
+    workout" filter also lists bodyweight exercises from other groups.
+  - Routines are removed from the Workouts module (saved routines stay in backups).
