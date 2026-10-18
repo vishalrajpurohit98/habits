@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 96;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 97;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -8782,6 +8782,35 @@ function hmGlanceTiles(tDone,tTotal){
   '</div>';
 }
 (function(){ var pg=$('pgToday'); if(pg) pg.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-hmg="money"]'); if(b){ e.preventDefault(); e.stopPropagation(); showTab('pgExp'); } },true); })();
+
+/* ================= Money ⋯ menu replaces the Financial Tools modal (build 97) ================= */
+(function(){
+  var btn=$('expMoreBtn'); if(!btn) return; var h1=btn.closest('.h1row'); if(!h1||$('expMoreMenu')) return;
+  h1.insertAdjacentHTML('beforeend','<div class="vMoreMenu expMoreMenu" id="expMoreMenu" hidden>'+
+    '<button type="button" data-em="export">'+ICON('export')+'Export transactions</button>'+
+    '<button type="button" data-em="import">'+ICON('import')+'Import transactions</button>'+
+    '<button type="button" data-em="cards">'+ICON('money')+'Card payments</button>'+
+    '<button type="button" data-em="duplicates">'+ICON('search')+'Find duplicates</button></div>');
+  var nb=btn.cloneNode(true); btn.parentNode.replaceChild(nb,btn);   /* drop the old modal handler */
+  nb.addEventListener('click',function(e){ e.stopPropagation(); var m=$('expMoreMenu'); m.hidden=!m.hidden; });
+  $('expMoreMenu').addEventListener('click',function(e){ var b=e.target.closest('[data-em]'); if(!b) return; $('expMoreMenu').hidden=true; var k=b.getAttribute('data-em');
+    if(k==='export'){ openExpRangeExport(); return; }
+    /* the tool functions live in a private scope; the page's delegated [data-ft] handler reaches them */
+    var proxy=document.createElement('button'); proxy.type='button'; proxy.setAttribute('data-ft',k); proxy.style.display='none'; document.body.appendChild(proxy); proxy.click(); setTimeout(function(){ proxy.remove(); },0); });
+  document.addEventListener('click',function(e){ var m=$('expMoreMenu'); if(m&&!m.hidden&&!e.target.closest('#expMoreMenu,#expMoreBtn')) m.hidden=true; });
+})();
+/* ================= Workout module: organised summary (build 97) ================= */
+function wkOrganise(){
+  var sum=$('wkSummary'); if(!sum) return;
+  var big=sum.querySelector('.hmBig'), lbl=sum.querySelector('.sectLbl'), prog=sum.querySelector('.progress'), start=sum.querySelector('.wsStartBtn');
+  if(big&&!sum.querySelector('.wkStats')){ var n=(big.querySelector('.hmBigNum')||{}).textContent||'0', of=(big.querySelector('.hmBigOf')||{}).textContent||'', m30=(of.match(/(\d+) in 30 days/)||[])[1]||'0';
+    var best=0; try{ var days={}; (state.wlog||[]).forEach(function(w){ days[w.d]=1; }); var d=new Date(); for(var i=0;i<400;i++){ var ds=fmt(d); if(days[ds]) best++; else if(i>0) break; d.setDate(d.getDate()-1); } }catch(e){}
+    var html='<div class="wkStats"><div class="wkStat"><b>'+esc(n)+'</b><span>this week</span></div><div class="wkStat"><b>'+esc(m30)+'</b><span>last 30 days</span></div><div class="wkStat"><b>'+best+'</b><span>day streak</span></div></div>';
+    if(lbl) lbl.style.display='none'; big.insertAdjacentHTML('beforebegin',html); big.style.display='none'; }
+  if(start&&sum.lastElementChild!==start) sum.appendChild(start);
+  var body=$('wkBody'); if(body&&body.querySelector('.exCard')&&!$('wkExLbl')){ var first=body.querySelector('.exCard'); first.insertAdjacentHTML('beforebegin','<div class="sectLbl wkExLbl" id="wkExLbl">'+ICON('workout')+'Exercises</div>'); }
+}
+(function(){ var body=$('wkBody'); if(body&&window.MutationObserver){ var t=null,busy=false; new MutationObserver(function(){ if(busy) return; clearTimeout(t); t=setTimeout(function(){ busy=true; try{ wkOrganise(); }catch(e){} busy=false; },30); }).observe(body,{childList:true,subtree:true}); } setTimeout(function(){ try{ wkOrganise(); }catch(e){} },500); })();
 
 function climb(el, root, attr){
   while(el && el !== root){

@@ -470,3 +470,10 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Insights › Wellness: the mood calendar is gone (Year in pixels stays).
   - Home: Today tiles are Tasks · Mood · Money (left this month) with the best current streak under the ring;
     the At a glance card is gone.
+- **Build 97 — Money menu, header alignment, spacing scale, Workout layout:**
+  - The Financial Tools modal is gone; the Money header ⋯ menu lists Export transactions (date range, PDF or Excel,
+    restored), Import transactions, Card payments and Find duplicates.
+  - Headers: the title takes the free width so search and ⋯ sit together on the right (Money, Journal, all pages).
+  - Spacing scale: 10 px between cards, 16 px between sections, 14 px under page headers, applied across pages.
+  - Workout module: three stat tiles (this week, last 30 days, day streak), progress bar, Start session, then an
+    Exercises section; exercise cards with consistent spacing.
