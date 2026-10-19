@@ -535,3 +535,21 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     WebP, 1.4 MB total) in Correct form and in the three steps; the other 20 keep the illustrated athlete. Photos
     come from Free Exercise DB (Unlicense, public domain); exercises/sources.json maps ids to source names. The
     guide shows a photo credit line.
+- **Build 106 — Workouts consistency fixes:**
+  - Fixed the blank button on exercise cards (ICON('insights') is not a registered name; now 'stats'); the How-to
+    button uses a drawn question icon at the same 16 px size instead of a text glyph.
+  - One accent: stat numbers use the app accent (were a second orange next to the amber primary).
+  - The unlabelled bar under the stats became "Weekly goal · N of 3" with its own bar; the stray duplicate progress
+    bar is hidden.
+  - Habit row: a too-broad `span` rule was stretching the icon and centring the text; it now reads left-aligned on up
+    to two lines.
+  - Primary first: Start session above Interval timer (was below).
+  - Library is a chip with a search icon, not a purple underlined link.
+  - Exercise cards hide their progress bar until there is a value (it was a stray empty line).
+- **Build 107 — one primary action in Workouts:**
+  - Start session is the only button on the module screen. The Workouts header gains a ⋯ menu (as on Money, Vault
+    and AI) holding Interval timer, Habit to tick and Weekly goal.
+  - Inside a session the rest card is now "Timer": 60s / 90s / 2 min / custom, plus an Interval timer button, so the
+    HIIT timer is a tool within the workout rather than a competing action.
+  - The habit link shows as a line under the weekly goal ("Saving a session ticks Workout"); the weekly goal bar
+    turns green with a tick when the goal is met.

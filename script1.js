@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 105;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 107;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -8805,8 +8805,10 @@ function wkOrganise(){
   var big=sum.querySelector('.hmBig'), lbl=sum.querySelector('.sectLbl'), prog=sum.querySelector('.progress'), start=sum.querySelector('.wsStartBtn');
   if(big&&!sum.querySelector('.wkStats')){ var n=(big.querySelector('.hmBigNum')||{}).textContent||'0', of=(big.querySelector('.hmBigOf')||{}).textContent||'', m30=(of.match(/(\d+) in 30 days/)||[])[1]||'0';
     var best=0; try{ var days={}; (state.wlog||[]).forEach(function(w){ days[w.d]=1; }); var d=new Date(); for(var i=0;i<400;i++){ var ds=fmt(d); if(days[ds]) best++; else if(i>0) break; d.setDate(d.getDate()-1); } }catch(e){}
-    var html='<div class="wkStats"><div class="wkStat"><b>'+esc(n)+'</b><span>this week</span></div><div class="wkStat"><b>'+esc(m30)+'</b><span>last 30 days</span></div><div class="wkStat"><b>'+best+'</b><span>day streak</span></div></div>';
-    if(lbl) lbl.style.display='none'; big.insertAdjacentHTML('beforebegin',html); big.style.display='none'; }
+    var goal=(state.set&&+state.set.wkWeekGoal)||3, pctW=Math.min(100,Math.round((+n||0)/goal*100));
+    var html='<div class="wkStats"><div class="wkStat"><b>'+esc(n)+'</b><span>this week</span></div><div class="wkStat"><b>'+esc(m30)+'</b><span>last 30 days</span></div><div class="wkStat"><b>'+best+'</b><span>day streak</span></div></div>'+
+      '<div class="wkWeek"><div class="wkWeekTop"><span>Weekly goal</span><b>'+(pctW>=100?esc(n)+' of '+goal+' \u2713':esc(n)+' of '+goal)+'</b></div><div class="wkWeekBar'+(pctW>=100?' done':'')+'"><i style="width:'+pctW+'%"></i></div></div>';
+    if(lbl) lbl.style.display='none'; big.insertAdjacentHTML('beforebegin',html); big.style.display='none'; var pr=sum.querySelector('.progress'); if(pr) pr.style.display='none'; }
   if(start&&sum.lastElementChild!==start) sum.appendChild(start);
   var body=$('wkBody'); if(body&&body.querySelector('.exCard')&&!$('wkExLbl')){ var first=body.querySelector('.exCard'); first.insertAdjacentHTML('beforebegin','<div class="sectLbl wkExLbl" id="wkExLbl">'+ICON('workout')+'Exercises</div>'); }
 }
@@ -8834,7 +8836,7 @@ function jrRenderMood(){
   for(var d2=1;d2<=days;d2++){ var ds2=fmt(new Date(y,mo,d2)), m2=mm[ds2]; html+='<button type="button" class="jmCell'+(ds2===t?' today':'')+(m2?' has':'')+'" data-jm-day="'+ds2+'" style="'+(m2?'--mc:'+JRM[m2.k].c:'')+'">'+(m2?'<span class="jmCellE">'+JRM[m2.k].e+'</span>':'<span class="jmCellN">'+d2+'</span>')+'</button>'; }
   html+='</div></div>';
   /* year in pixels */
-  var yr=now.getFullYear(); html+='<div class="sectLbl" style="--txc:var(--tx-teal)">'+ICON('insights')+'Year in pixels \u00b7 '+yr+'</div><div class="jmCard"><div class="jmYp">';
+  var yr=now.getFullYear(); html+='<div class="sectLbl" style="--txc:var(--tx-teal)">'+ICON('stats')+'Year in pixels \u00b7 '+yr+'</div><div class="jmCard"><div class="jmYp">';
   for(var mi=0;mi<12;mi++){ html+='<div class="jmYpRow"><span class="jmYpM">'+'JFMAMJJASOND'[mi]+'</span>'; for(var dd=1;dd<=31;dd++){ var inM=dd<=new Date(yr,mi+1,0).getDate(); var k2=inM?(mm[fmt(new Date(yr,mi,dd))]||{}).k:null; html+='<i class="jmPx'+(inM?'':' off')+'" style="'+(k2?'background:'+JRM[k2].c:'')+'"></i>'; } html+='</div>'; }
   html+='</div><div class="jmLegend">'+JRM_ORDER.map(function(k){ return '<span><i style="background:'+JRM[k].c+'"></i>'+JRM[k].l+'</span>'; }).join('')+'</div></div>';
   box.innerHTML=html;
@@ -8964,12 +8966,12 @@ function openWkHabitPick(){ var hs=(state.habits||[]).filter(function(x){ return
   $('wkHabitList').addEventListener('click',function(e){ var b=e.target.closest('[data-wkh]'); if(!b) return; state.set.wkHabit=b.getAttribute('data-wkh'); persist(); closeSheet(); try{ renderWkModule(); }catch(x){} toastN(state.set.wkHabit==='none'?'No habit will be ticked':'Linked'); });
   /* module: library + habit link controls, routines section, per-card How to / Progress buttons */
   var orig=wkOrganise; window.wkOrganise=wkOrganise=function(){ orig.apply(this,arguments); var body=$('wkBody'); if(!body) return;
-    var lbl=$('wkExLbl'); if(lbl&&!lbl.querySelector('.wkLibBtn')) lbl.insertAdjacentHTML('beforeend','<button type="button" class="linkBtn wkLibBtn" data-exlib="1">Library</button>');
+    var lbl=$('wkExLbl'); if(lbl&&!lbl.querySelector('.wkLibBtn')) lbl.insertAdjacentHTML('beforeend','<button type="button" class="chip wkLibBtn" data-exlib="1">'+ICON('search')+'Library</button>');
     var sum=$('wkSummary'); if(sum&&!sum.querySelector('.wkHabitRow')){ var h=wkLinkedHabit(); sum.insertAdjacentHTML('beforeend','<button type="button" class="wkHabitRow" data-wkhabit="1">'+ICON('check')+'<span>'+(h?'Ticks <b>'+esc(h.name)+'</b> when you save a session':'Link a habit to tick when you save a session')+'</span>'+ICON('chev')+'</button>'); }
     var rt=$('wkRoutines'); if(!rt){ rt=document.createElement('div'); rt.id='wkRoutines'; var first=body.querySelector('#wkExLbl')||body.querySelector('.exCard'); if(first) first.parentNode.insertBefore(rt,first); else body.appendChild(rt); }
     var html=wkRoutinesHTML(); if(rt.innerHTML!==html) rt.innerHTML=html;
-    body.querySelectorAll('.exCard').forEach(function(c){ if(c.querySelector('.exTools')) return; var id=c.getAttribute('data-ex'), ex=exById(id), lib=exLibFind(ex); var row=c.querySelector('.exHeadRow'); if(!row) return;
-      row.insertAdjacentHTML('beforeend','<div class="exTools"><button type="button" class="exTool" data-exprog="'+esc(id)+'" aria-label="Progress" title="Progress">'+ICON('insights')+'</button>'+(lib?'<button type="button" class="exTool" data-exhow="'+lib.id+'" aria-label="How to" title="How to">?</button>':'')+'</div>'); var ch=row.querySelector(':scope > svg'); if(ch) row.appendChild(ch); }); };
+    body.querySelectorAll('.exCard').forEach(function(c){ var bar=c.querySelector('.exBar'), fi=bar&&bar.querySelector('i'); if(bar) bar.classList.toggle('hasVal',!!(fi&&parseFloat(fi.style.width)>0)); if(c.querySelector('.exTools')) return; var id=c.getAttribute('data-ex'), ex=exById(id), lib=exLibFind(ex); var row=c.querySelector('.exHeadRow'); if(!row) return;
+      row.insertAdjacentHTML('beforeend','<div class="exTools"><button type="button" class="exTool" data-exprog="'+esc(id)+'" aria-label="Progress" title="Progress">'+ICON('stats')+'</button>'+(lib?'<button type="button" class="exTool" data-exhow="'+lib.id+'" aria-label="How to do it" title="How to do it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.2 2.6c-.6.2-.9.7-.9 1.3v.4"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/></svg></button>':'')+'</div>'); var ch=row.querySelector(':scope > svg'); if(ch) row.appendChild(ch); }); };
   document.addEventListener('click',function(e){
     var t=e.target.closest&&e.target.closest('[data-exlib],[data-exprog],[data-exhow],[data-rtstart],[data-rt],[data-rtnew],[data-wkhabit]'); if(!t) return;
     if(t.hasAttribute('data-exlib')){ e.stopPropagation(); openExLib(); } else if(t.hasAttribute('data-exprog')){ e.stopPropagation(); e.preventDefault(); openExProgress(t.getAttribute('data-exprog')); } else if(t.hasAttribute('data-exhow')){ e.stopPropagation(); e.preventDefault(); openExHow(t.getAttribute('data-exhow')); }
@@ -9016,7 +9018,8 @@ function htClose(){ htStop(); $('hiit').classList.remove('on'); }
   $('htPresets').addEventListener('click',function(e){ var b=e.target.closest('[data-htp]'); if(!b) return; var p=HIIT_PRESETS.filter(function(x){ return x.n===b.getAttribute('data-htp'); })[0]; if(!p) return; $('htWork').value=p.w; $('htRest').value=p.r; $('htRounds').value=p.rounds; htSaveCfg(); });
   ['htWork','htRest','htRounds','htPrep'].forEach(function(id){ $(id).addEventListener('change',htSaveCfg); });
   /* entry points: Workouts module (next to Start session) and the session's rest card */
-  var o=wkOrganise; window.wkOrganise=wkOrganise=function(){ o.apply(this,arguments); var sum=$('wkSummary'); if(sum&&!sum.querySelector('.wkHiitBtn')){ var st=sum.querySelector('.wsStartBtn'); if(st) st.insertAdjacentHTML('afterend','<button type="button" class="btnS wkHiitBtn" data-hiit="1">'+ICON('clock')+'Interval timer</button>'); } };
+  var o=wkOrganise; window.wkOrganise=wkOrganise=function(){ o.apply(this,arguments); var sum=$('wkSummary'); if(sum&&!sum.querySelector('.wkHiitBtn')){ sum.insertAdjacentHTML('beforeend','<button type="button" class="btnS wkHiitBtn" data-hiit="1">'+ICON('clock')+'Interval timer</button>'); }
+    var st2=sum&&sum.querySelector('.wsStartBtn'), hb=sum&&sum.querySelector('.wkHiitBtn'); if(st2&&hb&&st2.nextElementSibling!==hb) sum.insertBefore(st2,hb); };
   var rest=$('wsRest'); if(rest&&!rest.querySelector('.wsRestCustom')){ var btns=rest.querySelector('.wsRestBtns'); if(btns){ btns.insertAdjacentHTML('beforeend','<span class="wsRestCustom"><input class="inp" id="wsRestCustom" type="number" inputmode="numeric" min="5" max="900" placeholder="sec" aria-label="Custom rest seconds"><button type="button" class="chip" id="wsRestCustomGo">Set</button></span><button type="button" class="chip" data-hiit="1">'+ICON('clock')+'Intervals</button>');
       $('wsRestCustomGo').addEventListener('click',function(){ var v=Math.max(5,Math.min(900,+$('wsRestCustom').value||0)); if(!v){ toastN('Enter seconds, e.g. 45'); return; } state.set.restSec=v; persist(); rest.querySelectorAll('[data-rest]').forEach(function(c){ c.classList.remove('sel'); }); if(WS){ WS.restEnd=Date.now()+v*1000; wsSave(); wsTickFn(); } toastN('Rest set to '+v+' s'); }); } }
   document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('[data-hiit]'); if(b){ e.stopPropagation(); htOpen(); } },true);
@@ -9224,6 +9227,29 @@ function exApplyPhotos(srcs){ var poses=document.querySelectorAll('#exHowBody .g
   document.querySelectorAll('#exHowBody .gdStepFig').forEach(function(sf,i){ var f=sf.querySelector('.exFig'); if(f) f.outerHTML='<img class="gdPhoto gdPhotoStep" src="'+srcs[i===1?1:0]+'" alt="">'; });
   var note=document.querySelector('#exHowBody .exHowNote'); if(note&&!/Free Exercise DB/.test(note.textContent)) note.textContent+=' Photos: Free Exercise DB (public domain).'; }
 (function(){ var oh=openExHow; window.openExHow=openExHow=function(id){ oh.apply(this,arguments); if(sheetOpen!=='exHowSheet') return; exPhotoProbe(id,function(srcs){ if(!srcs||sheetOpen!=='exHowSheet') return; exApplyPhotos(srcs); }); }; })();
+/* ================= One primary action: Start session; the timer is a tool (build 107) ================= */
+(function(){
+  /* module header gets a ⋯ menu, like Money, Vault and AI */
+  var head=document.querySelector('#wkModule .wkHead'); if(head&&!$('wkMoreBtn')){ var add=$('wkAdd');
+    head.insertAdjacentHTML('beforeend','<button class="wkBack wkMoreBtn" id="wkMoreBtn" aria-label="More"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button><div class="vMoreMenu wkMoreMenu" id="wkMoreMenu" hidden><button type="button" data-wm="timer">'+ICON('clock')+'Interval timer</button><button type="button" data-wm="habit">'+ICON('check')+'Habit to tick</button><button type="button" data-wm="goal">'+ICON('target')+'Weekly goal</button></div>');
+    if(add) head.appendChild(add);   /* + stays last */
+    $('wkMoreBtn').addEventListener('click',function(e){ e.stopPropagation(); var m=$('wkMoreMenu'); m.hidden=!m.hidden; });
+    $('wkMoreMenu').addEventListener('click',function(e){ var b=e.target.closest('[data-wm]'); if(!b) return; $('wkMoreMenu').hidden=true; var k=b.getAttribute('data-wm');
+      if(k==='timer') htOpen(); else if(k==='library') openExLib(); else if(k==='habit') openWkHabitPick(); else if(k==='goal') wkGoalPick(); });
+    document.addEventListener('click',function(e){ var m=$('wkMoreMenu'); if(m&&!m.hidden&&!e.target.closest('#wkMoreMenu,#wkMoreBtn')) m.hidden=true; }); }
+  function wkGoalPick(){ var cur=(state.set&&+state.set.wkWeekGoal)||3, v=prompt('Sessions per week',cur); if(v==null) return; v=Math.max(1,Math.min(14,parseInt(v,10)||cur)); state.set.wkWeekGoal=v; persist(); try{ renderWkModule(); }catch(e){} toastN('Weekly goal: '+v+' session'+(v===1?'':'s')); }
+  window.wkGoalPick=wkGoalPick;
+  /* the summary keeps one primary button; the timer and habit rows move into the menu */
+  var o=wkOrganise; window.wkOrganise=wkOrganise=function(){ o.apply(this,arguments); var sum=$('wkSummary'); if(!sum) return;
+    var hb=sum.querySelector('.wkHiitBtn'); if(hb) hb.remove();
+    var hr=sum.querySelector('.wkHabitRow'); if(hr) hr.remove();
+    var wk=sum.querySelector('.wkWeek'); if(wk&&!wk.querySelector('.wkWeekHabit')){ var h=wkLinkedHabit(); if(h) wk.insertAdjacentHTML('beforeend','<div class="wkWeekHabit">'+ICON('check')+'Saving a session ticks <b>'+esc(h.name)+'</b></div>'); }
+    var st=sum.querySelector('.wsStartBtn'); if(st&&sum.lastElementChild!==st) sum.appendChild(st); };
+  /* in a session the rest card becomes Timer: Rest | Intervals */
+  var rest=$('wsRest'); if(rest){ var lbl=rest.querySelector('.sectLbl'); if(lbl) lbl.innerHTML='<span class="bIc" data-icon="clock"></span>Timer';
+    var chip=rest.querySelector('[data-hiit]'); if(chip){ chip.innerHTML=ICON('clock')+'Interval timer'; chip.classList.add('wsIntervalChip'); } }
+})();
+
 function climb(el, root, attr){
   while(el && el !== root){
     if(el.getAttribute && el.getAttribute(attr) !== null) return el;
