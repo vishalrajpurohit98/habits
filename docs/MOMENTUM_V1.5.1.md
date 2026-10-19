@@ -561,3 +561,14 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Appearance › Typography › Bold text: heavier text across the app in two tiers (body 600, headings and labels 800)
     so headings stay heavier than body text. Replaces the old uniform font-weight control, which could make headings
     lighter.
+- **Build 109 — fixed "Start session does nothing":**
+  - Root cause: the Workouts layout pass had grown into a chain of wrappers (builds 97/99/107) that fought each
+    other — one added the interval-timer button and habit row, the next removed them — roughly 30 times a second
+    while the screen was idle. Every pass also re-appended the Start button, so a tap that landed between two
+    passes was discarded by the browser (the node moved between press and release) and nothing happened.
+  - wkOrganise is now a single idempotent pass (wkOrganiseV2) that updates values in place and only touches the DOM
+    when something actually changed: idle passes dropped from ~190 per 6 s to 2, with no idle DOM churn (less
+    battery use too).
+  - Start session also has a pointer-based fallback: a tap on it starts the session even if the button is
+    re-rendered mid-press, and any failure now shows the reason in a toast.
+  - New test WK-10 guards both (idle passes and the tap-through-re-render).

@@ -5421,7 +5421,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 108;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 109;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -14694,6 +14694,59 @@ function sheetOpenIsSession(){ var s=$('wkSession'); return !!(s&&s.classList.co
     $('tuneBoldTog').addEventListener('click',function(){ state.set.boldText=!state.set.boldText; persist(); applyBold(); });
   }
   applyBold();
+})();
+
+/* ================= Workouts: one idempotent layout pass (build 109) =================
+   Replaces the chain of wkOrganise wrappers from builds 97/99/107, which fought each other
+   (one added the timer button and habit row, the next removed them) ~30x a second and
+   re-appended the Start button mid-tap, so taps on it were swallowed. */
+var _wkBusy=false;
+function wkOrganiseV2(){
+  if(_wkBusy) return; var sum=$('wkSummary'), body=$('wkBody'); if(!sum||!body) return; _wkBusy=true;
+  try{
+    /* stats + weekly goal, built once and then updated in place */
+    var big=sum.querySelector('.hmBig'), n='0', m30='0';
+    if(big){ n=(big.querySelector('.hmBigNum')||{}).textContent||'0'; var of=(big.querySelector('.hmBigOf')||{}).textContent||''; m30=(of.match(/(\d+) in 30 days/)||[])[1]||'0'; if(big.style.display!=='none') big.style.display='none'; }
+    var lbl0=sum.querySelector(':scope > .sectLbl'); if(lbl0&&lbl0.style.display!=='none') lbl0.style.display='none';
+    var pr=sum.querySelector(':scope > .progress'); if(pr&&pr.style.display!=='none') pr.style.display='none';
+    var best=0; try{ var days={}; (state.wlog||[]).forEach(function(w){ if(w.d) days[w.d]=1; }); var d=new Date(); for(var i=0;i<400;i++){ var ds=fmt(d); if(days[ds]) best++; else if(i>0) break; d.setDate(d.getDate()-1); } }catch(e){}
+    var goal=(state.set&&+state.set.wkWeekGoal)||3, pctW=Math.min(100,Math.round((+n||0)/goal*100)), hab=wkLinkedHabit();
+    var stats=sum.querySelector('.wkStats');
+    if(!stats){ sum.insertAdjacentHTML('afterbegin','<div class="wkStats"><div class="wkStat"><b></b><span>this week</span></div><div class="wkStat"><b></b><span>last 30 days</span></div><div class="wkStat"><b></b><span>day streak</span></div></div><div class="wkWeek"><div class="wkWeekTop"><span>Weekly goal</span><b></b></div><div class="wkWeekBar"><i></i></div></div>'); stats=sum.querySelector('.wkStats'); }
+    var nums=sum.querySelectorAll('.wkStat b'), want=[String(n),String(m30),String(best)];
+    for(var j=0;j<nums.length;j++) if(nums[j].textContent!==want[j]) nums[j].textContent=want[j];
+    var wkTop=sum.querySelector('.wkWeekTop b'), wTxt=(pctW>=100?n+' of '+goal+' \u2713':n+' of '+goal);
+    if(wkTop&&wkTop.textContent!==wTxt) wkTop.textContent=wTxt;
+    var bar=sum.querySelector('.wkWeekBar'), fill=sum.querySelector('.wkWeekBar i');
+    if(bar) bar.classList.toggle('done',pctW>=100); if(fill&&fill.style.width!==pctW+'%') fill.style.width=pctW+'%';
+    var hRow=sum.querySelector('.wkWeekHabit'), hTxt=hab?('Saving a session ticks '+hab.name):'';
+    if(hab&&!hRow){ sum.querySelector('.wkWeek').insertAdjacentHTML('beforeend','<div class="wkWeekHabit">'+ICON('check')+'<span></span></div>'); hRow=sum.querySelector('.wkWeekHabit'); }
+    if(hRow){ var hs=hRow.querySelector('span'); if(hs&&hs.textContent!==hTxt) hs.textContent=hTxt; if(!hab) hRow.remove(); }
+    /* the timer and habit picker live in the header menu, so nothing else is added here */
+    var st=sum.querySelector('.wsStartBtn'); if(st&&sum.lastElementChild!==st) sum.appendChild(st);
+    /* exercises: label with Library chip, per-card tools, bars only when they have a value */
+    var first=body.querySelector('.exCard');
+    if(first&&!$('wkExLbl')) first.insertAdjacentHTML('beforebegin','<div class="sectLbl wkExLbl" id="wkExLbl">'+ICON('workout')+'Exercises<button type="button" class="chip wkLibBtn" data-exlib="1">'+ICON('search')+'Library</button></div>');
+    body.querySelectorAll('.exCard').forEach(function(c){
+      var b2=c.querySelector('.exBar'), fi=b2&&b2.querySelector('i'), has=!!(fi&&parseFloat(fi.style.width)>0);
+      if(b2&&b2.classList.contains('hasVal')!==has) b2.classList.toggle('hasVal',has);
+      if(c.querySelector('.exTools')) return;
+      var id=c.getAttribute('data-ex'), ex=exById(id), lib=exLibFind(ex), row=c.querySelector('.exHeadRow'); if(!row) return;
+      row.insertAdjacentHTML('beforeend','<div class="exTools"><button type="button" class="exTool" data-exprog="'+esc(id)+'" aria-label="Progress" title="Progress">'+ICON('stats')+'</button>'+(lib?'<button type="button" class="exTool" data-exhow="'+lib.id+'" aria-label="How to do it" title="How to do it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.2 2.6c-.6.2-.9.7-.9 1.3v.4"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/></svg></button>':'')+'</div>');
+      var ch=row.querySelector(':scope > svg'); if(ch) row.appendChild(ch);
+    });
+  }catch(e){} finally{ _wkBusy=false; }
+}
+/* the wrappers from builds 97/99/107 are superseded: install V2 as the only pass */
+window.wkOrganise=wkOrganise=wkOrganiseV2;
+/* Start session: a tap that survives the button being re-rendered mid-press */
+(function(){
+  var mod=$('wkModule'); if(!mod||mod.__tapBound) return; mod.__tapBound=true; var p0=null;
+  mod.addEventListener('pointerdown',function(e){ var b=e.target.closest&&e.target.closest('.wsStartBtn'); p0=b?{x:e.clientX,y:e.clientY,t:Date.now()}:null; },true);
+  mod.addEventListener('pointerup',function(e){ if(!p0) return; var dx=Math.abs(e.clientX-p0.x), dy=Math.abs(e.clientY-p0.y), dt=Date.now()-p0.t; p0=null;
+    if(dx>18||dy>18||dt>900) return;
+    if($('wkSession')&&$('wkSession').classList.contains('on')) return;   /* the click handler already ran */
+    setTimeout(function(){ try{ if(!$('wkSession').classList.contains('on')) startWorkoutSession(); }catch(err){ toastN('Could not start: '+(err&&err.message||err)); } },30); },true);
 })();
 
 function climb(el, root, attr){
