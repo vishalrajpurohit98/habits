@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 107;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 108;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -9248,6 +9248,47 @@ function exApplyPhotos(srcs){ var poses=document.querySelectorAll('#exHowBody .g
   /* in a session the rest card becomes Timer: Rest | Intervals */
   var rest=$('wsRest'); if(rest){ var lbl=rest.querySelector('.sectLbl'); if(lbl) lbl.innerHTML='<span class="bIc" data-icon="clock"></span>Timer';
     var chip=rest.querySelector('[data-hiit]'); if(chip){ chip.innerHTML=ICON('clock')+'Interval timer'; chip.classList.add('wsIntervalChip'); } }
+})();
+
+/* ================= Guided session + Bold text (build 108) ================= */
+function wsGuideList(){ var ids=(WS&&WS.routineEx&&WS.routineEx.length)?WS.routineEx:null; var exs=(state.exs||[]).filter(function(e){ return e.active!==false; }); if(ids) exs=ids.map(function(id){ return exById(id); }).filter(Boolean); return exs; }
+function wsGuideTarget(ex){ var mt=MTYPES[ex.mtype]||MTYPES.reps; var goal=+ex.goal||0; if(!goal) return {n:10,txt:'10 '+(ex.unit||mt.unit||'')}; var sets=(mt.setDefault?3:1), per=sets>1?Math.max(1,Math.round(goal/sets)):goal; return {n:per,sets:sets,txt:per+' '+(ex.unit||mt.unit||'')+(sets>1?' \u00d7 '+sets+' sets':'')}; }
+function wsRenderNow(){
+  var host=$('wsNow'); if(!host||!WS) return; var exs=wsGuideList(); if(!exs.length){ host.innerHTML=''; return; }
+  var i=Math.min(WS.gi||0,exs.length), done=(WS.gi||0);
+  if(i>=exs.length){ host.innerHTML='<div class="wsNowCard wsNowDone">'+ICON('check')+'<div><b>All exercises done</b><span>Tap Finish session to save it</span></div></div>'; return; }
+  var ex=exs[i], t=wsGuideTarget(ex), lib=exLibFind(ex), logged=(WS.sets[ex.id]||[]).length;
+  host.innerHTML='<div class="wsNowCard"><div class="wsNowTop"><span class="wsNowStep">Exercise '+(i+1)+' of '+exs.length+'</span>'+(lib?'<button type="button" class="chip wsNowHow" data-ws-how="'+lib.id+'">How to</button>':'')+'</div>'+
+    '<div class="wsNowMain"><div class="wsNowFig" id="wsNowFig">'+exFigureSVG(lib?lib.id:'')+'</div><div class="wsNowTxt"><b>'+esc(ex.name)+'</b><span>Target '+esc(t.txt)+'</span>'+(logged?'<span class="wsNowDoneN">'+logged+' set'+(logged===1?'':'s')+' logged</span>':'')+'</div></div>'+
+    '<div class="wsNowBtns"><button type="button" class="primary" data-ws-done="'+esc(ex.id)+'">'+ICON('check')+'Done '+esc(t.n+' '+(ex.unit||''))+'</button><button type="button" class="btnS" data-ws-skip="1">Next</button></div></div>';
+  if(lib){ exPhotoProbe(lib.id,function(srcs){ var f=$('wsNowFig'); if(srcs&&f&&sheetOpenIsSession()) f.innerHTML='<img src="'+srcs[0]+'" alt="">'; }); }
+}
+function sheetOpenIsSession(){ var s=$('wkSession'); return !!(s&&s.classList.contains('on')); }
+(function(){
+  var list=$('wsList'); if(list&&!$('wsNow')){ var n=document.createElement('div'); n.id='wsNow'; list.parentNode.insertBefore(n,list); }
+  var wr=wsRender; window.wsRender=wsRender=function(){ var r=wr.apply(this,arguments); try{ wsRenderNow(); }catch(e){} return r; };
+  var sw=startWorkoutSession; window.startWorkoutSession=startWorkoutSession=function(){ var fresh=!WS; var r=sw.apply(this,arguments); if(fresh&&WS){ WS.gi=0; wsSave(); } try{ wsRenderNow(); }catch(e){} if(fresh) toastN('Session started \u2014 follow the steps'); return r; };
+  var root=$('wkSession'); if(root) root.addEventListener('click',function(e){
+    var d=e.target.closest('[data-ws-done]'); if(d){ e.stopPropagation(); var id=d.getAttribute('data-ws-done'), ex=exById(id); if(!ex||!WS) return; var t=wsGuideTarget(ex);
+      WS.sets[id]=(WS.sets[id]||[]).concat([t.n]); var need=t.sets||1;
+      if((WS.sets[id]||[]).length>=need){ WS.gi=(WS.gi||0)+1; }
+      WS.restEnd=Date.now()+((+state.set.restSec)||90)*1000; wsSave(); wsRender(); wsTickFn(); if(typeof haptic==='function') haptic(); return; }
+    var sk=e.target.closest('[data-ws-skip]'); if(sk){ e.stopPropagation(); WS.gi=(WS.gi||0)+1; wsSave(); wsRender(); return; }
+    var h=e.target.closest('[data-ws-how]'); if(h){ e.stopPropagation(); openExHow(h.getAttribute('data-ws-how')); return; }
+  },true);
+  /* Bold text: Appearance › Typography */
+  function applyBold(){ var on=!!(state.set&&state.set.boldText); document.documentElement.classList.toggle('boldText',on);
+    try{ if(state.set.ui&&state.set.ui.weight){ delete state.set.ui.weight; applyUiTune(); } }catch(e){}
+    var t=$('tuneBoldTog'); if(t) t.classList.toggle('on',on); }
+  window.applyBoldText=applyBold;
+  var tg=document.querySelector('#pgSet .tuneGroupT'); var typo=[].slice.call(document.querySelectorAll('#pgSet .tuneGroupT')).filter(function(h){ return /typography/i.test(h.textContent); })[0];
+  if(typo&&!$('tuneBoldRow')){ var row=document.createElement('div'); row.className='setRow'; row.id='tuneBoldRow';
+    row.innerHTML='<div class="setTxt"><div class="setT">Bold text</div><div class="setS">Heavier text everywhere in the app</div></div><button type="button" class="tog" id="tuneBoldTog" role="switch" aria-label="Bold text"></button>';
+    var anchor=typo.nextElementSibling; while(anchor&&anchor.nextElementSibling&&!anchor.nextElementSibling.classList.contains('tuneGroupT')) anchor=anchor.nextElementSibling;
+    (anchor||typo).insertAdjacentElement('afterend',row);
+    $('tuneBoldTog').addEventListener('click',function(){ state.set.boldText=!state.set.boldText; persist(); applyBold(); });
+  }
+  applyBold();
 })();
 
 function climb(el, root, attr){

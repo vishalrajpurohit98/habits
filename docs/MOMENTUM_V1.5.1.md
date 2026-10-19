@@ -553,3 +553,11 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
     HIIT timer is a tool within the workout rather than a competing action.
   - The habit link shows as a line under the weekly goal ("Saving a session ticks Workout"); the weekly goal bar
     turns green with a tick when the goal is met.
+- **Build 108 — guided sessions and Bold text:**
+  - Start session now guides the workout: a card shows "Exercise 1 of N", the exercise photo, the target (goal split
+    into sets), a How-to link and a Done button that logs the set, starts the rest timer and moves to the next
+    exercise when the sets are complete; a "Next" button skips. When every exercise is done it says so and points to
+    Finish session. A toast confirms the session has started.
+  - Appearance › Typography › Bold text: heavier text across the app in two tiers (body 600, headings and labels 800)
+    so headings stay heavier than body text. Replaces the old uniform font-weight control, which could make headings
+    lighter.
