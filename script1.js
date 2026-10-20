@@ -16,7 +16,7 @@ function ensureXlsx(cb,errCb){
 }
 
 /* ================= constants ================= */
-var APP_VERSION = '1.5.1'; var WEB_BUILD = 109;   /* shown in Settings so you can confirm the newest build is loaded */
+var APP_VERSION = '1.5.1'; var WEB_BUILD = 110;   /* shown in Settings so you can confirm the newest build is loaded */
 var KEY = 'habits_v2';
 var OLDKEY = 'habits_v1';
 var EMOJIS = ['💪','🏃','📚','💧','🧘','🛏️','🥗','✍️','🎯','🎸','🚭','💊','🦷','🌅','🧹','💻','🗣️','🚴','🙏','🍎','💤','📵','🎨','💰'];
@@ -9342,6 +9342,110 @@ window.wkOrganise=wkOrganise=wkOrganiseV2;
     if(dx>18||dy>18||dt>900) return;
     if($('wkSession')&&$('wkSession').classList.contains('on')) return;   /* the click handler already ran */
     setTimeout(function(){ try{ if(!$('wkSession').classList.contains('on')) startWorkoutSession(); }catch(err){ toastN('Could not start: '+(err&&err.message||err)); } },30); },true);
+})();
+
+/* ================= Pick the exercises before starting (build 110) ================= */
+var _wkPick=null;
+function wkPickList(){ return (state.exs||[]).filter(function(e){ return e.active!==false; }); }
+function openWkPick(){
+  var exs=wkPickList();
+  if(!exs.length){ toastN('Add an exercise first \u2014 tap + or open the Library'); return; }
+  var last=(state.set&&state.set.wkLastPick)||null;
+  _wkPick=exs.filter(function(e){ return !last||last.indexOf(e.id)>=0; }).map(function(e){ return e.id; });
+  if(!_wkPick.length) _wkPick=exs.map(function(e){ return e.id; });
+  wkPickPaint(); openSheet('wkPickSheet');
+}
+function wkPickPaint(){
+  var exs=wkPickList();
+  $('wkPickList').innerHTML=exs.map(function(e){ var on=_wkPick.indexOf(e.id)>=0, t=wsGuideTarget(e), lib=exLibFind(e);
+    return '<button type="button" class="rtEx'+(on?' on':'')+'" data-wkp="'+esc(e.id)+'"><span class="rtChk">'+(on?ICON('check'):'')+'</span><span class="rtExN">'+esc(e.name)+'</span><span class="rtExM">'+esc(t.txt)+'</span></button>'; }).join('');
+  var n=_wkPick.length;
+  $('wkPickAll').textContent=(n===exs.length)?'Clear all':'Select all';
+  $('wkPickGo').textContent=n?('Start with '+n+' exercise'+(n===1?'':'s')):'Pick at least one';
+  $('wkPickGo').disabled=!n; $('wkPickGo').classList.toggle('isOff',!n);
+}
+function wkPickStart(){
+  if(!_wkPick||!_wkPick.length) return; var ids=_wkPick.slice();
+  state.set.wkLastPick=ids; persist(); closeSheet();
+  setTimeout(function(){ wsBegin(ids); },220);
+}
+function wsBegin(ids){
+  var fresh=!WS; if(!WS){ WS={start:Date.now(),acc:0,runFrom:Date.now(),paused:false,sets:{},restEnd:0,gi:0}; }
+  if(ids&&ids.length){ WS.routineEx=ids.slice(); WS.routineName=''; }
+  wsSave(); $('wkSession').classList.add('on'); $('wsSummary').hidden=true; wsRender(); wsStartTick();
+  if(fresh) toastN('Session started \u2014 follow the steps');
+}
+(function(){
+  document.body.insertAdjacentHTML('beforeend','<div class="sheet" id="wkPickSheet"><div class="grab"></div><div class="wkPickHead"><h2>Today\u2019s workout</h2><button type="button" class="chip" id="wkPickAll">Select all</button></div><div class="setS" style="margin:-4px 0 10px">Pick the exercises for this session. You can still log the others during it.</div><div id="wkPickList" class="rtList"></div><button type="button" class="primary" id="wkPickGo">Start</button></div>');
+  $('wkPickList').addEventListener('click',function(e){ var b=e.target.closest('[data-wkp]'); if(!b) return; var id=b.getAttribute('data-wkp'), i=_wkPick.indexOf(id); if(i>=0) _wkPick.splice(i,1); else _wkPick.push(id); wkPickPaint(); });
+  $('wkPickAll').addEventListener('click',function(){ var exs=wkPickList(); _wkPick=(_wkPick.length===exs.length)?[]:exs.map(function(e){ return e.id; }); wkPickPaint(); });
+  $('wkPickGo').addEventListener('click',wkPickStart);
+  /* Start session asks first; an already-running session just reopens */
+  window.startWorkoutSession=startWorkoutSession=function(){ if(WS){ $('wkSession').classList.add('on'); $('wsSummary').hidden=true; wsRender(); wsStartTick(); return; } openWkPick(); };
+  /* in-session: change which exercises are guided */
+  var now=$('wsNow'); if(now&&!$('wsEditPick')){ /* button is rendered with the card; see below */ }
+  var wrn=wsRenderNow; window.wsRenderNow=wsRenderNow=function(){ wrn.apply(this,arguments); var host=$('wsNow'); if(!host||!WS) return; var card=host.querySelector('.wsNowCard'); if(!card||card.querySelector('.wsPickEdit')) return;
+    var top=card.querySelector('.wsNowTop'); if(top) top.insertAdjacentHTML('beforeend','<button type="button" class="chip wsPickEdit" id="wsEditPick">Edit list</button>'); };
+  document.addEventListener('click',function(e){ var b=e.target.closest&&e.target.closest('#wsEditPick'); if(!b) return; e.stopPropagation();
+    _wkPick=(WS&&WS.routineEx&&WS.routineEx.length)?WS.routineEx.slice():wkPickList().map(function(x){ return x.id; });
+    wkPickPaint(); $('wkPickGo').textContent='Update list'; openSheet('wkPickSheet');
+    var go=$('wkPickGo'), h=function(){ if(!_wkPick.length) return; WS.routineEx=_wkPick.slice(); WS.gi=0; state.set.wkLastPick=_wkPick.slice(); persist(); wsSave(); closeSheet(); wsRender(); go.removeEventListener('click',h,true); };
+    go.addEventListener('click',h,true); },true);
+})();
+
+/* ================= Plan a session before starting (build 110) ================= */
+var _wsStartRaw=null, _wsPlanSel=null;
+function wsPlanDefaults(ex){
+  var mt=MTYPES[ex.mtype]||MTYPES.reps, saved=((state.set&&state.set.wkPlan)||{})[ex.id];
+  if(saved&&+saved.reps>0) return {sets:Math.max(1,+saved.sets||1),reps:+saved.reps};
+  var goal=+ex.goal||0, sets=mt.setDefault?3:1, per=goal?(sets>1?Math.max(1,Math.round(goal/sets)):goal):(mt.setDefault?10:1);
+  return {sets:sets,reps:per};
+}
+function wsPlanUnit(ex){ var mt=MTYPES[ex.mtype]||MTYPES.reps; return ex.unit||mt.unit||''; }
+function openSessionPlan(){
+  var exs=(state.exs||[]).filter(function(e){ return e.active!==false; });
+  if(!exs.length){ toastN('Add an exercise first \u2014 tap + or the Library'); return; }
+  var last=(state.set&&state.set.wkPlanPick)||null;
+  _wsPlanSel={}; exs.forEach(function(e){ var d=wsPlanDefaults(e); _wsPlanSel[e.id]={on:last?last.indexOf(e.id)>=0:true,sets:d.sets,reps:d.reps}; });
+  if(last&&!exs.some(function(e){ return _wsPlanSel[e.id].on; })) exs.forEach(function(e){ _wsPlanSel[e.id].on=true; });
+  $('wsPlanList').innerHTML=exs.map(function(e){ var p=_wsPlanSel[e.id], mt=MTYPES[e.mtype]||MTYPES.reps, u=wsPlanUnit(e), lib=exLibFind(e);
+    return '<div class="wsPlanRow'+(p.on?' on':'')+'" data-wp="'+esc(e.id)+'">'+
+      '<button type="button" class="wsPlanChk" data-wp-tog="'+esc(e.id)+'" role="checkbox" aria-checked="'+(p.on?'true':'false')+'" aria-label="'+esc(e.name)+'">'+ICON('check')+'</button>'+
+      '<div class="wsPlanMain"><b>'+esc(e.name)+'</b><span>'+esc(mt.label)+(e.goal?' \u00b7 goal '+esc(fmtExVal(e,e.goal)):'')+'</span></div>'+
+      '<div class="wsPlanNums">'+(mt.setDefault?'<label><input type="number" inputmode="numeric" min="1" max="20" value="'+p.sets+'" data-wp-sets="'+esc(e.id)+'" aria-label="Sets for '+esc(e.name)+'"><span>sets</span></label><span class="wsPlanX">\u00d7</span>':'')+
+      '<label><input type="number" inputmode="decimal" min="0" step="any" value="'+p.reps+'" data-wp-reps="'+esc(e.id)+'" aria-label="'+esc(u||'amount')+' for '+esc(e.name)+'"><span>'+esc(u)+'</span></label></div>'+
+      (lib?'<button type="button" class="exTool wsPlanHow" data-exhow="'+lib.id+'" aria-label="How to do it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.2 2.6c-.6.2-.9.7-.9 1.3v.4"/><circle cx="12" cy="17" r="1" fill="currentColor" stroke="none"/></svg></button>':'')+
+    '</div>'; }).join('');
+  wsPlanFoot(); openSheet('wsPlanSheet');
+}
+function wsPlanFoot(){ var n=0,sets=0; Object.keys(_wsPlanSel||{}).forEach(function(id){ var p=_wsPlanSel[id]; if(p.on){ n++; sets+=(+p.sets||1); } });
+  var f=$('wsPlanSum'); if(f) f.textContent=n?(n+' exercise'+(n===1?'':'s')+' \u00b7 '+sets+' set'+(sets===1?'':'s')):'Pick at least one exercise';
+  var b=$('wsPlanGo'); if(b) b.disabled=!n; }
+function wsPlanStart(){
+  var ids=Object.keys(_wsPlanSel||{}).filter(function(id){ return _wsPlanSel[id].on; }); if(!ids.length){ toastN('Pick at least one exercise'); return; }
+  var plan={}, store=(state.set.wkPlan=state.set.wkPlan||{});
+  ids.forEach(function(id){ var p=_wsPlanSel[id]; plan[id]={sets:Math.max(1,+p.sets||1),reps:+p.reps||0}; store[id]={sets:plan[id].sets,reps:plan[id].reps}; });
+  state.set.wkPlanPick=ids; persist(); closeSheet();
+  setTimeout(function(){ wsBegin(ids); if(WS){ WS.plan=plan; WS.gi=0; wsSave(); wsRender(); } },240);
+}
+(function(){
+  document.body.insertAdjacentHTML('beforeend','<div class="sheet" id="wsPlanSheet"><div class="grab"></div><h2>Plan your session</h2><div class="setS" style="margin-bottom:10px">Choose the exercises and the target for each.</div><div id="wsPlanList" class="wsPlanList"></div><div class="wsPlanFoot"><div class="setS" id="wsPlanSum"></div><button type="button" class="primary" id="wsPlanGo">Start session</button></div></div>');
+  $('wsPlanGo').addEventListener('click',wsPlanStart);
+  $('wsPlanList').addEventListener('click',function(e){ var t=e.target.closest('[data-wp-tog]'); if(!t) return; var id=t.getAttribute('data-wp-tog'), p=_wsPlanSel[id]; p.on=!p.on;
+    t.setAttribute('aria-checked',p.on?'true':'false'); t.closest('.wsPlanRow').classList.toggle('on',p.on); wsPlanFoot(); });
+  $('wsPlanList').addEventListener('input',function(e){ var s=e.target.getAttribute('data-wp-sets'), r=e.target.getAttribute('data-wp-reps');
+    if(s){ _wsPlanSel[s].sets=Math.max(1,Math.min(20,parseInt(e.target.value,10)||1)); wsPlanFoot(); }
+    if(r){ _wsPlanSel[r].reps=Math.max(0,parseFloat(e.target.value)||0); } });
+  /* Start session opens the planner; resuming a running session goes straight in */
+  /* one picker only: the selection-only sheet is superseded by this planner */
+  window.startWorkoutSession=startWorkoutSession=function(){ if(WS) return wsBegin(); openSessionPlan(); };
+  window.openWkPick=openWkPick=openSessionPlan;
+  var oldSheet=$('wkPickSheet'); if(oldSheet) oldSheet.remove();
+  /* the guided card follows the planned targets */
+  window.wsGuideTarget=wsGuideTarget=function(ex){ var mt=MTYPES[ex.mtype]||MTYPES.reps, u=ex.unit||mt.unit||'';
+    var p=(WS&&WS.plan&&WS.plan[ex.id])||null;
+    if(p){ var sets=Math.max(1,+p.sets||1), per=+p.reps||0; return {n:per,sets:sets,txt:per+' '+u+(sets>1?' \u00d7 '+sets+' sets':'')}; }
+    var d=wsPlanDefaults(ex); return {n:d.reps,sets:d.sets,txt:d.reps+' '+u+(d.sets>1?' \u00d7 '+d.sets+' sets':'')}; };
 })();
 
 function climb(el, root, attr){

@@ -572,3 +572,10 @@ About shows the native `versionName` on Android and `APP_VERSION` (1.5.1) on the
   - Start session also has a pointer-based fallback: a tap on it starts the session even if the button is
     re-rendered mid-press, and any failure now shows the reason in a toast.
   - New test WK-10 guards both (idle passes and the tap-through-re-render).
+- **Build 110 — plan a session before starting:**
+  - Start session now opens "Plan your session": every exercise you have added, each with a tick and editable
+    target (sets × reps, or km / min / kg for distance, duration and weight types), a How-to button, and a footer
+    showing "N exercises · M sets". Starting runs the session with only those exercises, in that order, and the
+    guided card uses each exercise's planned target.
+  - Targets and the selection are remembered for next time; the previous selection-only picker is retired so there
+    is a single planner.
